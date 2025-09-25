@@ -746,6 +746,37 @@ MonoBehaviour:
   m_TrackingType: 0
   m_UpdateType: 0
   m_UseRelativeTransform: 0
+--- !u!1 &1117014322
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1117014323}
+  m_Layer: 0
+  m_Name: leaplocation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1117014323
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1117014322}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.7442865, y: -0, z: -0, w: 0.66786057}
+  m_LocalPosition: {x: 0, y: 1, z: -9.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: -96.196, y: 0, z: 0}
 --- !u!1 &1139093813
 GameObject:
   m_ObjectHideFlags: 0
@@ -939,11 +970,11 @@ MonoBehaviour:
   _reconnectionAttempts: 5
   _reconnectionInterval: 180
   _trackFiducialMarkers: 0
-  _deviceOffsetMode: 0
+  _deviceOffsetMode: 2
   _deviceOffsetYAxis: 0
   _deviceOffsetZAxis: 0.08
   _deviceTiltXAxis: 0
-  _deviceOrigin: {fileID: 0}
+  _deviceOrigin: {fileID: 1117014323}
   _mainCamera: {fileID: 963194227}
   _temporalWarpingMode: 0
   _customWarpAdjustment: 17
@@ -4746,3 +4777,4 @@ SceneRoots:
   - {fileID: 1440235664}
   - {fileID: 282863899}
   - {fileID: 520482696}
+  - {fileID: 1117014323}
