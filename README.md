@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a project for people to control virtual gripper using their own hands in the Unity scene, and then tripper the real world's gripper to manipulate.
+This is a project for people to control virtual gripper using their own hands in the Unity scene, and then trigger the real world's gripper to manipulate.
 
 ## Setup
 
