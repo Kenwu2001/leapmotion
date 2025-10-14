@@ -16,24 +16,24 @@ public class JointAngle : MonoBehaviour
         // Thumb joints
         joints["Thumb0"] = GameObject.Find("R_thumb_a").transform;
         joints["Thumb1"] = GameObject.Find("R_thumb_b").transform;
-        joints["ThumbM"] = GameObject.Find("R_thumb_meta").transform;
+        // joints["ThumbM"] = GameObject.Find("R_thumb_Proximal").transform;
 
         // Index joints
-        joints["Index0"] = GameObject.Find("R_index_a").transform;
+        joints["Index0"] = GameObject.Find("R_index_Proximal").transform;
         joints["Index1"] = GameObject.Find("R_index_b").transform;
         joints["Index2"] = GameObject.Find("R_index_c").transform;
-        joints["IndexM"] = GameObject.Find("R_index_meta").transform;
+        // joints["IndexM"] = GameObject.Find("R_index_meta").transform;
 
         // Middle joints
-        joints["Middle0"] = GameObject.Find("R_middle_a").transform;
+        joints["Middle0"] = GameObject.Find("R_middle_Proximal").transform;
         joints["Middle1"] = GameObject.Find("R_middle_b").transform;
         joints["Middle2"] = GameObject.Find("R_middle_c").transform;
-        joints["MiddleM"] = GameObject.Find("R_middle_meta").transform;
+        // joints["MiddleM"] = GameObject.Find("R_middle_meta").transform;
 
         // Points needed for forming the basic plane of the palm
-        joints["Wrist"] = GameObject.Find("R_Palm").transform;
-        joints["PalmIndex"] = GameObject.Find("R_index_a").transform;
-        joints["PalmRing"] = GameObject.Find("R_ring_a").transform;
+        joints["Wrist"] = GameObject.Find("R_Wrist").transform;
+        joints["PalmIndex"] = GameObject.Find("R_index_Proximal").transform;
+        joints["PalmRing"] = GameObject.Find("R_ring_Proximal").transform;
 
         thumbAngle0 = 0f;
         thumbAngle1 = 0f;
@@ -52,35 +52,22 @@ public class JointAngle : MonoBehaviour
     {
         UpdatePalmNormal();
 
-        UpdateThumbPlane();
+        // UpdateThumbPlane();
 
-        thumbAngle0 = GetThumbAngle("Thumb0");
+        // thumbAngle0 = GetThumbAngle("Thumb0");
+        thumbAngle0 = joints["Thumb0"].localEulerAngles.z < 100 ? 0 : 360 - joints["Thumb0"].localEulerAngles.z;
         thumbAngle1 = GetJointAngle("Thumb1", "Thumb0");
-        thumbLRAngle = GetRotateAngle("ThumbM", "Thumb0", "Thumb1");
+        // thumbLRAngle = GetRotateAngle("ThumbM", "Thumb0", "Thumb1");
 
         indexAngle0 = GetJointPalmAngle("Index0");
         indexAngle1 = GetJointAngle("Index1", "Index0");
         indexAngle2 = GetJointAngle("Index2", "Index1");
-        indexLRAngle = GetRotateAngle("IndexM", "Index0", "Index1");
+        // indexLRAngle = GetRotateAngle("IndexM", "Index0", "Index1");
 
         middleAngle0 = GetJointPalmAngle("Middle0");
         middleAngle1 = GetJointAngle("Middle1", "Middle0");
         middleAngle2 = GetJointAngle("Middle2", "Middle1");
-        middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
-
-        Debug.Log($"Thumb 0 : {thumbAngle0:F1}°");
-        Debug.Log($"Thumb 1 : {thumbAngle1:F1}°");
-        Debug.Log($"Thumb LR : {thumbLRAngle:F1}°");
-
-        Debug.Log($"Index 0 : {indexAngle0:F1}°");
-        Debug.Log($"Index 1 : {indexAngle1:F1}°");
-        Debug.Log($"Index 2 : {indexAngle2:F1}°");
-        Debug.Log($"Index LR : {indexLRAngle:F1}°");
-
-        Debug.Log($"Middle 0 : {middleAngle0:F1}°");
-        Debug.Log($"Middle 1 : {middleAngle1:F1}°");
-        Debug.Log($"Middle 2 : {middleAngle2:F1}°");
-        Debug.Log($"Middle LR : {middleLRAngle:F1}°");
+        // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
     }
 
     // Compute the palm’s normal from (Wrist, PalmIndex, PalmRing) points.
@@ -140,17 +127,17 @@ public class JointAngle : MonoBehaviour
         return angle;
     }
 
-    void UpdateThumbPlane()
-    {
-        Vector3 p0 = joints["ThumbM"].position;
-        Vector3 p1 = joints["Thumb0"].position;
-        Vector3 p2 = joints["Index0"].position;
+    // void UpdateThumbPlane()
+    // {
+    //     Vector3 p0 = joints["ThumbM"].position;
+    //     Vector3 p1 = joints["Thumb0"].position;
+    //     Vector3 p2 = joints["Index0"].position;
 
-        Vector3 v1 = (p1 - p0).normalized;
-        Vector3 v2 = (p2 - p0).normalized;
+    //     Vector3 v1 = (p1 - p0).normalized;
+    //     Vector3 v2 = (p2 - p0).normalized;
 
-        thumbPlaneNormal = Vector3.Cross(v1, v2).normalized;
-    }
+    //     thumbPlaneNormal = Vector3.Cross(v1, v2).normalized;
+    // }
 
     // when calculating thumb angles, we need to use thumb plane
     float GetThumbAngle(string targetJoint)

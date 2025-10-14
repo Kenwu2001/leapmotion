@@ -11,9 +11,15 @@ public class DebugAngle : MonoBehaviour
     {
         if (angleText != null && jointAngle != null)
         {
-            angleText.text = "angle is : " + ((int)jointAngle.thumbAngle0).ToString() + " " + ((int)jointAngle.thumbAngle1).ToString() + "\n" 
-                + ((int)jointAngle.indexAngle0).ToString() + " " + ((int)jointAngle.indexAngle1).ToString() + " " + ((int)jointAngle.indexAngle2).ToString() + "\n" 
-                + " " + ((int)jointAngle.middleAngle0).ToString() + " " + ((int)jointAngle.middleAngle1).ToString() + " " + ((int)jointAngle.middleAngle2).ToString();
+            angleText.text = "angle is : " + " "
+                + ((int)jointAngle.thumbAngle0).ToString() + " "
+                + ((int)jointAngle.thumbAngle1).ToString() + "\n" 
+                + ((int)jointAngle.indexAngle0).ToString() + " "
+                + ((int)jointAngle.indexAngle1).ToString() + " "
+                + ((int)jointAngle.indexAngle2).ToString() + "\n" 
+                + ((int)jointAngle.middleAngle0).ToString()
+                + " " + ((int)jointAngle.middleAngle1).ToString()
+                + " " + ((int)jointAngle.middleAngle2).ToString();
         }
     }
 }
