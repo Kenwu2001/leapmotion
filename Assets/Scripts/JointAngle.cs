@@ -11,6 +11,8 @@ public class JointAngle : MonoBehaviour
     private Vector3 palmNormal;
     private Vector3 thumbPlaneNormal;
 
+    public float indexMiddleDistance;
+
     void Start()
     {
         // Thumb joints
@@ -46,6 +48,8 @@ public class JointAngle : MonoBehaviour
         thumbLRAngle = 0f;
         indexLRAngle = 0f;
         middleLRAngle = 0f;
+
+        indexMiddleDistance = 0f;
     }
 
     void Update()
@@ -68,6 +72,7 @@ public class JointAngle : MonoBehaviour
         middleAngle1 = GetJointAngle("Middle1", "Middle0");
         middleAngle2 = GetJointAngle("Middle2", "Middle1");
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
+        indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
     }
 
     // Compute the palm’s normal from (Wrist, PalmIndex, PalmRing) points.
@@ -151,5 +156,27 @@ public class JointAngle : MonoBehaviour
 
         float angle = Vector3.Angle(jointForwardVector, projectedForward);
         return angle;
+    }
+
+    float GetProjectedDistanceOnPalm(string jointA, string jointB)
+    {
+        if (!joints.ContainsKey(jointA) || !joints.ContainsKey(jointB))
+            return 0f;
+
+        Vector3 pointA = joints[jointA].position;
+        Vector3 pointB = joints[jointB].position;
+        Vector3 palmOrigin = joints["Wrist"].position;
+
+        Vector3 projectedA = ProjectPointOnPlane(pointA, palmOrigin, palmNormal);
+        Vector3 projectedB = ProjectPointOnPlane(pointB, palmOrigin, palmNormal);
+
+        return Vector3.Distance(projectedA, projectedB);
+    }
+
+    Vector3 ProjectPointOnPlane(Vector3 point, Vector3 planePoint, Vector3 planeNormal)
+    {
+        Vector3 toPoint = point - planePoint;
+        float distance = Vector3.Dot(toPoint, planeNormal);
+        return point - (distance * planeNormal);
     }
 }
