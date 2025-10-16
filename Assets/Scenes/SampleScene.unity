@@ -13835,28 +13835,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1422305614}
   triggerRightIndexTip: {fileID: 1201296085}
+  triggerRightMiddleTip: {fileID: 1307753529}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
   ThumbAngle4Center: {fileID: 1034460996006835901}
+  thumbJoint1Renderer: {fileID: 124780635897985153}
+  thumbJoint2Renderer: {fileID: 1178915889120169799}
+  thumbJoint4Renderer: {fileID: 9222757165382666382}
   IndexAngle1Center: {fileID: 2324697153451800258}
   IndexAngle2Center: {fileID: 5221562882630294554}
   IndexAngle3Center: {fileID: 7254718150763999399}
   IndexAngle4Center: {fileID: 3857413217209359350}
+  indexJoint1Renderer: {fileID: 5806927010173869839}
+  indexJoint2Renderer: {fileID: 8680072554135681281}
+  indexJoint4Renderer: {fileID: 958742127737337350}
   MiddleAngle1Center: {fileID: 4582782382478664306}
   MiddleAngle2Center: {fileID: 1723764353249012524}
   MiddleAngle3Center: {fileID: 2200133804739511602}
   MiddleAngle4Center: {fileID: 5977002730815378166}
-  maxIndexYAxisAngle: 0
-  indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentIndexRotationY: 0
-  currentMiddleRotationY: 0
-  maxMiddleYAxisAngle: 0
-  triggerRightMiddleTip: {fileID: 1307753529}
-  indexJoint1Renderer: {fileID: 0}
+  middleJoint1Renderer: {fileID: 8175649769676004323}
+  middleJoint2Renderer: {fileID: 2671083350001540983}
+  middleJoint4Renderer: {fileID: 7769744222350259651}
   isMapping: 1
   tt: 0
+  redColor: {r: 1, g: 0, b: 0, a: 1}
+  yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
+  purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
+  indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  currentIndexRotationY: 0
+  currentIndexRotationZ: 0
+  maxIndexYAxisAngle: 0
+  maxIndexZAxisAngle: 0
+  currentIndexTipRotationX: 0
+  middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  currentMiddleRotationY: 0
+  currentMiddleRotationZ: 0
+  maxMiddleYAxisAngle: 0
+  maxMiddleZAxisAngle: 0
 --- !u!4 &4582782382478664306
 Transform:
   m_ObjectHideFlags: 0

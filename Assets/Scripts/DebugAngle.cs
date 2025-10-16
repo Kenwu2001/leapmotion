@@ -28,7 +28,10 @@ public class DebugAngle : MonoBehaviour
                 + "RightIndexTip: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n"
                 + "RightMiddleTip: " + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 "maxIndexYAxisAngle: " + clawModuleController.maxIndexYAxisAngle.ToString("F3") + "\n" +
-                "tt: " + clawModuleController.tt.ToString();
+                "tt: " + clawModuleController.tt.ToString() + "\n" +
+                "joints[Index2].localRotation.eulerAngles.x: " + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
+                "jointAngleValueDebug: " + clawModuleController.jointAngleValueDebug.ToString("F4") + "°\n" +
+                "currentTipRotationDebug: " + clawModuleController.currentTipRotationDebug.ToString("F4") + "°\n";
         }
     }
 }
