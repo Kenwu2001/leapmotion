@@ -153,8 +153,8 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Index Finger
         // ==============================
 
-        UpdateIndexFingerAbduction();
-        // UpdateIndexFingerAbductionByZ();
+        // UpdateIndexFingerAbduction();
+        UpdateIndexFingerAbductionByZ();
 
         Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
         
@@ -180,8 +180,8 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Middle Finger State
         // ==============================
 
-        UpdateMiddleFingerAbduction();
-        // UpdateMiddleFingerAbductionByZ();
+        // UpdateMiddleFingerAbduction();
+        UpdateMiddleFingerAbductionByZ();
 
         UpdateFingertipRotation(
             triggerRightMiddleTip.isRightMiddleTipTouched,
@@ -234,6 +234,12 @@ public class ClawModuleController : MonoBehaviour
 
             indexFingerJoint1MaxRotationVector =
                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+
+            indexJoint1Renderer.material.color = yellowColor;
+        }
+        else
+        {
+            indexJoint1Renderer.material.color = originalColor;
         }
 
         targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
@@ -269,6 +275,12 @@ public class ClawModuleController : MonoBehaviour
 
             middleFingerJoint1MaxRotationVector =
                 (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+
+            middleJoint1Renderer.material.color = yellowColor;
+        }
+        else
+        {
+            middleJoint1Renderer.material.color = originalColor;
         }
 
         targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
@@ -303,6 +315,12 @@ public class ClawModuleController : MonoBehaviour
 
             indexFingerJoint2MaxRotationVector =
                 (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
+
+            indexJoint2Renderer.material.color = yellowColor;
+        }
+        else
+        {
+            indexJoint2Renderer.material.color = originalColor;
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
@@ -337,6 +355,12 @@ public class ClawModuleController : MonoBehaviour
 
             middleFingerJoint2MaxRotationVector =
                 (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
+
+            middleJoint2Renderer.material.color = yellowColor;
+        }
+        else
+        {
+            middleJoint2Renderer.material.color = originalColor;
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
@@ -391,13 +415,10 @@ public class ClawModuleController : MonoBehaviour
             jointRenderer.material.color = inactiveColor;
         }
 
-        
-        //FIXME: 好像需要有jointAngleValue - currentTipRotation
-        // 已知jointAngleValue最大是25
         if (isMapping)
         {
             float normalized = Mathf.InverseLerp(0f, 25f, jointAngleValue);
-            float tipEffect = Mathf.Lerp(currentTipRotation, 0f, normalized); // 越接近 25，影響越小
+            float tipEffect = Mathf.Lerp(currentTipRotation, 0f, normalized); // impact decreases as jointAngleValue approaches 25
             float finalAngle = jointAngleValue + tipEffect;
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }

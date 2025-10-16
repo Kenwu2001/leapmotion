@@ -273,7 +273,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -3.065918, y: 0, z: -3.9345703, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -1084,8 +1084,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.099610254, y: 0.04518113, z: 0.03669017}
-  m_Center: {x: -0.0018050474, y: 0.0003622883, z: -0.01016247}
+  m_Size: {x: 0.099610254, y: 0.08708256, z: 0.03669017}
+  m_Center: {x: -0.0018050545, y: -0.020588463, z: -0.010162468}
 --- !u!114 &1201296085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1163,8 +1163,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.099610254, y: 0.04518113, z: 0.033498876}
-  m_Center: {x: -0.0018050453, y: 0.00036228288, z: 0.009380734}
+  m_Size: {x: 0.099610254, y: 0.1104982, z: 0.033498876}
+  m_Center: {x: -0.001805058, y: -0.032296322, z: 0.009380733}
 --- !u!114 &1307753529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13868,13 +13868,16 @@ MonoBehaviour:
   currentIndexRotationZ: 0
   maxIndexYAxisAngle: 0
   maxIndexZAxisAngle: 0
-  currentIndexTipRotationX: 0
+  currentIndexTipRotationZ: 0
   middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
   middleFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
   currentMiddleRotationY: 0
   currentMiddleRotationZ: 0
   maxMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
+  currentMiddleTipRotationZ: 0
+  jointAngleValueDebug: 0
+  currentTipRotationDebug: 0
 --- !u!4 &4582782382478664306
 Transform:
   m_ObjectHideFlags: 0
