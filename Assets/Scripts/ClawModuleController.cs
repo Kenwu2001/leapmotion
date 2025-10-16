@@ -110,6 +110,9 @@ public class ClawModuleController : MonoBehaviour
     public float jointAngleValueDebug = 0f;
     public float currentTipRotationDebug = 0f;
 
+    // Dictionary to track how long each fingertip has been touched
+    private Dictionary<string, float> fingerTipTouchDurations = new Dictionary<string, float>();
+
     void Start()
     {
         if (jointAngle == null)
@@ -403,16 +406,32 @@ public class ClawModuleController : MonoBehaviour
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
 
+        // Initialize touch duration if not already present
+        if (!fingerTipTouchDurations.ContainsKey(jointName)) {
+            fingerTipTouchDurations[jointName] = 0f;
+        }
+
+        // Update the touch duration
         if (isTipTouched && jointAngle.joints.ContainsKey(jointName) &&
+            jointAngle.joints[jointName].localRotation.eulerAngles.x > requiredAngleThreshold) {
+            fingerTipTouchDurations[jointName] += Time.deltaTime;
+            // Change color to show it's being touched
+            jointRenderer.material.color = Color.Lerp(inactiveColor, activeColor, Mathf.Min(fingerTipTouchDurations[jointName], 1f));
+        }
+        else {
+            // Reset the timer if no longer touched
+            fingerTipTouchDurations[jointName] = 0f;
+            jointRenderer.material.color = inactiveColor;
+        }
+
+        // Only apply rotation if touched for more than 1 second
+        if (fingerTipTouchDurations[jointName] > 1.0f && 
+            jointAngle.joints.ContainsKey(jointName) &&
             jointAngle.joints[jointName].localRotation.eulerAngles.x > requiredAngleThreshold)
         {
             // Smoothly increase the rotation while the tip is touched
             currentTipRotation -= rotationSpeed * Time.deltaTime;
             jointRenderer.material.color = activeColor;
-        }
-        else
-        {
-            jointRenderer.material.color = inactiveColor;
         }
 
         if (isMapping)
@@ -458,6 +477,9 @@ public class ClawModuleController : MonoBehaviour
         maxMiddleYAxisAngle = MiddleAngle1CenterInitialRotation.eulerAngles.y;
         maxMiddleZAxisAngle = MiddleAngle2CenterInitialRotation.eulerAngles.z;
 
+        // Clear touch durations
+        fingerTipTouchDurations.Clear();
+        
         ApplyResetRotations();
         tt = 0f;
     }
