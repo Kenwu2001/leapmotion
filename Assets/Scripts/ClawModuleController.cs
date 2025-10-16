@@ -104,7 +104,9 @@ public class ClawModuleController : MonoBehaviour
     public float maxMiddleYAxisAngle;
     public float maxMiddleZAxisAngle;
 
-    // debug
+    public float currentMiddleTipRotationZ = 0f;
+
+    // ----------------------------------------- debug
     public float jointAngleValueDebug = 0f;
     public float currentTipRotationDebug = 0f;
 
@@ -138,26 +140,31 @@ public class ClawModuleController : MonoBehaviour
     {
         HandleInput();
 
-        // --- Thumb ---
+        // ==============================
+        // 🔹 Thumb
+        // ==============================
+
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle0, 0f, 0f);
         if (ThumbAngle4Center != null)
             ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1, 0f, 0f);
 
-        // --- Index ---
+        // ==============================
+        // 🔹 Index Finger
+        // ==============================
+
         UpdateIndexFingerAbduction();
         // UpdateIndexFingerAbductionByZ();
 
         Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
         
-        // // Always apply the current rotation, regardless of touch state
         targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
         UpdateFingertipRotation(
             triggerRightIndexTip.isRightIndexTipTouched,
             jointAngle.indexAngle2,
             302f,
-            "Index2",  // Now we pass the joint name as parameter
+            "Index2",
             ref currentIndexTipRotationZ,
             rotationSpeed,
             indexJoint4Renderer,
@@ -168,17 +175,31 @@ public class ClawModuleController : MonoBehaviour
 
         if (IndexAngle3Center != null)
             IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
-        // if (IndexAngle4Center != null)
-        //     IndexAngle4Center.localRotation = Quaternion.Euler(jointAngle.indexAngle2, 0f, 0f);
 
-        // --- Middle ---
+        // ==============================
+        // 🔹 Middle Finger State
+        // ==============================
+
         UpdateMiddleFingerAbduction();
         // UpdateMiddleFingerAbductionByZ();
 
+        UpdateFingertipRotation(
+            triggerRightMiddleTip.isRightMiddleTipTouched,
+            jointAngle.middleAngle2,
+            302f,
+            "Middle2",
+            ref currentMiddleTipRotationZ,
+            rotationSpeed,
+            middleJoint4Renderer,
+            purpleColor,
+            originalColor,
+            MiddleAngle4Center
+        );
+
         if (MiddleAngle3Center != null)
             MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
-        if (MiddleAngle4Center != null)
-            MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
+        // if (MiddleAngle4Center != null)
+        //     MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
     }
 
     // ==============================
@@ -398,10 +419,13 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     public void ResetFingerRotations()
     {
+        isMapping = true;
+
         currentIndexRotationY = currentIndexRotationZ = 0f;
         currentMiddleRotationY = currentMiddleRotationZ = 0f;
+
         currentIndexTipRotationZ = 0f;
-        isMapping = true;
+        currentMiddleTipRotationZ = 0f;
 
         indexFingerJoint1MaxRotationVector = IndexAngle1CenterInitialRotation.eulerAngles;
         indexFingerJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
