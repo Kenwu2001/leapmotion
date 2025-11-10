@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 public class JointAngle : MonoBehaviour
@@ -12,6 +13,18 @@ public class JointAngle : MonoBehaviour
     private Vector3 thumbPlaneNormal;
 
     public float indexMiddleDistance;
+    public float isClockWise;
+
+    // Reference to TriggerRightIndexTip
+    public TriggerRightIndexTip triggerRightIndexTip;
+
+    public Vector3 indexTipPos;
+    public Vector3 thumbTipPos;
+
+    private LineRenderer lineRenderer;
+
+
+    // some scripts
 
     void Start()
     {
@@ -50,6 +63,19 @@ public class JointAngle : MonoBehaviour
         middleLRAngle = 0f;
 
         indexMiddleDistance = 0f;
+
+        // Optionally auto-find if not assigned in Inspector
+        if (triggerRightIndexTip == null)
+            triggerRightIndexTip = FindObjectOfType<TriggerRightIndexTip>();
+
+        // Create LineRenderer
+        lineRenderer = gameObject.AddComponent<LineRenderer>();
+        lineRenderer.startWidth = 0.005f;
+        lineRenderer.endWidth = 0.005f;
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        lineRenderer.startColor = Color.red;
+        lineRenderer.endColor = Color.red;
+        lineRenderer.positionCount = 2;
     }
 
     void Update()
@@ -73,6 +99,31 @@ public class JointAngle : MonoBehaviour
         middleAngle2 = GetJointAngle("Middle2", "Middle1");
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
+
+        // Fetch touched points from TriggerRightIndexTip
+        if (triggerRightIndexTip != null)
+        {
+            Dictionary<string, Vector3> touchedPoints = triggerRightIndexTip.GetAllTouchedPoints();
+            // Example: access positions by tag
+            if (touchedPoints.ContainsKey("L_IndexTip") && touchedPoints.ContainsKey("L_ThumbTip"))
+            {
+                indexTipPos = touchedPoints["L_IndexTip"];
+                thumbTipPos = touchedPoints["L_ThumbTip"];
+                // Use indexTipPos and thumbTipPos as needed
+                // Debug.DrawLine(indexTipPos, thumbTipPos, Color.red);
+                lineRenderer.SetPosition(0, indexTipPos);
+                lineRenderer.SetPosition(1, thumbTipPos);
+                lineRenderer.enabled = true;
+            }
+            else
+            {
+                lineRenderer.enabled = false;
+            }
+        }
+
+        // OnDrawGizmos();
+
+        Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
     }
 
     // Compute the palm’s normal from (Wrist, PalmIndex, PalmRing) points.
@@ -179,4 +230,21 @@ public class JointAngle : MonoBehaviour
         float distance = Vector3.Dot(toPoint, planeNormal);
         return point - (distance * planeNormal);
     }
+
+    // void OnDrawGizmos()
+    // {
+    //     if (indexTipPos != Vector3.zero && thumbTipPos != Vector3.zero)
+    //     {
+    //         Gizmos.color = Color.red;
+    //         Gizmos.DrawLine(indexTipPos, thumbTipPos);
+    //         Gizmos.DrawSphere(indexTipPos, 0.02f);   // slightly bigger so you can see them
+    //         Gizmos.DrawSphere(thumbTipPos, 0.02f);
+    //     }
+    // }
+
+    //TODO: To determine the coordinates of the collider where your left index finger and thumb touch, 
+    // you need to calculate whether the line segment connecting the two points projects clockwise or 
+    // counterclockwise onto the red X-axis of joints["Index1"].
+
+
 }

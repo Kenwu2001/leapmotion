@@ -22,7 +22,7 @@ public class DebugAngle : MonoBehaviour
                 "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 // + ((int)jointAngle.indexAngle1).ToString() + " "
                 "indexAngle2: " + jointAngle.indexAngle2.ToString("F3") + "\n" +
-                "joints[Index2].localRotation.eulerAngles.x: " + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
+                // "joints[Index2].localRotation.eulerAngles.x: " + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
                 // + ((int)jointAngle.middleAngle0).ToString()
                 // + " " + ((int)jointAngle.middleAngle1).ToString()
                 "middleAngle2: " + jointAngle.middleAngle2.ToString("F3") + "\n" +
