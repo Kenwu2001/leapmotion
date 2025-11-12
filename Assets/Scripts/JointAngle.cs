@@ -13,18 +13,36 @@ public class JointAngle : MonoBehaviour
     private Vector3 thumbPlaneNormal;
 
     public float indexMiddleDistance;
+
+    // Public properties to expose plane state
+    public bool isPlaneActive { get; private set; } = false;
+    public string activeFinger { get; private set; } = "None"; // "Index", "Middle", or "None"
     public float isClockWise;
 
-    // Reference to TriggerRightIndexTip
+    // Reference for twisting
     public TriggerRightIndexTip triggerRightIndexTip;
+    public TriggerRightMiddleTip triggerRightMiddleTip;
 
     public Vector3 indexTipPos;
     public Vector3 thumbTipPos;
+    public Vector3 projectedIndexTip;
+    public Vector3 projectedThumbTip;
 
     private LineRenderer lineRenderer;
+    private GameObject debugPlane;
 
+    private Vector3 previousIndexTip;
+    private Vector3 previousThumbTip;
+    private bool hasPreviousFrame = false;
+    private float lastRotationDirection = 1f; // Default to clockwise
+    private float noRotationTimer = 0f; // Timer for no rotation detection
 
-    // some scripts
+    private Queue<float> rotationHistory = new Queue<float>();
+    private const int ROTATION_HISTORY_SIZE = 10; // Look at last 10 frames
+    private float rotationChangeTimer = 0f;
+    private const float ROTATION_CHANGE_COOLDOWN = 0.3f; // Don't change direction more than once per 0.3 seconds
+    private float cumulativeRotation = 0f; // Track total rotation
+    private const float MIN_ROTATION_THRESHOLD = 0.02f; // Minimum rotation to consider
 
     void Start()
     {
@@ -68,6 +86,9 @@ public class JointAngle : MonoBehaviour
         if (triggerRightIndexTip == null)
             triggerRightIndexTip = FindObjectOfType<TriggerRightIndexTip>();
 
+        if (triggerRightMiddleTip == null)
+            triggerRightMiddleTip = FindObjectOfType<TriggerRightMiddleTip>();
+
         // Create LineRenderer
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         lineRenderer.startWidth = 0.005f;
@@ -76,6 +97,26 @@ public class JointAngle : MonoBehaviour
         lineRenderer.startColor = Color.red;
         lineRenderer.endColor = Color.red;
         lineRenderer.positionCount = 2;
+
+        // Create debug plane
+        debugPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        debugPlane.transform.localScale = new Vector3(0.05f, 1f, 0.05f);
+        debugPlane.name = "Index1_DebugPlane";
+
+        // Make it semi-transparent and double-sided
+        Renderer planeRenderer = debugPlane.GetComponent<Renderer>();
+        Material planeMaterial = new Material(Shader.Find("Standard"));
+        planeMaterial.color = new Color(0f, 1f, 0f, 0.3f);
+        planeMaterial.SetFloat("_Mode", 3); // Transparent mode
+        planeMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        planeMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        planeMaterial.SetInt("_ZWrite", 0);
+        planeMaterial.SetInt("_Cull", 0); // Disable backface culling (0 = Off, shows both sides)
+        planeMaterial.DisableKeyword("_ALPHATEST_ON");
+        planeMaterial.EnableKeyword("_ALPHABLEND_ON");
+        planeMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        planeMaterial.renderQueue = 3000;
+        planeRenderer.material = planeMaterial;
     }
 
     void Update()
@@ -98,30 +139,188 @@ public class JointAngle : MonoBehaviour
         middleAngle1 = GetJointAngle("Middle1", "Middle0");
         middleAngle2 = GetJointAngle("Middle2", "Middle1");
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
+        
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
 
-        // Fetch touched points from TriggerRightIndexTip
+        // Determine which finger to use based on touch detection
+        bool useIndexFinger = false;
+        bool useMiddleFinger = false;
+        string activeJoint = "Index1";
+        Dictionary<string, Vector3> touchedPoints = null;
+
+        // Check TriggerRightIndexTip first
         if (triggerRightIndexTip != null)
         {
-            Dictionary<string, Vector3> touchedPoints = triggerRightIndexTip.GetAllTouchedPoints();
-            // Example: access positions by tag
+            Dictionary<string, Vector3> indexTouchPoints = triggerRightIndexTip.GetAllTouchedPoints();
+            if (indexTouchPoints.ContainsKey("L_IndexTip") && indexTouchPoints.ContainsKey("L_ThumbTip"))
+            {
+                useIndexFinger = true;
+                touchedPoints = indexTouchPoints;
+                activeJoint = "Index1";
+            }
+        }
+
+        // Check TriggerRightMiddleTip if index isn't active
+        if (!useIndexFinger && triggerRightMiddleTip != null)
+        {
+            Dictionary<string, Vector3> middleTouchPoints = triggerRightMiddleTip.GetAllTouchedPoints();
+            if (middleTouchPoints.ContainsKey("L_IndexTip") && middleTouchPoints.ContainsKey("L_ThumbTip"))
+            {
+                useMiddleFinger = true;
+                touchedPoints = middleTouchPoints;
+                activeJoint = "Middle1";
+                Debug.Log("Using Middle Finger - Touch points detected");
+            }
+        }
+
+        // Process touched points and update visualization
+        if ((useIndexFinger || useMiddleFinger) && touchedPoints != null)
+        {
             if (touchedPoints.ContainsKey("L_IndexTip") && touchedPoints.ContainsKey("L_ThumbTip"))
             {
                 indexTipPos = touchedPoints["L_IndexTip"];
                 thumbTipPos = touchedPoints["L_ThumbTip"];
-                // Use indexTipPos and thumbTipPos as needed
-                // Debug.DrawLine(indexTipPos, thumbTipPos, Color.red);
-                lineRenderer.SetPosition(0, indexTipPos);
-                lineRenderer.SetPosition(1, thumbTipPos);
+
+                // Project positions onto the debug plane
+                if (debugPlane != null && joints.ContainsKey(activeJoint))
+                {
+                    Transform activeFingerJoint = joints[activeJoint];
+                    Vector3 planeNormal = activeFingerJoint.right;
+
+                    // UPDATE PLANE POSITION FIRST, BEFORE PROJECTION
+                    debugPlane.transform.position = activeFingerJoint.position + activeFingerJoint.right * -0.22f;
+                    debugPlane.transform.rotation = Quaternion.LookRotation(activeFingerJoint.up, activeFingerJoint.right);
+
+                    // NOW get the updated plane position for projection
+                    Vector3 planePoint = debugPlane.transform.position;
+
+                    projectedIndexTip = ProjectPointOnPlane(indexTipPos, planePoint, planeNormal);
+                    projectedThumbTip = ProjectPointOnPlane(thumbTipPos, planePoint, planeNormal);
+
+                    lineRenderer.SetPosition(0, projectedIndexTip);
+                    lineRenderer.SetPosition(1, projectedThumbTip);
+
+                    Debug.Log($"Active Joint: {activeJoint}, ProjectedIndex: {projectedIndexTip}, ProjectedThumb: {projectedThumbTip}");
+
+                    // Calculate rotation direction compared to previous frame
+                    if (hasPreviousFrame)
+                    {
+                        float newRotation = GetRotationDirection(
+                            previousIndexTip, previousThumbTip,
+                            projectedIndexTip, projectedThumbTip,
+                            activeJoint
+                        );
+                        
+                        // Add to rotation history
+                        rotationHistory.Enqueue(newRotation);
+                        if (rotationHistory.Count > ROTATION_HISTORY_SIZE)
+                            rotationHistory.Dequeue();
+                        
+                        // Calculate weighted average (recent frames have more weight)
+                        float weightedSum = 0f;
+                        float weightTotal = 0f;
+                        int index = 0;
+                        foreach (float rot in rotationHistory)
+                        {
+                            float weight = (index + 1) / (float)rotationHistory.Count; // More recent = higher weight
+                            weightedSum += rot * weight;
+                            weightTotal += weight;
+                            index++;
+                        }
+                        
+                        float averageRotation = weightTotal > 0 ? weightedSum / weightTotal : 0f;
+                        
+                        // Track cumulative rotation magnitude
+                        if (newRotation != 0f)
+                        {
+                            cumulativeRotation += Mathf.Abs(Vector3.Angle(
+                                (previousThumbTip - previousIndexTip).normalized,
+                                (projectedThumbTip - projectedIndexTip).normalized
+                            ));
+                        }
+                        
+                        // Only update if we have clear consensus AND enough rotation AND cooldown expired
+                        rotationChangeTimer += Time.deltaTime;
+                        
+                        if (Mathf.Abs(averageRotation) > 0.5f && // Clear direction (> 50% consensus)
+                            cumulativeRotation > MIN_ROTATION_THRESHOLD && // Minimum rotation threshold
+                            rotationChangeTimer >= ROTATION_CHANGE_COOLDOWN) // Cooldown expired
+                        {
+                            float newDirection = averageRotation > 0 ? 1f : -1f;
+                            
+                            // Only change if different from current
+                            if (newDirection != isClockWise)
+                            {
+                                isClockWise = newDirection;
+                                lastRotationDirection = newDirection;
+                                rotationChangeTimer = 0f; // Reset cooldown
+                                cumulativeRotation = 0f; // Reset cumulative rotation
+                            }
+                            
+                            noRotationTimer = 0f;
+                        }
+                        else if (cumulativeRotation < MIN_ROTATION_THRESHOLD)
+                        {
+                            // No meaningful rotation detected
+                            noRotationTimer += Time.deltaTime;
+                            
+                            if (noRotationTimer >= 1f)
+                            {
+                                isClockWise = 0f;
+                                cumulativeRotation = 0f;
+                            }
+                            else
+                            {
+                                isClockWise = lastRotationDirection;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        isClockWise = lastRotationDirection;
+                        noRotationTimer = 0f;
+                        cumulativeRotation = 0f;
+                        rotationHistory.Clear();
+                    }
+
+                    // Store current frame for next comparison
+                    previousIndexTip = projectedIndexTip;
+                    previousThumbTip = projectedThumbTip;
+                    hasPreviousFrame = true;
+
+                    // Show the plane
+                    debugPlane.SetActive(true);
+                    isPlaneActive = true;
+                    activeFinger = useIndexFinger ? "Index" : "Middle";
+                }
+                else
+                {
+                    lineRenderer.SetPosition(0, indexTipPos);
+                    lineRenderer.SetPosition(1, thumbTipPos);
+                }
+
                 lineRenderer.enabled = true;
-            }
-            else
-            {
-                lineRenderer.enabled = false;
+
+                if (hasPreviousFrame && isClockWise != 0)
+                {
+                    Debug.Log($"Rotation on {activeJoint}: {(isClockWise > 0 ? "CLOCKWISE" : "COUNTERCLOCKWISE")} ({isClockWise:F3})");
+                }
             }
         }
-
-        // OnDrawGizmos();
+        else
+        {
+            // No touch detected - hide everything
+            lineRenderer.enabled = false;
+            debugPlane.SetActive(false); // HIDE THE PLANE
+            isPlaneActive = false;
+            activeFinger = "None";
+            hasPreviousFrame = false;
+            lastRotationDirection = 1f;
+            noRotationTimer = 0f;
+            cumulativeRotation = 0f;
+            rotationHistory.Clear();
+            rotationChangeTimer = 0f;
+        }
 
         Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
     }
@@ -231,20 +430,38 @@ public class JointAngle : MonoBehaviour
         return point - (distance * planeNormal);
     }
 
-    // void OnDrawGizmos()
-    // {
-    //     if (indexTipPos != Vector3.zero && thumbTipPos != Vector3.zero)
-    //     {
-    //         Gizmos.color = Color.red;
-    //         Gizmos.DrawLine(indexTipPos, thumbTipPos);
-    //         Gizmos.DrawSphere(indexTipPos, 0.02f);   // slightly bigger so you can see them
-    //         Gizmos.DrawSphere(thumbTipPos, 0.02f);
-    //     }
-    // }
+    // Calculate rotation direction from previous frame to current frame
+    // Returns 1 for clockwise, -1 for counterclockwise, 0 for no clear rotation
+    float GetRotationDirection(Vector3 prevPoint1, Vector3 prevPoint2, Vector3 currPoint1, Vector3 currPoint2, string jointName = "Index1")
+    {
+        if (!joints.ContainsKey(jointName))
+            return 0f;
 
-    //TODO: To determine the coordinates of the collider where your left index finger and thumb touch, 
-    // you need to calculate whether the line segment connecting the two points projects clockwise or 
-    // counterclockwise onto the red X-axis of joints["Index1"].
+        Transform joint = joints[jointName];
+        Vector3 planeNormal = joint.right; // The plane normal (red axis)
 
+        // Get the line vectors for previous and current frames
+        Vector3 prevLine = (prevPoint2 - prevPoint1).normalized;
+        Vector3 currLine = (currPoint2 - currPoint1).normalized;
 
+        // Check if lines are too similar (no meaningful rotation)
+        float similarity = Vector3.Dot(prevLine, currLine);
+        if (similarity > 0.9999f) // Almost identical
+            return 0f;
+
+        // Calculate the cross product to determine rotation direction
+        // Cross product of (previous → current) gives rotation axis
+        Vector3 rotationAxis = Vector3.Cross(prevLine, currLine);
+
+        // Project rotation axis onto plane normal to get signed rotation
+        float rotationSign = Vector3.Dot(rotationAxis, planeNormal);
+
+        // Return only 1 or -1 based on sign
+        if (rotationSign > 0.001f)
+            return 1f;  // Clockwise
+        else if (rotationSign < -0.001f)
+            return -1f; // Counterclockwise
+        else
+            return 0f;  // No clear rotation
+    }
 }

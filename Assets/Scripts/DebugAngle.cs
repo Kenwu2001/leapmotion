@@ -32,7 +32,9 @@ public class DebugAngle : MonoBehaviour
                 // "maxIndexYAxisAngle: " + clawModuleController.maxIndexYAxisAngle.ToString("F3") + "\n" +
                 // "tt: " + clawModuleController.tt.ToString() + "\n" +
                 "jointAngleValueDebug: " + clawModuleController.jointAngleValueDebug.ToString("F4") + "°\n" +
-                "currentTipRotationDebug: " + clawModuleController.currentTipRotationDebug.ToString("F4") + "°\n";
+                "currentTipRotationDebug: " + clawModuleController.currentTipRotationDebug.ToString("F4") + "°\n" +
+                "isPlaneActive" + jointAngle.isPlaneActive.ToString() + "\n" +
+                "isClockWise: " + jointAngle.isClockWise.ToString() + "\n";
         }
     }
 }
