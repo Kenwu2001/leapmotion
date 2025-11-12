@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
+// i want the same funtionality when the right middle finger is touched (triggerRightThumbTip), just as the same way you do with right index finger
+
 public class JointAngle : MonoBehaviour
 {
     public Dictionary<string, Transform> joints = new Dictionary<string, Transform>();
@@ -16,12 +18,13 @@ public class JointAngle : MonoBehaviour
 
     // Public properties to expose plane state
     public bool isPlaneActive { get; private set; } = false;
-    public string activeFinger { get; private set; } = "None"; // "Index", "Middle", or "None"
+    public string activeFinger { get; private set; } = "None"; // "Index", "Middle", "Thumb", or "None"
     public float isClockWise;
 
     // Reference for twisting
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
+    public TriggerRightThumbTip triggerRightThumbTip;
 
     public Vector3 indexTipPos;
     public Vector3 thumbTipPos;
@@ -89,6 +92,9 @@ public class JointAngle : MonoBehaviour
         if (triggerRightMiddleTip == null)
             triggerRightMiddleTip = FindObjectOfType<TriggerRightMiddleTip>();
 
+        if (triggerRightThumbTip == null)
+            triggerRightThumbTip = FindObjectOfType<TriggerRightThumbTip>();
+
         // Create LineRenderer
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         lineRenderer.startWidth = 0.005f;
@@ -139,12 +145,13 @@ public class JointAngle : MonoBehaviour
         middleAngle1 = GetJointAngle("Middle1", "Middle0");
         middleAngle2 = GetJointAngle("Middle2", "Middle1");
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
-        
+
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
 
         // Determine which finger to use based on touch detection
         bool useIndexFinger = false;
         bool useMiddleFinger = false;
+        bool useThumbFinger = false;
         string activeJoint = "Index1";
         Dictionary<string, Vector3> touchedPoints = null;
 
@@ -173,8 +180,21 @@ public class JointAngle : MonoBehaviour
             }
         }
 
+        // Check TriggerRightThumbTip if index and middle aren't active
+        if (!useIndexFinger && !useMiddleFinger && triggerRightThumbTip != null)
+        {
+            Dictionary<string, Vector3> thumbTouchPoints = triggerRightThumbTip.GetAllTouchedPoints();
+            if (thumbTouchPoints.ContainsKey("L_IndexTip") && thumbTouchPoints.ContainsKey("L_ThumbTip"))
+            {
+                useThumbFinger = true;
+                touchedPoints = thumbTouchPoints;
+                activeJoint = "Thumb1";
+                Debug.Log("Using Thumb Finger - Touch points detected");
+            }
+        }
+
         // Process touched points and update visualization
-        if ((useIndexFinger || useMiddleFinger) && touchedPoints != null)
+        if ((useIndexFinger || useMiddleFinger || useThumbFinger) && touchedPoints != null)
         {
             if (touchedPoints.ContainsKey("L_IndexTip") && touchedPoints.ContainsKey("L_ThumbTip"))
             {
@@ -291,7 +311,7 @@ public class JointAngle : MonoBehaviour
                     // Show the plane
                     debugPlane.SetActive(true);
                     isPlaneActive = true;
-                    activeFinger = useIndexFinger ? "Index" : "Middle";
+                    activeFinger = useIndexFinger ? "Index" : (useMiddleFinger ? "Middle" : "Thumb");
                 }
                 else
                 {

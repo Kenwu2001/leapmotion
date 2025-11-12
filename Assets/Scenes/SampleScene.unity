@@ -469,6 +469,75 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 159840490}
   m_Mesh: {fileID: -13198011075192669, guid: 060d86766bc34b044be7857af6cea2fa, type: 3}
+--- !u!1 &187972393
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 187972394}
+  - component: {fileID: 187972396}
+  - component: {fileID: 187972395}
+  m_Layer: 0
+  m_Name: R_ThumbTriggerTip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &187972394
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187972393}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 333476426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &187972395
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187972393}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.099610254, y: 0.08708256, z: 0.03669017}
+  m_Center: {x: -0.0018050545, y: -0.020588463, z: -0.010162468}
+--- !u!114 &187972396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187972393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4cc37139a9211f48937fa7ec84e287b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetTags:
+  - L_IndexTip
+  - L_ThumbTip
 --- !u!1 &228721857 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2726022000311502766, guid: b09d9819d278b874fbd3e1ac5e841580, type: 3}
@@ -831,8 +900,17 @@ MonoBehaviour:
   indexMiddleDistance: 0
   isClockWise: 0
   triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
+  projectedIndexTip: {x: 0, y: 0, z: 0}
+  projectedThumbTip: {x: 0, y: 0, z: 0}
+--- !u!4 &333476426 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4680002838565022828, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+  m_PrefabInstance: {fileID: 1770763344}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &347623782
 GameObject:
   m_ObjectHideFlags: 0
@@ -916,6 +994,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 347623782}
   m_Mesh: {fileID: -5646418913876977197, guid: 060d86766bc34b044be7857af6cea2fa, type: 3}
+--- !u!4 &365195118 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4680002838565022828, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+  m_PrefabInstance: {fileID: 940047282}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &437571339
 GameObject:
   m_ObjectHideFlags: 0
@@ -1186,7 +1269,7 @@ Transform:
   m_GameObject: {fileID: 484823143}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.113, y: 0.928, z: -10.0938}
+  m_LocalPosition: {x: 0.113, y: 0.928, z: -9.418}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1288,8 +1371,12 @@ MonoBehaviour:
   indexMiddleDistance: 0
   isClockWise: 0
   triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
+  projectedIndexTip: {x: 0, y: 0, z: 0}
+  projectedThumbTip: {x: 0, y: 0, z: 0}
 --- !u!1 &564750032
 GameObject:
   m_ObjectHideFlags: 0
@@ -1924,8 +2011,12 @@ MonoBehaviour:
   indexMiddleDistance: 0
   isClockWise: 0
   triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
+  projectedIndexTip: {x: 0, y: 0, z: 0}
+  projectedThumbTip: {x: 0, y: 0, z: 0}
 --- !u!1 &793936325
 GameObject:
   m_ObjectHideFlags: 0
@@ -9279,6 +9370,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3723644639497809696, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1892804444}
+    - targetCorrespondingSourceObject: {fileID: 4680002838565022828, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1540125985}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4196411269979556488, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
@@ -9661,8 +9755,12 @@ MonoBehaviour:
   indexMiddleDistance: 0
   isClockWise: 0
   triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
+  projectedIndexTip: {x: 0, y: 0, z: 0}
+  projectedThumbTip: {x: 0, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -9942,6 +10040,7 @@ MonoBehaviour:
   jointAngle: {fileID: 940047319}
   triggerRightIndexTip: {fileID: 1907101962}
   triggerRightMiddleTip: {fileID: 1892804445}
+  triggerRightThumbTip: {fileID: 1540125987}
   ThumbAngle1Center: {fileID: 1173910316}
   ThumbAngle2Center: {fileID: 83926891}
   ThumbAngle3Center: {fileID: 115009900}
@@ -9968,6 +10067,13 @@ MonoBehaviour:
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
+  thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  currentThumbRotationY: 0
+  currentThumbRotationZ: 0
+  maxThumbYAxisAngle: 0
+  maxThumbZAxisAngle: 0
+  currentThumbTipRotationZ: 0
   indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
   indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
   currentIndexRotationY: 0
@@ -10597,8 +10703,12 @@ MonoBehaviour:
   indexMiddleDistance: 0
   isClockWise: 0
   triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
+  projectedIndexTip: {x: 0, y: 0, z: 0}
+  projectedThumbTip: {x: 0, y: 0, z: 0}
 --- !u!1 &1422326814
 GameObject:
   m_ObjectHideFlags: 0
@@ -14615,6 +14725,75 @@ Transform:
   - {fileID: 918737498}
   m_Father: {fileID: 1033347336}
   m_LocalEulerAnglesHint: {x: 0, y: 41.213, z: 0}
+--- !u!1 &1540125984
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1540125985}
+  - component: {fileID: 1540125987}
+  - component: {fileID: 1540125986}
+  m_Layer: 0
+  m_Name: R_ThumbTriggerTip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1540125985
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540125984}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 365195118}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1540125986
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540125984}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.099610254, y: 0.08708256, z: 0.03669017}
+  m_Center: {x: -0.0018050545, y: -0.020588463, z: -0.010162468}
+--- !u!114 &1540125987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540125984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4cc37139a9211f48937fa7ec84e287b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetTags:
+  - L_IndexTip
+  - L_ThumbTip
 --- !u!4 &1556912716 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3437638956570127455, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
@@ -21782,6 +21961,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3723644639497809696, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1307753527}
+    - targetCorrespondingSourceObject: {fileID: 4680002838565022828, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 187972394}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4196411269979556488, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
@@ -23849,6 +24031,7 @@ MonoBehaviour:
   jointAngle: {fileID: 1422305614}
   triggerRightIndexTip: {fileID: 1201296085}
   triggerRightMiddleTip: {fileID: 1307753529}
+  triggerRightThumbTip: {fileID: 187972396}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
@@ -23875,6 +24058,13 @@ MonoBehaviour:
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
+  thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  currentThumbRotationY: 0
+  currentThumbRotationZ: 0
+  maxThumbYAxisAngle: 0
+  maxThumbZAxisAngle: 0
+  currentThumbTipRotationZ: 0
   indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
   indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
   currentIndexRotationY: 0

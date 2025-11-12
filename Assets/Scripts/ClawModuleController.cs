@@ -10,6 +10,7 @@ public class ClawModuleController : MonoBehaviour
     public JointAngle jointAngle;
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
+    public TriggerRightThumbTip triggerRightThumbTip;
 
     // ==============================
     // 🔹 Thumb Transforms
@@ -73,6 +74,23 @@ public class ClawModuleController : MonoBehaviour
     public Color purpleColor = new Color(0.5f, 0f, 0.5f);
 
     // ==============================
+    // 🔹 Thumb Finger State
+    // ==============================
+    private Quaternion ThumbAngle1CenterInitialRotation;
+    private Quaternion ThumbAngle2CenterInitialRotation;
+
+    public Vector3 thumbFingerJoint1MaxRotationVector;
+    public Vector3 thumbFingerJoint2MaxRotationVector;
+
+    public float currentThumbRotationY = 0f;
+    public float currentThumbRotationZ = 0f;
+
+    public float maxThumbYAxisAngle;
+    public float maxThumbZAxisAngle;
+
+    public float currentThumbTipRotationZ = 0f;
+
+    // ==============================
     // 🔹 Index Finger State
     // ==============================
     private Quaternion IndexAngle1CenterInitialRotation;
@@ -122,6 +140,14 @@ public class ClawModuleController : MonoBehaviour
 
         originalColor = thumbJoint1Renderer.material.color;
 
+        // --- Initialize Thumb ---
+        ThumbAngle1CenterInitialRotation = ThumbAngle1Center.localRotation;
+        ThumbAngle2CenterInitialRotation = ThumbAngle2Center.localRotation;
+        thumbFingerJoint1MaxRotationVector = ThumbAngle1Center.localRotation.eulerAngles;
+        thumbFingerJoint2MaxRotationVector = ThumbAngle2Center.localRotation.eulerAngles;
+        maxThumbYAxisAngle = ThumbAngle1CenterInitialRotation.eulerAngles.y;
+        maxThumbZAxisAngle = ThumbAngle2CenterInitialRotation.eulerAngles.z;
+
         // --- Initialize Index ---
         IndexAngle1CenterInitialRotation = IndexAngle1Center.localRotation;
         IndexAngle2CenterInitialRotation = IndexAngle2Center.localRotation;
@@ -147,6 +173,8 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
+        UpdateThumbFingerTwist();
+
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle0, 0f, 0f);
         if (ThumbAngle4Center != null)
@@ -166,7 +194,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (IndexAngle3Center != null)
             IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
-        
+
         UpdateFingertipExtension(
             triggerRightIndexTip.isRightIndexTipTouched,
             jointAngle.indexAngle2,
@@ -190,7 +218,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (MiddleAngle3Center != null)
             MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
-            
+
         UpdateFingertipExtension(
             triggerRightMiddleTip.isRightMiddleTipTouched,
             jointAngle.middleAngle2,
@@ -308,7 +336,28 @@ public class ClawModuleController : MonoBehaviour
     //         MiddleAngle1Center.localRotation = targetRotation;
     // }
 
-    //TODO: twist
+    private void UpdateThumbFingerTwist()
+    {
+        Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
+
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive)
+        {
+            currentThumbRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+            currentThumbRotationY = Mathf.Max(currentThumbRotationY, -60f);
+
+            thumbJoint1Renderer.material.color = yellowColor;
+        }
+        else
+        {
+            thumbJoint1Renderer.material.color = originalColor;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, currentThumbRotationY, 0f);
+
+        if (ThumbAngle1Center != null)
+            ThumbAngle1Center.localRotation = targetRotation;
+    }
+
     private void UpdateIndexFingerTwist()
     {
         Quaternion targetRotation = IndexAngle1CenterInitialRotation;
@@ -515,17 +564,23 @@ public class ClawModuleController : MonoBehaviour
     {
         isMapping = true;
 
+        currentThumbRotationY = currentThumbRotationZ = 0f;
         currentIndexRotationY = currentIndexRotationZ = 0f;
         currentMiddleRotationY = currentMiddleRotationZ = 0f;
 
+        currentThumbTipRotationZ = 0f;
         currentIndexTipRotationZ = 0f;
         currentMiddleTipRotationZ = 0f;
 
+        thumbFingerJoint1MaxRotationVector = ThumbAngle1CenterInitialRotation.eulerAngles;
+        thumbFingerJoint2MaxRotationVector = ThumbAngle2CenterInitialRotation.eulerAngles;
         indexFingerJoint1MaxRotationVector = IndexAngle1CenterInitialRotation.eulerAngles;
         indexFingerJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
         middleFingerJoint1MaxRotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
         middleFingerJoint2MaxRotationVector = MiddleAngle2CenterInitialRotation.eulerAngles;
 
+        maxThumbYAxisAngle = ThumbAngle1CenterInitialRotation.eulerAngles.y;
+        maxThumbZAxisAngle = ThumbAngle2CenterInitialRotation.eulerAngles.z;
         maxIndexYAxisAngle = IndexAngle1CenterInitialRotation.eulerAngles.y;
         maxIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
         maxMiddleYAxisAngle = MiddleAngle1CenterInitialRotation.eulerAngles.y;
@@ -540,6 +595,10 @@ public class ClawModuleController : MonoBehaviour
 
     private void ApplyResetRotations()
     {
+        if (ThumbAngle1Center != null)
+            ThumbAngle1Center.localRotation = ThumbAngle1CenterInitialRotation;
+        if (ThumbAngle2Center != null)
+            ThumbAngle2Center.localRotation = ThumbAngle2CenterInitialRotation;
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle0, 0f, 0f);
         if (ThumbAngle4Center != null)
