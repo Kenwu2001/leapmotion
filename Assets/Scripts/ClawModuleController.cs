@@ -195,18 +195,18 @@ public class ClawModuleController : MonoBehaviour
         if (IndexAngle3Center != null)
             IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
 
-        // UpdateFingertipExtension(
-        //     triggerRightIndexTip.isRightIndexTipTouched,
-        //     jointAngle.indexAngle2,
-        //     302f,
-        //     "Index2",
-        //     ref currentIndexTipRotationZ,
-        //     rotationSpeed,
-        //     indexJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     IndexAngle4Center
-        // );
+        UpdateFingertipExtension(
+            triggerRightIndexTip.isRightIndexTipTouched,
+            jointAngle.indexAngle2,
+            302f,
+            "Index2",
+            ref currentIndexTipRotationZ,
+            rotationSpeed,
+            indexJoint4Renderer,
+            purpleColor,
+            originalColor,
+            IndexAngle4Center
+        );
 
         // ==============================
         // 🔹 Middle Finger State

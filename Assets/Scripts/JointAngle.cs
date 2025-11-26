@@ -484,4 +484,12 @@ public class JointAngle : MonoBehaviour
         else
             return 0f;  // No clear rotation
     }
+
+    // Public method to safely get joint transform
+    public Transform GetJoint(string jointName)
+    {
+        if (joints != null && joints.ContainsKey(jointName))
+            return joints[jointName];
+        return null;
+    }
 }
