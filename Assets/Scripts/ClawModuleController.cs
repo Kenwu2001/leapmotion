@@ -183,7 +183,7 @@ public class ClawModuleController : MonoBehaviour
         // ==============================
         // 🔹 Index Finger
         // ==============================
-        UpdateIndexFingerTwist();
+        // UpdateIndexFingerTwist();
 
         // UpdateIndexFingerAbduction();
         UpdateIndexFingerAbductionByZ();
@@ -414,7 +414,7 @@ public class ClawModuleController : MonoBehaviour
         if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.5f)
         {
             currentIndexRotationZ -= rotationSpeed * Time.deltaTime;
-            currentIndexRotationZ = Mathf.Max(currentIndexRotationZ, -60f);
+            // currentIndexRotationZ = Mathf.Max(currentIndexRotationZ, -60f);
 
             indexFingerJoint2MaxRotationVector =
                 (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
