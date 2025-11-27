@@ -176,9 +176,9 @@ public class ClawModuleController : MonoBehaviour
         UpdateThumbFingerTwist();
 
         if (ThumbAngle3Center != null)
-            ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle0, 0f, 0f);
+            ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
         if (ThumbAngle4Center != null)
-            ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1, 0f, 0f);
+            ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
 
         // ==============================
         // 🔹 Index Finger

@@ -32,18 +32,20 @@ public class SerialSender : MonoBehaviour {
                     (int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y, // thumb first joint
                     // (int)jointAngle.GetJoint("Thumb0").localRotation.eulerAngles.x, // Use safe accessor
                     (int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z,
-                    (int)Mathf.Clamp(jointAngle.thumbAngle0, 0, 180),
+                    (int)clawModuleController.ThumbAngle3Center.localRotation.eulerAngles.x,
                     // (int)Mathf.Clamp(jointAngle.thumbAngle1, 0, 180),
                     (int)clawModuleController.ThumbAngle4Center.localRotation.eulerAngles.x,
                     (int)clawModuleController.IndexAngle1Center.localRotation.eulerAngles.y,
                     (int)clawModuleController.IndexAngle2Center.localRotation.eulerAngles.z,
-                    (int)Mathf.Clamp(jointAngle.indexAngle1, 0, 180),
+                    (int)clawModuleController.IndexAngle3Center.localRotation.eulerAngles.x,
+                    // (int)Mathf.Clamp(jointAngle.indexAngle1, 0, 180),
                     // (int)Mathf.Clamp(jointAngle.indexAngle2, 0, 180),
                     (int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x,
                     // 30,
                     (int)clawModuleController.MiddleAngle1Center.localRotation.eulerAngles.y,
                     (int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z,
-                    (int)Mathf.Clamp(jointAngle.middleAngle1, 0, 180),
+                    (int)clawModuleController.MiddleAngle3Center.localRotation.eulerAngles.x,
+                    // (int)Mathf.Clamp(jointAngle.middleAngle1, 0, 180),
                     // (int)Mathf.Clamp(jointAngle.middleAngle2, 0, 180),
                     (int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x,
                     0
