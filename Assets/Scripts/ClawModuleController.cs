@@ -183,30 +183,33 @@ public class ClawModuleController : MonoBehaviour
         // ==============================
         // 🔹 Index Finger
         // ==============================
-        // UpdateIndexFingerTwist();
+        UpdateIndexFingerTwist();
 
         // UpdateIndexFingerAbduction();
-        UpdateIndexFingerAbductionByZ();
+        UpdateIndexFingerAbductionByZ(); //good
 
-        Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
+        // Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
-        targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
+        // targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
         if (IndexAngle3Center != null)
             IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
 
-        UpdateFingertipExtension(
-            triggerRightIndexTip.isRightIndexTipTouched,
-            jointAngle.indexAngle2,
-            302f,
-            "Index2",
-            ref currentIndexTipRotationZ,
-            rotationSpeed,
-            indexJoint4Renderer,
-            purpleColor,
-            originalColor,
-            IndexAngle4Center
-        );
+        // UpdateFingertipExtension(
+        //     triggerRightIndexTip.isRightIndexTipTouched,
+        //     jointAngle.indexAngle2,
+        //     302f,
+        //     "Index2",
+        //     ref currentIndexTipRotationZ,
+        //     rotationSpeed,
+        //     indexJoint4Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     IndexAngle4Center
+        // );
+
+        if (IndexAngle4Center != null)
+            IndexAngle4Center.localRotation = Quaternion.Euler(jointAngle.indexAngle2, 0f, 0f);
 
         // ==============================
         // 🔹 Middle Finger State
@@ -214,26 +217,26 @@ public class ClawModuleController : MonoBehaviour
         UpdateMiddleFingerTwist();
 
         // UpdateMiddleFingerAbduction();
-        UpdateMiddleFingerAbductionByZ();
+        UpdateMiddleFingerAbductionByZ(); // good
 
         if (MiddleAngle3Center != null)
             MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
 
-        UpdateFingertipExtension(
-            triggerRightMiddleTip.isRightMiddleTipTouched,
-            jointAngle.middleAngle2,
-            302f,
-            "Middle2",
-            ref currentMiddleTipRotationZ,
-            rotationSpeed,
-            middleJoint4Renderer,
-            purpleColor,
-            originalColor,
-            MiddleAngle4Center
-        );
+        // UpdateFingertipExtension(
+        //     triggerRightMiddleTip.isRightMiddleTipTouched,
+        //     jointAngle.middleAngle2,
+        //     302f,
+        //     "Middle2",
+        //     ref currentMiddleTipRotationZ,
+        //     rotationSpeed,
+        //     middleJoint4Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     MiddleAngle4Center
+        // );
 
-        // if (MiddleAngle4Center != null)
-        //     MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
+        if (MiddleAngle4Center != null)
+            MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
     }
 
     // ==============================
@@ -482,6 +485,8 @@ public class ClawModuleController : MonoBehaviour
         if (MiddleAngle2Center != null)
             MiddleAngle2Center.localRotation = targetRotation;
     }
+
+    //TODO: update thumb abduction
 
     // ==============================
     // 🔹 Utility
