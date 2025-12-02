@@ -16,6 +16,8 @@ public class JointAngle : MonoBehaviour
 
     public float indexMiddleDistance;
 
+    public float thumbPalmAngle;
+
     // Public properties to expose plane state
     public bool isPlaneActive { get; private set; } = false;
     public string activeFinger { get; private set; } = "None"; // "Index", "Middle", "Thumb", or "None"
@@ -129,7 +131,9 @@ public class JointAngle : MonoBehaviour
     {
         UpdatePalmNormal();
 
-        // UpdateThumbPlane();
+        UpdateThumbPlane(); // Uncomment this line
+
+        thumbPalmAngle = UpdateThumbPalmAngle();
 
         // thumbAngle0 = GetThumbAngle("Thumb0");
         thumbAngle0 = joints["Thumb0"].localEulerAngles.z < 100 ? 0 : 360 - joints["Thumb0"].localEulerAngles.z;
@@ -345,6 +349,26 @@ public class JointAngle : MonoBehaviour
         Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
     }
 
+    // calculate the angles between thumbPlaneNormal and palmNormal
+    float UpdateThumbPalmAngle()
+    {
+        return Vector3.Angle(thumbPlaneNormal, palmNormal);
+        // Debug.Log("Thumb-Palm Plane Angle: " + angle.ToString("F2") + " degrees");
+    }
+
+    // compute thumb plane normal from (Wrist, R_thumb_a, R_index_Proximal) points.
+    void UpdateThumbPlane()
+    {
+        Vector3 p0 = joints["Wrist"].position;
+        Vector3 p1 = joints["Thumb0"].position;
+        Vector3 p2 = joints["Index0"].position;
+
+        Vector3 v1 = (p1 - p0).normalized;
+        Vector3 v2 = (p2 - p0).normalized;
+
+        thumbPlaneNormal = Vector3.Cross(v1, v2).normalized;
+    }
+
     // Compute the palm’s normal from (Wrist, PalmIndex, PalmRing) points.
     void UpdatePalmNormal()
     {
@@ -401,18 +425,6 @@ public class JointAngle : MonoBehaviour
 
         return angle;
     }
-
-    // void UpdateThumbPlane()
-    // {
-    //     Vector3 p0 = joints["ThumbM"].position;
-    //     Vector3 p1 = joints["Thumb0"].position;
-    //     Vector3 p2 = joints["Index0"].position;
-
-    //     Vector3 v1 = (p1 - p0).normalized;
-    //     Vector3 v2 = (p2 - p0).normalized;
-
-    //     thumbPlaneNormal = Vector3.Cross(v1, v2).normalized;
-    // }
 
     // when calculating thumb angles, we need to use thumb plane
     float GetThumbAngle(string targetJoint)

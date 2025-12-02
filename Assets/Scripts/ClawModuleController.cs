@@ -177,6 +177,8 @@ public class ClawModuleController : MonoBehaviour
 
         // UpdateThumbFingerTwist();
 
+        UpdateThumbAbduction();
+
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
         if (ThumbAngle4Center != null)
@@ -186,10 +188,9 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Index Finger
         // ==============================
         
-        UpdateIndexFingerTwist();
+        // UpdateIndexFingerTwist();
 
-        // UpdateIndexFingerAbduction();  //good
-        // UpdateIndexFingerAbductionByZ(); 
+        UpdateIndexFingerAbduction();  //good
 
         // Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
@@ -218,10 +219,9 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Middle Finger State
         // ==============================
 
-        UpdateMiddleFingerTwist();
+        // UpdateMiddleFingerTwist();
 
-        // UpdateMiddleFingerAbduction();   // good
-        // UpdateMiddleFingerAbductionByZ(); 
+        UpdateMiddleFingerAbduction();   // good
 
         if (MiddleAngle3Center != null)
             MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
@@ -259,6 +259,17 @@ public class ClawModuleController : MonoBehaviour
             ResetFingerRotations();
         }
     }
+
+    void UpdateThumbAbduction()
+    {
+        Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
+        targetRotation *= Quaternion.Euler(0f, 45f - jointAngle.thumbPalmAngle, 0f);
+        // Quaternion targetRotation = 45 - jointAngle.thumbPalmAngle;
+
+        if (ThumbAngle1Center != null)
+            ThumbAngle1Center.localRotation = targetRotation;
+    }
+
 
     // ==============================
     // 🔹 Index Finger Abduction (Y-axis)
@@ -395,9 +406,6 @@ public class ClawModuleController : MonoBehaviour
     {
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
-
-        //FIXME: maxIndexZAxisAngle can't be positive
-        // isClockWise to left
 
         if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive)
         {
