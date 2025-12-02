@@ -829,10 +829,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   angleText: {fileID: 281207871}
-  jointAngle: {fileID: 940047319}
-  clawModuleController: {fileID: 1033347337}
-  rightMiddleTip: {fileID: 1892804445}
-  rightIndexTip: {fileID: 1907101962}
+  jointAngle: {fileID: 1422305614}
+  clawModuleController: {fileID: 4551987535763487160}
+  rightMiddleTip: {fileID: 1307753529}
+  rightIndexTip: {fileID: 1201296085}
 --- !u!1 &282863895
 GameObject:
   m_ObjectHideFlags: 0
@@ -851,7 +851,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &282863896
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -11825,6 +11825,7 @@ MonoBehaviour:
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
+  greenColor: {r: 0, g: 1, b: 0, a: 1}
   thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
   thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
   currentThumbRotationY: 0
@@ -26419,6 +26420,7 @@ MonoBehaviour:
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
+  greenColor: {r: 0, g: 1, b: 0, a: 1}
   thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
   thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
   currentThumbRotationY: 0

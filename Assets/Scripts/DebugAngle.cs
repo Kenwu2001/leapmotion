@@ -19,22 +19,25 @@ public class DebugAngle : MonoBehaviour
                 // + ((int)jointAngle.thumbAngle0).ToString() + " "
                 // + ((int)jointAngle.thumbAngle1).ToString() + "\n"
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
-                "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
+                // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 // + ((int)jointAngle.indexAngle1).ToString() + " "
-                "indexAngle2: " + jointAngle.indexAngle2.ToString("F3") + "\n" +
+                // "indexAngle2: " + jointAngle.indexAngle2.ToString("F3") + "\n" +
                 // "joints[Index2].localRotation.eulerAngles.x: " + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
                 // + ((int)jointAngle.middleAngle0).ToString()
                 // + " " + ((int)jointAngle.middleAngle1).ToString()
-                "middleAngle2: " + jointAngle.middleAngle2.ToString("F3") + "\n" +
-                "joints[Middle2].localRotation.eulerAngles.x: " + jointAngle.joints["Middle2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
-                "RightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
-                "RightMiddleTipTouched: " + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
+                // "middleAngle2: " + jointAngle.middleAngle2.ToString("F3") + "\n" +
+                // "joints[Middle2].localRotation.eulerAngles.x: " + jointAngle.joints["Middle2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
+                // "RightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
+                // "RightMiddleTipTouched: " + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 // "maxIndexYAxisAngle: " + clawModuleController.maxIndexYAxisAngle.ToString("F3") + "\n" +
                 // "tt: " + clawModuleController.tt.ToString() + "\n" +
-                "jointAngleValueDebug: " + clawModuleController.jointAngleValueDebug.ToString("F4") + "°\n" +
-                "currentTipRotationDebug: " + clawModuleController.currentTipRotationDebug.ToString("F4") + "°\n" +
-                "isPlaneActive" + jointAngle.isPlaneActive.ToString() + "\n" +
-                "isClockWise: " + jointAngle.isClockWise.ToString() + "\n";
+                // "jointAngleValueDebug: " + clawModuleController.jointAngleValueDebug.ToString("F4") + "°\n" +
+                // "currentTipRotationDebug: " + clawModuleController.currentTipRotationDebug.ToString("F4") + "°\n" +
+                // "isPlaneActive" + jointAngle.isPlaneActive.ToString() + "\n" +
+                // "isClockWise: " + jointAngle.isClockWise.ToString() + "\n";
+                "jointAngle.isClockWise: " + jointAngle.isClockWise.ToString() + "\n" +
+                "maxMiddleZAxisAngle: " + clawModuleController.maxMiddleZAxisAngle.ToString("F3") + "\n" +
+                "currentMiddleRotationZ: " + clawModuleController.currentMiddleRotationZ.ToString("F3") + "\n";
         }
     }
 }

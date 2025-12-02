@@ -175,7 +175,7 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        UpdateThumbFingerTwist();
+        // UpdateThumbFingerTwist();
 
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
@@ -185,6 +185,7 @@ public class ClawModuleController : MonoBehaviour
         // ==============================
         // 🔹 Index Finger
         // ==============================
+        
         UpdateIndexFingerTwist();
 
         // UpdateIndexFingerAbduction();  //good
@@ -216,9 +217,10 @@ public class ClawModuleController : MonoBehaviour
         // ==============================
         // 🔹 Middle Finger State
         // ==============================
+
         UpdateMiddleFingerTwist();
 
-        UpdateMiddleFingerAbduction();   // good
+        // UpdateMiddleFingerAbduction();   // good
         // UpdateMiddleFingerAbductionByZ(); 
 
         if (MiddleAngle3Center != null)
@@ -293,7 +295,6 @@ public class ClawModuleController : MonoBehaviour
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
-            tt = targetY;
         }
 
         if (IndexAngle1Center != null)
@@ -393,11 +394,22 @@ public class ClawModuleController : MonoBehaviour
     private void UpdateIndexFingerTwist() // second motor
     {
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
+        maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
+
+        //FIXME: maxIndexZAxisAngle can't be positive
+        // isClockWise to left
 
         if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive)
         {
-            currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-            currentIndexRotationZ = Mathf.Max(currentIndexRotationZ, -60f);
+            if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
+            {   
+                currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+            }
+
+            currentIndexRotationZ = Mathf.Max(currentIndexRotationZ, -58);
+
+            indexFingerJoint2MaxRotationVector =
+                (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
 
             indexJoint2Renderer.material.color = greenColor;
         }
@@ -407,6 +419,20 @@ public class ClawModuleController : MonoBehaviour
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
+
+        // mapping using index and middle finger distance
+        if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle2Center != null)
+        {
+            float delta = maxIndexZAxisAngle;
+            // float targetZ = isMapping
+            //     ? maxIndexZAxisAngle + (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
+            //     : indexFingerJoint1MaxRotationVector.y + 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+            float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+        }
 
         if (IndexAngle2Center != null)
             IndexAngle2Center.localRotation = targetRotation;
@@ -437,11 +463,22 @@ public class ClawModuleController : MonoBehaviour
     private void UpdateMiddleFingerTwist()  // second motor
     {
         Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
+        maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
 
         if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive)
         {
-            currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-            currentMiddleRotationZ = Mathf.Max(currentMiddleRotationZ, -60f);
+            if(currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
+            {
+                currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+            }
+
+            // if(currentMiddleRotationZ <= 0) currentMiddleRotationZ = 0; 
+            // if (currentMiddleRotationZ > 58) currentMiddleRotationZ = 58;
+
+            currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+            
+            middleFingerJoint2MaxRotationVector =
+                (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
 
             middleJoint2Renderer.material.color = greenColor;
         }
@@ -451,6 +488,20 @@ public class ClawModuleController : MonoBehaviour
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
+
+        // mapping using index and middle finger distance
+        if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle2Center != null)
+        {
+            float delta = maxMiddleZAxisAngle;
+            // float targetZ = isMapping
+            //     ? maxMiddleZAxisAngle - (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
+            //     : middleFingerJoint1MaxRotationVector.y - 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+            float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+        }
 
         if (MiddleAngle2Center != null)
             MiddleAngle2Center.localRotation = targetRotation;
