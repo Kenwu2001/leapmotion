@@ -175,9 +175,9 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        UpdateThumbFingerTwist();
+        // UpdateThumbFingerTwist();
 
-        // UpdateThumbAbduction();
+        UpdateThumbAbduction();
 
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
@@ -263,8 +263,38 @@ public class ClawModuleController : MonoBehaviour
     void UpdateThumbAbduction()
     {
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
-        targetRotation *= Quaternion.Euler(0f, 45f - jointAngle.thumbPalmAngle, 0f);
-        // Quaternion targetRotation = 45 - jointAngle.thumbPalmAngle;
+        maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
+
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 30f)
+        {
+            currentThumbRotationY -= rotationSpeed * Time.deltaTime;
+            currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 0f);
+
+            thumbFingerJoint1MaxRotationVector =
+                (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
+
+            thumbJoint1Renderer.material.color = greenColor;
+        }
+        else
+        {
+            thumbJoint1Renderer.material.color = originalColor;
+        }
+
+        // Base angle from thumb-palm angle
+        float baseAngle = 45f - jointAngle.thumbPalmAngle;
+        
+        targetRotation *= Quaternion.Euler(0f, baseAngle + currentThumbRotationY, 0f);
+
+        // mapping using thumb palm angle
+        float thumbPalmAngleDiff = 45f - jointAngle.thumbPalmAngle;
+        if (isMapping && Mathf.Abs(currentThumbRotationY) > 0.1f && Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
+        {
+            float delta = maxThumbYAxisAngle;
+            float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y - delta * (thumbPalmAngleDiff / 45f);
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+        }
 
         if (ThumbAngle1Center != null)
             ThumbAngle1Center.localRotation = targetRotation;
