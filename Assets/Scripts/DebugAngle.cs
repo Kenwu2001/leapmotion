@@ -20,6 +20,7 @@ public class DebugAngle : MonoBehaviour
                 // + ((int)jointAngle.thumbAngle1).ToString() + "\n"
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
                 "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
+                "wristThumbAngle" + jointAngle.wristThumbAngle.ToString("F2") + "\n" +
                 // + ((int)jointAngle.indexAngle1).ToString() + " "
                 // "indexAngle2: " + jointAngle.indexAngle2.ToString("F3") + "\n" +
                 // "joints[Index2].localRotation.eulerAngles.x: " + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +

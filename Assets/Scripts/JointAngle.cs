@@ -17,6 +17,7 @@ public class JointAngle : MonoBehaviour
     public float indexMiddleDistance;
 
     public float thumbPalmAngle;
+    public float wristThumbAngle;
 
     // Public properties to expose plane state
     public bool isPlaneActive { get; private set; } = false;
@@ -134,6 +135,7 @@ public class JointAngle : MonoBehaviour
         UpdateThumbPlane(); // Uncomment this line
 
         thumbPalmAngle = UpdateThumbPalmAngle();
+        wristThumbAngle = GetWristThumbAngle();
 
         // thumbAngle0 = GetThumbAngle("Thumb0");
         thumbAngle0 = joints["Thumb0"].localEulerAngles.z < 100 ? 0 : 360 - joints["Thumb0"].localEulerAngles.z;
@@ -354,6 +356,20 @@ public class JointAngle : MonoBehaviour
     {
         return Vector3.Angle(thumbPlaneNormal, palmNormal);
         // Debug.Log("Thumb-Palm Plane Angle: " + angle.ToString("F2") + " degrees");
+    }
+
+    // Calculate the angle between R_Wrist's red vector and R_thumb_a's red vector
+    float GetWristThumbAngle()
+    {
+        if (!joints.ContainsKey("Wrist") || !joints.ContainsKey("Thumb0"))
+            return 0f;
+
+        Vector3 wristRight = joints["Wrist"].right;
+        Vector3 thumbRight = joints["Thumb0"].right;
+
+        // Vector3.Angle always returns the smaller angle (0-180 degrees)
+        float angle = Vector3.Angle(wristRight, thumbRight);
+        return angle;
     }
 
     // compute thumb plane normal from (Wrist, R_thumb_a, R_index_Proximal) points.

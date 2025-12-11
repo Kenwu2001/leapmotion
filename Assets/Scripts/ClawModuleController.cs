@@ -175,7 +175,7 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        // UpdateThumbFingerTwist();
+        UpdateThumbFingerTwist();
 
         UpdateThumbAbduction();
 
@@ -360,24 +360,31 @@ public class ClawModuleController : MonoBehaviour
 
     private void UpdateThumbFingerTwist()
     {
-        Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
+        Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
+        targetRotation *= Quaternion.Euler(0f, 0f, 45f - jointAngle.wristThumbAngle);
+        // Quaternion targetRotation = 45 - jointAngle.thumbPalmAngle;
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive)
-        {
-            currentThumbRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-            currentThumbRotationY = Mathf.Max(currentThumbRotationY, -60f);
+        if (ThumbAngle2Center != null)
+            ThumbAngle2Center.localRotation = targetRotation;
 
-            thumbJoint1Renderer.material.color = greenColor;
-        }
-        else
-        {
-            thumbJoint1Renderer.material.color = originalColor;
-        }
+        // Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
 
-        targetRotation *= Quaternion.Euler(0f, currentThumbRotationY, 0f);
+        // if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive)
+        // {
+        //     currentThumbRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+        //     currentThumbRotationY = Mathf.Max(currentThumbRotationY, -60f);
 
-        if (ThumbAngle1Center != null)
-            ThumbAngle1Center.localRotation = targetRotation;
+        //     thumbJoint1Renderer.material.color = greenColor;
+        // }
+        // else
+        // {
+        //     thumbJoint1Renderer.material.color = originalColor;
+        // }
+
+        // targetRotation *= Quaternion.Euler(0f, currentThumbRotationY, 0f);
+
+        // if (ThumbAngle1Center != null)
+        //     ThumbAngle1Center.localRotation = targetRotation;
     }
 
     // private void UpdateIndexFingerTwist() //bottom motor
