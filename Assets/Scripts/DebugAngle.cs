@@ -8,8 +8,9 @@ public class DebugAngle : MonoBehaviour
     public JointAngle jointAngle; // 拖入角度來源腳本
     public ClawModuleController clawModuleController;
 
-    public TriggerRightMiddleTip rightMiddleTip;
+    public TriggerRightThumbTip triggerRightThumbTip;
     public TriggerRightIndexTip rightIndexTip;
+    public TriggerRightMiddleTip rightMiddleTip;
 
     void Update()
     {
@@ -19,6 +20,10 @@ public class DebugAngle : MonoBehaviour
                 // + ((int)jointAngle.thumbAngle0).ToString() + " "
                 // + ((int)jointAngle.thumbAngle1).ToString() + "\n"
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
+                "currentThumbRotationZ" + clawModuleController.currentThumbRotationZ.ToString("F3") + "\n" +
+                "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
+                "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
+                "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 "wristThumbAngle" + jointAngle.wristThumbAngle.ToString("F2") + "\n" +
                 // + ((int)jointAngle.indexAngle1).ToString() + " "

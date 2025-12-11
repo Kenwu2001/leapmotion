@@ -177,7 +177,7 @@ public class ClawModuleController : MonoBehaviour
 
         UpdateThumbFingerTwist();
 
-        UpdateThumbAbduction();
+        // UpdateThumbAbduction();
 
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
@@ -361,30 +361,41 @@ public class ClawModuleController : MonoBehaviour
     private void UpdateThumbFingerTwist()
     {
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
-        targetRotation *= Quaternion.Euler(0f, 0f, 45f - jointAngle.wristThumbAngle);
-        // Quaternion targetRotation = 45 - jointAngle.thumbPalmAngle;
+        maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
+
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive)
+        {
+            currentThumbRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+            currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
+
+            thumbFingerJoint2MaxRotationVector =
+                (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
+
+            thumbJoint2Renderer.material.color = greenColor;
+        }
+        else
+        {
+            thumbJoint2Renderer.material.color = originalColor;
+        }
+
+        // Base angle from wrist-thumb angle
+        float baseAngle = 45f - jointAngle.wristThumbAngle;
+        
+        targetRotation *= Quaternion.Euler(0f, 0f, baseAngle + currentThumbRotationZ);
+
+        // mapping using wrist thumb angle
+        float wristThumbAngleDiff = 45f - jointAngle.wristThumbAngle;
+        if (isMapping && Mathf.Abs(currentThumbRotationZ) > 0.1f && Mathf.Abs(wristThumbAngleDiff) > 0.1f)
+        {
+            float delta = maxThumbZAxisAngle;
+            float targetZ = baseAngle + thumbFingerJoint2MaxRotationVector.z - delta * (wristThumbAngleDiff / 45f);
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+        }
 
         if (ThumbAngle2Center != null)
             ThumbAngle2Center.localRotation = targetRotation;
-
-        // Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
-
-        // if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive)
-        // {
-        //     currentThumbRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-        //     currentThumbRotationY = Mathf.Max(currentThumbRotationY, -60f);
-
-        //     thumbJoint1Renderer.material.color = greenColor;
-        // }
-        // else
-        // {
-        //     thumbJoint1Renderer.material.color = originalColor;
-        // }
-
-        // targetRotation *= Quaternion.Euler(0f, currentThumbRotationY, 0f);
-
-        // if (ThumbAngle1Center != null)
-        //     ThumbAngle1Center.localRotation = targetRotation;
     }
 
     // private void UpdateIndexFingerTwist() //bottom motor
