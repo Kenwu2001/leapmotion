@@ -126,6 +126,35 @@ public class ClawModuleController : MonoBehaviour
 
     public float currentMiddleTipRotationZ = 0f;
 
+    // ==============================
+    // 🔹 which motor is being triggered now
+    // ==============================
+
+    public bool isThumb1Triggered = false;
+    public bool isThumb2Triggered = false;
+    public bool isThumb3Triggered = false;
+    public bool isThumb4Triggered = false;
+
+    public bool isIndex1Triggered = false;
+    public bool isIndex2Triggered = false;
+    public bool isIndex3Triggered = false;
+    public bool isIndex4Triggered = false;
+
+    public bool isMiddle1Triggered = false;
+    public bool isMiddle2Triggered = false;
+    public bool isMiddle3Triggered = false;
+    public bool isMiddle4Triggered = false;
+
+    public bool isAnyMotorTriggered = false;
+    public bool isAnyMotor4Triggered = false;
+
+    public bool canControlThumb1 = false;
+    public bool canControlThumb2 = false;
+    public bool canControlIndex1 = false;
+    public bool canControlIndex2 = false;
+    public bool canControlMiddle1 = false;
+    public bool canControlMiddle2 = false;
+
     // ----------------------------------------- debug
     public float jointAngleValueDebug = 0f;
     public float currentTipRotationDebug = 0f;
@@ -164,15 +193,43 @@ public class ClawModuleController : MonoBehaviour
 
     void Update()
     {
+        isAnyMotorTriggered = isThumb1Triggered || isThumb2Triggered || isThumb3Triggered || isThumb4Triggered ||
+                             isIndex1Triggered || isIndex2Triggered || isIndex3Triggered || isIndex4Triggered ||
+                             isMiddle1Triggered || isMiddle2Triggered || isMiddle3Triggered || isMiddle4Triggered;
+
+        isAnyMotor4Triggered = isThumb4Triggered || isIndex4Triggered || isMiddle4Triggered;
+
+        canControlThumb1 = !isThumb2Triggered && !isThumb3Triggered && 
+                            !isIndex1Triggered && !isIndex2Triggered && !isIndex3Triggered &&
+                           !isMiddle1Triggered && !isMiddle2Triggered && !isMiddle3Triggered;
+
+        canControlThumb2 = !isThumb1Triggered && !isThumb3Triggered && 
+                            !isIndex1Triggered && !isIndex2Triggered && !isIndex3Triggered &&
+                           !isMiddle1Triggered && !isMiddle2Triggered && !isMiddle3Triggered;
+
+        canControlIndex1 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
+                            !isIndex2Triggered && !isIndex3Triggered &&
+                           !isMiddle1Triggered && !isMiddle2Triggered && !isMiddle3Triggered;
+
+        canControlIndex2 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
+                            !isIndex1Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle2Triggered && !isMiddle3Triggered;
+
+        canControlMiddle1 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
+                            !isIndex1Triggered && !isIndex2Triggered && !isIndex3Triggered &&
+                           !isMiddle2Triggered && !isMiddle3Triggered;
+
+        canControlMiddle2 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
+                            !isIndex1Triggered && !isIndex2Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle3Triggered;
+
         HandleInput();
 
         // ==============================
         // 🔹 Thumb
         // ==============================
 
-        // UpdateThumbFingerTwist();
-
         UpdateThumbAbduction();
+
+        UpdateThumbFingerTwist();
 
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
@@ -188,7 +245,8 @@ public class ClawModuleController : MonoBehaviour
             thumbJoint4Renderer,
             purpleColor,
             originalColor,
-            ThumbAngle4Center
+            ThumbAngle4Center,
+            ref isThumb4Triggered
         );
         
         // if (ThumbAngle4Center != null)
@@ -198,9 +256,9 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Index Finger
         // ==============================
         
-        // UpdateIndexFingerTwist();
-
-        // UpdateIndexFingerAbduction();  //good
+        UpdateIndexFingerAbduction();  //good
+        
+        UpdateIndexFingerTwist();
 
         // Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
@@ -220,7 +278,8 @@ public class ClawModuleController : MonoBehaviour
             indexJoint4Renderer,
             purpleColor,
             originalColor,
-            IndexAngle4Center
+            IndexAngle4Center,
+            ref isIndex4Triggered
         );
 
         // if (IndexAngle4Center != null)
@@ -230,9 +289,9 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Middle Finger State
         // ==============================
 
-        // UpdateMiddleFingerTwist();
-
         UpdateMiddleFingerAbduction();   // good
+        
+        UpdateMiddleFingerTwist();
 
         if (MiddleAngle3Center != null)
             MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
@@ -248,7 +307,8 @@ public class ClawModuleController : MonoBehaviour
             middleJoint4Renderer,
             purpleColor,
             originalColor,
-            MiddleAngle4Center
+            MiddleAngle4Center,
+            ref isMiddle4Triggered
         );
 
         // if (MiddleAngle4Center != null)
@@ -276,7 +336,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
         maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 30f)
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 30f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
         {
             currentThumbRotationY -= rotationSpeed * Time.deltaTime;
             currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 0f);
@@ -285,10 +345,12 @@ public class ClawModuleController : MonoBehaviour
                 (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
 
             thumbJoint1Renderer.material.color = greenColor;
+            isThumb1Triggered = true;
         }
         else
         {
             thumbJoint1Renderer.material.color = originalColor;
+            isThumb1Triggered = false;
         }
 
         // Base angle from thumb-palm angle
@@ -321,7 +383,7 @@ public class ClawModuleController : MonoBehaviour
         maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
         Quaternion targetRotation = IndexAngle1CenterInitialRotation;
 
-        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.5f)
+        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.5f && !isAnyMotor4Triggered && canControlIndex1)
         {
             currentIndexRotationY -= rotationSpeed * Time.deltaTime;
             currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
@@ -330,10 +392,12 @@ public class ClawModuleController : MonoBehaviour
                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
 
             indexJoint1Renderer.material.color = yellowColor;
+            isIndex1Triggered = true;
         }
         else
         {
             indexJoint1Renderer.material.color = originalColor;
+            isIndex1Triggered = false;
         }
 
         targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
@@ -362,7 +426,7 @@ public class ClawModuleController : MonoBehaviour
         maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
         Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
 
-        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.5f)
+        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.5f && !isAnyMotor4Triggered && canControlMiddle1)
         {
             currentMiddleRotationY += rotationSpeed * Time.deltaTime;
             currentMiddleRotationY = Mathf.Min(currentMiddleRotationY, 60f);
@@ -371,10 +435,12 @@ public class ClawModuleController : MonoBehaviour
                 (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
 
             middleJoint1Renderer.material.color = yellowColor;
+            isMiddle1Triggered = true;
         }
         else
         {
             middleJoint1Renderer.material.color = originalColor;
+            isMiddle1Triggered = false;
         }
 
         targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
@@ -404,7 +470,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
         maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive)
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2)
         {
             currentThumbRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
             currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
@@ -413,10 +479,12 @@ public class ClawModuleController : MonoBehaviour
                 (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
 
             thumbJoint2Renderer.material.color = greenColor;
+            isThumb2Triggered = true;
         }
         else
         {
             thumbJoint2Renderer.material.color = originalColor;
+            isThumb2Triggered = false;
         }
 
         // Base angle from wrist-thumb angle
@@ -466,7 +534,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
 
-        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive)
+        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
         {
             if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
             {   
@@ -479,10 +547,12 @@ public class ClawModuleController : MonoBehaviour
                 (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
 
             indexJoint2Renderer.material.color = greenColor;
+            isIndex2Triggered = true;
         }
         else
         {
             indexJoint2Renderer.material.color = originalColor;
+            isIndex2Triggered = false;
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
@@ -532,7 +602,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
         maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
 
-        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive)
+        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2)
         {
             if(currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
             {
@@ -548,10 +618,12 @@ public class ClawModuleController : MonoBehaviour
                 (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
 
             middleJoint2Renderer.material.color = greenColor;
+            isMiddle2Triggered = true;
         }
         else
         {
             middleJoint2Renderer.material.color = originalColor;
+            isMiddle2Triggered = false;
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
@@ -675,7 +747,8 @@ public class ClawModuleController : MonoBehaviour
         Renderer jointRenderer,
         Color activeColor,
         Color inactiveColor,
-        Transform jointTransform)
+        Transform jointTransform,
+        ref bool relatedMotorTriggered)
     {
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
@@ -694,12 +767,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations[jointName] += Time.deltaTime;
             // Change color to show it's being touched
             jointRenderer.material.color = Color.Lerp(inactiveColor, activeColor, Mathf.Min(fingerTipTouchDurations[jointName], 1f));
+            relatedMotorTriggered = true;
         }
         else
         {
             // Reset the timer if no longer touched
             fingerTipTouchDurations[jointName] = 0f;
             jointRenderer.material.color = inactiveColor;
+            relatedMotorTriggered = false;
         }
 
         // Only apply rotation if touched for more than 1 second
@@ -711,6 +786,11 @@ public class ClawModuleController : MonoBehaviour
             // Smoothly increase the rotation while the tip is touched
             currentTipRotation -= rotationSpeed * Time.deltaTime;
             jointRenderer.material.color = activeColor;
+            relatedMotorTriggered = true;
+        }
+        else
+        {
+            relatedMotorTriggered = false;
         }
 
         if (isMapping)
