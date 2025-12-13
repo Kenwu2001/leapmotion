@@ -182,7 +182,6 @@ public class JointAngle : MonoBehaviour
                 useMiddleFinger = true;
                 touchedPoints = middleTouchPoints;
                 activeJoint = "Middle1";
-                Debug.Log("Using Middle Finger - Touch points detected");
             }
         }
 
@@ -195,7 +194,6 @@ public class JointAngle : MonoBehaviour
                 useThumbFinger = true;
                 touchedPoints = thumbTouchPoints;
                 activeJoint = "Thumb1";
-                Debug.Log("Using Thumb Finger - Touch points detected");
             }
         }
 
@@ -226,7 +224,7 @@ public class JointAngle : MonoBehaviour
                     lineRenderer.SetPosition(0, projectedIndexTip);
                     lineRenderer.SetPosition(1, projectedThumbTip);
 
-                    Debug.Log($"Active Joint: {activeJoint}, ProjectedIndex: {projectedIndexTip}, ProjectedThumb: {projectedThumbTip}");
+                    // Debug.Log($"Active Joint: {activeJoint}, ProjectedIndex: {projectedIndexTip}, ProjectedThumb: {projectedThumbTip}");
 
                     // Calculate rotation direction compared to previous frame
                     if (hasPreviousFrame)
@@ -329,7 +327,7 @@ public class JointAngle : MonoBehaviour
 
                 if (hasPreviousFrame && isClockWise != 0)
                 {
-                    Debug.Log($"Rotation on {activeJoint}: {(isClockWise > 0 ? "CLOCKWISE" : "COUNTERCLOCKWISE")} ({isClockWise:F3})");
+                    // Debug.Log($"Rotation on {activeJoint}: {(isClockWise > 0 ? "CLOCKWISE" : "COUNTERCLOCKWISE")} ({isClockWise:F3})");
                 }
             }
         }
@@ -348,7 +346,7 @@ public class JointAngle : MonoBehaviour
             rotationChangeTimer = 0f;
         }
 
-        Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
+        // Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
     }
 
     // calculate the angles between thumbPlaneNormal and palmNormal

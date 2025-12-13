@@ -39,11 +39,11 @@ public class SerialReceiver : MonoBehaviour {
 
     private void displayStyle(int displayType, int data){
         if (displayType == 0){                                     // display ASCII number
-            Debug.Log(data);   
+            // Debug.Log(data);   
         } 
         else if (displayType == 1) {                               // display character
             char c = Convert.ToChar(data);                        
-            Debug.Log(c);    
+            // Debug.Log(c);    
         }
     }
 }

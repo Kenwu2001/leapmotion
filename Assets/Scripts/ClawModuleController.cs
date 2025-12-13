@@ -135,11 +135,6 @@ public class ClawModuleController : MonoBehaviour
 
     void Start()
     {
-        if (jointAngle == null)
-        {
-            Debug.LogError("JointAngle is not assigned in the inspector for " + gameObject.name);
-        }
-
         originalColor = thumbJoint1Renderer.material.color;
 
         // --- Initialize Thumb ---
@@ -181,8 +176,23 @@ public class ClawModuleController : MonoBehaviour
 
         if (ThumbAngle3Center != null)
             ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
-        if (ThumbAngle4Center != null)
-            ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
+        
+        UpdateFingertipExtension(
+            triggerRightThumbTip.isRightThumbTipTouched,
+            jointAngle.thumbAngle1,
+            302f,
+            "Thumb1",
+            "Thumb0",
+            ref currentThumbTipRotationZ,
+            rotationSpeed,
+            thumbJoint4Renderer,
+            purpleColor,
+            originalColor,
+            ThumbAngle4Center
+        );
+        
+        // if (ThumbAngle4Center != null)
+        //     ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
 
         // ==============================
         // 🔹 Index Finger
@@ -190,7 +200,7 @@ public class ClawModuleController : MonoBehaviour
         
         // UpdateIndexFingerTwist();
 
-        UpdateIndexFingerAbduction();  //good
+        // UpdateIndexFingerAbduction();  //good
 
         // Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
@@ -199,21 +209,22 @@ public class ClawModuleController : MonoBehaviour
         if (IndexAngle3Center != null)
             IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
 
-        // UpdateFingertipExtension(
-        //     triggerRightIndexTip.isRightIndexTipTouched,
-        //     jointAngle.indexAngle2,
-        //     302f,
-        //     "Index2",
-        //     ref currentIndexTipRotationZ,
-        //     rotationSpeed,
-        //     indexJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     IndexAngle4Center
-        // );
+        UpdateFingertipExtension(
+            triggerRightIndexTip.isRightIndexTipTouched,
+            jointAngle.indexAngle2,
+            302f,
+            "Index2",
+            "Index0",
+            ref currentIndexTipRotationZ,
+            rotationSpeed,
+            indexJoint4Renderer,
+            purpleColor,
+            originalColor,
+            IndexAngle4Center
+        );
 
-        if (IndexAngle4Center != null)
-            IndexAngle4Center.localRotation = Quaternion.Euler(jointAngle.indexAngle2, 0f, 0f);
+        // if (IndexAngle4Center != null)
+        //     IndexAngle4Center.localRotation = Quaternion.Euler(jointAngle.indexAngle2, 0f, 0f);
 
         // ==============================
         // 🔹 Middle Finger State
@@ -226,21 +237,22 @@ public class ClawModuleController : MonoBehaviour
         if (MiddleAngle3Center != null)
             MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
 
-        // UpdateFingertipExtension(
-        //     triggerRightMiddleTip.isRightMiddleTipTouched,
-        //     jointAngle.middleAngle2,
-        //     302f,
-        //     "Middle2",
-        //     ref currentMiddleTipRotationZ,
-        //     rotationSpeed,
-        //     middleJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     MiddleAngle4Center
-        // );
+        UpdateFingertipExtension(
+            triggerRightMiddleTip.isRightMiddleTipTouched,
+            jointAngle.middleAngle2,
+            302f,
+            "Middle2",
+            "Middle0",
+            ref currentMiddleTipRotationZ,
+            rotationSpeed,
+            middleJoint4Renderer,
+            purpleColor,
+            originalColor,
+            MiddleAngle4Center
+        );
 
-        if (MiddleAngle4Center != null)
-            MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
+        // if (MiddleAngle4Center != null)
+        //     MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
     }
 
     // ==============================
@@ -255,7 +267,6 @@ public class ClawModuleController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            Debug.Log("ResetFingerRotations called from Update");
             ResetFingerRotations();
         }
     }
@@ -658,6 +669,7 @@ public class ClawModuleController : MonoBehaviour
         float jointAngleValue,
         float requiredAngleThreshold,
         string jointName,
+        string baseJointName,
         ref float currentTipRotation,
         float rotationSpeed,
         Renderer jointRenderer,
@@ -675,8 +687,9 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // Update the touch duration
-        if (isTipTouched && jointAngle.joints.ContainsKey(jointName) &&
-            jointAngle.joints[jointName].localRotation.eulerAngles.x > requiredAngleThreshold)
+        // if (isTipTouched && jointAngle.joints.ContainsKey(jointName) &&
+        //     jointAngle.joints[jointName].localRotation.eulerAngles.x > requiredAngleThreshold && jointAngle.joints[baseJointName].localRotation.eulerAngles.z > 10.0 && jointAngle.joints[baseJointName].localRotation.eulerAngles.z < 30.0)
+        if (isTipTouched && jointAngle.joints[baseJointName].localRotation.eulerAngles.z > 10.0 && jointAngle.joints[baseJointName].localRotation.eulerAngles.z < 30.0)
         {
             fingerTipTouchDurations[jointName] += Time.deltaTime;
             // Change color to show it's being touched
@@ -690,9 +703,10 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // Only apply rotation if touched for more than 1 second
-        if (fingerTipTouchDurations[jointName] > 1.0f &&
-            jointAngle.joints.ContainsKey(jointName) &&
-            jointAngle.joints[jointName].localRotation.eulerAngles.x > requiredAngleThreshold)
+        // if (fingerTipTouchDurations[jointName] > 1.0f &&
+        //     jointAngle.joints.ContainsKey(jointName) &&
+        //     jointAngle.joints[jointName].localRotation.eulerAngles.x > requiredAngleThreshold)
+        if (fingerTipTouchDurations[jointName] > 1.0f)
         {
             // Smoothly increase the rotation while the tip is touched
             currentTipRotation -= rotationSpeed * Time.deltaTime;

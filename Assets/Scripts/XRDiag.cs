@@ -16,10 +16,10 @@ public class XRDiag : MonoBehaviour
             nextListTime = Time.time + 3f;
             var devices = new List<InputDevice>();
             InputDevices.GetDevices(devices);
-            Debug.Log($"[XRDiag] devices count = {devices.Count}");
+            // Debug.Log($"[XRDiag] devices count = {devices.Count}");
             foreach (var d in devices)
             {
-                Debug.Log($"[XRDiag] device: name='{d.name}', role={d.characteristics}");
+                // Debug.Log($"[XRDiag] device: name='{d.name}', role={d.characteristics}");
             }
         }
 
@@ -27,7 +27,7 @@ public class XRDiag : MonoBehaviour
         var device = InputDevices.GetDeviceAtXRNode(which);
         if (!device.isValid)
         {
-            Debug.Log($"[XRDiag] {which} device.isValid = false (可能沒連線、在手追蹤模式、或平台設定不對)");
+            // Debug.Log($"[XRDiag] {which} device.isValid = false (可能沒連線、在手追蹤模式、或平台設定不對)");
             return;
         }
 
@@ -35,11 +35,11 @@ public class XRDiag : MonoBehaviour
         bool hasRot = device.TryGetFeatureValue(CommonUsages.deviceRotation, out var rot);
         if (hasPos || hasRot)
         {
-            Debug.Log($"[XRDiag] {which} posOK={hasPos} rotOK={hasRot} pos={pos}");
+            // Debug.Log($"[XRDiag] {which} posOK={hasPos} rotOK={hasRot} pos={pos}");
         }
         else
         {
-            Debug.Log($"[XRDiag] {which} 有裝置，但沒有回傳 pose（可能還在初始化/喚醒中）");
+            // Debug.Log($"[XRDiag] {which} 有裝置，但沒有回傳 pose（可能還在初始化/喚醒中）");
         }
     }
 }

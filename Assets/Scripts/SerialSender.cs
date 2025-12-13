@@ -20,7 +20,7 @@ public class SerialSender : MonoBehaviour {
     
     void Update()
     {
-        Debug.Log("(int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x: " + (int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x);
+        // Debug.Log("(int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x: " + (int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x);
     }
 
     IEnumerator SendDataCoroutine() {
@@ -51,7 +51,7 @@ public class SerialSender : MonoBehaviour {
                     0
                 );
                 
-                Debug.Log($"Sending data: {dataString}");
+                // Debug.Log($"Sending data: {dataString}");
                 
                 serialmanager.serialPort.WriteLine(dataString);
             }

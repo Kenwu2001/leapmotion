@@ -26,11 +26,6 @@ public class ControllerLocator : MonoBehaviour
             if (target != null)
             {
                 Vector3 localPos = transform.InverseTransformPoint(target.position);
-
-                Debug.Log(
-                    $"[相對座標] {target.name} 相對於 {which}：" +
-                    $"X={localPos.x:F3}, Y={localPos.y:F3}, Z={localPos.z:F3}"
-                );
             }
         }
     }
