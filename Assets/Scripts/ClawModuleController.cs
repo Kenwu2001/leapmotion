@@ -11,6 +11,7 @@ public class ClawModuleController : MonoBehaviour
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
+    public TriggerRightIndexTwist triggerRightIndexTwist;
 
     // ==============================
     // 🔹 Thumb Transforms
@@ -212,14 +213,14 @@ public class ClawModuleController : MonoBehaviour
                            !isMiddle1Triggered && !isMiddle2Triggered && !isMiddle3Triggered;
 
         canControlIndex2 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
-                            !isIndex1Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle2Triggered && !isMiddle3Triggered;
+                            !isIndex1Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle3Triggered;
 
         canControlMiddle1 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
                             !isIndex1Triggered && !isIndex2Triggered && !isIndex3Triggered &&
                            !isMiddle2Triggered && !isMiddle3Triggered;
 
         canControlMiddle2 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
-                            !isIndex1Triggered && !isIndex2Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle3Triggered;
+                            !isIndex1Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle3Triggered;
 
         HandleInput();
 
@@ -534,7 +535,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
 
-        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
+        if (triggerRightIndexTwist.isRightIndexTwistTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
         {
             if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
             {   

@@ -57,7 +57,8 @@ public class DebugAngle : MonoBehaviour
                 "isMiddle1Triggered: " + clawModuleController.isMiddle1Triggered.ToString() + "\n" +
                 "isMiddle2Triggered: " + clawModuleController.isMiddle2Triggered.ToString() + "\n" +
                 "isMiddle4Triggered: " + clawModuleController.isMiddle4Triggered.ToString() + "\n" +
-                "isAnyMotorTriggered" + clawModuleController.isAnyMotorTriggered.ToString() + "\n";
+                "isAnyMotorTriggered" + clawModuleController.isAnyMotorTriggered.ToString() + "\n"+
+                "isRightIndexTwistTouched: " + clawModuleController.triggerRightIndexTwist.isRightIndexTwistTouched.ToString() + "\n";
         }
     }
 }
