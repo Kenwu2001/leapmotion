@@ -13,6 +13,9 @@ public class JointAngle : MonoBehaviour
 
     private Vector3 palmNormal;
     private Vector3 thumbPlaneNormal;
+    private Vector3 initialWristRight;  // Store initial wrist direction
+    private Vector3 initialThumbRight;  // Store initial thumb direction
+    private Vector3 initialRotationAxis; // Store initial rotation axis to determine direction
 
     public float indexMiddleDistance;
 
@@ -87,6 +90,15 @@ public class JointAngle : MonoBehaviour
         middleLRAngle = 0f;
 
         indexMiddleDistance = 0f;
+
+        // Initialize wrist-thumb reference vectors
+        if (joints.ContainsKey("Wrist") && joints.ContainsKey("Thumb0"))
+        {
+            initialWristRight = joints["Wrist"].right;
+            initialThumbRight = joints["Thumb0"].right;
+            // Calculate initial rotation axis to determine closing direction
+            initialRotationAxis = Vector3.Cross(initialWristRight, initialThumbRight).normalized;
+        }
 
         // Optionally auto-find if not assigned in Inspector
         if (triggerRightIndexTip == null)

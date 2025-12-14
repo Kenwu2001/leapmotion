@@ -59,7 +59,15 @@ public class DebugAngle : MonoBehaviour
                 // "isMiddle4Triggered: " + clawModuleController.isMiddle4Triggered.ToString() + "\n" +
                 // "isAnyMotorTriggered" + clawModuleController.isAnyMotorTriggered.ToString() + "\n"+
                 // "isRightIndexTwistTouched: " + clawModuleController.triggerRightIndexTwist.isRightIndexTwistTouched.ToString() + "\n";
-                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n";
+                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
+                "wristThumbAngle " + jointAngle.wristThumbAngle.ToString("F2") + "°\n" +
+                // "(int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y: " + ((int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y).ToString() + "°\n" +
+                // "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
+                // "(int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z: " + ((int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";
+                // "(int)clawModuleController.MiddleAngle1Center.localRotation.eulerAngles.y: " + ((int)clawModuleController.MiddleAngle1Center.localRotation.eulerAngles.y).ToString() + "°\n" +
+                // "(int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z,: " + ((int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";
+                "(int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n" +
+                "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
         }
     }
 }

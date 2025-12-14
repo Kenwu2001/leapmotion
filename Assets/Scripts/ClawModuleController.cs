@@ -230,7 +230,7 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        UpdateThumbAbduction();
+        // UpdateThumbAbduction();
 
         UpdateThumbFingerTwist();
 
@@ -547,10 +547,9 @@ public class ClawModuleController : MonoBehaviour
             isThumb2Triggered = false;
         }
 
-        // Base angle from wrist-thumb angle
+        // Base angle from wrist-thumb angle - always apply this
         float baseAngle = 45f - jointAngle.wristThumbAngle;
-        
-        targetRotation *= Quaternion.Euler(0f, 0f, baseAngle + currentThumbRotationZ);
+        targetRotation = ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, baseAngle + currentThumbRotationZ);
 
         // mapping using wrist thumb angle
         float wristThumbAngleDiff = 45f - jointAngle.wristThumbAngle;
@@ -874,6 +873,7 @@ public class ClawModuleController : MonoBehaviour
         {
             // Smoothly increase the rotation while the tip is touched
             currentTipRotation -= rotationSpeed * Time.deltaTime;
+            currentTipRotation = Mathf.Clamp(currentTipRotation, -60f, 0f);
             jointRenderer.material.color = activeColor;
             relatedMotorTriggered = true;
         }
