@@ -11808,6 +11808,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 1907101962}
   triggerRightMiddleTip: {fileID: 1892804445}
   triggerRightThumbTip: {fileID: 1540125987}
+  triggerRightIndexTwist: {fileID: 0}
   ThumbAngle1Center: {fileID: 1173910316}
   ThumbAngle2Center: {fileID: 83926891}
   ThumbAngle3Center: {fileID: 115009900}
@@ -11856,6 +11857,26 @@ MonoBehaviour:
   maxMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
   currentMiddleTipRotationZ: 0
+  isThumb1Triggered: 0
+  isThumb2Triggered: 0
+  isThumb3Triggered: 0
+  isThumb4Triggered: 0
+  isIndex1Triggered: 0
+  isIndex2Triggered: 0
+  isIndex3Triggered: 0
+  isIndex4Triggered: 0
+  isMiddle1Triggered: 0
+  isMiddle2Triggered: 0
+  isMiddle3Triggered: 0
+  isMiddle4Triggered: 0
+  isAnyMotorTriggered: 0
+  isAnyMotor4Triggered: 0
+  canControlThumb1: 0
+  canControlThumb2: 0
+  canControlIndex1: 0
+  canControlIndex2: 0
+  canControlMiddle1: 0
+  canControlMiddle2: 0
   jointAngleValueDebug: 0
   currentTipRotationDebug: 0
 --- !u!114 &1033347338
@@ -23696,6 +23717,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4290315603480702129, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1201296083}
+    - targetCorrespondingSourceObject: {fileID: 4290315603480702129, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1893964445}
     - targetCorrespondingSourceObject: {fileID: 3723644639497809696, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1307753527}
@@ -24255,6 +24279,75 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.099610254, y: 0.1104982, z: 0.033498876}
   m_Center: {x: -0.001805058, y: -0.032296322, z: 0.009380733}
+--- !u!1 &1893964444
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1893964445}
+  - component: {fileID: 1893964447}
+  - component: {fileID: 1893964448}
+  m_Layer: 0
+  m_Name: R_IndexTriggerTwist
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1893964445
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893964444}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1256640542}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1893964447
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893964444}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.056929495, y: 0.071020536, z: 0.03669016}
+  m_Center: {x: 0.040833578, y: 0.008225276, z: -0.010162341}
+--- !u!114 &1893964448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893964444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f4bbf5366d15c646a6b6c1a8a4f474e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetTags:
+  - L_IndexTip
+  - L_ThumbTip
 --- !u!1 &1907101960
 GameObject:
   m_ObjectHideFlags: 0
@@ -25955,6 +26048,7 @@ GameObject:
   - component: {fileID: 3964300246511981565}
   - component: {fileID: 4551987535763487159}
   - component: {fileID: 4551987535763487160}
+  - component: {fileID: 4551987535763487161}
   m_Layer: 0
   m_Name: ClawAttached 1
   m_TagString: Untagged
@@ -26251,6 +26345,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 1201296085}
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}
+  triggerRightIndexTwist: {fileID: 1893964448}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
@@ -26299,8 +26394,66 @@ MonoBehaviour:
   maxMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
   currentMiddleTipRotationZ: 0
+  isThumb1Triggered: 0
+  isThumb2Triggered: 0
+  isThumb3Triggered: 0
+  isThumb4Triggered: 0
+  isIndex1Triggered: 0
+  isIndex2Triggered: 0
+  isIndex3Triggered: 0
+  isIndex4Triggered: 0
+  isMiddle1Triggered: 0
+  isMiddle2Triggered: 0
+  isMiddle3Triggered: 0
+  isMiddle4Triggered: 0
+  isAnyMotorTriggered: 0
+  isAnyMotor4Triggered: 0
+  canControlThumb1: 0
+  canControlThumb2: 0
+  canControlIndex1: 0
+  canControlIndex2: 0
+  canControlMiddle1: 0
+  canControlMiddle2: 0
   jointAngleValueDebug: 0
   currentTipRotationDebug: 0
+--- !u!114 &4551987535763487161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3265390217554441853}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b630f906b729a249bed157ad5cb11bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jointAngle: {fileID: 1422305614}
+  ThumbAngle1Center: {fileID: 3309505961795741282}
+  ThumbAngle2Center: {fileID: 4671302696062652188}
+  ThumbAngle3Center: {fileID: 29973487497156349}
+  ThumbAngle4Center: {fileID: 1034460996006835901}
+  thumbJoint1Renderer: {fileID: 124780635897985153}
+  thumbJoint2Renderer: {fileID: 1178915889120169799}
+  "thumbJoint\u02C7Renderer": {fileID: 7677362120163736149}
+  thumbJoint4Renderer: {fileID: 9222757165382666382}
+  IndexAngle1Center: {fileID: 2324697153451800258}
+  IndexAngle2Center: {fileID: 5221562882630294554}
+  IndexAngle3Center: {fileID: 7254718150763999399}
+  IndexAngle4Center: {fileID: 3857413217209359350}
+  indexJoint1Renderer: {fileID: 5806927010173869839}
+  indexJoint2Renderer: {fileID: 8680072554135681281}
+  indexJoint3Renderer: {fileID: 13672772494116298}
+  indexJoint4Renderer: {fileID: 958742127737337350}
+  MiddleAngle1Center: {fileID: 4582782382478664306}
+  MiddleAngle2Center: {fileID: 1723764353249012524}
+  MiddleAngle3Center: {fileID: 2200133804739511602}
+  MiddleAngle4Center: {fileID: 5977002730815378166}
+  middleJoint1Renderer: {fileID: 8175649769676004323}
+  middleJoint2Renderer: {fileID: 2671083350001540983}
+  middleJoint3Renderer: {fileID: 3100906007860502076}
+  middleJoint4Renderer: {fileID: 7769744222350259651}
+  purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
 --- !u!4 &4582782382478664306
 Transform:
   m_ObjectHideFlags: 0
