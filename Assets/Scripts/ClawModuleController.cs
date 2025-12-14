@@ -337,19 +337,33 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
         maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
 
+        // Initialize touch duration for thumb abduction
+        if (!fingerTipTouchDurations.ContainsKey("ThumbAbduction"))
+        {
+            fingerTipTouchDurations["ThumbAbduction"] = 0f;
+        }
+
         if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 58f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
         {
-            currentThumbRotationY -= rotationSpeed * Time.deltaTime;
-            currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 0f);
-
-            thumbFingerJoint1MaxRotationVector =
-                (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
-
-            thumbJoint1Renderer.material.color = greenColor;
+            fingerTipTouchDurations["ThumbAbduction"] += Time.deltaTime;
+            thumbJoint1Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"], 1f));
             isThumb1Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["ThumbAbduction"] > 1.0f)
+            {
+                currentThumbRotationY -= rotationSpeed * Time.deltaTime;
+                currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 0f);
+
+                thumbFingerJoint1MaxRotationVector =
+                    (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
+
+                thumbJoint1Renderer.material.color = greenColor;
+            }
         }
         else
         {
+            fingerTipTouchDurations["ThumbAbduction"] = 0f;
             thumbJoint1Renderer.material.color = originalColor;
             isThumb1Triggered = false;
         }
@@ -384,19 +398,33 @@ public class ClawModuleController : MonoBehaviour
         maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
         Quaternion targetRotation = IndexAngle1CenterInitialRotation;
 
+        // Initialize touch duration for index abduction
+        if (!fingerTipTouchDurations.ContainsKey("IndexAbduction"))
+        {
+            fingerTipTouchDurations["IndexAbduction"] = 0f;
+        }
+
         if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.9f && !isAnyMotor4Triggered && canControlIndex1)
         {
-            currentIndexRotationY -= rotationSpeed * Time.deltaTime;
-            currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
-
-            indexFingerJoint1MaxRotationVector =
-                (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
-
-            indexJoint1Renderer.material.color = yellowColor;
+            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
+            indexJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["IndexAbduction"], 1f));
             isIndex1Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
+            {
+                currentIndexRotationY -= rotationSpeed * Time.deltaTime;
+                currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+
+                indexFingerJoint1MaxRotationVector =
+                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+
+                indexJoint1Renderer.material.color = yellowColor;
+            }
         }
         else
         {
+            fingerTipTouchDurations["IndexAbduction"] = 0f;
             indexJoint1Renderer.material.color = originalColor;
             isIndex1Triggered = false;
         }
@@ -427,19 +455,33 @@ public class ClawModuleController : MonoBehaviour
         maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
         Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
 
+        // Initialize touch duration for middle abduction
+        if (!fingerTipTouchDurations.ContainsKey("MiddleAbduction"))
+        {
+            fingerTipTouchDurations["MiddleAbduction"] = 0f;
+        }
+
         if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.9f && !isAnyMotor4Triggered && canControlMiddle1)
         {
-            currentMiddleRotationY += rotationSpeed * Time.deltaTime;
-            currentMiddleRotationY = Mathf.Min(currentMiddleRotationY, 60f);
-
-            middleFingerJoint1MaxRotationVector =
-                (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
-
-            middleJoint1Renderer.material.color = yellowColor;
+            fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
+            middleJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["MiddleAbduction"], 1f));
             isMiddle1Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
+            {
+                currentMiddleRotationY += rotationSpeed * Time.deltaTime;
+                currentMiddleRotationY = Mathf.Min(currentMiddleRotationY, 60f);
+
+                middleFingerJoint1MaxRotationVector =
+                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+
+                middleJoint1Renderer.material.color = yellowColor;
+            }
         }
         else
         {
+            fingerTipTouchDurations["MiddleAbduction"] = 0f;
             middleJoint1Renderer.material.color = originalColor;
             isMiddle1Triggered = false;
         }
@@ -471,19 +513,33 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
         maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
 
+        // Initialize touch duration for thumb twist
+        if (!fingerTipTouchDurations.ContainsKey("ThumbTwist"))
+        {
+            fingerTipTouchDurations["ThumbTwist"] = 0f;
+        }
+
         if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && jointAngle.thumbPalmAngle < 58f)
         {
-            currentThumbRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-            currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
-
-            thumbFingerJoint2MaxRotationVector =
-                (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
-
-            thumbJoint2Renderer.material.color = greenColor;
+            fingerTipTouchDurations["ThumbTwist"] += Time.deltaTime;
+            thumbJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbTwist"], 1f));
             isThumb2Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["ThumbTwist"] > 1.0f)
+            {
+                currentThumbRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
+
+                thumbFingerJoint2MaxRotationVector =
+                    (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
+
+                thumbJoint2Renderer.material.color = greenColor;
+            }
         }
         else
         {
+            fingerTipTouchDurations["ThumbTwist"] = 0f;
             thumbJoint2Renderer.material.color = originalColor;
             isThumb2Triggered = false;
         }
@@ -535,24 +591,38 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
 
+        // Initialize touch duration for index twist
+        if (!fingerTipTouchDurations.ContainsKey("IndexTwist"))
+        {
+            fingerTipTouchDurations["IndexTwist"] = 0f;
+        }
+
         //   triggerRightIndexTwist.isRightIndexTwistTouched
         if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
         {
-            if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
-            {   
-                currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-            }
-
-            currentIndexRotationZ = Mathf.Max(currentIndexRotationZ, -58);
-
-            indexFingerJoint2MaxRotationVector =
-                (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
-
-            indexJoint2Renderer.material.color = greenColor;
+            fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
+            indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"], 1f));
             isIndex2Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["IndexTwist"] > 1.0f)
+            {
+                if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
+                {   
+                    currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                }
+
+                currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+
+                indexFingerJoint2MaxRotationVector =
+                    (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
+
+                indexJoint2Renderer.material.color = greenColor;
+            }
         }
         else
         {
+            fingerTipTouchDurations["IndexTwist"] = 0f;
             indexJoint2Renderer.material.color = originalColor;
             isIndex2Triggered = false;
         }
@@ -604,26 +674,40 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
         maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
 
+        // Initialize touch duration for middle twist
+        if (!fingerTipTouchDurations.ContainsKey("MiddleTwist"))
+        {
+            fingerTipTouchDurations["MiddleTwist"] = 0f;
+        }
+
         if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2)
         {
-            if(currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
-            {
-                currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
-            }
-
-            // if(currentMiddleRotationZ <= 0) currentMiddleRotationZ = 0; 
-            // if (currentMiddleRotationZ > 58) currentMiddleRotationZ = 58;
-
-            currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
-            
-            middleFingerJoint2MaxRotationVector =
-                (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
-
-            middleJoint2Renderer.material.color = greenColor;
+            fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
+            middleJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["MiddleTwist"], 1f));
             isMiddle2Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["MiddleTwist"] > 1.0f)
+            {
+                if(currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
+                {
+                    currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                }
+
+                // if(currentMiddleRotationZ <= 0) currentMiddleRotationZ = 0; 
+                // if (currentMiddleRotationZ > 58) currentMiddleRotationZ = 58;
+
+                currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                
+                middleFingerJoint2MaxRotationVector =
+                    (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
+
+                middleJoint2Renderer.material.color = greenColor;
+            }
         }
         else
         {
+            fingerTipTouchDurations["MiddleTwist"] = 0f;
             middleJoint2Renderer.material.color = originalColor;
             isMiddle2Triggered = false;
         }
