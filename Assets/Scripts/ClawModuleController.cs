@@ -230,7 +230,7 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        // UpdateThumbAbduction();
+        UpdateThumbAbduction();
 
         UpdateThumbFingerTwist();
 
@@ -251,9 +251,6 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle4Center,
             ref isThumb4Triggered
         );
-        
-        // if (ThumbAngle4Center != null)
-        //     ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
 
         // ==============================
         // 🔹 Index Finger
@@ -262,10 +259,6 @@ public class ClawModuleController : MonoBehaviour
         UpdateIndexFingerAbduction();  //good
         
         UpdateIndexFingerTwist();
-
-        // Quaternion targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
-
-        // targetIndexJoint4Rotation = Quaternion.Euler(jointAngle.indexAngle2 + currentIndexTipRotationZ, 0f, 0f);
 
         if (IndexAngle3Center != null)
             IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
@@ -285,14 +278,11 @@ public class ClawModuleController : MonoBehaviour
             ref isIndex4Triggered
         );
 
-        // if (IndexAngle4Center != null)
-        //     IndexAngle4Center.localRotation = Quaternion.Euler(jointAngle.indexAngle2, 0f, 0f);
-
         // ==============================
         // 🔹 Middle Finger State
         // ==============================
 
-        UpdateMiddleFingerAbduction();   // good
+        UpdateMiddleFingerAbduction();
         
         UpdateMiddleFingerTwist();
 
@@ -313,9 +303,6 @@ public class ClawModuleController : MonoBehaviour
             MiddleAngle4Center,
             ref isMiddle4Triggered
         );
-
-        // if (MiddleAngle4Center != null)
-        //     MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
     }
 
     // ==============================

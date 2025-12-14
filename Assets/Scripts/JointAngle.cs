@@ -16,6 +16,11 @@ public class JointAngle : MonoBehaviour
     private Vector3 initialWristRight;  // Store initial wrist direction
     private Vector3 initialThumbRight;  // Store initial thumb direction
     private Vector3 initialRotationAxis; // Store initial rotation axis to determine direction
+    
+    // State tracking for thumb-palm angle
+    private bool thumbPalmAngleInitialized = false;
+    private float initialThumbPalmAngleDot; // Store initial dot product sign
+    private bool isThumbPalmAngleLocked = false; // Whether angle is locked at 0
 
     public float indexMiddleDistance;
 
@@ -362,10 +367,52 @@ public class JointAngle : MonoBehaviour
     }
 
     // calculate the angles between thumbPlaneNormal and palmNormal
+    // Tracks initial plane relationship and locks to 0 if planes become parallel or cross over
     float UpdateThumbPalmAngle()
     {
-        return Vector3.Angle(thumbPlaneNormal, palmNormal);
-        // Debug.Log("Thumb-Palm Plane Angle: " + angle.ToString("F2") + " degrees");
+        // Calculate the angle between the two plane normals
+        float angle = Vector3.Angle(thumbPlaneNormal, palmNormal);
+        
+        // Get the dot product to determine orientation
+        float dotProduct = Vector3.Dot(thumbPlaneNormal, palmNormal);
+        
+        // Initialize on first frame
+        if (!thumbPalmAngleInitialized)
+        {
+            initialThumbPalmAngleDot = dotProduct;
+            thumbPalmAngleInitialized = true;
+            isThumbPalmAngleLocked = false;
+            return angle;
+        }
+        
+        // Check if the planes have crossed (dot product sign changed) or became parallel
+        bool hasCrossed = Mathf.Sign(dotProduct) != Mathf.Sign(initialThumbPalmAngleDot);
+        bool isParallel = Mathf.Abs(dotProduct) > 0.999f; // Nearly parallel (angle < ~2.5 degrees)
+        
+        // If planes crossed or became parallel, lock the angle at 0
+        if (hasCrossed || isParallel)
+        {
+            isThumbPalmAngleLocked = true;
+        }
+        
+        // If locked, keep returning 0 until we return to initial orientation
+        if (isThumbPalmAngleLocked)
+        {
+            // Check if we've returned to the initial orientation
+            bool backToInitial = Mathf.Sign(dotProduct) == Mathf.Sign(initialThumbPalmAngleDot) && !isParallel;
+            
+            if (backToInitial)
+            {
+                // Unlock and resume angle calculation
+                isThumbPalmAngleLocked = false;
+                return angle;
+            }
+            
+            return 0f;
+        }
+        
+        // Normal case: return the angle (always < 180 degrees)
+        return angle;
     }
 
     // Calculate the angle between R_Wrist's red vector and R_thumb_a's red vector
