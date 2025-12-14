@@ -13,6 +13,8 @@ public class ClawModuleController : MonoBehaviour
     public TriggerRightThumbTip triggerRightThumbTip;
     public TriggerRightIndexTwist triggerRightIndexTwist;
 
+    public TriggerRightThumbAbduction triggerRightThumbAbduction;
+
     // ==============================
     // 🔹 Thumb Transforms
     // ==============================
@@ -343,7 +345,8 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["ThumbAbduction"] = 0f;
         }
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 58f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
+        // triggerRightThumbAbduction.isRightThumbAbductionTouched 
+        if (triggerRightThumbAbduction.isRightThumbAbductionTouched && jointAngle.thumbPalmAngle > 55f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
         {
             fingerTipTouchDurations["ThumbAbduction"] += Time.deltaTime;
             thumbJoint1Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"], 1f));
@@ -519,7 +522,7 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["ThumbTwist"] = 0f;
         }
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && jointAngle.thumbPalmAngle < 58f)
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && jointAngle.thumbPalmAngle < 55f)
         {
             fingerTipTouchDurations["ThumbTwist"] += Time.deltaTime;
             thumbJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbTwist"], 1f));

@@ -597,8 +597,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.099610254, y: 0.08708256, z: 0.03669017}
-  m_Center: {x: -0.0018050545, y: -0.020588463, z: -0.010162468}
+  m_Size: {x: 0.110682175, y: 0.09373086, z: 0.047319394}
+  m_Center: {x: -0.0073409895, y: -0.023912616, z: -0.0048478507}
 --- !u!114 &187972396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11809,6 +11809,7 @@ MonoBehaviour:
   triggerRightMiddleTip: {fileID: 1892804445}
   triggerRightThumbTip: {fileID: 1540125987}
   triggerRightIndexTwist: {fileID: 0}
+  triggerRightThumbAbduction: {fileID: 0}
   ThumbAngle1Center: {fileID: 1173910316}
   ThumbAngle2Center: {fileID: 83926891}
   ThumbAngle3Center: {fileID: 115009900}
@@ -23726,6 +23727,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4680002838565022828, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 187972394}
+    - targetCorrespondingSourceObject: {fileID: 4680002838565022828, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2050949039}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4196411269979556488, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
@@ -24893,6 +24897,75 @@ Transform:
   - {fileID: 1173910316}
   m_Father: {fileID: 1033347336}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2050949038
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2050949039}
+  - component: {fileID: 2050949040}
+  - component: {fileID: 2050949041}
+  m_Layer: 0
+  m_Name: R_ThumbTriggerAbduction
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2050949039
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050949038}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 333476426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2050949040
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050949038}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.071592376, y: 0.050943475, z: 0.047319405}
+  m_Center: {x: 0.05053357, y: -0.002519078, z: -0.004847403}
+--- !u!114 &2050949041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050949038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d0f470a0b9db3d4690ca3932a335df8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetTags:
+  - L_IndexTip
+  - L_ThumbTip
 --- !u!1 &2057144134
 GameObject:
   m_ObjectHideFlags: 0
@@ -26346,6 +26419,7 @@ MonoBehaviour:
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}
   triggerRightIndexTwist: {fileID: 1893964448}
+  triggerRightThumbAbduction: {fileID: 2050949041}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
