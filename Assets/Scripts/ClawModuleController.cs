@@ -62,7 +62,7 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Configuration
     // ==============================
-    private float rotationSpeed = 8f; // degrees per second
+    private float rotationSpeed = 13f; // degrees per second
     public bool isMapping = true;
     public float tt = 0f;
 
@@ -337,7 +337,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
         maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 30f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle > 58f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
         {
             currentThumbRotationY -= rotationSpeed * Time.deltaTime;
             currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 0f);
@@ -471,7 +471,7 @@ public class ClawModuleController : MonoBehaviour
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
         maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
 
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2)
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && jointAngle.thumbPalmAngle < 58f)
         {
             currentThumbRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
             currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
@@ -534,7 +534,7 @@ public class ClawModuleController : MonoBehaviour
     {
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
-        
+
         //   triggerRightIndexTwist.isRightIndexTwistTouched
         if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
         {

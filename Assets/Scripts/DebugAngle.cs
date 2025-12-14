@@ -48,17 +48,18 @@ public class DebugAngle : MonoBehaviour
                 // "maxMiddleZAxisAngle: " + clawModuleController.maxMiddleZAxisAngle.ToString("F3") + "\n" +
                 // "currentMiddleRotationZ: " + clawModuleController.currentMiddleRotationZ.ToString("F3") + "\n" + 
                 // "thumbPalmAngle: " + jointAngle.thumbPalmAngle.ToString("F2") + "\n";
-                "isThumb1Triggered: " + clawModuleController.isThumb1Triggered.ToString() + "\n" +
-                "isThumb2Triggered: " + clawModuleController.isThumb2Triggered.ToString() + "\n" +
-                "isThumb4Triggered: " + clawModuleController.isThumb4Triggered.ToString() + "\n" +
-                "isIndex1Triggered: " + clawModuleController.isIndex1Triggered.ToString() + "\n" +
-                "isIndex2Triggered: " + clawModuleController.isIndex2Triggered.ToString() + "\n" +
-                "isIndex4Triggered: " + clawModuleController.isIndex4Triggered.ToString() + "\n" +
-                "isMiddle1Triggered: " + clawModuleController.isMiddle1Triggered.ToString() + "\n" +
-                "isMiddle2Triggered: " + clawModuleController.isMiddle2Triggered.ToString() + "\n" +
-                "isMiddle4Triggered: " + clawModuleController.isMiddle4Triggered.ToString() + "\n" +
-                "isAnyMotorTriggered" + clawModuleController.isAnyMotorTriggered.ToString() + "\n"+
-                "isRightIndexTwistTouched: " + clawModuleController.triggerRightIndexTwist.isRightIndexTwistTouched.ToString() + "\n";
+                // "isThumb1Triggered: " + clawModuleController.isThumb1Triggered.ToString() + "\n" +
+                // "isThumb2Triggered: " + clawModuleController.isThumb2Triggered.ToString() + "\n" +
+                // "isThumb4Triggered: " + clawModuleController.isThumb4Triggered.ToString() + "\n" +
+                // "isIndex1Triggered: " + clawModuleController.isIndex1Triggered.ToString() + "\n" +
+                // "isIndex2Triggered: " + clawModuleController.isIndex2Triggered.ToString() + "\n" +
+                // "isIndex4Triggered: " + clawModuleController.isIndex4Triggered.ToString() + "\n" +
+                // "isMiddle1Triggered: " + clawModuleController.isMiddle1Triggered.ToString() + "\n" +
+                // "isMiddle2Triggered: " + clawModuleController.isMiddle2Triggered.ToString() + "\n" +
+                // "isMiddle4Triggered: " + clawModuleController.isMiddle4Triggered.ToString() + "\n" +
+                // "isAnyMotorTriggered" + clawModuleController.isAnyMotorTriggered.ToString() + "\n"+
+                // "isRightIndexTwistTouched: " + clawModuleController.triggerRightIndexTwist.isRightIndexTwistTouched.ToString() + "\n";
+                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n";
         }
     }
 }
