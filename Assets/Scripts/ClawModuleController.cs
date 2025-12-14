@@ -384,7 +384,7 @@ public class ClawModuleController : MonoBehaviour
         maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
         Quaternion targetRotation = IndexAngle1CenterInitialRotation;
 
-        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.5f && !isAnyMotor4Triggered && canControlIndex1)
+        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.9f && !isAnyMotor4Triggered && canControlIndex1)
         {
             currentIndexRotationY -= rotationSpeed * Time.deltaTime;
             currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
@@ -427,7 +427,7 @@ public class ClawModuleController : MonoBehaviour
         maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
         Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
 
-        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.5f && !isAnyMotor4Triggered && canControlMiddle1)
+        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.9f && !isAnyMotor4Triggered && canControlMiddle1)
         {
             currentMiddleRotationY += rotationSpeed * Time.deltaTime;
             currentMiddleRotationY = Mathf.Min(currentMiddleRotationY, 60f);
@@ -534,8 +534,9 @@ public class ClawModuleController : MonoBehaviour
     {
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
-
-        if (triggerRightIndexTwist.isRightIndexTwistTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
+        
+        //   triggerRightIndexTwist.isRightIndexTwistTouched
+        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
         {
             if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
             {   
