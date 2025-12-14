@@ -235,7 +235,7 @@ public class ClawModuleController : MonoBehaviour
         UpdateThumbFingerTwist();
 
         if (ThumbAngle3Center != null)
-            ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f); //FIXME: to let it bend for more deeper
+            ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1*1.8f, 0f, 0f); //FIXME: to let it bend for more deeper
         
         UpdateFingertipExtension(
             triggerRightThumbTip.isRightThumbTipTouched,
@@ -261,7 +261,7 @@ public class ClawModuleController : MonoBehaviour
         UpdateIndexFingerTwist();
 
         if (IndexAngle3Center != null)
-            IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1, 0f, 0f);
+            IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1*1.4f, 0f, 0f);
 
         UpdateFingertipExtension(
             triggerRightIndexTip.isRightIndexTipTouched,
@@ -287,7 +287,7 @@ public class ClawModuleController : MonoBehaviour
         UpdateMiddleFingerTwist();
 
         if (MiddleAngle3Center != null)
-            MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1, 0f, 0f);
+            MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1*1.4f, 0f, 0f);
 
         UpdateFingertipExtension(
             triggerRightMiddleTip.isRightMiddleTipTouched,
@@ -860,7 +860,7 @@ public class ClawModuleController : MonoBehaviour
         {
             // Smoothly increase the rotation while the tip is touched
             currentTipRotation -= rotationSpeed * Time.deltaTime;
-            currentTipRotation = Mathf.Clamp(currentTipRotation, -60f, 0f);
+            currentTipRotation = Mathf.Clamp(currentTipRotation, -80f, 0f);
             jointRenderer.material.color = activeColor;
             relatedMotorTriggered = true;
         }
@@ -871,10 +871,11 @@ public class ClawModuleController : MonoBehaviour
 
         if (isMapping)
         {
-            float normalized = Mathf.InverseLerp(0f, 25f, jointAngleValue);
-            float tipEffect = Mathf.Lerp(currentTipRotation, 0f, normalized); // impact decreases as jointAngleValue approaches 25
-            float finalAngle = jointAngleValue + tipEffect;
-            targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
+            // float normalized = Mathf.InverseLerp(0f, 25f, jointAngleValue);
+            // float tipEffect = Mathf.Lerp(currentTipRotation, 0f, normalized); // impact decreases as jointAngleValue approaches 25
+            // float finalAngle = jointAngleValue + tipEffect;
+            // targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
+            targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
         }
         else
         {
