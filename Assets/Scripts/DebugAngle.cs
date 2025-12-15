@@ -70,7 +70,7 @@ public class DebugAngle : MonoBehaviour
                 "currentIndexTipRotationZ: " + clawModuleController.currentIndexTipRotationZ.ToString("F3") + "°\n" +
                 "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
                 "isThumbInnerExtensionTouched: " + triggerThumbInnerExtension.isThumbInnerExtensionTouched.ToString() + "\n" +
-                "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n";
+                "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
                 // "(int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y: " + ((int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y).ToString() + "°\n" +
                 // "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
                 // "(int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z: " + ((int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";
@@ -78,7 +78,10 @@ public class DebugAngle : MonoBehaviour
                 // "(int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z,: " + ((int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";
                 // "(int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n" +
                 // "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
-                // "Wrist.localRotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n";
+                "Wrist.localRotation.eulerAngles.x: " + jointAngle.joints["Wrist"].localEulerAngles.x.ToString("F4") + "°\n" +
+                "Wrist.rotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n" +
+                "Elbow.localRotation.eulerAngles.x: " + jointAngle.joints["Elbow"].localEulerAngles.x.ToString("F4") + "°\n" +
+                "Elbow.rotation.eulerAngles.x: " + jointAngle.joints["Elbow"].eulerAngles.x.ToString("F4") + "°\n";
         }
     }
 }

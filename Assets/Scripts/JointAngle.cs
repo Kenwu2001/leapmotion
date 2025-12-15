@@ -80,6 +80,7 @@ public class JointAngle : MonoBehaviour
 
         // Points needed for forming the basic plane of the palm
         joints["Wrist"] = GameObject.Find("R_Wrist").transform;
+        joints["Elbow"] = GameObject.Find("Elbow").transform;
         joints["PalmIndex"] = GameObject.Find("R_index_Proximal").transform;
         joints["PalmRing"] = GameObject.Find("R_ring_Proximal").transform;
 
