@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TriggerRightIndexTwist : MonoBehaviour
+public class TriggerMiddleInnerExtension : MonoBehaviour
 {
     public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
-    public bool isRightIndexTwistTouched => touchCount > 0;
+    public bool isMiddleInnerExtensionTouched => touchCount > 0;
 
     private int touchCount = 0;
 
