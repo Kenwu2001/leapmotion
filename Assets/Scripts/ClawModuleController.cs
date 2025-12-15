@@ -235,7 +235,7 @@ public class ClawModuleController : MonoBehaviour
         UpdateThumbFingerTwist();
 
         if (ThumbAngle3Center != null)
-            ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1*1.8f, 0f, 0f); //FIXME: to let it bend for more deeper
+            ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1*1.7f, 0f, 0f); //FIXME: to let it bend for more deeper
         
         UpdateFingertipExtension(
             triggerRightThumbTip.isRightThumbTipTouched,
@@ -261,7 +261,7 @@ public class ClawModuleController : MonoBehaviour
         UpdateIndexFingerTwist();
 
         if (IndexAngle3Center != null)
-            IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1*1.4f, 0f, 0f);
+            IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1 + jointAngle.indexAngle0, 0f, 0f);
 
         UpdateFingertipExtension(
             triggerRightIndexTip.isRightIndexTipTouched,
@@ -287,7 +287,7 @@ public class ClawModuleController : MonoBehaviour
         UpdateMiddleFingerTwist();
 
         if (MiddleAngle3Center != null)
-            MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1*1.4f, 0f, 0f);
+            MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1 + jointAngle.middleAngle0, 0f, 0f);
 
         UpdateFingertipExtension(
             triggerRightMiddleTip.isRightMiddleTipTouched,

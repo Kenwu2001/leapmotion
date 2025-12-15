@@ -10,7 +10,7 @@ public class XRDiag : MonoBehaviour
 
     void Update()
     {
-        // 每 3 秒列一次所有 XR 裝置
+        // List all XR devices every 3 seconds
         if (Time.time >= nextListTime)
         {
             nextListTime = Time.time + 3f;
@@ -23,11 +23,11 @@ public class XRDiag : MonoBehaviour
             }
         }
 
-        // 嘗試讀取指定控制器的 pose
+        // Try to read pose of specified controller
         var device = InputDevices.GetDeviceAtXRNode(which);
         if (!device.isValid)
         {
-            // Debug.Log($"[XRDiag] {which} device.isValid = false (可能沒連線、在手追蹤模式、或平台設定不對)");
+            // Debug.Log($"[XRDiag] {which} device.isValid = false (possibly not connected, in hand tracking mode, or platform settings incorrect)");
             return;
         }
 
@@ -39,7 +39,7 @@ public class XRDiag : MonoBehaviour
         }
         else
         {
-            // Debug.Log($"[XRDiag] {which} 有裝置，但沒有回傳 pose（可能還在初始化/喚醒中）");
+            // Debug.Log($"[XRDiag] {which} device present, but no pose returned (possibly still initializing/waking up)");
         }
     }
 }

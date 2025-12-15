@@ -1,11 +1,11 @@
-using TMPro; // 引入 TextMeshPro 命名空間
+using TMPro; // Import TextMeshPro namespace
 using UnityEngine;
 
 public class DebugAngle : MonoBehaviour
 {
-    public TextMeshPro angleText; // 在 Inspector 裡手動拖進來
+    public TextMeshPro angleText; // Manually drag into Inspector
 
-    public JointAngle jointAngle; // 拖入角度來源腳本
+    public JointAngle jointAngle; // Drag in the angle source script
     public ClawModuleController clawModuleController;
 
     public TriggerRightThumbTip triggerRightThumbTip;
@@ -69,6 +69,7 @@ public class DebugAngle : MonoBehaviour
                 // "(int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z,: " + ((int)clawModuleController.MiddleAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";
                 // "(int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n" +
                 // "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
+                // "Wrist.localRotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n";
         }
     }
 }

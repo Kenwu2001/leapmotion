@@ -36,31 +36,31 @@ public class DeltaUserStudy : MonoBehaviour
     Transform[,] motorArray;
     Renderer[,] rendererArray;
     
-    // 當前選中的索引（初始為 IndexAngle4Center: row 3, col 1）
+    // Currently selected index (initial: IndexAngle4Center: row 3, col 1)
     private int currentRow = 3;
     private int currentCol = 1;
     
-    // 陣列大小
+    // Array size
     private const int ROWS = 4;
     private const int COLS = 3;
     
-    // 保存原始顏色和當前選中的物體
+    // Save original colors and currently selected object
     private Dictionary<Renderer, Color> originalColors = new Dictionary<Renderer, Color>();
     private Renderer currentSelectedRenderer;
 
     public Color purpleColor = new Color(0.5f, 0f, 0.5f);
-    private float rotationSpeed = 10f;
+    private float rotationSpeed = 20f;
     
-    // 储存每个关节的初始旋转
+    // Store initial rotation of each joint
     private Quaternion[,] initialRotations = new Quaternion[4, 3];
     
-    // 储存每个关节的当前角度
+    // Store current angle of each joint
     private float[,] currentRotations = new float[4, 3];
         
     // Start is called before the first frame update
     void Start()
     {
-        // 初始化陣列
+        // Initialize array
         motorArray = new Transform[ROWS, COLS] {
             {ThumbAngle1Center, IndexAngle1Center, MiddleAngle1Center},
             {ThumbAngle2Center, IndexAngle2Center, MiddleAngle2Center},
@@ -68,7 +68,7 @@ public class DeltaUserStudy : MonoBehaviour
             {ThumbAngle4Center, IndexAngle4Center, MiddleAngle4Center}
         };
         
-        // 初始化 Renderer 陣列
+        // Initialize Renderer array
         rendererArray = new Renderer[ROWS, COLS] {
             {thumbJoint1Renderer, indexJoint1Renderer, middleJoint1Renderer},
             {thumbJoint2Renderer, indexJoint2Renderer, middleJoint2Renderer},
@@ -76,19 +76,19 @@ public class DeltaUserStudy : MonoBehaviour
             {thumbJoint4Renderer, indexJoint4Renderer, middleJoint4Renderer}
         };
         
-        // 保存所有物體的原始顏色
+        // Save original colors of all objects
         SaveOriginalColors();
         
-        // 初始化初始旋转
+        // Initialize initial rotations
         InitializeRotations();
         
-        // 初始位置設置為 IndexAngle4Center
+        // Set initial position to IndexAngle4Center
         UpdateSelection();
     }
     
     void InitializeRotations()
     {
-        // 保存每个关节的初始旋转
+        // Save initial rotation of each joint
         for (int row = 0; row < ROWS; row++)
         {
             for (int col = 0; col < COLS; col++)
@@ -120,30 +120,45 @@ public class DeltaUserStudy : MonoBehaviour
     
     void UpdateSelection()
     {
-        // 恢復上一個選中物體的顏色
+        // Restore color of previously selected object
         if (currentSelectedRenderer != null && originalColors.ContainsKey(currentSelectedRenderer))
         {
             currentSelectedRenderer.material.color = originalColors[currentSelectedRenderer];
         }
         
-        // 設置新選中的物體
+        // Set new selected object
         currentSelectedRenderer = rendererArray[currentRow, currentCol];
         if (currentSelectedRenderer != null)
         {
-            currentSelectedRenderer.material.color = Color.green;
+            // If the selected is one of the IndexAngle1-4, use red, else green
             Transform selectedTransform = motorArray[currentRow, currentCol];
-            Debug.Log($"選中: Row {currentRow}, Col {currentCol} - {selectedTransform.name}");
+            if (selectedTransform == IndexAngle1Center || selectedTransform == IndexAngle2Center || selectedTransform == IndexAngle3Center || selectedTransform == IndexAngle4Center)
+                currentSelectedRenderer.material.color = Color.red;
+            else
+                currentSelectedRenderer.material.color = Color.green;
+            Debug.Log($"Selected: Row {currentRow}, Col {currentCol} - {selectedTransform.name}");
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        // WASD 導航控制
+        // WASD navigation control
         HandleNavigation();
         
-        // QE 旋轉控制
+        // QE rotation control
         HandleRotation();
+        
+        // R key - Set all Angle3 joints (row 2) to 89 degrees
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            SetRow2To89Degrees();
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            ResetAll();
+        }
         
         // if (ThumbAngle3Center != null)
         //     ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
@@ -168,28 +183,28 @@ public class DeltaUserStudy : MonoBehaviour
     {
         bool moved = false;
         
-        // W - 上（往下一行，循環）
+        // W - Up (go down one row, wrapping)
         if (Input.GetKeyDown(KeyCode.W))
         {
             currentRow = (currentRow + 1) % ROWS;
             moved = true;
         }
-        // S - 下（往上一行，循環）
+        // S - Down (go up one row, wrapping)
         else if (Input.GetKeyDown(KeyCode.S))
         {
             currentRow = (currentRow - 1 + ROWS) % ROWS;
             moved = true;
         }
-        // A - 左（往右邊列，循環）
+        // A - Cycle: Index -> Thumb -> Middle -> Index
         else if (Input.GetKeyDown(KeyCode.A))
         {
-            currentCol = (currentCol + 1) % COLS;
+            currentCol = (currentCol - 1 + COLS) % COLS;
             moved = true;
         }
-        // D - 右（往左邊列，循環）
+        // D - Cycle: Index -> Middle -> Thumb -> Index
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            currentCol = (currentCol - 1 + COLS) % COLS;
+            currentCol = (currentCol + 1) % COLS;
             moved = true;
         }
         
@@ -207,14 +222,14 @@ public class DeltaUserStudy : MonoBehaviour
         float rotationDelta = rotationSpeed * Time.deltaTime;
         bool rotationChanged = false;
         
-        // Q 键 - 减少角度
+        // Q key - decrease angle
         if (Input.GetKey(KeyCode.Q))
         {
             currentRotations[currentRow, currentCol] -= rotationDelta;
             rotationChanged = true;
         }
         
-        // E 键 - 增加角度
+        // E key - increase angle
         if (Input.GetKey(KeyCode.E))
         {
             currentRotations[currentRow, currentCol] += rotationDelta;
@@ -223,34 +238,70 @@ public class DeltaUserStudy : MonoBehaviour
         
         if (rotationChanged)
         {
-            // 限制角度范围为 -60 到 60 度
+            // Limit angle range to -60 to 60 degrees
             currentRotations[currentRow, currentCol] = 
-                Mathf.Clamp(currentRotations[currentRow, currentCol], -60f, 60f);
+                Mathf.Clamp(currentRotations[currentRow, currentCol], -89f, 89f);
             
-            // 应用旋转：初始旋转 * 当前角度变化
+            // Apply rotation: initial rotation * current angle change
             Quaternion initialRotation = initialRotations[currentRow, currentCol];
             float currentAngle = currentRotations[currentRow, currentCol];
             Quaternion deltaRotation;
             
-            // 根据 row 决定旋转轴
-            if (currentRow == 0) // Row 0: ThumbAngle1, IndexAngle1, MiddleAngle1 - Y 轴
+            // Determine rotation axis based on row
+            if (currentRow == 0) // Row 0: ThumbAngle1, IndexAngle1, MiddleAngle1 - Y axis
             {
                 deltaRotation = Quaternion.Euler(0f, currentAngle, 0f);
             }
-            else if (currentRow == 1) // Row 1: ThumbAngle2, IndexAngle2, MiddleAngle2 - Z 轴
+            else if (currentRow == 1) // Row 1: ThumbAngle2, IndexAngle2, MiddleAngle2 - Z axis
             {
                 deltaRotation = Quaternion.Euler(0f, 0f, currentAngle);
             }
-            else // Row 2 & 3: Angle3, Angle4 - X 轴
+            else // Row 2 & 3: Angle3, Angle4 - X axis
             {
                 deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
             }
             
             currentTransform.localRotation = initialRotation * deltaRotation;
             
-            // Debug 输出
+            // Debug output
             string axisName = currentRow == 0 ? "Y" : (currentRow == 1 ? "Z" : "X");
-            // Debug.Log($"Row {currentRow}, Col {currentCol} - {axisName} 轴: {currentAngle:F2}°");
+            // Debug.Log($"Row {currentRow}, Col {currentCol} - {axisName} axis: {currentAngle:F2}°");
+        }
+    }
+    
+    void SetRow2To89Degrees()
+    {
+        // Set all joints in row 2 (ThumbAngle3Center, IndexAngle3Center, MiddleAngle3Center) to 89 degrees
+        int targetRow = 2;
+        float targetAngle = 89f;
+        
+        for (int col = 0; col < COLS; col++)
+        {
+            Transform t = motorArray[targetRow, col];
+            if (t != null)
+            {
+                currentRotations[targetRow, col] = targetAngle;
+                Quaternion initialRotation = initialRotations[targetRow, col];
+                Quaternion deltaRotation = Quaternion.Euler(targetAngle, 0f, 0f); // Row 2 uses X axis
+                t.localRotation = initialRotation * deltaRotation;
+            }
+        }
+    }
+
+    void ResetAll()
+    {
+        // Reset all joints to initial rotations
+        for (int row = 0; row < ROWS; row++)
+        {
+            for (int col = 0; col < COLS; col++)
+            {
+                Transform t = motorArray[row, col];
+                if (t != null)
+                {
+                    currentRotations[row, col] = 0f;
+                    t.localRotation = initialRotations[row, col];
+                }
+            }
         }
     }
 }
