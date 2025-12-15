@@ -365,7 +365,7 @@ public class ClawModuleController : MonoBehaviour
 
         // mapping using thumb palm angle
         float thumbPalmAngleDiff = 45f - jointAngle.thumbPalmAngle;
-        if (isMapping && Mathf.Abs(currentThumbRotationY) > 0.1f && Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
+        if (isMapping && Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
         {
             float delta = maxThumbYAxisAngle;
             float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y - delta * (thumbPalmAngleDiff / 45f);
@@ -518,7 +518,7 @@ public class ClawModuleController : MonoBehaviour
             // Only apply rotation after 1 second
             if (fingerTipTouchDurations["ThumbTwist"] > 1.0f)
             {
-                currentThumbRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                currentThumbRotationZ -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
                 currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
 
                 thumbFingerJoint2MaxRotationVector =
