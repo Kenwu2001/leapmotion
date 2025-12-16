@@ -273,7 +273,7 @@ public class DeltaUserStudy : MonoBehaviour
     {
         // Set all joints in row 2 (ThumbAngle3Center, IndexAngle3Center, MiddleAngle3Center) to 89 degrees
         int targetRow = 2;
-        float targetAngle = 89f;
+        float targetAngle = 75f;
         
         for (int col = 0; col < COLS; col++)
         {

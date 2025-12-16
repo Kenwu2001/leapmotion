@@ -269,6 +269,7 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle3Center,
             ref isThumb3Triggered,
             () => jointAngle.thumbPalmAngle < 10f
+            // jointAngle.thumbAngle0 == 0f
         );
 
         UpdateFingertipExtension(
@@ -285,6 +286,7 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle4Center,
             ref isThumb4Triggered,
             () => jointAngle.thumbPalmAngle < 10f
+            // jointAngle.thumbAngle0 == 0f
         );
 
         // ==============================
@@ -401,7 +403,7 @@ public class ClawModuleController : MonoBehaviour
         if (triggerRightThumbAbduction.isRightThumbAbductionTouched && jointAngle.thumbPalmAngle > 55f && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1)
         {
             fingerTipTouchDurations["ThumbAbduction"] += Time.deltaTime;
-            thumbJoint1Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"], 1f));
+            thumbJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"], 1f));
             isThumb1Triggered = true;
 
             // Only apply rotation after 1 second
@@ -413,7 +415,7 @@ public class ClawModuleController : MonoBehaviour
                 thumbFingerJoint1MaxRotationVector =
                     (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
 
-                thumbJoint1Renderer.material.color = greenColor;
+                thumbJoint1Renderer.material.color = yellowColor;
             }
         }
         else
@@ -652,7 +654,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         //   triggerIndexInnerExtension.isIndexInnerExtensionTouched
-        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2)
+        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2 && !isMiddle2Triggered)
         {
             fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
             indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"], 1f));
@@ -734,7 +736,7 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["MiddleTwist"] = 0f;
         }
 
-        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2)
+        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2 && !isIndex2Triggered)
         {
             fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
             middleJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["MiddleTwist"], 1f));

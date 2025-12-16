@@ -81,7 +81,11 @@ public class DebugAngle : MonoBehaviour
                 "Wrist.localRotation.eulerAngles.x: " + jointAngle.joints["Wrist"].localEulerAngles.x.ToString("F4") + "°\n" +
                 "Wrist.rotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n" +
                 "Elbow.localRotation.eulerAngles.x: " + jointAngle.joints["Elbow"].localEulerAngles.x.ToString("F4") + "°\n" +
-                "Elbow.rotation.eulerAngles.x: " + jointAngle.joints["Elbow"].eulerAngles.x.ToString("F4") + "°\n";
+                "Elbow.rotation.eulerAngles.x: " + jointAngle.joints["Elbow"].eulerAngles.x.ToString("F4") + "°\n" +
+                "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n" +
+                "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n" +
+                "joints[Middle0].localRotation.eulerAngles.z: " + jointAngle.joints["Middle0"].localEulerAngles.z.ToString("F4") + "°\n";
+
         }
     }
 }
