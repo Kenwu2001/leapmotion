@@ -68,13 +68,13 @@ public class DebugAngle : MonoBehaviour
                 // "isThumbInnerExtensionTouched: " + triggerIndexInnerExtension.isIndexInnerExtensionTouched.ToString() + "\n" +
                 // "currentIndexInnerExtensionRotationZ: " + clawModuleController.currentIndexInnerExtensionRotationZ.ToString("F3") + "°\n" +
                 // "currentIndexTipRotationZ: " + clawModuleController.currentIndexTipRotationZ.ToString("F3") + "°\n" +
-                // "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
+                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
                 // "isThumbInnerExtensionTouched: " + triggerThumbInnerExtension.isThumbInnion.eulerAngles.x: " + jointAngle.joints["Wrist"].localEulerAngles.x.ToString("F4") + "°\n" +
                 // "Wrist.rotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n" +
                 // "Elbow.localRotation.eulerAngles.x: " + jointAngle.joints["Elbow"].localEulerAngles.x.ToString("F4") + "°\n" +
                 // "Elbow.rotation.eulerAngles.x: " + jointAngle.joints["Elbow"].eulerAngles.x.ToString("F4") + "°\n" +
-                // "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n" +
-                "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n";
+                "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n";
+                // "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n";
                 // "indexAngle0: " + jointAngle.indexAngle0.ToString("F2") + "°\n";
                 // "joints[Middle0].localRerExtensionTouched.ToString() + "\n" +
                 // "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +

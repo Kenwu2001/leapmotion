@@ -228,7 +228,7 @@ public class ClawModuleController : MonoBehaviour
         isFingerTipTriggered = false;
         
         // Check thumb tip
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbPalmAngle < 10f)
+        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbAngle0 == 0f)
         {
             isFingerTipTriggered = true;
         }
@@ -279,9 +279,7 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        UpdateThumbAbduction();
 
-        UpdateThumbFingerTwist();
 
         // if (ThumbAngle3Center != null)
         //     ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1*1.7f, 0f, 0f);
@@ -299,7 +297,8 @@ public class ClawModuleController : MonoBehaviour
             originalColor,
             ThumbAngle3Center,
             ref isThumb3Triggered,
-            () => jointAngle.thumbPalmAngle < 10f
+            () => jointAngle.thumbAngle0 == 0f
+            // () => jointAngle.thumbPalmAngle < 10f
             // jointAngle.thumbAngle0 == 0f
         );
 
@@ -316,9 +315,14 @@ public class ClawModuleController : MonoBehaviour
             originalColor,
             ThumbAngle4Center,
             ref isThumb4Triggered,
-            () => jointAngle.thumbPalmAngle < 10f
+            () => jointAngle.thumbAngle0 == 0f
+            // () => jointAngle.thumbPalmAngle < 10f //FIXME: need to consider the angle more carefully 
             // jointAngle.thumbAngle0 == 0f
         );
+
+        UpdateThumbAbduction();
+
+        UpdateThumbFingerTwist();
 
         // ==============================
         // 🔹 Index Finger
@@ -942,8 +946,8 @@ public class ClawModuleController : MonoBehaviour
         else
         {
             conditionMet = isInnerExtensionTouched && 
-                jointAngle.joints[baseJointName].localRotation.eulerAngles.z > 10.0 && //FIXME: need?
-                jointAngle.joints[baseJointName].localRotation.eulerAngles.z < 30.0 && //FIXME: need?
+                jointAngle.joints[baseJointName].localRotation.eulerAngles.z > 10.0 &&
+                jointAngle.joints[baseJointName].localRotation.eulerAngles.z < 30.0 &&
                 !isTipTouched;
         }
 
