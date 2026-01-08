@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class LeapAnchorOffset : MonoBehaviour
 {
-    public TriggerRightIndexTip triggerScript;
+    public RetargetIndex retargetIndex;
     public Transform leftIndexTip;
     public Transform baseLeapAnchorPosition;
 
@@ -30,7 +30,7 @@ public class LeapAnchorOffset : MonoBehaviour
     void LateUpdate()
     {
 
-        if (_isRetargeting && leftIndexTip != null && triggerScript != null)
+        if (_isRetargeting && leftIndexTip != null && retargetIndex != null)
         {
             // Calculate offset from the initial touch point (recorded IndexTip position)
             Vector3 currentIndexPos = leftIndexTip.position;
@@ -60,21 +60,21 @@ public class LeapAnchorOffset : MonoBehaviour
     // Called by TriggerRightIndexTip when L_IndexTip enters
     public void StartRetargeting()
     {
-        if (triggerScript == null || leftIndexTip == null)
+        if (retargetIndex == null || leftIndexTip == null)
         {
-            Debug.LogWarning("TriggerScript or LeftIndexTip not assigned!");
+            Debug.LogWarning("retargetIndex or LeftIndexTip not assigned!");
             return;
         }
 
-        if (!triggerScript.HasRecordedPositions())
+        if (!retargetIndex.HasRecordedPositions())
         {
             Debug.LogWarning("Positions not recorded yet!");
             return;
         }
 
-        _recordedObject1Pos = triggerScript.GetRecordedObject1Position();
-        _recordedObject2Pos = triggerScript.GetRecordedObject2Position();
-        _recordedThumbTipPos = triggerScript.GetRecordedThumbTipPosition();
+        _recordedObject1Pos = retargetIndex.GetRecordedObject1Position();
+        _recordedObject2Pos = retargetIndex.GetRecordedObject2Position();
+        _recordedThumbTipPos = retargetIndex.GetRecordedThumbTipPosition();
 
         // Calculate scale factors based on the distance between Object1 and Object2
         // relative to the distance from touch point to Object1
@@ -89,16 +89,16 @@ public class LeapAnchorOffset : MonoBehaviour
         );
 
         _isRetargeting = true;
-        Debug.Log($"Touch point: {_recordedThumbTipPos}");
-        Debug.Log($"Object1: {_recordedObject1Pos}, Object2: {_recordedObject2Pos}");
-        Debug.Log($"Scale factors: {_scaleFactors}");
+        // Debug.Log($"Touch point: {_recordedThumbTipPos}");
+        // Debug.Log($"Object1: {_recordedObject1Pos}, Object2: {_recordedObject2Pos}");
+        // Debug.Log($"Scale factors: {_scaleFactors}");
     }
 
     // Called by TriggerRightIndexTip when L_IndexTip exits
     public void StopRetargeting()
     {
         _isRetargeting = false;
-        Debug.Log("Stopped retargeting - returning to normal");
+        // Debug.Log("Stopped retargeting - returning to normal");
     }
 
     public bool IsRetargeting()
