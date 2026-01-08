@@ -12,7 +12,6 @@ public class TriggerRightIndexTip : MonoBehaviour
     public Transform object2;
 
     [Header("Retargeting Control")]
-    [Tooltip("LeapAnchorOffset script to control retargeting")]
     public LeapAnchorOffset leapAnchorOffset;
 
     private int touchCount = 0;
@@ -23,7 +22,7 @@ public class TriggerRightIndexTip : MonoBehaviour
     // Recorded positions when L_IndexTip first touches
     private Vector3 recordedObject1Position;
     private Vector3 recordedObject2Position;
-    private Vector3 recordedIndexTipPosition;
+    private Vector3 recordedThumbTipPosition;
     private bool hasRecordedPositions = false;
 
     private void OnTriggerEnter(Collider other)
@@ -37,25 +36,26 @@ public class TriggerRightIndexTip : MonoBehaviour
                 touchedPoints[tag] = other.transform.position;
 
                 // Record positions when L_IndexTip enters for the first time
-                if (tag == "L_IndexTip" && !hasRecordedPositions)
+                if (tag == "L_ThumbTip" && !hasRecordedPositions)
                 {
                     // Record the touch point position at the moment of contact
-                    recordedIndexTipPosition = other.transform.position;
+                    recordedThumbTipPosition = other.transform.position;
                     
                     if (object1 != null)
                         recordedObject1Position = object1.position;
                     if (object2 != null)
                         recordedObject2Position = object2.position;
                     hasRecordedPositions = true;
-                    Debug.Log($"Recorded IndexTip position: {recordedIndexTipPosition}");
+                    Debug.Log($"Recorded IndexTip position: {recordedThumbTipPosition}");
                     Debug.Log($"Recorded positions - Object1: {recordedObject1Position}, Object2: {recordedObject2Position}");
                 }
 
                 // Start retargeting when L_IndexTip enters
-                if (tag == "L_IndexTip" && leapAnchorOffset != null)
+                if (tag == "L_ThumbTip" && leapAnchorOffset != null)
                 {
                     leapAnchorOffset.StartRetargeting();
                 }
+
                 break;
             }
         }
@@ -117,9 +117,9 @@ public class TriggerRightIndexTip : MonoBehaviour
         return recordedObject2Position;
     }
 
-    public Vector3 GetRecordedIndexTipPosition()
+    public Vector3 GetRecordedThumbTipPosition()
     {
-        return recordedIndexTipPosition;
+        return recordedThumbTipPosition;
     }
 
     public bool HasRecordedPositions()
@@ -133,6 +133,6 @@ public class TriggerRightIndexTip : MonoBehaviour
         hasRecordedPositions = false;
         recordedObject1Position = Vector3.zero;
         recordedObject2Position = Vector3.zero;
-        recordedIndexTipPosition = Vector3.zero;
+        recordedThumbTipPosition = Vector3.zero;
     }
 }

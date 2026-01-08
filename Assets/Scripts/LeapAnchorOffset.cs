@@ -6,13 +6,18 @@ public class LeapAnchorOffset : MonoBehaviour
     public Transform leftIndexTip;
     public Transform baseLeapAnchorPosition;
 
+    [Header("Smooth Transition")]
+    [Tooltip("Speed of smooth transition (higher = faster, 0 = instant)")]
+    [Range(0f, 1f)]
+    public float smoothSpeed = 0.1f;
+
     // private Vector3 _initialLocalPos;
     private bool _isRetargeting = false;
     
     // Recorded positions when trigger first detected
     private Vector3 _recordedObject1Pos; // right index finger tip
     private Vector3 _recordedObject2Pos; // gripper index finger tip
-    private Vector3 _recordedIndexTipPos; // left index finger tip
+    private Vector3 _recordedThumbTipPos; // left index finger tip
     
     // Scale factors for retargeting
     private Vector3 _scaleFactors;
@@ -25,31 +30,31 @@ public class LeapAnchorOffset : MonoBehaviour
     void LateUpdate()
     {
 
-        // if (_isRetargeting && leftIndexTip != null && triggerScript != null)
-        // {
-        //     // // Calculate offset from the initial touch point (recorded IndexTip position)
-        //     // Vector3 currentIndexPos = leftIndexTip.position;
-        //     // Vector3 offsetFromTouchPoint = currentIndexPos - _recordedIndexTipPos;
+        if (_isRetargeting && leftIndexTip != null && triggerScript != null)
+        {
+            // Calculate offset from the initial touch point (recorded IndexTip position)
+            Vector3 currentIndexPos = leftIndexTip.position;
+            Vector3 offsetFromTouchPoint = currentIndexPos - _recordedThumbTipPos;
             
-        //     // // Apply scale factors to retarget to Object2 space
-        //     // Vector3 scaledOffset = new Vector3(
-        //     //     offsetFromTouchPoint.x * _scaleFactors.x,
-        //     //     offsetFromTouchPoint.y * _scaleFactors.y,
-        //     //     offsetFromTouchPoint.z * _scaleFactors.z
-        //     // );
+            // Apply scale factors to retarget to Object2 space
+            Vector3 scaledOffset = new Vector3(
+                offsetFromTouchPoint.x * _scaleFactors.x,
+                offsetFromTouchPoint.y * _scaleFactors.y,
+                offsetFromTouchPoint.z * _scaleFactors.z
+            );
             
-        //     // // Apply to this object's position: start from Object2's position and add scaled offset
-        //     // Vector3 targetPos = _recordedObject2Pos + scaledOffset;
-        //     // transform.position = targetPos;
-        // }
-        // else
-        // {
-        //     // Normal behavior - just apply local offset
-        //     transform.localPosition = _initialLocalPos;
-        // }
-
-        Vector3 offset = new Vector3(0f, 0f, 0.2f); // (right, up, forward) offset from base position
-        transform.position = baseLeapAnchorPosition.position + offset;
+            // Use base position as reference point (like in else block)
+            Vector3 targetPos = baseLeapAnchorPosition.position + scaledOffset;
+            
+            // Smoothly interpolate to target position
+            transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
+        }
+        else
+        {
+            // Vector3 offset = new Vector3(0f, 0f, 0.2f);
+            // transform.position = baseLeapAnchorPosition.position + offset;
+            transform.position = baseLeapAnchorPosition.position;
+        }
     }
 
     // Called by TriggerRightIndexTip when L_IndexTip enters
@@ -69,12 +74,12 @@ public class LeapAnchorOffset : MonoBehaviour
 
         _recordedObject1Pos = triggerScript.GetRecordedObject1Position();
         _recordedObject2Pos = triggerScript.GetRecordedObject2Position();
-        _recordedIndexTipPos = triggerScript.GetRecordedIndexTipPosition();
+        _recordedThumbTipPos = triggerScript.GetRecordedThumbTipPosition();
 
         // Calculate scale factors based on the distance between Object1 and Object2
         // relative to the distance from touch point to Object1
-        Vector3 touchToObject1 = _recordedObject1Pos - _recordedIndexTipPos;
-        Vector3 touchToObject2 = _recordedObject2Pos - _recordedIndexTipPos;
+        Vector3 touchToObject1 = _recordedObject1Pos - _recordedThumbTipPos;
+        Vector3 touchToObject2 = _recordedObject2Pos - _recordedThumbTipPos;
 
         // Scale factor = (touch to Object2) / (touch to Object1)
         _scaleFactors = new Vector3(
@@ -84,7 +89,7 @@ public class LeapAnchorOffset : MonoBehaviour
         );
 
         _isRetargeting = true;
-        Debug.Log($"Touch point: {_recordedIndexTipPos}");
+        Debug.Log($"Touch point: {_recordedThumbTipPos}");
         Debug.Log($"Object1: {_recordedObject1Pos}, Object2: {_recordedObject2Pos}");
         Debug.Log($"Scale factors: {_scaleFactors}");
     }

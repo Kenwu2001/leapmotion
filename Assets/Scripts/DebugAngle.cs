@@ -16,6 +16,9 @@ public class DebugAngle : MonoBehaviour
 
     public TriggerThumbInnerExtension triggerThumbInnerExtension;
 
+    public Transform clawIndexFingerTip;
+    public Transform R_IndexTriggerTip;
+
     void Update()
     {
         if (angleText != null && jointAngle != null)
@@ -73,7 +76,9 @@ public class DebugAngle : MonoBehaviour
                 // "Wrist.rotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n" +
                 // "Elbow.localRotation.eulerAngles.x: " + jointAngle.joints["Elbow"].localEulerAngles.x.ToString("F4") + "°\n" +
                 // "Elbow.rotation.eulerAngles.x: " + jointAngle.joints["Elbow"].eulerAngles.x.ToString("F4") + "°\n" +
-                "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n";
+                "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n" +
+                "clawIndexFingerTip.Transform" + clawIndexFingerTip.position.ToString("F4") + "\n" +
+                "R_IndexTriggerTip.Transform" + R_IndexTriggerTip.position.ToString("F4") + "\n";
                 // "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n";
                 // "indexAngle0: " + jointAngle.indexAngle0.ToString("F2") + "°\n";
                 // "joints[Middle0].localRerExtensionTouched.ToString() + "\n" +
