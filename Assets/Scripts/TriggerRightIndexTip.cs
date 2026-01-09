@@ -75,6 +75,7 @@ public class TriggerRightIndexTip : MonoBehaviour
                 if (tag == "L_IndexTip" && leapAnchorOffset != null)
                 {
                     leapAnchorOffset.StopRetargeting();
+                    hasRecordedPositions = false; // Reset recorded positions
                 }
                 break;
             }

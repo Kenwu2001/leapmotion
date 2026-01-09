@@ -16,12 +16,6 @@ public class JointAngle : MonoBehaviour
     private Vector3 initialWristRight;  // Store initial wrist direction
     private Vector3 initialThumbRight;  // Store initial thumb direction
     private Vector3 initialRotationAxis; // Store initial rotation axis to determine direction
-    
-    // State tracking for thumb-palm angle
-    private bool thumbPalmAngleInitialized = false;
-    private float initialThumbPalmAngleDot; // Store initial dot product sign
-    public Vector3 initialThumbPalmCrossProduct; // Store initial cross product to track plane orientation relationship
-    private bool isThumbPalmAngleLocked = false; // Whether angle is locked at 0
 
     public float indexMiddleDistance;
 
@@ -369,35 +363,36 @@ public class JointAngle : MonoBehaviour
     }
 
     // calculate the angles between thumbPlaneNormal and palmNormal
-    // Returns negative angle in initial direction, positive angle when crossed to other side
+    // Returns positive angle when thumb is open, 0 when thumb is closed
     float UpdateThumbPalmAngle()
     {
+        if (!joints.ContainsKey("Wrist"))
+            return 0f;
+            
         // Calculate the angle between the two plane normals
         float angle = Vector3.Angle(thumbPlaneNormal, palmNormal);
+        
+        // Use a consistent reference: the wrist's forward direction (up vector)
+        // This provides a stable reference regardless of when the hand enters the scene
+        Vector3 wristUp = joints["Wrist"].forward;
         
         // Calculate the cross product to track the directional relationship between planes
         Vector3 currentCrossProduct = Vector3.Cross(thumbPlaneNormal, palmNormal);
         
-        // Initialize on first frame
-        if (!thumbPalmAngleInitialized)
+        // Compare cross product with wrist up direction to determine sign
+        // Positive dot product = thumb is open (away from palm)
+        // Negative dot product = thumb is closed (toward palm)
+        float signDot = Vector3.Dot(currentCrossProduct, wristUp);
+        
+        // Return positive angle or 0
+        if (signDot > 0)
         {
-            initialThumbPalmCrossProduct = currentCrossProduct;
-            thumbPalmAngleInitialized = true;
-            return -angle;
+            return angle;  // Thumb open
         }
-        
-        // Check if the planes have crossed by comparing cross product directions
-        // If dot product of cross products is negative, they point in opposite directions
-        float crossDot = Vector3.Dot(currentCrossProduct, initialThumbPalmCrossProduct);
-        
-        // If crossed to the other side, return positive angle
-        if (crossDot < 0)
+        else
         {
-            return angle;
+            return 0f; // Thumb closed - return 0 instead of negative
         }
-        
-        // Normal case: return negative angle
-        return -angle;
     }
 
     // Calculate the angle between R_Wrist's red vector and R_thumb_a's red vector
