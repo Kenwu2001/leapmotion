@@ -698,7 +698,8 @@ public class ClawModuleController : MonoBehaviour
             // Only apply rotation after 1 second
             if (fingerTipTouchDurations["IndexTwist"] > 1.5f)
             {
-                if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0)
+                // Only rotate if there's actual rotation happening (isClockWise != 0)
+                if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
                 {   
                     currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
                 }

@@ -48,10 +48,11 @@ public class JointAngle : MonoBehaviour
 
     private Queue<float> rotationHistory = new Queue<float>();
     private const int ROTATION_HISTORY_SIZE = 10; // Look at last 10 frames
-    private float rotationChangeTimer = 0f;
+    public float rotationChangeTimer = 0f;
     private const float ROTATION_CHANGE_COOLDOWN = 0.3f; // Don't change direction more than once per 0.3 seconds
-    private float cumulativeRotation = 0f; // Track total rotation
+    public float cumulativeRotation = 0f; // Track total rotation
     private const float MIN_ROTATION_THRESHOLD = 0.02f; // Minimum rotation to consider
+    public float publiAaverageRotation = 0f;
 
     void Start()
     {
@@ -278,13 +279,13 @@ public class JointAngle : MonoBehaviour
                         
                         // Only update if we have clear consensus AND enough rotation AND cooldown expired
                         rotationChangeTimer += Time.deltaTime;
+                        publiAaverageRotation = Mathf.Abs(averageRotation); // For debugging
                         
                         if (Mathf.Abs(averageRotation) > 0.5f && // Clear direction (> 50% consensus)
                             cumulativeRotation > MIN_ROTATION_THRESHOLD && // Minimum rotation threshold
                             rotationChangeTimer >= ROTATION_CHANGE_COOLDOWN) // Cooldown expired
                         {
                             float newDirection = averageRotation > 0 ? 1f : -1f;
-                            
                             // Only change if different from current
                             if (newDirection != isClockWise)
                             {
@@ -314,7 +315,7 @@ public class JointAngle : MonoBehaviour
                     }
                     else
                     {
-                        isClockWise = lastRotationDirection;
+                        isClockWise = 0f;  // First frame - no rotation yet
                         noRotationTimer = 0f;
                         cumulativeRotation = 0f;
                         rotationHistory.Clear();
@@ -540,6 +541,7 @@ public class JointAngle : MonoBehaviour
 
         // Project rotation axis onto plane normal to get signed rotation
         float rotationSign = Vector3.Dot(rotationAxis, planeNormal);
+        Debug.Log("Rotation Sign: " + rotationSign);
 
         // Return only 1 or -1 based on sign
         if (rotationSign > 0.001f)

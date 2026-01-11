@@ -29,7 +29,7 @@ public class DebugAngle : MonoBehaviour
                 "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
-                // "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index1 angle" + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index2 angle" + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
                 // "wristThumbAngle" + jointAngle.wristThumbAngle.ToString("F2") + "\n" +
@@ -79,7 +79,12 @@ public class DebugAngle : MonoBehaviour
                 "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 "hasRecordedPositions: " + retargetIndex.hasRecordedPositions.ToString() + "\n" +
-                "gripperIndexTip position: " + retargetIndex.gripperIndexTip.position.ToString("F4") + "\n";
+                "gripperIndexTip position: " + retargetIndex.gripperIndexTip.position.ToString("F4") + "\n" +
+                "publiAaverageRotation > 0.5 :" + jointAngle.publiAaverageRotation.ToString("F4") + "\n" +
+                "cumulativeRotation > 0.02 :" + jointAngle.cumulativeRotation.ToString("F4") + "\n" +
+                "rotationChangeTimer > 0.3 :" + jointAngle.rotationChangeTimer.ToString("F4") + "\n" +
+                "isInClock :" + jointAngle.isInClock.ToString() +
+                "isClockWise :" + jointAngle.isClockWise.ToString() + "\n";
                 // "colliders[1] position: " + threeFingerCollisionDetector.colliders[1].position.ToString("F4") + "\n" +
                 // "colliders[3] position: " + threeFingerCollisionDetector.colliders[3].position.ToString("F4") + "\n" +
                 // "d[1,3]: " + threeFingerCollisionDetector.allDistances[1, 3].ToString("F2");
