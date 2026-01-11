@@ -19,6 +19,15 @@ public class RetargetIndex : MonoBehaviour
     private Vector3 recordedLeftThumbTipPosition;
     public bool hasRecordedPositions = false;
 
+    private void Update()
+    {
+        // Continuously update gripperIndexTip position while retargeting is active
+        if (hasRecordedPositions && gripperIndexTip != null)
+        {
+            recordedGripperIndexTipPosition = gripperIndexTip.position;
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         foreach (string tag in targetTags)
@@ -124,6 +133,12 @@ public class RetargetIndex : MonoBehaviour
     public bool HasRecordedPositions()
     {
         return hasRecordedPositions;
+    }
+
+    // Get current gripper transform for real-time tracking
+    public Transform GetGripperIndexTip()
+    {
+        return gripperIndexTip;
     }
 
     // Reset recorded positions

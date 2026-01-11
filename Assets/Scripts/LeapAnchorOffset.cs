@@ -32,6 +32,23 @@ public class LeapAnchorOffset : MonoBehaviour
 
         if (_isRetargeting && leftThumbTip != null && retargetIndex != null)
         {
+            // Get current gripper position for real-time tracking
+            Transform gripperTip = retargetIndex.GetGripperIndexTip();
+            if (gripperTip != null)
+            {
+                Vector3 currentGripperPos = gripperTip.position;
+                
+                // Recalculate scale factors with current gripper position
+                Vector3 touchToHandIndexTip = _recordedHandIndexTipPos - _recordedLeftThumbTipPos;
+                Vector3 touchToGripperIndexTip = currentGripperPos - _recordedLeftThumbTipPos;
+                
+                _scaleFactors = new Vector3(
+                    Mathf.Abs(touchToHandIndexTip.x) > 0.0001f ? touchToGripperIndexTip.x / touchToHandIndexTip.x : 1f,
+                    Mathf.Abs(touchToHandIndexTip.y) > 0.0001f ? touchToGripperIndexTip.y / touchToHandIndexTip.y : 1f,
+                    Mathf.Abs(touchToHandIndexTip.z) > 0.0001f ? touchToGripperIndexTip.z / touchToHandIndexTip.z : 1f
+                );
+            }
+            
             // Calculate offset from the initial touch point (recorded IndexTip position)
             Vector3 currentIndexPos = leftThumbTip.position;
             Vector3 offsetFromTouchPoint = currentIndexPos - _recordedLeftThumbTipPos;
