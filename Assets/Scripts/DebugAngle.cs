@@ -83,7 +83,6 @@ public class DebugAngle : MonoBehaviour
                 "publiAaverageRotation > 0.5 :" + jointAngle.publiAaverageRotation.ToString("F4") + "\n" +
                 "cumulativeRotation > 0.02 :" + jointAngle.cumulativeRotation.ToString("F4") + "\n" +
                 "rotationChangeTimer > 0.3 :" + jointAngle.rotationChangeTimer.ToString("F4") + "\n" +
-                "isInClock :" + jointAngle.isInClock.ToString() +
                 "isClockWise :" + jointAngle.isClockWise.ToString() + "\n";
                 // "colliders[1] position: " + threeFingerCollisionDetector.colliders[1].position.ToString("F4") + "\n" +
                 // "colliders[3] position: " + threeFingerCollisionDetector.colliders[3].position.ToString("F4") + "\n" +
