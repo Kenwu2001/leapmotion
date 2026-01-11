@@ -4,6 +4,8 @@ public class LeapAnchorOffset : MonoBehaviour
 {
     public RetargetIndex retargetIndex;
     public RetargetMiddle retargetMiddle;
+    public RetargetThumb retargetThumb;
+    public RetargetThumbAbduction retargetThumbAbduction;
     public Transform leftThumbTip;
     public Transform leftIndexTip;
     public Transform baseLeapAnchorPosition;
@@ -34,8 +36,10 @@ public class LeapAnchorOffset : MonoBehaviour
         // Determine which retarget script is active
         bool useIndex = retargetIndex != null && retargetIndex.HasRecordedPositions();
         bool useMiddle = retargetMiddle != null && retargetMiddle.HasRecordedPositions();
+        bool useThumb = retargetThumb != null && retargetThumb.HasRecordedPositions();
+        bool useThumbAbduction = retargetThumbAbduction != null && retargetThumbAbduction.HasRecordedPositions();
 
-        if (_isRetargeting && (useIndex || useMiddle))
+        if (_isRetargeting && (useIndex || useMiddle || useThumb || useThumbAbduction))
         {
             Transform gripperTip = null;
             Transform currentFingerTip = null;
@@ -49,6 +53,16 @@ public class LeapAnchorOffset : MonoBehaviour
             else if (useMiddle)
             {
                 gripperTip = retargetMiddle.GetGripperMiddleTip();
+                currentFingerTip = leftIndexTip;
+            }
+            else if (useThumb)
+            {
+                gripperTip = retargetThumb.GetGripperThumbTip();
+                currentFingerTip = leftThumbTip;
+            }
+            else if (useThumbAbduction)
+            {
+                gripperTip = retargetThumbAbduction.GetGripperThumbTip();
                 currentFingerTip = leftIndexTip;
             }
             
@@ -71,12 +85,13 @@ public class LeapAnchorOffset : MonoBehaviour
                 Vector3 offsetFromTouchPoint = currentFingerPos - _recordedLeftThumbTipPos;
                 
                 // Apply scale factors to retarget to gripper space
-                // Index uses negative x, Middle uses positive x
+                // Index and Thumb use negative x, Middle and ThumbAbduction use positive x
                 float xMultiplier = useIndex ? -1f : 1f;
+                float zMultiplier = (useThumb || useThumbAbduction) ? -1f : 1f;
                 Vector3 scaledOffset = new Vector3(
                     xMultiplier * offsetFromTouchPoint.x * _scaleFactors.x,
                     offsetFromTouchPoint.y * _scaleFactors.y,
-                    offsetFromTouchPoint.z * _scaleFactors.z
+                    zMultiplier * offsetFromTouchPoint.z * _scaleFactors.z
                 );
                 
                 // Use base position as reference point
@@ -94,14 +109,16 @@ public class LeapAnchorOffset : MonoBehaviour
         }
     }
 
-    // Called by RetargetIndex or RetargetMiddle when trigger enters
+    // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when trigger enters
     public void StartRetargeting()
     {
         // Determine which retarget script is calling
         bool useIndex = retargetIndex != null && retargetIndex.HasRecordedPositions();
         bool useMiddle = retargetMiddle != null && retargetMiddle.HasRecordedPositions();
+        bool useThumb = retargetThumb != null && retargetThumb.HasRecordedPositions();
+        bool useThumbAbduction = retargetThumbAbduction != null && retargetThumbAbduction.HasRecordedPositions();
 
-        if (!useIndex && !useMiddle)
+        if (!useIndex && !useMiddle && !useThumb && !useThumbAbduction)
         {
             Debug.LogWarning("No retarget script has recorded positions!");
             return;
@@ -132,6 +149,30 @@ public class LeapAnchorOffset : MonoBehaviour
             _recordedLeftThumbTipPos = retargetMiddle.GetRecordedLeftIndexTipPosition();
             Debug.Log("Starting retargeting with RetargetMiddle");
         }
+        else if (useThumb)
+        {
+            if (leftThumbTip == null)
+            {
+                Debug.LogWarning("leftThumbTip not assigned for RetargetThumb!");
+                return;
+            }
+            _recordedHandIndexTipPos = retargetThumb.GetRecordedHandThumbTipPosition();
+            _recordedGripperIndexTipPos = retargetThumb.GetRecordedGripperThumbTipPosition();
+            _recordedLeftThumbTipPos = retargetThumb.GetRecordedLeftThumbTipPosition();
+            Debug.Log("Starting retargeting with RetargetThumb");
+        }
+        else if (useThumbAbduction)
+        {
+            if (leftIndexTip == null)
+            {
+                Debug.LogWarning("leftIndexTip not assigned for RetargetThumbAbduction!");
+                return;
+            }
+            _recordedHandIndexTipPos = retargetThumbAbduction.GetRecordedHandThumbTipPosition();
+            _recordedGripperIndexTipPos = retargetThumbAbduction.GetRecordedGripperThumbTipPosition();
+            _recordedLeftThumbTipPos = retargetThumbAbduction.GetRecordedLeftIndexTipPosition();
+            Debug.Log("Starting retargeting with RetargetThumbAbduction");
+        }
 
         // Calculate scale factors based on the distance between hand and gripper
         // relative to the distance from touch point to hand
@@ -151,7 +192,7 @@ public class LeapAnchorOffset : MonoBehaviour
         Debug.Log($"Scale factors: {_scaleFactors}");
     }
 
-    // Called by RetargetIndex or RetargetMiddle when all triggers exit
+    // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when all triggers exit
     public void StopRetargeting()
     {
         _isRetargeting = false;
