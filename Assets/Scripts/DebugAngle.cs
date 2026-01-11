@@ -4,20 +4,17 @@ using UnityEngine;
 public class DebugAngle : MonoBehaviour
 {
     public TextMeshPro angleText; // Manually drag into Inspector
-
     public JointAngle jointAngle; // Drag in the angle source script
     public ClawModuleController clawModuleController;
-
     public TriggerRightThumbTip triggerRightThumbTip;
     public TriggerRightIndexTip rightIndexTip;
     public TriggerRightMiddleTip rightMiddleTip;
-
     public TriggerIndexInnerExtension triggerIndexInnerExtension;
-
     public TriggerThumbInnerExtension triggerThumbInnerExtension;
-
     public Transform clawIndexFingerTip;
     public Transform R_IndexTriggerTip;
+    public ThreeFingerCollisionDetector threeFingerCollisionDetector;
+    public RetargetIndex retargetIndex;
 
     void Update()
     {
@@ -78,7 +75,14 @@ public class DebugAngle : MonoBehaviour
                 "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n" +
                 "clawIndexFingerTip.Transform" + clawIndexFingerTip.position.ToString("F4") + "\n" +
                 "R_IndexTriggerTip.Transform" + R_IndexTriggerTip.position.ToString("F4") + "\n" +
-                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n";
+                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
+                "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
+                "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
+                "hasRecordedPositions: " + retargetIndex.hasRecordedPositions.ToString() + "\n" +
+                "gripperIndexTip position: " + retargetIndex.gripperIndexTip.position.ToString("F4") + "\n";
+                // "colliders[1] position: " + threeFingerCollisionDetector.colliders[1].position.ToString("F4") + "\n" +
+                // "colliders[3] position: " + threeFingerCollisionDetector.colliders[3].position.ToString("F4") + "\n" +
+                // "d[1,3]: " + threeFingerCollisionDetector.allDistances[1, 3].ToString("F2");
                 // "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n";
                 // "indexAngle0: " + jointAngle.indexAngle0.ToString("F2") + "°\n";
                 // "joints[Middle0].localRerExtensionTouched.ToString() + "\n" +

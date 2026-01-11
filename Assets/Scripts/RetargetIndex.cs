@@ -17,7 +17,7 @@ public class RetargetIndex : MonoBehaviour
     private Vector3 recordedHandIndexTipPosition;
     private Vector3 recordedGripperIndexTipPosition;
     private Vector3 recordedLeftThumbTipPosition;
-    private bool hasRecordedPositions = false;
+    public bool hasRecordedPositions = false;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -29,7 +29,7 @@ public class RetargetIndex : MonoBehaviour
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
 
-                // Record positions when L_IndexTip enters for the first time
+                // Record positions when L_ThumbTip enters for the first time
                 if (tag == "L_ThumbTip" && !hasRecordedPositions)
                 {
                     // Record the touch point position at the moment of contact
@@ -39,15 +39,14 @@ public class RetargetIndex : MonoBehaviour
                         recordedHandIndexTipPosition = handIndexTip.position;
                     if (gripperIndexTip != null)
                         recordedGripperIndexTipPosition = gripperIndexTip.position;
+                    
                     hasRecordedPositions = true;
-                    Debug.Log($"Recorded IndexTip position: {recordedLeftThumbTipPosition}");
-                    Debug.Log($"Recorded positions - handIndexTip: {recordedHandIndexTipPosition}, gripperIndexTip: {recordedGripperIndexTipPosition}");
-                }
-
-                // Start retargeting when L_IndexTip enters
-                if (tag == "L_ThumbTip" && leapAnchorOffset != null)
-                {
-                    leapAnchorOffset.StartRetargeting();
+                    
+                    // Start retargeting ONLY when first recording positions
+                    if (leapAnchorOffset != null)
+                    {
+                        leapAnchorOffset.StartRetargeting();
+                    }
                 }
 
                 break;
@@ -64,12 +63,17 @@ public class RetargetIndex : MonoBehaviour
                 touchCount = Mathf.Max(0, touchCount - 1);
                 // Remove the touched point
                 touchedPoints.Remove(tag);
-
-                // Stop retargeting when L_IndexTip exits
-                if (tag == "L_IndexTip" && leapAnchorOffset != null)
+                
+                // Only reset and stop retargeting when no targets are touching anymore
+                if (touchCount == 0)
                 {
-                    leapAnchorOffset.StopRetargeting();
-                    hasRecordedPositions = false; // Reset recorded positions
+                    hasRecordedPositions = false;
+                    
+                    // Stop retargeting ONLY when all targets have exited
+                    if (leapAnchorOffset != null)
+                    {
+                        leapAnchorOffset.StopRetargeting();
+                    }
                 }
                 break;
             }
