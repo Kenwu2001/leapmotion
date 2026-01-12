@@ -120,7 +120,7 @@ public class LeapAnchorOffset : MonoBehaviour
 
         if (!useIndex && !useMiddle && !useThumb && !useThumbAbduction)
         {
-            Debug.LogWarning("No retarget script has recorded positions!");
+            // Debug.LogWarning("No retarget script has recorded positions!");
             return;
         }
 
@@ -129,49 +129,49 @@ public class LeapAnchorOffset : MonoBehaviour
         {
             if (leftThumbTip == null)
             {
-                Debug.LogWarning("leftThumbTip not assigned for RetargetIndex!");
+                // Debug.LogWarning("leftThumbTip not assigned for RetargetIndex!");
                 return;
             }
             _recordedHandIndexTipPos = retargetIndex.GetRecordedHandIndexTipPosition();
             _recordedGripperIndexTipPos = retargetIndex.GetRecordedGripperIndexTipPosition();
             _recordedLeftThumbTipPos = retargetIndex.GetRecordedLeftThumbTipPosition();
-            Debug.Log("Starting retargeting with RetargetIndex");
+            // Debug.Log("Starting retargeting with RetargetIndex");
         }
         else if (useMiddle)
         {
             if (leftIndexTip == null)
             {
-                Debug.LogWarning("leftIndexTip not assigned for RetargetMiddle!");
+                // Debug.LogWarning("leftIndexTip not assigned for RetargetMiddle!");
                 return;
             }
             _recordedHandIndexTipPos = retargetMiddle.GetRecordedHandMiddleTipPosition();
             _recordedGripperIndexTipPos = retargetMiddle.GetRecordedGripperMiddleTipPosition();
             _recordedLeftThumbTipPos = retargetMiddle.GetRecordedLeftIndexTipPosition();
-            Debug.Log("Starting retargeting with RetargetMiddle");
+            // Debug.Log("Starting retargeting with RetargetMiddle");
         }
         else if (useThumb)
         {
             if (leftThumbTip == null)
             {
-                Debug.LogWarning("leftThumbTip not assigned for RetargetThumb!");
+                // Debug.LogWarning("leftThumbTip not assigned for RetargetThumb!");
                 return;
             }
             _recordedHandIndexTipPos = retargetThumb.GetRecordedHandThumbTipPosition();
             _recordedGripperIndexTipPos = retargetThumb.GetRecordedGripperThumbTipPosition();
             _recordedLeftThumbTipPos = retargetThumb.GetRecordedLeftThumbTipPosition();
-            Debug.Log("Starting retargeting with RetargetThumb");
+            // Debug.Log("Starting retargeting with RetargetThumb");
         }
         else if (useThumbAbduction)
         {
             if (leftIndexTip == null)
             {
-                Debug.LogWarning("leftIndexTip not assigned for RetargetThumbAbduction!");
+                // Debug.LogWarning("leftIndexTip not assigned for RetargetThumbAbduction!");
                 return;
             }
             _recordedHandIndexTipPos = retargetThumbAbduction.GetRecordedHandThumbTipPosition();
             _recordedGripperIndexTipPos = retargetThumbAbduction.GetRecordedGripperThumbTipPosition();
             _recordedLeftThumbTipPos = retargetThumbAbduction.GetRecordedLeftIndexTipPosition();
-            Debug.Log("Starting retargeting with RetargetThumbAbduction");
+            // Debug.Log("Starting retargeting with RetargetThumbAbduction");
         }
 
         // Calculate scale factors based on the distance between hand and gripper
@@ -187,16 +187,16 @@ public class LeapAnchorOffset : MonoBehaviour
         );
 
         _isRetargeting = true;
-        Debug.Log($"Touch point: {_recordedLeftThumbTipPos}");
-        Debug.Log($"HandTipPos: {_recordedHandIndexTipPos}, GripperTipPos: {_recordedGripperIndexTipPos}");
-        Debug.Log($"Scale factors: {_scaleFactors}");
+        // Debug.Log($"Touch point: {_recordedLeftThumbTipPos}");
+        // Debug.Log($"HandTipPos: {_recordedHandIndexTipPos}, GripperTipPos: {_recordedGripperIndexTipPos}");
+        // Debug.Log($"Scale factors: {_scaleFactors}");
     }
 
     // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when all triggers exit
     public void StopRetargeting()
     {
         _isRetargeting = false;
-        Debug.Log("Stopped retargeting - returning to normal");
+        // Debug.Log("Stopped retargeting - returning to normal");
     }
 
     public bool IsRetargeting()

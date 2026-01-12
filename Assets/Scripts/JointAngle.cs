@@ -541,7 +541,7 @@ public class JointAngle : MonoBehaviour
 
         // Project rotation axis onto plane normal to get signed rotation
         float rotationSign = Vector3.Dot(rotationAxis, planeNormal);
-        Debug.Log("Rotation Sign: " + rotationSign);
+        // Debug.Log("Rotation Sign: " + rotationSign);
 
         // Return only 1 or -1 based on sign
         if (rotationSign > 0.001f)

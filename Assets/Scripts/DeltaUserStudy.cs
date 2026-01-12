@@ -136,7 +136,7 @@ public class DeltaUserStudy : MonoBehaviour
                 currentSelectedRenderer.material.color = Color.red;
             else
                 currentSelectedRenderer.material.color = Color.green;
-            Debug.Log($"Selected: Row {currentRow}, Col {currentCol} - {selectedTransform.name}");
+            // Debug.Log($"Selected: Row {currentRow}, Col {currentCol} - {selectedTransform.name}");
         }
     }
 

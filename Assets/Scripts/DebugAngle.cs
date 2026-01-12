@@ -26,12 +26,18 @@ public class DebugAngle : MonoBehaviour
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
                 // "currentThumbRotationZ" + clawModuleController.currentThumbRotationZ.ToString("F3") + "\n" +
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
-                "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
+                // "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
-                "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
-                "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
+                // "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "Thumb1 angle" + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index1 angle" + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                // "Index2 angle" + jointAngle.joints["Index2"].localRotation.eulerAngles.x.ToString("F4") + "°\n" +
+                // "Index2 angle" + jointAngle.joints["Index2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "Middle0 angle" +  jointAngle.joints["Middle0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "Middle1 angle" + jointAngle.joints["Middle1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "Middle2 angle" + jointAngle.joints["Middle2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
                 // "wristThumbAngle" + jointAngle.wristThumbAngle.ToString("F2") + "\n" +
                 // + ((int)jointAngle.indexAngle1).ToString() + " "
                 // "indexAngle2: " + jointAngle.indexAngle2.ToString("F3") + "\n" +
