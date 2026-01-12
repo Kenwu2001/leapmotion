@@ -89,14 +89,14 @@ public class DebugAngle : MonoBehaviour
                 "publiAaverageRotation > 0.5 :" + jointAngle.publiAaverageRotation.ToString("F4") + "\n" +
                 "cumulativeRotation > 0.02 :" + jointAngle.cumulativeRotation.ToString("F4") + "\n" +
                 "rotationChangeTimer > 0.3 :" + jointAngle.rotationChangeTimer.ToString("F4") + "\n" +
-                "isClockWise :" + jointAngle.isClockWise.ToString() + "\n";
+                "isClockWise :" + jointAngle.isClockWise.ToString() + "\n" +
                 // "colliders[1] position: " + threeFingerCollisionDetector.colliders[1].position.ToString("F4") + "\n" +
                 // "colliders[3] position: " + threeFingerCollisionDetector.colliders[3].position.ToString("F4") + "\n" +
                 // "d[1,3]: " + threeFingerCollisionDetector.allDistances[1, 3].ToString("F2");
                 // "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n";
                 // "indexAngle0: " + jointAngle.indexAngle0.ToString("F2") + "°\n";
                 // "joints[Middle0].localRerExtensionTouched.ToString() + "\n" +
-                // "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
+                "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n";
                 // "(int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y: " + ((int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y).ToString() + "°\n" +
                 // "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
                 // "(int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z: " + ((int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";

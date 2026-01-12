@@ -297,21 +297,34 @@ public class JointAngle : MonoBehaviour
                             
                             noRotationTimer = 0f;
                         }
-                        else if (cumulativeRotation < MIN_ROTATION_THRESHOLD)
-                        {
-                            // No meaningful rotation detected
-                            noRotationTimer += Time.deltaTime;
+                        // else if (cumulativeRotation < MIN_ROTATION_THRESHOLD)
+                        // {
+                        //     // No meaningful rotation detected
+                        //     noRotationTimer += Time.deltaTime;
                             
-                            if (noRotationTimer >= 1f)
-                            {
-                                isClockWise = 0f;
-                                cumulativeRotation = 0f;
-                            }
-                            else
-                            {
-                                isClockWise = lastRotationDirection;
-                            }
-                        }
+                        //     if (noRotationTimer >= 1f)
+                        //     {
+                        //         isClockWise = 0f;
+                        //         cumulativeRotation = 0f;
+                        //         Debug.Log("1111111111111111111111111111111111");
+                        //     }
+                        //     else
+                        //     {
+                        //         // Only use lastRotationDirection if we've had enough rotation history
+                        //         // This prevents premature direction assignment on first touch
+                        //         if (rotationHistory.Count >= ROTATION_HISTORY_SIZE / 2)
+                        //         {
+                        //             isClockWise = lastRotationDirection;
+                        //             Debug.Log("2222222222222222222222222222222222");
+                        //         }
+                        //         else
+                        //         {
+                        //             // Not enough rotation data yet - stay at 0
+                        //             isClockWise = 0f;
+                        //             Debug.Log("3333333333333333333333333333333333 - Waiting for clear rotation");
+                        //         }
+                        //     }
+                        // }
                     }
                     else
                     {

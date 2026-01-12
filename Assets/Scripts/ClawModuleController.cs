@@ -232,22 +232,22 @@ public class ClawModuleController : MonoBehaviour
         isFingerTipTriggered = false;
         
         // Check thumb tip
-        if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbAngle0 == 0f)
-        {
-            isFingerTipTriggered = true;
-        }
-        // Check index tip
-        if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.joints.ContainsKey("Index0") && 
-            jointAngle.joints["Index0"].localRotation.eulerAngles.z > 12.0 && jointAngle.joints["Index0"].localRotation.eulerAngles.z < 30.0)
-        {
-            isFingerTipTriggered = true;
-        }
-        // Check middle tip
-        if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.joints.ContainsKey("Middle0") && 
-            jointAngle.joints["Middle0"].localRotation.eulerAngles.z > 12.0 && jointAngle.joints["Middle0"].localRotation.eulerAngles.z < 30.0)
-        {
-            isFingerTipTriggered = true;
-        }
+        // if (triggerRightThumbTip.isRightThumbTipTouched && jointAngle.thumbAngle0 == 0f)
+        // {
+        //     isFingerTipTriggered = true;
+        // }
+        // // Check index tip
+        // if (triggerRightIndexTip.isRightIndexTipTouched && jointAngle.joints.ContainsKey("Index0") && 
+        //     jointAngle.joints["Index0"].localRotation.eulerAngles.z > 12.0 && jointAngle.joints["Index0"].localRotation.eulerAngles.z < 30.0)
+        // {
+        //     isFingerTipTriggered = true;
+        // }
+        // // Check middle tip
+        // if (triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.joints.ContainsKey("Middle0") && 
+        //     jointAngle.joints["Middle0"].localRotation.eulerAngles.z > 12.0 && jointAngle.joints["Middle0"].localRotation.eulerAngles.z < 30.0)
+        // {
+        //     isFingerTipTriggered = true;
+        // }
         
         isAnyMotorTriggered = isThumb1Triggered || isThumb2Triggered || isThumb3Triggered || isThumb4Triggered ||
                              isIndex1Triggered || isIndex2Triggered || isIndex3Triggered || isIndex4Triggered ||
@@ -333,7 +333,8 @@ public class ClawModuleController : MonoBehaviour
             originalColor,
             ThumbAngle4Center,
             ref isThumb4Triggered,
-            isIndex4Triggered || isMiddle4Triggered
+            isIndex4Triggered || isMiddle4Triggered,
+            25.0f  // Thumb requires 25 degree change
         );
 
         UpdateThumbAbduction();
@@ -659,14 +660,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["ThumbTwist"] = 0f;
         }
 
-        if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && jointAngle.thumbPalmAngle > 10f && jointAngle.thumbPalmAngle < 55f)
+        if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2) //  && jointAngle.thumbPalmAngle > 10f && jointAngle.thumbPalmAngle < 55f
         {
             fingerTipTouchDurations["ThumbTwist"] += Time.deltaTime;
-            thumbJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbTwist"] / 2.5f, 1f));
+            thumbJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbTwist"] / 0.7f, 1f));
             isThumb2Triggered = true;
 
             // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["ThumbTwist"] > 1.5f)
+            if (fingerTipTouchDurations["ThumbTwist"] > 0.7f)
             {
                 currentThumbRotationZ -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
                 currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 0f);
@@ -703,7 +704,7 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle2Center.localRotation = targetRotation;
     }
 
-    private void UpdateIndexFingerTwist() // second motor
+    private void UpdateIndexFingerTwist()
     {
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
@@ -718,11 +719,11 @@ public class ClawModuleController : MonoBehaviour
         if (!isFingerTipTriggered && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f  && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2 && !isMiddle2Triggered)
         {
             fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
-            indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"] / 1.5f, 1f));
+            indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"] / 0.7f, 1f));
             isIndex2Triggered = true;
 
             // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["IndexTwist"] > 1.5f)
+            if (fingerTipTouchDurations["IndexTwist"] > 0.7f)
             {
                 // Only rotate if there's actual rotation happening (isClockWise != 0)
                 if(currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
@@ -765,7 +766,7 @@ public class ClawModuleController : MonoBehaviour
             IndexAngle2Center.localRotation = targetRotation;
     }
 
-    private void UpdateMiddleFingerTwist()  // second motor
+    private void UpdateMiddleFingerTwist()
     {
         Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
         maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
@@ -779,11 +780,11 @@ public class ClawModuleController : MonoBehaviour
         if (!isFingerTipTriggered && jointAngle.joints["Middle0"].localRotation.eulerAngles.z > 100.0f && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2 && !isIndex2Triggered)
         {
             fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
-            middleJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["MiddleTwist"] / 1.5f, 1f));
+            middleJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["MiddleTwist"] / 0.7f, 1f));
             isMiddle2Triggered = true;
 
             // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["MiddleTwist"] > 1.5f)
+            if (fingerTipTouchDurations["MiddleTwist"] > 0.7f)
             {
                 if(currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
                 {
@@ -1027,7 +1028,8 @@ public class ClawModuleController : MonoBehaviour
         Color inactiveColor,
         Transform jointTransform,
         ref bool relatedMotorTriggered,
-        bool shouldPreventActivation)
+        bool shouldPreventActivation,
+        float angleThreshold = 15.0f)
     {
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
@@ -1094,7 +1096,7 @@ public class ClawModuleController : MonoBehaviour
             totalAngleChange = Mathf.Abs(accumulatedJointChanges[jointName]) + 
                                Mathf.Abs(accumulatedMidJointChanges[jointName]) + 
                                Mathf.Abs(accumulatedBaseJointChanges[jointName]);
-            Debug.Log($"{jointName} - Joint: {accumulatedJointChanges[jointName]:F2}, Mid: {accumulatedMidJointChanges[jointName]:F2}, Base: {accumulatedBaseJointChanges[jointName]:F2}, Total: {totalAngleChange:F2}");
+            // Debug.Log($"{jointName} - Joint: {accumulatedJointChanges[jointName]:F2}, Mid: {accumulatedMidJointChanges[jointName]:F2}, Base: {accumulatedBaseJointChanges[jointName]:F2}, Total: {totalAngleChange:F2}");
         }
         
         // Reset tracking when not touched
@@ -1117,14 +1119,14 @@ public class ClawModuleController : MonoBehaviour
         else
         {
             // Determine the initial condition to use (for activation)
-            // New condition: total angle change must be greater than 15 degrees
+            // New condition: total angle change must be greater than threshold
             // Also check that other motor 4s are not triggered (mutual exclusion)
-            bool initialConditionMet = isTipTouched && totalAngleChange > 15.0f && !shouldPreventActivation;
+            bool initialConditionMet = isTipTouched && totalAngleChange > angleThreshold && !shouldPreventActivation;
             
             // Debug: only log when condition is actually met
             if (initialConditionMet)
             {
-                Debug.Log($"{jointName} - Condition Met! totalAngleChange: {totalAngleChange}, isTipTouched: {isTipTouched}");
+                // Debug.Log($"{jointName} - Condition Met! totalAngleChange: {totalAngleChange}, isTipTouched: {isTipTouched}");
             }
             
             // Once activated, only check if still touched
@@ -1141,6 +1143,12 @@ public class ClawModuleController : MonoBehaviour
                     fingerTipActivated[jointName] = true;
                     jointRenderer.material.color = activeColor;
                     relatedMotorTriggered = true;
+                    isFingerTipTriggered = true;
+                }
+                else if (fingerTipActivated[jointName])
+                {
+                    // Keep triggering while activated
+                    isFingerTipTriggered = true;
                 }
             }
         }
