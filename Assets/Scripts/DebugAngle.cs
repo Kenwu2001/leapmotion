@@ -29,7 +29,9 @@ public class DebugAngle : MonoBehaviour
                 // "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
-                // "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
+                "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "thumbPalmAngle: " + jointAngle.thumbPalmAngle.ToString("F2") + "\n" +
                 // "Thumb1 angle" + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index1 angle" + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +

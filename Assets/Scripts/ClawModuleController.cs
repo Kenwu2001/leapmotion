@@ -190,6 +190,8 @@ public class ClawModuleController : MonoBehaviour
     private Dictionary<string, float> accumulatedJointChanges = new Dictionary<string, float>();
     private Dictionary<string, float> accumulatedMidJointChanges = new Dictionary<string, float>();
     private Dictionary<string, float> accumulatedBaseJointChanges = new Dictionary<string, float>();
+    private Dictionary<string, float> previousAdditionalAngles = new Dictionary<string, float>();
+    private Dictionary<string, float> accumulatedAdditionalChanges = new Dictionary<string, float>();
     
     public bool isFingerTipTriggered = false;
     public float jointAngleValueDebug = 0f;
@@ -334,7 +336,8 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle4Center,
             ref isThumb4Triggered,
             isIndex4Triggered || isMiddle4Triggered,
-            25.0f  // Thumb requires 25 degree change
+            20.0f,  // Thumb requires 20 degree change
+            jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
         );
 
         UpdateThumbAbduction();
@@ -1029,7 +1032,8 @@ public class ClawModuleController : MonoBehaviour
         Transform jointTransform,
         ref bool relatedMotorTriggered,
         bool shouldPreventActivation,
-        float angleThreshold = 15.0f)
+        float angleThreshold = 15.0f,
+        float? additionalAngle = null)
     {
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
@@ -1059,6 +1063,13 @@ public class ClawModuleController : MonoBehaviour
             
             previousBaseJointAngles[jointName] = jointAngle.joints[baseJointName].localRotation.eulerAngles.z;
             accumulatedBaseJointChanges[jointName] = 0f;
+            
+            // Initialize additional angle tracking if provided
+            if (additionalAngle.HasValue)
+            {
+                previousAdditionalAngles[jointName] = additionalAngle.Value;
+                accumulatedAdditionalChanges[jointName] = 0f;
+            }
         }
         
         // Calculate accumulated angle changes - all joints use unified wrap-around handling
@@ -1093,10 +1104,30 @@ public class ClawModuleController : MonoBehaviour
             accumulatedBaseJointChanges[jointName] += deltaBase;
             previousBaseJointAngles[jointName] = currentBaseAngle;
             
+            // Process additional angle if provided (reversed direction: previous - current)
+            if (additionalAngle.HasValue && previousAdditionalAngles.ContainsKey(jointName))
+            {
+                float currentAdditional = additionalAngle.Value;
+                float deltaAdditional = previousAdditionalAngles[jointName] - currentAdditional;  // Reversed: previous - current
+                accumulatedAdditionalChanges[jointName] += deltaAdditional;
+                previousAdditionalAngles[jointName] = currentAdditional;
+            }
+            
             totalAngleChange = Mathf.Abs(accumulatedJointChanges[jointName]) + 
                                Mathf.Abs(accumulatedMidJointChanges[jointName]) + 
                                Mathf.Abs(accumulatedBaseJointChanges[jointName]);
-            // Debug.Log($"{jointName} - Joint: {accumulatedJointChanges[jointName]:F2}, Mid: {accumulatedMidJointChanges[jointName]:F2}, Base: {accumulatedBaseJointChanges[jointName]:F2}, Total: {totalAngleChange:F2}");
+            
+            // Add additional angle change if available
+            if (additionalAngle.HasValue && accumulatedAdditionalChanges.ContainsKey(jointName))
+            {
+                totalAngleChange += Mathf.Abs(accumulatedAdditionalChanges[jointName]);
+            }
+            
+            // Debug output
+            string additionalInfo = additionalAngle.HasValue && accumulatedAdditionalChanges.ContainsKey(jointName) 
+                ? $", Additional: {accumulatedAdditionalChanges[jointName]:F2}" 
+                : "";
+            Debug.Log($"{jointName} - Joint: {accumulatedJointChanges[jointName]:F2}, Mid: {accumulatedMidJointChanges[jointName]:F2}, Base: {accumulatedBaseJointChanges[jointName]:F2}{additionalInfo}, Total: {totalAngleChange:F2}");
         }
         
         // Reset tracking when not touched
@@ -1110,6 +1141,8 @@ public class ClawModuleController : MonoBehaviour
                 accumulatedJointChanges.Remove(jointName);
                 accumulatedMidJointChanges.Remove(jointName);
                 accumulatedBaseJointChanges.Remove(jointName);
+                previousAdditionalAngles.Remove(jointName);
+                accumulatedAdditionalChanges.Remove(jointName);
             }
             fingerTipTouchDurations[jointName] = 0f;
             fingerTipActivated[jointName] = false;
@@ -1227,6 +1260,8 @@ public class ClawModuleController : MonoBehaviour
         accumulatedJointChanges.Clear();
         accumulatedMidJointChanges.Clear();
         accumulatedBaseJointChanges.Clear();
+        previousAdditionalAngles.Clear();
+        accumulatedAdditionalChanges.Clear();
 
         ApplyResetRotations();
         tt = 0f;
