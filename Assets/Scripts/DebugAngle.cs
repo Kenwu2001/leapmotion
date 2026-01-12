@@ -26,7 +26,7 @@ public class DebugAngle : MonoBehaviour
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
                 // "currentThumbRotationZ" + clawModuleController.currentThumbRotationZ.ToString("F3") + "\n" +
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
-                // "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
+                
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
@@ -80,25 +80,27 @@ public class DebugAngle : MonoBehaviour
                 // "Wrist.rotation.eulerAngles.x: " + jointAngle.joints["Wrist"].eulerAngles.x.ToString("F4") + "°\n" +
                 // "Elbow.localRotation.eulerAngles.x: " + jointAngle.joints["Elbow"].localEulerAngles.x.ToString("F4") + "°\n" +
                 // "Elbow.rotation.eulerAngles.x: " + jointAngle.joints["Elbow"].eulerAngles.x.ToString("F4") + "°\n" +
-                "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n" +
-                "clawIndexFingerTip.Transform" + clawIndexFingerTip.position.ToString("F4") + "\n" +
-                "R_IndexTriggerTip.Transform" + R_IndexTriggerTip.position.ToString("F4") + "\n" +
-                "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
-                "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
-                "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
-                "hasRecordedPositions: " + retargetIndex.hasRecordedPositions.ToString() + "\n" +
-                "gripperIndexTip position: " + retargetIndex.gripperIndexTip.position.ToString("F4") + "\n" +
-                "publiAaverageRotation > 0.5 :" + jointAngle.publiAaverageRotation.ToString("F4") + "\n" +
-                "cumulativeRotation > 0.02 :" + jointAngle.cumulativeRotation.ToString("F4") + "\n" +
-                "rotationChangeTimer > 0.3 :" + jointAngle.rotationChangeTimer.ToString("F4") + "\n" +
-                "isClockWise :" + jointAngle.isClockWise.ToString() + "\n" +
+                // "thumbAngle0: " + jointAngle.thumbAngle0.ToString("F2") + "°\n" +
+                // "clawIndexFingerTip.Transform" + clawIndexFingerTip.position.ToString("F4") + "\n" +
+                // "R_IndexTriggerTip.Transform" + R_IndexTriggerTip.position.ToString("F4") + "\n" +
+                // "thumbPalmAngle " + jointAngle.thumbPalmAngle.ToString("F2") + "°\n" +
+                // "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
+                // "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
+                // "hasRecordedPositions: " + retargetIndex.hasRecordedPositions.ToString() + "\n" +
+                // "gripperIndexTip position: " + retargetIndex.gripperIndexTip.position.ToString("F4") + "\n" +
+                // "publiAaverageRotation > 0.5 :" + jointAngle.publiAaverageRotation.ToString("F4") + "\n" +
+                // "cumulativeRotation > 0.02 :" + jointAngle.cumulativeRotation.ToString("F4") + "\n" +
+                // "rotationChangeTimer > 0.3 :" + jointAngle.rotationChangeTimer.ToString("F4") + "\n" +
+                // "isClockWise :" + jointAngle.isClockWise.ToString() + "\n" +
                 // "colliders[1] position: " + threeFingerCollisionDetector.colliders[1].position.ToString("F4") + "\n" +
                 // "colliders[3] position: " + threeFingerCollisionDetector.colliders[3].position.ToString("F4") + "\n" +
                 // "d[1,3]: " + threeFingerCollisionDetector.allDistances[1, 3].ToString("F2");
                 // "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n";
                 // "indexAngle0: " + jointAngle.indexAngle0.ToString("F2") + "°\n";
                 // "joints[Middle0].localRerExtensionTouched.ToString() + "\n" +
-                "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n";
+                "isRightThumbTipTouched: " + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
+                "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
+                "isRightMiddleTipTouched: " + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n";
                 // "(int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y: " + ((int)clawModuleController.ThumbAngle1Center.localRotation.eulerAngles.y).ToString() + "°\n" +
                 // "(int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x: " + ((int)clawModuleController.MiddleAngle4Center.localRotation.eulerAngles.x).ToString() + "°\n";
                 // "(int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z: " + ((int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z).ToString() + "°\n";
