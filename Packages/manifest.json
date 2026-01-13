@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.meta.xr.sdk.all": "72.0.0",
     "com.ultraleap.dependencytoolkit": "1.0.0-pre.2",
     "com.ultraleap.tracking": "7.2.0",
     "com.ultraleap.tracking.preview": "7.2.0",
