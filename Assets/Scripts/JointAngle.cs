@@ -281,8 +281,8 @@ public class JointAngle : MonoBehaviour
                         rotationChangeTimer += Time.deltaTime;
                         publiAaverageRotation = Mathf.Abs(averageRotation); // For debugging
                         
-                        if (Mathf.Abs(averageRotation) > 0.5f && // Clear direction (> 50% consensus)
-                            cumulativeRotation > MIN_ROTATION_THRESHOLD && // Minimum rotation threshold
+                        if (Mathf.Abs(averageRotation) > 0.7f && // Clear direction (> 50% consensus)
+                            cumulativeRotation > 0.04f && // Minimum rotation threshold MIN_ROTATION_THRESHOLD
                             rotationChangeTimer >= ROTATION_CHANGE_COOLDOWN) // Cooldown expired
                         {
                             float newDirection = averageRotation > 0 ? 1f : -1f;
