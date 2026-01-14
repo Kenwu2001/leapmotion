@@ -2,12 +2,15 @@ using UnityEngine;
 
 public class LeapAnchorOffset : MonoBehaviour
 {
+    // scripts
     public RetargetIndex retargetIndex;
     public RetargetMiddle retargetMiddle;
     public RetargetThumb retargetThumb;
     public RetargetThumbAbduction retargetThumbAbduction;
+
     public Transform leftThumbTip;
     public Transform leftIndexTip;
+    
     public Transform baseLeapAnchorPosition;
 
     [Header("Smooth Transition")]
@@ -19,9 +22,9 @@ public class LeapAnchorOffset : MonoBehaviour
     private bool _isRetargeting = false;
     
     // Recorded positions when trigger first detected
-    private Vector3 _recordedHandIndexTipPos; // right index finger tip
-    private Vector3 _recordedGripperIndexTipPos; // gripper index finger tip
-    private Vector3 _recordedLeftThumbTipPos; // left index finger tip
+    private Vector3 _recordedRightHandTipPos;
+    private Vector3 _recordedGripperTipPos;
+    private Vector3 _recordedLeftTipPos; // left thumb tip or left index tip
     
     // Scale factors for retargeting
     private Vector3 _scaleFactors;
@@ -42,47 +45,64 @@ public class LeapAnchorOffset : MonoBehaviour
         if (_isRetargeting && (useIndex || useMiddle || useThumb || useThumbAbduction))
         {
             Transform gripperTip = null;
-            Transform currentFingerTip = null;
+            Transform currentLeftFingerTip = null;
+            Transform currentRightHandTip = null;
             
             // Get appropriate transforms based on active retarget script
             if (useIndex)
             {
                 gripperTip = retargetIndex.GetGripperIndexTip();
-                currentFingerTip = leftThumbTip;
+                currentLeftFingerTip = leftThumbTip;
+                currentRightHandTip = retargetIndex.handIndexTip;
             }
             else if (useMiddle)
             {
                 gripperTip = retargetMiddle.GetGripperMiddleTip();
-                currentFingerTip = leftIndexTip;
+                currentLeftFingerTip = leftIndexTip;
+                currentRightHandTip = retargetMiddle.handMiddleTip;
             }
             else if (useThumb)
             {
                 gripperTip = retargetThumb.GetGripperThumbTip();
-                currentFingerTip = leftThumbTip;
+                currentLeftFingerTip = leftThumbTip;
+                currentRightHandTip = retargetThumb.handThumbTip;
             }
             else if (useThumbAbduction)
             {
                 gripperTip = retargetThumbAbduction.GetGripperThumbTip();
-                currentFingerTip = leftIndexTip;
+                currentLeftFingerTip = leftIndexTip;
+                currentRightHandTip = retargetThumbAbduction.handThumbTip;
             }
             
-            if (gripperTip != null && currentFingerTip != null)
+            if (gripperTip != null && currentLeftFingerTip != null && currentRightHandTip != null)
             {
                 Vector3 currentGripperPos = gripperTip.position;
+                Vector3 currentRightHandTipPos = currentRightHandTip.position;
                 
-                // Recalculate scale factors with current gripper position
-                Vector3 touchToHandTip = _recordedHandIndexTipPos - _recordedLeftThumbTipPos;
-                Vector3 touchToGripperTip = currentGripperPos - _recordedLeftThumbTipPos;
+                // Get dynamic touch point that moves with the collider
+                Vector3 dynamicTouchPoint = _recordedLeftTipPos;
+                if (useIndex)
+                    dynamicTouchPoint = retargetIndex.GetDynamicLeftThumbTipPosition();
+                else if (useMiddle)
+                    dynamicTouchPoint = retargetMiddle.GetDynamicLeftIndexTipPosition();
+                else if (useThumb)
+                    dynamicTouchPoint = retargetThumb.GetDynamicLeftThumbTipPosition();
+                else if (useThumbAbduction)
+                    dynamicTouchPoint = retargetThumbAbduction.GetDynamicLeftIndexTipPosition();
+                
+                // Recalculate scale factors with current positions
+                Vector3 touchToRightHandTip = currentRightHandTipPos - dynamicTouchPoint;
+                Vector3 touchToGripperTip = currentGripperPos - dynamicTouchPoint;
                 
                 _scaleFactors = new Vector3(
-                    Mathf.Abs(touchToHandTip.x) > 0.0001f ? touchToGripperTip.x / touchToHandTip.x : 1f,
-                    Mathf.Abs(touchToHandTip.y) > 0.0001f ? touchToGripperTip.y / touchToHandTip.y : 1f,
-                    Mathf.Abs(touchToHandTip.z) > 0.0001f ? touchToGripperTip.z / touchToHandTip.z : 1f
+                    Mathf.Abs(touchToRightHandTip.x) > 0.0001f ? touchToGripperTip.x / touchToRightHandTip.x : 1f,
+                    Mathf.Abs(touchToRightHandTip.y) > 0.0001f ? touchToGripperTip.y / touchToRightHandTip.y : 1f,
+                    Mathf.Abs(touchToRightHandTip.z) > 0.0001f ? touchToGripperTip.z / touchToRightHandTip.z : 1f
                 );
             
-                // Calculate offset from the initial touch point
-                Vector3 currentFingerPos = currentFingerTip.position;
-                Vector3 offsetFromTouchPoint = currentFingerPos - _recordedLeftThumbTipPos;
+                // Calculate offset from the dynamic touch point
+                Vector3 currentLeftFingerPos = currentLeftFingerTip.position;
+                Vector3 offsetFromTouchPoint = currentLeftFingerPos - dynamicTouchPoint;
                 
                 // Apply scale factors to retarget to gripper space
                 // Index and Thumb use negative x, Middle and ThumbAbduction use positive x
@@ -132,9 +152,9 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Debug.LogWarning("leftThumbTip not assigned for RetargetIndex!");
                 return;
             }
-            _recordedHandIndexTipPos = retargetIndex.GetRecordedHandIndexTipPosition();
-            _recordedGripperIndexTipPos = retargetIndex.GetRecordedGripperIndexTipPosition();
-            _recordedLeftThumbTipPos = retargetIndex.GetRecordedLeftThumbTipPosition();
+            _recordedRightHandTipPos = retargetIndex.GetRecordedHandIndexTipPosition();
+            _recordedGripperTipPos = retargetIndex.GetRecordedGripperIndexTipPosition();
+            _recordedLeftTipPos = retargetIndex.GetRecordedLeftThumbTipPosition(); // the point where the trigger was first touched when enterring collider
             // Debug.Log("Starting retargeting with RetargetIndex");
         }
         else if (useMiddle)
@@ -144,9 +164,9 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Debug.LogWarning("leftIndexTip not assigned for RetargetMiddle!");
                 return;
             }
-            _recordedHandIndexTipPos = retargetMiddle.GetRecordedHandMiddleTipPosition();
-            _recordedGripperIndexTipPos = retargetMiddle.GetRecordedGripperMiddleTipPosition();
-            _recordedLeftThumbTipPos = retargetMiddle.GetRecordedLeftIndexTipPosition();
+            _recordedRightHandTipPos = retargetMiddle.GetRecordedHandMiddleTipPosition();
+            _recordedGripperTipPos = retargetMiddle.GetRecordedGripperMiddleTipPosition();
+            _recordedLeftTipPos = retargetMiddle.GetRecordedLeftIndexTipPosition();
             // Debug.Log("Starting retargeting with RetargetMiddle");
         }
         else if (useThumb)
@@ -156,9 +176,9 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Debug.LogWarning("leftThumbTip not assigned for RetargetThumb!");
                 return;
             }
-            _recordedHandIndexTipPos = retargetThumb.GetRecordedHandThumbTipPosition();
-            _recordedGripperIndexTipPos = retargetThumb.GetRecordedGripperThumbTipPosition();
-            _recordedLeftThumbTipPos = retargetThumb.GetRecordedLeftThumbTipPosition();
+            _recordedRightHandTipPos = retargetThumb.GetRecordedHandThumbTipPosition();
+            _recordedGripperTipPos = retargetThumb.GetRecordedGripperThumbTipPosition();
+            _recordedLeftTipPos = retargetThumb.GetRecordedLeftThumbTipPosition();
             // Debug.Log("Starting retargeting with RetargetThumb");
         }
         else if (useThumbAbduction)
@@ -168,27 +188,27 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Debug.LogWarning("leftIndexTip not assigned for RetargetThumbAbduction!");
                 return;
             }
-            _recordedHandIndexTipPos = retargetThumbAbduction.GetRecordedHandThumbTipPosition();
-            _recordedGripperIndexTipPos = retargetThumbAbduction.GetRecordedGripperThumbTipPosition();
-            _recordedLeftThumbTipPos = retargetThumbAbduction.GetRecordedLeftIndexTipPosition();
+            _recordedRightHandTipPos = retargetThumbAbduction.GetRecordedHandThumbTipPosition();
+            _recordedGripperTipPos = retargetThumbAbduction.GetRecordedGripperThumbTipPosition();
+            _recordedLeftTipPos = retargetThumbAbduction.GetRecordedLeftIndexTipPosition();
             // Debug.Log("Starting retargeting with RetargetThumbAbduction");
         }
 
         // Calculate scale factors based on the distance between hand and gripper
         // relative to the distance from touch point to hand
-        Vector3 touchToHandTip = _recordedHandIndexTipPos - _recordedLeftThumbTipPos;
-        Vector3 touchToGripperTip = _recordedGripperIndexTipPos - _recordedLeftThumbTipPos;
+        Vector3 touchToRightHandTip = _recordedRightHandTipPos - _recordedLeftTipPos;
+        Vector3 touchToGripperTip = _recordedGripperTipPos - _recordedLeftTipPos;
 
         // Scale factor = (touch to gripper) / (touch to hand)
         _scaleFactors = new Vector3(
-            Mathf.Abs(touchToHandTip.x) > 0.0001f ? touchToGripperTip.x / touchToHandTip.x : 1f,
-            Mathf.Abs(touchToHandTip.y) > 0.0001f ? touchToGripperTip.y / touchToHandTip.y : 1f,
-            Mathf.Abs(touchToHandTip.z) > 0.0001f ? touchToGripperTip.z / touchToHandTip.z : 1f
+            Mathf.Abs(touchToRightHandTip.x) > 0.0001f ? touchToGripperTip.x / touchToRightHandTip.x : 1f,
+            Mathf.Abs(touchToRightHandTip.y) > 0.0001f ? touchToGripperTip.y / touchToRightHandTip.y : 1f,
+            Mathf.Abs(touchToRightHandTip.z) > 0.0001f ? touchToGripperTip.z / touchToRightHandTip.z : 1f
         );
 
         _isRetargeting = true;
-        // Debug.Log($"Touch point: {_recordedLeftThumbTipPos}");
-        // Debug.Log($"HandTipPos: {_recordedHandIndexTipPos}, GripperTipPos: {_recordedGripperIndexTipPos}");
+        // Debug.Log($"Touch point: {_recordedLeftTipPos}");
+        // Debug.Log($"HandTipPos: {_recordedRightHandTipPos}, GripperTipPos: {_recordedGripperTipPos}");
         // Debug.Log($"Scale factors: {_scaleFactors}");
     }
 

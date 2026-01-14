@@ -17,6 +17,7 @@ public class RetargetIndex : MonoBehaviour
     private Vector3 recordedHandIndexTipPosition;
     private Vector3 recordedGripperIndexTipPosition;
     private Vector3 recordedLeftThumbTipPosition;
+    private Vector3 recordedLeftThumbTipLocalPosition; // Local position relative to this collider
     public bool hasRecordedPositions = false;
 
     private void Update()
@@ -43,6 +44,8 @@ public class RetargetIndex : MonoBehaviour
                 {
                     // Record the touch point position at the moment of contact
                     recordedLeftThumbTipPosition = other.transform.position;
+                    // Record local position so it moves with the collider
+                    recordedLeftThumbTipLocalPosition = transform.InverseTransformPoint(other.transform.position);
                     
                     if (handIndexTip != null)
                         recordedHandIndexTipPosition = handIndexTip.position;
@@ -130,6 +133,16 @@ public class RetargetIndex : MonoBehaviour
         return recordedLeftThumbTipPosition;
     }
 
+    // Get the touch point position that moves with the collider
+    public Vector3 GetDynamicLeftThumbTipPosition()
+    {
+        if (!hasRecordedPositions)
+            return new Vector3(-1f, -1f, -1f);
+        
+        // Convert local position back to world space
+        return transform.TransformPoint(recordedLeftThumbTipLocalPosition);
+    }
+
     public bool HasRecordedPositions()
     {
         return hasRecordedPositions;
@@ -148,5 +161,6 @@ public class RetargetIndex : MonoBehaviour
         recordedHandIndexTipPosition = Vector3.zero;
         recordedGripperIndexTipPosition = Vector3.zero;
         recordedLeftThumbTipPosition = Vector3.zero;
+        recordedLeftThumbTipLocalPosition = Vector3.zero;
     }
 }
