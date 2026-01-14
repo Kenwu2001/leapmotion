@@ -288,23 +288,23 @@ public class ClawModuleController : MonoBehaviour
         // if (ThumbAngle3Center != null)
         //     ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1*1.7f, 0f, 0f);
         
-        UpdateInnerExtension(
-            triggerThumbInnerExtension.isThumbInnerExtensionTouched,
-            triggerRightThumbTip.isRightThumbTipTouched,
-            jointAngle.thumbAngle1,
-            "Thumb3",
-            "Thumb0",
-            ref currentThumbInnerExtensionRotationZ,
-            rotationSpeed,
-            thumbJoint3Renderer,
-            purpleColor,
-            originalColor,
-            ThumbAngle3Center,
-            ref isThumb3Triggered,
-            () => jointAngle.thumbAngle0 == 0f
-            // () => jointAngle.thumbPalmAngle < 10f
-            // jointAngle.thumbAngle0 == 0f
-        );
+        // UpdateInnerExtension(
+        //     triggerThumbInnerExtension.isThumbInnerExtensionTouched,
+        //     triggerRightThumbTip.isRightThumbTipTouched,
+        //     jointAngle.thumbAngle1,
+        //     "Thumb3",
+        //     "Thumb0",
+        //     ref currentThumbInnerExtensionRotationZ,
+        //     rotationSpeed,
+        //     thumbJoint3Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     ThumbAngle3Center,
+        //     ref isThumb3Triggered,
+        //     () => jointAngle.thumbAngle0 == 0f
+        //     // () => jointAngle.thumbPalmAngle < 10f
+        //     // jointAngle.thumbAngle0 == 0f
+        // );
 
         // UpdateFingertipExtension(
         //     triggerRightThumbTip.isRightThumbTipTouched,
@@ -322,53 +322,53 @@ public class ClawModuleController : MonoBehaviour
         //     () => jointAngle.thumbAngle0 == 0f
         // );
 
-        UpdateFingertipExtensionV2(
-            triggerRightThumbTip.isRightThumbTipTouched,
-            jointAngle.thumbAngle1,
-            "Thumb1",
-            "",
-            "Thumb0",
-            ref currentThumbTipRotationZ,
-            rotationSpeed,
-            thumbJoint4Renderer,
-            purpleColor,
-            originalColor,
-            ThumbAngle4Center,
-            ref isThumb4Triggered,
-            isIndex4Triggered || isMiddle4Triggered,
-            20.0f,  // Thumb requires 20 degree change
-            jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
-        );
+        // UpdateFingertipExtensionV2(
+        //     triggerRightThumbTip.isRightThumbTipTouched,
+        //     jointAngle.thumbAngle1,
+        //     "Thumb1",
+        //     "",
+        //     "Thumb0",
+        //     ref currentThumbTipRotationZ,
+        //     rotationSpeed,
+        //     thumbJoint4Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     ThumbAngle4Center,
+        //     ref isThumb4Triggered,
+        //     isIndex4Triggered || isMiddle4Triggered,
+        //     20.0f,  // Thumb requires 20 degree change
+        //     jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
+        // );
 
-        UpdateThumbAbduction();
+        // UpdateThumbAbduction();
 
-        UpdateThumbFingerTwist();
+        // UpdateThumbFingerTwist();
 
         // ==============================
         // 🔹 Index Finger
         // ==============================
         
-        UpdateIndexFingerAbduction();
-        
-        UpdateIndexFingerTwist();
-
         // if (IndexAngle3Center != null)
         //     IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1 + jointAngle.indexAngle0, 0f, 0f);
+        
+        // UpdateIndexFingerAbduction();
+        
+        // UpdateIndexFingerTwist();
 
-        UpdateInnerExtension(
-            triggerIndexInnerExtension.isIndexInnerExtensionTouched,
-            triggerRightIndexTip.isRightIndexTipTouched,
-            jointAngle.indexAngle1,
-            "Index3",
-            "Index0",
-            ref currentIndexInnerExtensionRotationZ,
-            rotationSpeed,
-            indexJoint3Renderer,
-            purpleColor,
-            originalColor,
-            IndexAngle3Center,
-            ref isIndex3Triggered
-        );
+        // UpdateInnerExtension(
+        //     triggerIndexInnerExtension.isIndexInnerExtensionTouched,
+        //     triggerRightIndexTip.isRightIndexTipTouched,
+        //     jointAngle.indexAngle1,
+        //     "Index3",
+        //     "Index0",
+        //     ref currentIndexInnerExtensionRotationZ,
+        //     rotationSpeed,
+        //     indexJoint3Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     IndexAngle3Center,
+        //     ref isIndex3Triggered
+        // );
 
         // UpdateFingertipExtension(
         //     triggerRightIndexTip.isRightIndexTipTouched,
@@ -385,47 +385,47 @@ public class ClawModuleController : MonoBehaviour
         //     ref isIndex4Triggered
         // );
 
-        UpdateFingertipExtensionV2(
-            triggerRightIndexTip.isRightIndexTipTouched,
-            jointAngle.indexAngle2,
-            "Index2",
-            "Index1",
-            "Index0",
-            ref currentIndexTipRotationZ,
-            rotationSpeed,
-            indexJoint4Renderer,
-            purpleColor,
-            originalColor,
-            IndexAngle4Center,
-            ref isIndex4Triggered,
-            isThumb4Triggered || isMiddle4Triggered
-        );
+        // UpdateFingertipExtensionV2(
+        //     triggerRightIndexTip.isRightIndexTipTouched,
+        //     jointAngle.indexAngle2,
+        //     "Index2",
+        //     "Index1",
+        //     "Index0",
+        //     ref currentIndexTipRotationZ,
+        //     rotationSpeed,
+        //     indexJoint4Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     IndexAngle4Center,
+        //     ref isIndex4Triggered,
+        //     isThumb4Triggered || isMiddle4Triggered
+        // );
 
         // ==============================
         // 🔹 Middle Finger State
         // ==============================
 
-        UpdateMiddleFingerAbduction();
+        // UpdateMiddleFingerAbduction();
         
-        UpdateMiddleFingerTwist();
+        // UpdateMiddleFingerTwist();
 
         // if (MiddleAngle3Center != null)
         //     MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1 + jointAngle.middleAngle0, 0f, 0f);
 
-        UpdateInnerExtension(
-            triggerMiddleInnerExtension.isMiddleInnerExtensionTouched,
-            triggerRightMiddleTip.isRightMiddleTipTouched,
-            jointAngle.middleAngle1,
-            "Middle3",
-            "Middle0",
-            ref currentMiddleInnerExtensionRotationZ,
-            rotationSpeed,
-            middleJoint3Renderer,
-            purpleColor,
-            originalColor,
-            MiddleAngle3Center,
-            ref isMiddle3Triggered
-        );
+        // UpdateInnerExtension(
+        //     triggerMiddleInnerExtension.isMiddleInnerExtensionTouched,
+        //     triggerRightMiddleTip.isRightMiddleTipTouched,
+        //     jointAngle.middleAngle1,
+        //     "Middle3",
+        //     "Middle0",
+        //     ref currentMiddleInnerExtensionRotationZ,
+        //     rotationSpeed,
+        //     middleJoint3Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     MiddleAngle3Center,
+        //     ref isMiddle3Triggered
+        // );
         
         // UpdateFingertipExtension(
         //     triggerRightMiddleTip.isRightMiddleTipTouched,
@@ -442,21 +442,21 @@ public class ClawModuleController : MonoBehaviour
         //     ref isMiddle4Triggered
         // );
 
-        UpdateFingertipExtensionV2(
-            triggerRightMiddleTip.isRightMiddleTipTouched,
-            jointAngle.middleAngle2,
-            "Middle2",
-            "Middle1",
-            "Middle0",
-            ref currentMiddleTipRotationZ,
-            rotationSpeed,
-            middleJoint4Renderer,
-            purpleColor,
-            originalColor,
-            MiddleAngle4Center,
-            ref isMiddle4Triggered,
-            isThumb4Triggered || isIndex4Triggered
-        );
+        // UpdateFingertipExtensionV2(
+        //     triggerRightMiddleTip.isRightMiddleTipTouched,
+        //     jointAngle.middleAngle2,
+        //     "Middle2",
+        //     "Middle1",
+        //     "Middle0",
+        //     ref currentMiddleTipRotationZ,
+        //     rotationSpeed,
+        //     middleJoint4Renderer,
+        //     purpleColor,
+        //     originalColor,
+        //     MiddleAngle4Center,
+        //     ref isMiddle4Triggered,
+        //     isThumb4Triggered || isIndex4Triggered
+        // );
     }
 
     // ==============================

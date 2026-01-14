@@ -15,6 +15,8 @@ public class DebugAngle : MonoBehaviour
     public Transform R_IndexTriggerTip;
     public ThreeFingerCollisionDetector threeFingerCollisionDetector;
     public RetargetIndex retargetIndex;
+    public SelectMotorCollider SelectMotorCollider;
+    public ModeSwitching modeSwitching;
 
     void Update()
     {
@@ -28,6 +30,11 @@ public class DebugAngle : MonoBehaviour
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
                 
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
+                "modeSelect: " + modeSwitching.modeSelect.ToString() + "\n" +
+                "motorSelected: " + modeSwitching.motorSelected.ToString() + "\n" +
+                "modeManipulate: " + modeSwitching.modeManipulate.ToString() + "\n" +
+                "currentTouchedMotorID: " + SelectMotorCollider.currentTouchedMotorID.ToString() + "\n" +
+                "GetLIndexToIndex2Distance: " + jointAngle.GetLIndexToIndex2Distance().ToString("F2") + "\n" +
                 // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
                 "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +

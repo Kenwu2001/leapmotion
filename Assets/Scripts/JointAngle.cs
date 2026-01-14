@@ -32,6 +32,8 @@ public class JointAngle : MonoBehaviour
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
 
+    public Transform L_index_c;
+
     public Vector3 indexTipPos;
     public Vector3 thumbTipPos;
     public Vector3 projectedIndexTip;
@@ -571,5 +573,23 @@ public class JointAngle : MonoBehaviour
         if (joints != null && joints.ContainsKey(jointName))
             return joints[jointName];
         return null;
+    }
+
+    // Calculate distance between L_index_c and Index2 joint
+    public float GetLIndexToIndex2Distance()
+    {
+        if (L_index_c == null)
+        {
+            Debug.LogWarning("L_index_c is not assigned!");
+            return 0f;
+        }
+
+        if (!joints.ContainsKey("Index2"))
+        {
+            Debug.LogWarning("Index2 joint not found!");
+            return 0f;
+        }
+
+        return Vector3.Distance(L_index_c.position, joints["Index2"].position);
     }
 }
