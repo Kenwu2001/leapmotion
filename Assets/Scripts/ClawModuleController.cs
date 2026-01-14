@@ -19,6 +19,8 @@ public class ClawModuleController : MonoBehaviour
 
     public TriggerMiddleInnerExtension triggerMiddleInnerExtension;
 
+    public ModeSwitching modeSwitching;
+
     // ==============================
     // 🔹 Thumb Transforms
     // ==============================
@@ -322,23 +324,26 @@ public class ClawModuleController : MonoBehaviour
         //     () => jointAngle.thumbAngle0 == 0f
         // );
 
-        // UpdateFingertipExtensionV2(
-        //     triggerRightThumbTip.isRightThumbTipTouched,
-        //     jointAngle.thumbAngle1,
-        //     "Thumb1",
-        //     "",
-        //     "Thumb0",
-        //     ref currentThumbTipRotationZ,
-        //     rotationSpeed,
-        //     thumbJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     ThumbAngle4Center,
-        //     ref isThumb4Triggered,
-        //     isIndex4Triggered || isMiddle4Triggered,
-        //     20.0f,  // Thumb requires 20 degree change
-        //     jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
-        // );
+        UpdateFingertipExtensionV2(
+            triggerRightThumbTip.isRightThumbTipTouched,
+            jointAngle.thumbAngle1,
+            "Thumb1",
+            "",
+            "Thumb0",
+            ref currentThumbTipRotationZ,
+            rotationSpeed,
+            thumbJoint4Renderer,
+            purpleColor,
+            originalColor,
+            ThumbAngle4Center,
+            ref isThumb4Triggered,
+            isIndex4Triggered || isMiddle4Triggered,
+            jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
+            modeSwitching.modeManipulate,
+            modeSwitching.currentRedMotorID,
+            4,  // Expected motor ID for thumb
+            20.0f  // Thumb requires 20 degree change
+        );
 
         // UpdateThumbAbduction();
 
@@ -1033,6 +1038,9 @@ public class ClawModuleController : MonoBehaviour
         ref bool relatedMotorTriggered,
         bool shouldPreventActivation,
         float angleThreshold = 15.0f,
+        bool isManipulatingMode = false,
+        int motorID = 0,
+        int expectedMotorID = 0,
         float? additionalAngle = null)
     {
         // Initialize rotation based on jointAngleValue for the base angle
@@ -1146,15 +1154,21 @@ public class ClawModuleController : MonoBehaviour
             }
             fingerTipTouchDurations[jointName] = 0f;
             fingerTipActivated[jointName] = false;
-            jointRenderer.material.color = inactiveColor;
+            // jointRenderer.material.color = inactiveColor;
             relatedMotorTriggered = false;
         }
         else
         {
+            // Check if motor ID matches when in manipulating mode
+            // If expectedMotorID is set (not 0), must be in manipulating mode AND motor ID must match
+            // If expectedMotorID is 0, no restriction (backward compatibility)
+            bool motorIDMatches = (expectedMotorID == 0) || (isManipulatingMode && motorID == expectedMotorID);
+            
             // Determine the initial condition to use (for activation)
             // New condition: total angle change must be greater than threshold
             // Also check that other motor 4s are not triggered (mutual exclusion)
-            bool initialConditionMet = isTipTouched && totalAngleChange > angleThreshold && !shouldPreventActivation;
+            // And check motor ID matches in manipulating mode
+            bool initialConditionMet = isTipTouched && totalAngleChange > angleThreshold && !shouldPreventActivation && motorIDMatches;
             
             // Debug: only log when condition is actually met
             if (initialConditionMet)
@@ -1174,7 +1188,7 @@ public class ClawModuleController : MonoBehaviour
                 if (initialConditionMet)
                 {
                     fingerTipActivated[jointName] = true;
-                    jointRenderer.material.color = activeColor;
+                    // jointRenderer.material.color = activeColor;
                     relatedMotorTriggered = true;
                     isFingerTipTriggered = true;
                 }
@@ -1192,7 +1206,7 @@ public class ClawModuleController : MonoBehaviour
             // Smoothly increase the rotation while the tip is touched
             currentTipRotation -= rotationSpeed * Time.deltaTime;
             currentTipRotation = Mathf.Clamp(currentTipRotation, -80f, 0f);
-            jointRenderer.material.color = activeColor;
+            // jointRenderer.material.color = activeColor;
             relatedMotorTriggered = true;
         }
         else

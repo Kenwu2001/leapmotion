@@ -30,6 +30,7 @@ public class DebugAngle : MonoBehaviour
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
                 
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
+                "currentRedMotorID: " + modeSwitching.currentRedMotorID.ToString() + "\n" +
                 "modeSelect: " + modeSwitching.modeSelect.ToString() + "\n" +
                 "motorSelected: " + modeSwitching.motorSelected.ToString() + "\n" +
                 "modeManipulate: " + modeSwitching.modeManipulate.ToString() + "\n" +

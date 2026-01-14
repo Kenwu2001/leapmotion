@@ -33426,10 +33426,12 @@ MonoBehaviour:
   middleJoint3Renderer: {fileID: 3100906007860502076}
   middleJoint4Renderer: {fileID: 7769744222350259651}
   baseRenderer: {fileID: 6337283073714088674}
-  greenColor: {r: 0, g: 1, b: 0, a: 1}
+  redColor: {r: 1, g: 0, b: 0, a: 1}
   modeSelect: 1
   motorSelected: 0
   modeManipulate: 0
+  lastTouchedMotorID: 0
+  currentRedMotorID: 0
 --- !u!4 &951283615
 Transform:
   m_ObjectHideFlags: 0
@@ -34075,6 +34077,7 @@ MonoBehaviour:
   triggerThumbInnerExtension: {fileID: 0}
   triggerIndexInnerExtension: {fileID: 0}
   triggerMiddleInnerExtension: {fileID: 0}
+  modeSwitching: {fileID: 0}
   ThumbAngle1Center: {fileID: 1173910316}
   ThumbAngle2Center: {fileID: 83926891}
   ThumbAngle3Center: {fileID: 115009900}
@@ -40357,6 +40360,7 @@ MonoBehaviour:
   triggerThumbInnerExtension: {fileID: 845586719}
   triggerIndexInnerExtension: {fileID: 349889824}
   triggerMiddleInnerExtension: {fileID: 797724206}
+  modeSwitching: {fileID: 0}
   ThumbAngle1Center: {fileID: 2014701384}
   ThumbAngle2Center: {fileID: 1772311579}
   ThumbAngle3Center: {fileID: 218314563}
@@ -50899,6 +50903,7 @@ MonoBehaviour:
   triggerThumbInnerExtension: {fileID: 800056395}
   triggerIndexInnerExtension: {fileID: 827141708}
   triggerMiddleInnerExtension: {fileID: 1189440883}
+  modeSwitching: {fileID: 0}
   ThumbAngle1Center: {fileID: 1091200612}
   ThumbAngle2Center: {fileID: 1676111424}
   ThumbAngle3Center: {fileID: 902642472}
@@ -55347,6 +55352,7 @@ MonoBehaviour:
   triggerThumbInnerExtension: {fileID: 320938782}
   triggerIndexInnerExtension: {fileID: 1893964448}
   triggerMiddleInnerExtension: {fileID: 1019242406}
+  modeSwitching: {fileID: 951283614}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}

@@ -31,7 +31,8 @@ public class ModeSwitching : MonoBehaviour
     public bool motorSelected = false;
     public bool modeManipulate = false;
     
-    private int lastTouchedMotorID = 0;
+    public int lastTouchedMotorID = 0;
+    public int currentRedMotorID = 0; // Currently selected motor (displayed in red)
     private bool hasEnteredCloseRange = false; // Track if we've entered < 0.16f during manipulation
     
     void Start()
@@ -54,14 +55,15 @@ public class ModeSwitching : MonoBehaviour
             {
                 if (currentMotorID != 0)
                 {
-                    // A motor is touched - set it to green and mark as selected
+                    // A motor is touched - set it to red and mark as selected
                     SetMotorColor(currentMotorID, redColor);
+                    currentRedMotorID = currentMotorID; // Record the red motor
                     if (!motorSelected)
                     {
                         motorSelected = true;
                     }
                 }
-                // Don't reset colors when motor is released - keep the last selected motor green
+                // Don't reset colors when motor is released - keep the last selected motor red
                 
                 lastTouchedMotorID = currentMotorID;
             }
@@ -100,6 +102,7 @@ public class ModeSwitching : MonoBehaviour
                 motorSelected = false;
                 modeManipulate = false;
                 ResetAllColors();
+                currentRedMotorID = 0; // Clear the red motor record
                 lastTouchedMotorID = 0;
                 hasEnteredCloseRange = false;
                 baseRenderer.material.color = originalColor; // Reset base color
