@@ -18,6 +18,7 @@ public class JointAngle : MonoBehaviour
     private Vector3 initialRotationAxis; // Store initial rotation axis to determine direction
 
     public float indexMiddleDistance;
+    public float indexMiddleAngleOnPalm;
 
     public float thumbPalmAngle;
     public float wristThumbAngle;
@@ -169,6 +170,7 @@ public class JointAngle : MonoBehaviour
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
 
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
+        indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
 
         // Determine which finger to use based on touch detection
         bool useIndexFinger = false;
@@ -250,12 +252,12 @@ public class JointAngle : MonoBehaviour
                             projectedIndexTip, projectedThumbTip,
                             activeJoint
                         );
-                        
+
                         // Add to rotation history
                         rotationHistory.Enqueue(newRotation);
                         if (rotationHistory.Count > ROTATION_HISTORY_SIZE)
                             rotationHistory.Dequeue();
-                        
+
                         // Calculate weighted average (recent frames have more weight)
                         float weightedSum = 0f;
                         float weightTotal = 0f;
@@ -267,9 +269,9 @@ public class JointAngle : MonoBehaviour
                             weightTotal += weight;
                             index++;
                         }
-                        
+
                         float averageRotation = weightTotal > 0 ? weightedSum / weightTotal : 0f;
-                        
+
                         // Track cumulative rotation magnitude
                         if (newRotation != 0f)
                         {
@@ -278,11 +280,11 @@ public class JointAngle : MonoBehaviour
                                 (projectedThumbTip - projectedIndexTip).normalized
                             ));
                         }
-                        
+
                         // Only update if we have clear consensus AND enough rotation AND cooldown expired
                         rotationChangeTimer += Time.deltaTime;
                         publiAaverageRotation = Mathf.Abs(averageRotation); // For debugging
-                        
+
                         if (Mathf.Abs(averageRotation) > 0.7f && // Clear direction (> 50% consensus)
                             cumulativeRotation > 0.04f && // Minimum rotation threshold MIN_ROTATION_THRESHOLD
                             rotationChangeTimer >= ROTATION_CHANGE_COOLDOWN) // Cooldown expired
@@ -296,14 +298,14 @@ public class JointAngle : MonoBehaviour
                                 rotationChangeTimer = 0f; // Reset cooldown
                                 cumulativeRotation = 0f; // Reset cumulative rotation
                             }
-                            
+
                             noRotationTimer = 0f;
                         }
                         // else if (cumulativeRotation < MIN_ROTATION_THRESHOLD)
                         // {
                         //     // No meaningful rotation detected
                         //     noRotationTimer += Time.deltaTime;
-                            
+
                         //     if (noRotationTimer >= 1f)
                         //     {
                         //         isClockWise = 0f;
@@ -378,28 +380,39 @@ public class JointAngle : MonoBehaviour
         // Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
     }
 
+    public float GetIndexMiddleAngleOnPalm()
+    {
+        if (!joints.ContainsKey("Index1") || !joints.ContainsKey("Middle1") || !joints.ContainsKey("PalmIndex"))
+            return 0f;
+        Vector3 basePoint = joints["PalmIndex"].position;
+        Vector3 a = ProjectPointOnPlane(joints["Index1"].position, basePoint, palmNormal) - basePoint;
+        Vector3 b = ProjectPointOnPlane(joints["Middle1"].position, basePoint, palmNormal) - basePoint;
+        float signedAngle = Vector3.SignedAngle(a, b, palmNormal);
+        return Mathf.Abs(signedAngle);
+    }
+
     // calculate the angles between thumbPlaneNormal and palmNormal
     // Returns positive angle when thumb is open, 0 when thumb is closed
     float UpdateThumbPalmAngle()
     {
         if (!joints.ContainsKey("Wrist"))
             return 0f;
-            
+
         // Calculate the angle between the two plane normals
         float angle = Vector3.Angle(thumbPlaneNormal, palmNormal);
-        
+
         // Use a consistent reference: the wrist's forward direction (up vector)
         // This provides a stable reference regardless of when the hand enters the scene
         Vector3 wristUp = joints["Wrist"].forward;
-        
+
         // Calculate the cross product to track the directional relationship between planes
         Vector3 currentCrossProduct = Vector3.Cross(thumbPlaneNormal, palmNormal);
-        
+
         // Compare cross product with wrist up direction to determine sign
         // Positive dot product = thumb is open (away from palm)
         // Negative dot product = thumb is closed (toward palm)
         float signDot = Vector3.Dot(currentCrossProduct, wristUp);
-        
+
         // Return positive angle or 0
         if (signDot > 0)
         {

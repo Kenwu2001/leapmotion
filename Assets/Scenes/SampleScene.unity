@@ -10853,7 +10853,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &282863896
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -11183,6 +11183,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -11931,6 +11932,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -12981,6 +12983,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -23330,6 +23333,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -33605,6 +33609,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -34512,6 +34517,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -36721,6 +36727,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -41071,6 +41078,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -53391,6 +53399,7 @@ MonoBehaviour:
   middleAngle2: 0
   middleLRAngle: 0
   indexMiddleDistance: 0
+  indexMiddleAngleOnPalm: 0
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0

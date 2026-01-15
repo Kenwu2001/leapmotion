@@ -386,7 +386,9 @@ public class ClawModuleController : MonoBehaviour
         // if (IndexAngle3Center != null)
         //     IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1 + jointAngle.indexAngle0, 0f, 0f);
 
-        UpdateIndexFingerAbduction();
+        // UpdateIndexFingerAbduction();
+
+        UpdateIndexFingerAbductionByAngle();
 
         UpdateIndexFingerTwist();
 
@@ -748,6 +750,76 @@ public class ClawModuleController : MonoBehaviour
             float targetY = isMapping
                 ? maxIndexYAxisAngle + (30 - delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
                 : indexFingerJoint1MaxRotationVector.y + 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+        }
+
+        if (IndexAngle1Center != null)
+            IndexAngle1Center.localRotation = targetRotation;
+    }
+
+    private void UpdateIndexFingerAbductionByAngle()
+    {
+        maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
+        Quaternion targetRotation = IndexAngle1CenterInitialRotation;
+
+        // Initialize touch duration for index abduction
+        if (!fingerTipTouchDurations.ContainsKey("IndexAbduction"))
+        {
+            fingerTipTouchDurations["IndexAbduction"] = 0f;
+        }
+
+        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleAngleOnPalm > 63f
+             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+        {
+            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
+            // indexJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["IndexAbduction"], 1f));
+            isIndex1Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
+            {
+                currentIndexRotationY -= rotationSpeed * Time.deltaTime;
+                currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+
+                indexFingerJoint1MaxRotationVector =
+                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+
+                // indexJoint1Renderer.material.color = yellowColor;
+            }
+        }
+        else if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleAngleOnPalm < 63f
+             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+        {
+            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
+            isIndex1Triggered = true;
+
+            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
+            {
+                currentIndexRotationY += rotationSpeed * Time.deltaTime;
+                // currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+                currentIndexRotationY = Mathf.Min(currentIndexRotationY, 0f);
+
+                indexFingerJoint1MaxRotationVector =
+                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["IndexAbduction"] = 0f;
+            // indexJoint1Renderer.material.color = originalColor;
+            isIndex1Triggered = false;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
+
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && IndexAngle1Center != null)
+        {
+            float delta = maxIndexYAxisAngle;
+            float targetY = isMapping
+                ? maxIndexYAxisAngle + (30 - delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+                : indexFingerJoint1MaxRotationVector.y + 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
