@@ -868,6 +868,8 @@ public class ClawModuleController : MonoBehaviour
                 ? maxIndexYAxisAngle + (30 - delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
                 : indexFingerJoint1MaxRotationVector.y + 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
 
+            if (targetY >= 70) targetY = 70f;
+
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
         }
@@ -1047,6 +1049,8 @@ public class ClawModuleController : MonoBehaviour
             float targetY = isMapping
                 ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
                 : middleFingerJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+
+            if (targetY <= -70f) targetY = -70f;
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
