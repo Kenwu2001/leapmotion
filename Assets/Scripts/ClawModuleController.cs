@@ -209,6 +209,14 @@ public class ClawModuleController : MonoBehaviour
     private const float DETECTION_WINDOW = 0.5f;
     private const float DIRECTION_THRESHOLD = 5f;
 
+    // Sliding window detection for indexMiddleAngleOnPalm changes
+    private Queue<(float time, float angle)> indexAngleHistory = new Queue<(float, float)>();
+    public bool isIndexRotatingNegative = true; // true = outward (negative), false = inward (positive)
+
+    // Sliding window detection for middle finger indexMiddleAngleOnPalm changes
+    private Queue<(float time, float angle)> middleAngleHistory = new Queue<(float, float)>();
+    public bool isMiddleRotatingPositive = true; // true = positive (outward), false = negative (inward)
+
     void Start()
     {
         originalColor = thumbJoint1Renderer.material.color;
@@ -464,7 +472,9 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Middle Finger State
         // ==============================
 
-        UpdateMiddleFingerAbduction();
+        // UpdateMiddleFingerAbduction();
+
+        UpdateMiddleFingerAbductionByAngle();
 
         UpdateMiddleFingerTwist();
 
@@ -770,36 +780,72 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["IndexAbduction"] = 0f;
         }
 
-        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleAngleOnPalm > 63f
+        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
              && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
         {
             fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
-            // indexJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["IndexAbduction"], 1f));
             isIndex1Triggered = true;
 
             // Only apply rotation after 1 second
             if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
             {
-                currentIndexRotationY -= rotationSpeed * Time.deltaTime;
-                currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+                // Initialize tracking on first frame after 1 second
+                if (fingerTipTouchDurations["IndexAbduction"] <= 1.0f + Time.deltaTime)
+                {
+                    indexAngleHistory.Clear();
+                    isIndexRotatingNegative = true;
+                }
 
-                indexFingerJoint1MaxRotationVector =
-                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+                float currentTime = Time.time;
+                indexAngleHistory.Enqueue((currentTime, jointAngle.indexMiddleAngleOnPalm));
 
-                // indexJoint1Renderer.material.color = yellowColor;
-            }
-        }
-        else if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleAngleOnPalm < 63f
-             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
-        {
-            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
-            isIndex1Triggered = true;
+                // Clean up old entries while keeping at least one reference point
+                if (indexAngleHistory.Count > 0)
+                {
+                    float oldestTime = indexAngleHistory.Peek().time;
+                    float timeDiff = currentTime - oldestTime;
 
-            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
-            {
-                currentIndexRotationY += rotationSpeed * Time.deltaTime;
-                // currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
-                currentIndexRotationY = Mathf.Min(currentIndexRotationY, 0f);
+                    if (timeDiff > DETECTION_WINDOW + 0.1f)
+                    {
+                        while (indexAngleHistory.Count > 1 &&
+                               currentTime - indexAngleHistory.Peek().time > DETECTION_WINDOW)
+                        {
+                            indexAngleHistory.Dequeue();
+                        }
+                    }
+
+                    // Check if we have enough history to detect direction change
+                    if (timeDiff >= DETECTION_WINDOW)
+                    {
+                        float oldestAngle = indexAngleHistory.Peek().angle;
+                        float currentAngle = jointAngle.indexMiddleAngleOnPalm;
+                        float angleChange = currentAngle - oldestAngle;
+
+                        // If angle increased by >= 5 degrees, switch to negative direction (outward)
+                        if (angleChange >= DIRECTION_THRESHOLD)
+                        {
+                            isIndexRotatingNegative = true;
+                        }
+                        // If angle decreased by >= 5 degrees, switch to positive direction (inward)
+                        else if (angleChange <= -DIRECTION_THRESHOLD)
+                        {
+                            isIndexRotatingNegative = false;
+                        }
+                        // Otherwise, keep current direction
+                    }
+                }
+
+                // Apply rotation based on current direction
+                if (isIndexRotatingNegative)
+                {
+                    currentIndexRotationY -= rotationSpeed * Time.deltaTime;
+                    currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -60f, 0f);
+                }
+                else
+                {
+                    currentIndexRotationY += rotationSpeed * Time.deltaTime;
+                    currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -60f, 0f);
+                }
 
                 indexFingerJoint1MaxRotationVector =
                     (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
@@ -808,8 +854,9 @@ public class ClawModuleController : MonoBehaviour
         else
         {
             fingerTipTouchDurations["IndexAbduction"] = 0f;
-            // indexJoint1Renderer.material.color = originalColor;
             isIndex1Triggered = false;
+            indexAngleHistory.Clear();
+            isIndexRotatingNegative = true;
         }
 
         targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
@@ -902,6 +949,112 @@ public class ClawModuleController : MonoBehaviour
             MiddleAngle1Center.localRotation = targetRotation;
     }
 
+    void UpdateMiddleFingerAbductionByAngle()
+    {
+        maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
+        Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
+
+        // Initialize touch duration for middle abduction
+        if (!fingerTipTouchDurations.ContainsKey("MiddleAbduction"))
+        {
+            fingerTipTouchDurations["MiddleAbduction"] = 0f;
+        }
+
+        if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
+             && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+        {
+            fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
+            isMiddle1Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
+            {
+                // Initialize tracking on first frame after 1 second
+                if (fingerTipTouchDurations["MiddleAbduction"] <= 1.0f + Time.deltaTime)
+                {
+                    middleAngleHistory.Clear();
+                    isMiddleRotatingPositive = true;
+                }
+
+                float currentTime = Time.time;
+                middleAngleHistory.Enqueue((currentTime, jointAngle.indexMiddleAngleOnPalm));
+
+                // Clean up old entries while keeping at least one reference point
+                if (middleAngleHistory.Count > 0)
+                {
+                    float oldestTime = middleAngleHistory.Peek().time;
+                    float timeDiff = currentTime - oldestTime;
+
+                    if (timeDiff > DETECTION_WINDOW + 0.1f)
+                    {
+                        while (middleAngleHistory.Count > 1 &&
+                               currentTime - middleAngleHistory.Peek().time > DETECTION_WINDOW)
+                        {
+                            middleAngleHistory.Dequeue();
+                        }
+                    }
+
+                    // Check if we have enough history to detect direction change
+                    if (timeDiff >= DETECTION_WINDOW)
+                    {
+                        float oldestAngle = middleAngleHistory.Peek().angle;
+                        float currentAngle = jointAngle.indexMiddleAngleOnPalm;
+                        float angleChange = currentAngle - oldestAngle;
+
+                        // If angle increased by >= 5 degrees, switch to positive direction (+=, outward)
+                        if (angleChange >= DIRECTION_THRESHOLD)
+                        {
+                            isMiddleRotatingPositive = true;
+                        }
+                        // If angle decreased by >= 5 degrees, switch to negative direction (-=, inward)
+                        else if (angleChange <= -DIRECTION_THRESHOLD)
+                        {
+                            isMiddleRotatingPositive = false;
+                        }
+                        // Otherwise, keep current direction
+                    }
+                }
+
+                // Apply rotation based on current direction
+                if (isMiddleRotatingPositive)
+                {
+                    currentMiddleRotationY += rotationSpeed * Time.deltaTime;
+                    currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, 0f, 60f);
+                }
+                else
+                {
+                    currentMiddleRotationY -= rotationSpeed * Time.deltaTime;
+                    currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, 0f, 60f);
+                }
+
+                middleFingerJoint1MaxRotationVector =
+                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["MiddleAbduction"] = 0f;
+            isMiddle1Triggered = false;
+            middleAngleHistory.Clear();
+            isMiddleRotatingPositive = true;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
+
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle1Center != null)
+        {
+            float delta = maxMiddleYAxisAngle;
+            float targetY = isMapping
+                ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+                : middleFingerJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+        }
+
+        if (MiddleAngle1Center != null)
+            MiddleAngle1Center.localRotation = targetRotation;
+    }
 
     // ==============================
     // 🔹 Twist
