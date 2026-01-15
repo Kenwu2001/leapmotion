@@ -27,7 +27,7 @@ public class XRDiag : MonoBehaviour
         var device = InputDevices.GetDeviceAtXRNode(which);
         if (!device.isValid)
         {
-            // Debug.Log($"[XRDiag] {which} device.isValid = false (possibly not connected, in hand tracking mode, or platform settings incorrect)");
+            Debug.Log($"[XRDiag] {which} device.isValid = false (possibly not connected, in hand tracking mode, or platform settings incorrect)");
             return;
         }
 
@@ -35,11 +35,11 @@ public class XRDiag : MonoBehaviour
         bool hasRot = device.TryGetFeatureValue(CommonUsages.deviceRotation, out var rot);
         if (hasPos || hasRot)
         {
-            // Debug.Log($"[XRDiag] {which} posOK={hasPos} rotOK={hasRot} pos={pos}");
+            Debug.Log($"[XRDiag] {which} posOK={hasPos} rotOK={hasRot} pos={pos}");
         }
         else
         {
-            // Debug.Log($"[XRDiag] {which} device present, but no pose returned (possibly still initializing/waking up)");
+            Debug.Log($"[XRDiag] {which} device present, but no pose returned (possibly still initializing/waking up)");
         }
     }
 }
