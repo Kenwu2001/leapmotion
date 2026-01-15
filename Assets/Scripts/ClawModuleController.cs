@@ -322,6 +322,27 @@ public class ClawModuleController : MonoBehaviour
         //     () => jointAngle.thumbAngle0 == 0f
         // );
 
+        UpdateFingertipExtensionV2( // inner part
+            triggerRightThumbTip.isRightThumbTipTouched,
+            jointAngle.thumbAngle1,
+            "Thumb1",
+            "",
+            "Thumb0",
+            ref currentThumbTipRotationZ,
+            6f, // rotationSpeed
+            thumbJoint3Renderer,
+            purpleColor,
+            originalColor,
+            ThumbAngle3Center,
+            ref isThumb3Triggered,
+            isIndex3Triggered || isMiddle3Triggered,
+            modeSwitching.modeManipulate,
+            modeSwitching.currentRedMotorID,
+            3,  // Expected motor ID for thumb
+            20.0f,  // Thumb requires 20 degree change
+            jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
+        );
+
         UpdateFingertipExtensionV2(
             triggerRightThumbTip.isRightThumbTipTouched,
             jointAngle.thumbAngle1,
@@ -388,6 +409,25 @@ public class ClawModuleController : MonoBehaviour
         //     ref isIndex4Triggered
         // );
 
+        UpdateFingertipExtensionV2( // inner part
+            triggerRightIndexTip.isRightIndexTipTouched,
+            jointAngle.indexAngle2,
+            "Index2",
+            "Index1",
+            "Index0",
+            ref currentIndexTipRotationZ,
+            6f, // rotationSpeed
+            indexJoint3Renderer,
+            purpleColor,
+            originalColor,
+            IndexAngle3Center,
+            ref isIndex3Triggered,
+            isThumb3Triggered || isMiddle3Triggered,
+            modeSwitching.modeManipulate,
+            modeSwitching.currentRedMotorID,
+            7
+        );
+
         UpdateFingertipExtensionV2(
             triggerRightIndexTip.isRightIndexTipTouched,
             jointAngle.indexAngle2,
@@ -404,7 +444,7 @@ public class ClawModuleController : MonoBehaviour
             isThumb4Triggered || isMiddle4Triggered,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
-            8  // Expected motor ID for thumb
+            8
         );
 
         // ==============================
@@ -447,6 +487,25 @@ public class ClawModuleController : MonoBehaviour
         //     MiddleAngle4Center,
         //     ref isMiddle4Triggered
         // );
+
+        UpdateFingertipExtensionV2( // inner part
+            triggerRightMiddleTip.isRightMiddleTipTouched,
+            jointAngle.middleAngle2,
+            "Middle2",
+            "Middle1",
+            "Middle0",
+            ref currentMiddleTipRotationZ,
+            6f, // rotationSpeed
+            middleJoint3Renderer,
+            purpleColor,
+            originalColor,
+            MiddleAngle3Center,
+            ref isMiddle3Triggered,
+            isThumb3Triggered || isIndex3Triggered,
+            modeSwitching.modeManipulate,
+            modeSwitching.currentRedMotorID,
+            11
+        );
 
         UpdateFingertipExtensionV2(
             triggerRightMiddleTip.isRightMiddleTipTouched,
