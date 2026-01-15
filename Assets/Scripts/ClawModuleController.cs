@@ -636,6 +636,22 @@ public class ClawModuleController : MonoBehaviour
                 // indexJoint1Renderer.material.color = yellowColor;
             }
         }
+        else if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance < 3.9f
+             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+        {
+            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
+            isIndex1Triggered = true;
+
+            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
+            {
+                currentIndexRotationY += rotationSpeed * Time.deltaTime;
+                // currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+                currentIndexRotationY = Mathf.Min(currentIndexRotationY, 0f);
+
+                indexFingerJoint1MaxRotationVector =
+                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+            }
+        }
         else
         {
             fingerTipTouchDurations["IndexAbduction"] = 0f;
@@ -692,6 +708,21 @@ public class ClawModuleController : MonoBehaviour
                     (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
 
                 // middleJoint1Renderer.material.color = yellowColor;
+            }
+        }
+        else if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance < 3.9f
+             && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+        {
+            fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
+            isMiddle1Triggered = true;
+
+            if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
+            {
+                currentMiddleRotationY -= rotationSpeed * Time.deltaTime;
+                currentMiddleRotationY = Mathf.Max(currentMiddleRotationY, 0f);
+
+                middleFingerJoint1MaxRotationVector =
+                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
             }
         }
         else
