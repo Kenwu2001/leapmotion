@@ -328,8 +328,8 @@ public class ClawModuleController : MonoBehaviour
             "Thumb1",
             "",
             "Thumb0",
-            ref currentThumbTipRotationZ,
-            6f, // rotationSpeed
+            ref currentThumbInnerExtensionRotationZ,
+            rotationSpeed,
             thumbJoint3Renderer,
             purpleColor,
             originalColor,
@@ -415,8 +415,8 @@ public class ClawModuleController : MonoBehaviour
             "Index2",
             "Index1",
             "Index0",
-            ref currentIndexTipRotationZ,
-            6f, // rotationSpeed
+            ref currentIndexInnerExtensionRotationZ,
+            rotationSpeed,
             indexJoint3Renderer,
             purpleColor,
             originalColor,
@@ -494,8 +494,8 @@ public class ClawModuleController : MonoBehaviour
             "Middle2",
             "Middle1",
             "Middle0",
-            ref currentMiddleTipRotationZ,
-            6f, // rotationSpeed
+            ref currentMiddleInnerExtensionRotationZ,
+            rotationSpeed,
             middleJoint3Renderer,
             purpleColor,
             originalColor,
@@ -1132,12 +1132,11 @@ public class ClawModuleController : MonoBehaviour
         ref bool relatedMotorTriggered,
         bool shouldPreventActivation,
         bool isManipulatingMode = false,
-        int motorID = 0,
-        int expectedMotorID = 0,
+        int motorID = -2,
+        int expectedMotorID = -3,
         float angleThreshold = 15.0f,
         float? additionalAngle = null)
     {
-
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
 
@@ -1306,7 +1305,8 @@ public class ClawModuleController : MonoBehaviour
         }
         else
         {
-            bool motorIDMatches = (expectedMotorID == 0) || (isManipulatingMode && motorID == expectedMotorID);
+            // bool motorIDMatches = (expectedMotorID == 0) || (isManipulatingMode && motorID == expectedMotorID);
+            bool motorIDMatches = isManipulatingMode && motorID == expectedMotorID;
             
             // Use absolute range (max - min) for activation threshold
             float angleRange = localMaxAngle - localMinAngle;
@@ -1335,7 +1335,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // Apply rotation immediately when activated
-        if (fingerTipActivated[jointName])
+        if (fingerTipActivated[jointName] && motorID == expectedMotorID)
         {
             // Get latest min/max values from dictionary
             float currentMinAngle = accumulatedJointChanges.ContainsKey(jointName + "_min") ? 

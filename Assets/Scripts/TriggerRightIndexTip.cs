@@ -7,10 +7,11 @@ public class TriggerRightIndexTip : MonoBehaviour
     public ModeSwitching modeSwitching;
     
     public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
-    public bool isRightIndexTipTouched => touchCount > 0;
+    public bool isRightIndexTipTouched => touchedColliders.Count > 0;
 
-    private int touchCount = 0;
-
+    // Store actual colliders that are touching (prevents duplicate counting)
+    private HashSet<Collider> touchedColliders = new HashSet<Collider>();
+    
     // Store touched points and their positions
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
@@ -37,7 +38,7 @@ public class TriggerRightIndexTip : MonoBehaviour
         if (!isInitialized || indexPaxiniRenderer == null || modeSwitching == null)
             return;
 
-        if (touchCount > 0 && modeSwitching.modeManipulate)
+        if (touchedColliders.Count > 0 && modeSwitching.modeManipulate)
         {
             indexPaxiniRenderer.material.color = Color.green;
         }
@@ -53,10 +54,10 @@ public class TriggerRightIndexTip : MonoBehaviour
         {
             if (other.CompareTag(tag))
             {
-                touchCount++;
+                // Add the actual collider object (HashSet prevents duplicates)
+                touchedColliders.Add(other);
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
-
                 break;
             }
         }
@@ -68,7 +69,8 @@ public class TriggerRightIndexTip : MonoBehaviour
         {
             if (other.CompareTag(tag))
             {
-                touchCount = Mathf.Max(0, touchCount - 1);
+                // Remove the actual collider object
+                touchedColliders.Remove(other);
                 // Remove the touched point
                 touchedPoints.Remove(tag);
                 break;
