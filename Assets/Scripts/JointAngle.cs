@@ -580,13 +580,13 @@ public class JointAngle : MonoBehaviour
     {
         if (L_index_c == null)
         {
-            Debug.LogWarning("L_index_c is not assigned!");
+            // Debug.LogWarning("L_index_c is not assigned!");
             return 0f;
         }
 
         if (!joints.ContainsKey("Index2"))
         {
-            Debug.LogWarning("Index2 joint not found!");
+            // Debug.LogWarning("Index2 joint not found!");
             return 0f;
         }
 

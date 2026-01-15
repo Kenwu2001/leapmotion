@@ -48,7 +48,7 @@ public class SelectMotorCollider : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Motor collider at index {i} is not assigned!");
+                // Debug.LogWarning($"Motor collider at index {i} is not assigned!");
             }
         }
     }
@@ -73,14 +73,14 @@ public class SelectMotorCollider : MonoBehaviour
                 int prevIndex = activeTouchedMotorID - 1;
                 if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
                 {
-                    Debug.Log($"Motor {activeTouchedMotorID} auto-released (new touch on Motor {motorID})");
+                    // Debug.Log($"Motor {activeTouchedMotorID} auto-released (new touch on Motor {motorID})");
                     triggerDetectors[prevIndex].ForceRelease();
                 }
             }
             
             activeTouchedMotorID = motorID;
             activeTouchPosition = position;
-            Debug.Log($"Motor {motorID} touched!");
+            // Debug.Log($"Motor {motorID} touched!");
         }
         else
         {
@@ -96,7 +96,7 @@ public class SelectMotorCollider : MonoBehaviour
         {
             activeTouchedMotorID = 0;
             activeTouchPosition = Vector3.zero;
-            Debug.Log($"Motor {motorID} released!");
+            // Debug.Log($"Motor {motorID} released!");
         }
     }
 

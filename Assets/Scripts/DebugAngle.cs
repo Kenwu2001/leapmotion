@@ -30,6 +30,9 @@ public class DebugAngle : MonoBehaviour
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
                 
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
+                "(Index2_min, Index2_max): (" + 
+                    (clawModuleController.accumulatedJointChanges.ContainsKey("Index2_min") ? clawModuleController.accumulatedJointChanges["Index2_min"].ToString("F2") : "N/A") + ", " + 
+                    (clawModuleController.accumulatedJointChanges.ContainsKey("Index2_max") ? clawModuleController.accumulatedJointChanges["Index2_max"].ToString("F2") : "N/A") + ")\n" +
                 "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
                 "currentRedMotorID: " + modeSwitching.currentRedMotorID.ToString() + "\n" +
                 "modeSelect: " + modeSwitching.modeSelect.ToString() + "\n" +
