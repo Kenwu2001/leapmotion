@@ -30,6 +30,7 @@ public class DebugAngle : MonoBehaviour
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
                 
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
+                "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
                 "currentRedMotorID: " + modeSwitching.currentRedMotorID.ToString() + "\n" +
                 "modeSelect: " + modeSwitching.modeSelect.ToString() + "\n" +
                 "motorSelected: " + modeSwitching.motorSelected.ToString() + "\n" +
@@ -37,7 +38,6 @@ public class DebugAngle : MonoBehaviour
                 // "currentTouchedMotorID: " + SelectMotorCollider.currentTouchedMotorID.ToString() + "\n" +
                 "GetLIndexToIndex2Distance: " + jointAngle.GetLIndexToIndex2Distance().ToString("F2") + "\n" +
                 // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
-                // "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
                 // "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "thumbPalmAngle: " + jointAngle.thumbPalmAngle.ToString("F2") + "\n" +
                 // "Thumb1 angle" + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
