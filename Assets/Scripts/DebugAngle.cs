@@ -30,6 +30,7 @@ public class DebugAngle : MonoBehaviour
                 // "isRightThumbTipTouched" + triggerRightThumbTip.isRightThumbTipTouched.ToString() + "\n" +
                 
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
+                "thumbPalmAngle: " + jointAngle.thumbPalmAngle.ToString("F2") + "\n" +
                 "(Index2_min, Index2_max): (" + 
                     (clawModuleController.accumulatedJointChanges.ContainsKey("Index2_min") ? clawModuleController.accumulatedJointChanges["Index2_min"].ToString("F2") : "N/A") + ", " + 
                     (clawModuleController.accumulatedJointChanges.ContainsKey("Index2_max") ? clawModuleController.accumulatedJointChanges["Index2_max"].ToString("F2") : "N/A") + ")\n" +
@@ -42,7 +43,6 @@ public class DebugAngle : MonoBehaviour
                 "GetLIndexToIndex2Distance: " + jointAngle.GetLIndexToIndex2Distance().ToString("F2") + "\n" +
                 // "distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 // "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                // "thumbPalmAngle: " + jointAngle.thumbPalmAngle.ToString("F2") + "\n" +
                 // "Thumb1 angle" + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index1 angle" + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
