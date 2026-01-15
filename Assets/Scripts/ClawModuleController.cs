@@ -338,11 +338,11 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle4Center,
             ref isThumb4Triggered,
             isIndex4Triggered || isMiddle4Triggered,
-            jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
             4,  // Expected motor ID for thumb
-            20.0f  // Thumb requires 20 degree change
+            20.0f,  // Thumb requires 20 degree change
+            jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
         );
 
         // UpdateThumbAbduction();
@@ -390,21 +390,24 @@ public class ClawModuleController : MonoBehaviour
         //     ref isIndex4Triggered
         // );
 
-        // UpdateFingertipExtensionV2(
-        //     triggerRightIndexTip.isRightIndexTipTouched,
-        //     jointAngle.indexAngle2,
-        //     "Index2",
-        //     "Index1",
-        //     "Index0",
-        //     ref currentIndexTipRotationZ,
-        //     rotationSpeed,
-        //     indexJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     IndexAngle4Center,
-        //     ref isIndex4Triggered,
-        //     isThumb4Triggered || isMiddle4Triggered
-        // );
+        UpdateFingertipExtensionV2(
+            triggerRightIndexTip.isRightIndexTipTouched,
+            jointAngle.indexAngle2,
+            "Index2",
+            "Index1",
+            "Index0",
+            ref currentIndexTipRotationZ,
+            rotationSpeed,
+            indexJoint4Renderer,
+            purpleColor,
+            originalColor,
+            IndexAngle4Center,
+            ref isIndex4Triggered,
+            isThumb4Triggered || isMiddle4Triggered,
+            modeSwitching.modeManipulate,
+            modeSwitching.currentRedMotorID,
+            8  // Expected motor ID for thumb
+        );
 
         // ==============================
         // 🔹 Middle Finger State
@@ -447,21 +450,24 @@ public class ClawModuleController : MonoBehaviour
         //     ref isMiddle4Triggered
         // );
 
-        // UpdateFingertipExtensionV2(
-        //     triggerRightMiddleTip.isRightMiddleTipTouched,
-        //     jointAngle.middleAngle2,
-        //     "Middle2",
-        //     "Middle1",
-        //     "Middle0",
-        //     ref currentMiddleTipRotationZ,
-        //     rotationSpeed,
-        //     middleJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     MiddleAngle4Center,
-        //     ref isMiddle4Triggered,
-        //     isThumb4Triggered || isIndex4Triggered
-        // );
+        UpdateFingertipExtensionV2(
+            triggerRightMiddleTip.isRightMiddleTipTouched,
+            jointAngle.middleAngle2,
+            "Middle2",
+            "Middle1",
+            "Middle0",
+            ref currentMiddleTipRotationZ,
+            rotationSpeed,
+            middleJoint4Renderer,
+            purpleColor,
+            originalColor,
+            MiddleAngle4Center,
+            ref isMiddle4Triggered,
+            isThumb4Triggered || isIndex4Triggered,
+            modeSwitching.modeManipulate,
+            modeSwitching.currentRedMotorID,
+            12
+        );
     }
 
     // ==============================
@@ -837,89 +843,86 @@ public class ClawModuleController : MonoBehaviour
             MiddleAngle2Center.localRotation = targetRotation;
     }
 
-    // ==============================
-    // 🔹 Utility
-    // ==============================
     private float NormalizeAngle(float angle)
     {
         return angle >= 300 ? angle - 360 : angle;
     }
 
-    private void UpdateInnerExtension(
-        bool isInnerExtensionTouched,
-        bool isTipTouched,
-        float jointAngleValue,
-        string touchDurationKey,
-        string baseJointName,
-        ref float currentRotation,
-        float rotationSpeed,
-        Renderer jointRenderer,
-        Color activeColor,
-        Color inactiveColor,
-        Transform jointTransform,
-        ref bool relatedMotorTriggered,
-        System.Func<bool> additionalCondition = null)
-    {
-        // Initialize rotation based on jointAngleValue for the base angle
-        Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentRotation, 0f, 0f);
+    // private void UpdateInnerExtension(
+    //     bool isInnerExtensionTouched,
+    //     bool isTipTouched,
+    //     float jointAngleValue,
+    //     string touchDurationKey,
+    //     string baseJointName,
+    //     ref float currentRotation,
+    //     float rotationSpeed,
+    //     Renderer jointRenderer,
+    //     Color activeColor,
+    //     Color inactiveColor,
+    //     Transform jointTransform,
+    //     ref bool relatedMotorTriggered,
+    //     System.Func<bool> additionalCondition = null)
+    // {
+    //     // Initialize rotation based on jointAngleValue for the base angle
+    //     Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentRotation, 0f, 0f);
 
-        // Initialize touch duration if not already present
-        if (!fingerTipTouchDurations.ContainsKey(touchDurationKey))
-        {
-            fingerTipTouchDurations[touchDurationKey] = 0f;
-        }
+    //     // Initialize touch duration if not already present
+    //     if (!fingerTipTouchDurations.ContainsKey(touchDurationKey))
+    //     {
+    //         fingerTipTouchDurations[touchDurationKey] = 0f;
+    //     }
 
-        // Determine the condition to use
-        bool conditionMet;
-        if (additionalCondition != null)
-        {
-            conditionMet = isInnerExtensionTouched && !isTipTouched && additionalCondition();
-        }
-        else
-        {
-            conditionMet = isInnerExtensionTouched && 
-                jointAngle.joints[baseJointName].localRotation.eulerAngles.z > 10.0 &&
-                jointAngle.joints[baseJointName].localRotation.eulerAngles.z < 30.0 &&
-                !isTipTouched;
-        }
+    //     // Determine the condition to use
+    //     bool conditionMet;
+    //     if (additionalCondition != null)
+    //     {
+    //         conditionMet = isInnerExtensionTouched && !isTipTouched && additionalCondition();
+    //     }
+    //     else
+    //     {
+    //         conditionMet = isInnerExtensionTouched && 
+    //             jointAngle.joints[baseJointName].localRotation.eulerAngles.z > 10.0 &&
+    //             jointAngle.joints[baseJointName].localRotation.eulerAngles.z < 30.0 &&
+    //             !isTipTouched;
+    //     }
 
-        // Check if inner extension is touched (separate from tip touch)
-        if (conditionMet)
-        {
-            fingerTipTouchDurations[touchDurationKey] += Time.deltaTime;
-            jointRenderer.material.color = Color.Lerp(inactiveColor, activeColor, Mathf.Min(fingerTipTouchDurations[touchDurationKey], 1f));
-            relatedMotorTriggered = true;
+    //     // Check if inner extension is touched (separate from tip touch)
+    //     if (conditionMet)
+    //     {
+    //         fingerTipTouchDurations[touchDurationKey] += Time.deltaTime;
+    //         jointRenderer.material.color = Color.Lerp(inactiveColor, activeColor, Mathf.Min(fingerTipTouchDurations[touchDurationKey], 1f));
+    //         relatedMotorTriggered = true;
 
-            // Only apply rotation after 1 second
-            if (fingerTipTouchDurations[touchDurationKey] > 1.0f && conditionMet)
-            {
-                currentRotation -= rotationSpeed * Time.deltaTime;
-                currentRotation = Mathf.Clamp(currentRotation, -80f, 0f);
-                jointRenderer.material.color = activeColor;
-            }
-        }
-        else
-        {
-            fingerTipTouchDurations[touchDurationKey] = 0f;
-            jointRenderer.material.color = inactiveColor;
-            relatedMotorTriggered = false;
-        }
+    //         // Only apply rotation after 1 second
+    //         if (fingerTipTouchDurations[touchDurationKey] > 1.0f && conditionMet)
+    //         {
+    //             currentRotation -= rotationSpeed * Time.deltaTime;
+    //             currentRotation = Mathf.Clamp(currentRotation, -80f, 0f);
+    //             jointRenderer.material.color = activeColor;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations[touchDurationKey] = 0f;
+    //         jointRenderer.material.color = inactiveColor;
+    //         relatedMotorTriggered = false;
+    //     }
 
-        if (isMapping)
-        {
-            float normalized = Mathf.InverseLerp(0f, 25f, jointAngleValue);
-            float tipEffect = Mathf.Lerp(currentRotation, 0f, normalized); // impact decreases as jointAngleValue approaches 25
-            float finalAngle = jointAngleValue + tipEffect;
-            targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
-        }
-        else
-        {
-            targetRotation = Quaternion.Euler(jointAngleValue + currentRotation, 0f, 0f);
-        }
+    //     if (isMapping)
+    //     {
+    //         float normalized = Mathf.InverseLerp(0f, 25f, jointAngleValue);
+    //         float tipEffect = Mathf.Lerp(currentRotation, 0f, normalized); // impact decreases as jointAngleValue approaches 25
+    //         float finalAngle = jointAngleValue + tipEffect;
+    //         targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
+    //     }
+    //     else
+    //     {
+    //         targetRotation = Quaternion.Euler(jointAngleValue + currentRotation, 0f, 0f);
+    //     }
 
-        if (jointTransform != null)
-            jointTransform.localRotation = targetRotation;
-    }
+    //     if (jointTransform != null)
+    //         jointTransform.localRotation = targetRotation;
+    // }
 
     // private void UpdateFingertipExtension(
     //     bool isTipTouched,
@@ -1037,10 +1040,10 @@ public class ClawModuleController : MonoBehaviour
         Transform jointTransform,
         ref bool relatedMotorTriggered,
         bool shouldPreventActivation,
-        float angleThreshold = 15.0f,
         bool isManipulatingMode = false,
         int motorID = 0,
         int expectedMotorID = 0,
+        float angleThreshold = 15.0f,
         float? additionalAngle = null)
     {
         // Initialize rotation based on jointAngleValue for the base angle

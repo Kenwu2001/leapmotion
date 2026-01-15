@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class TriggerRightIndexTip : MonoBehaviour
 {
+    public ModeSwitching modeSwitching;
+    
     public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
     public bool isRightIndexTipTouched => touchCount > 0;
 
@@ -11,6 +13,39 @@ public class TriggerRightIndexTip : MonoBehaviour
 
     // Store touched points and their positions
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
+
+    public Renderer indexPaxiniRenderer;
+    private Color originalColor;
+    private bool isInitialized = false;
+
+    private void Start()
+    {
+        if (indexPaxiniRenderer != null)
+        {
+            originalColor = indexPaxiniRenderer.material.color;
+            isInitialized = true;
+        }
+    }
+
+    private void Update()
+    {
+        UpdateIndexColor();
+    }
+
+    private void UpdateIndexColor()
+    {
+        if (!isInitialized || indexPaxiniRenderer == null || modeSwitching == null)
+            return;
+
+        if (touchCount > 0 && modeSwitching.modeManipulate)
+        {
+            indexPaxiniRenderer.material.color = Color.green;
+        }
+        else
+        {
+            indexPaxiniRenderer.material.color = originalColor;
+        }
+    }
 
     private void OnTriggerEnter(Collider other)
     {
