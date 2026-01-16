@@ -13,6 +13,13 @@ public class LeapAnchorOffset : MonoBehaviour
     
     public Transform baseLeapAnchorPosition;
 
+    [Header("Initial Hidden Objects")]
+    [Tooltip("Assign up to three GameObjects to hide at Start")] 
+    public GameObject colliderBall;
+    public GameObject rightFingertipBall;
+    public GameObject gripperBall;
+    public GameObject leftFingertipBall;
+
     [Header("Smooth Transition")]
     [Tooltip("Speed of smooth transition (higher = faster, 0 = instant)")]
     [Range(0f, 1f)]
@@ -28,6 +35,18 @@ public class LeapAnchorOffset : MonoBehaviour
     
     // Scale factors for retargeting
     private Vector3 _scaleFactors;
+    private Vector3 _targetScaleFactors; // Target scale factors to smoothly interpolate towards
+    
+    [Header("Scale Factor Stability")]
+    [Tooltip("Speed of scale factor updates (lower = more stable, higher = more responsive)")]
+    [Range(0.01f, 0.5f)]
+    public float scaleFactorDamping = 0.05f;
+    
+    [Tooltip("Minimum allowed scale factor to prevent extreme values")]
+    public float minScaleFactor = -5f;
+    
+    [Tooltip("Maximum allowed scale factor to prevent extreme values")]
+    public float maxScaleFactor = 5f;
 
     // void Awake()
     // {
@@ -94,31 +113,72 @@ public class LeapAnchorOffset : MonoBehaviour
                 Vector3 touchToRightHandTip = currentRightHandTipPos - dynamicTouchPoint;
                 Vector3 touchToGripperTip = currentGripperPos - dynamicTouchPoint;
                 
-                _scaleFactors = new Vector3(
-                    Mathf.Abs(touchToRightHandTip.x) > 0.0001f ? touchToGripperTip.x / touchToRightHandTip.x : 1f,
-                    Mathf.Abs(touchToRightHandTip.y) > 0.0001f ? touchToGripperTip.y / touchToRightHandTip.y : 1f,
-                    Mathf.Abs(touchToRightHandTip.z) > 0.0001f ? touchToGripperTip.z / touchToRightHandTip.z : 1f
+                // Calculate target scale factors with clamping to prevent extreme values
+                _targetScaleFactors = new Vector3(
+                    Mathf.Abs(touchToRightHandTip.x) > 0.001f ? Mathf.Clamp(touchToGripperTip.x / touchToRightHandTip.x, minScaleFactor, maxScaleFactor) : 1f,
+                    Mathf.Abs(touchToRightHandTip.y) > 0.001f ? Mathf.Clamp(touchToGripperTip.y / touchToRightHandTip.y, minScaleFactor, maxScaleFactor) : 1f,
+                    Mathf.Abs(touchToRightHandTip.z) > 0.001f ? Mathf.Clamp(touchToGripperTip.z / touchToRightHandTip.z, minScaleFactor, maxScaleFactor) : 1f
                 );
+                
+                // Smoothly interpolate scale factors to prevent sudden jumps
+                _scaleFactors = Vector3.Lerp(_scaleFactors, _targetScaleFactors, scaleFactorDamping);
             
                 // Calculate offset from the dynamic touch point
                 Vector3 currentLeftFingerPos = currentLeftFingerTip.position;
                 Vector3 offsetFromTouchPoint = currentLeftFingerPos - dynamicTouchPoint;
-                
-                // Apply scale factors to retarget to gripper space
-                // Index and Thumb use negative x, Middle and ThumbAbduction use positive x
-                float xMultiplier = useIndex ? -1f : 1f;
-                float zMultiplier = (useThumb || useThumbAbduction) ? -1f : 1f;
+
+                // Apply smoothed scale factors directly (no dynamic sign calculation)
                 Vector3 scaledOffset = new Vector3(
-                    xMultiplier * offsetFromTouchPoint.x * _scaleFactors.x,
+                    offsetFromTouchPoint.x * _scaleFactors.x,
                     offsetFromTouchPoint.y * _scaleFactors.y,
-                    zMultiplier * offsetFromTouchPoint.z * _scaleFactors.z
+                    offsetFromTouchPoint.z * _scaleFactors.z
                 );
+                
+                // float xMultiplier = useIndex ? -1f : 1f;
+                // float zMultiplier = (useThumb || useThumbAbduction) ? -1f : 1f;
+                // Vector3 scaledOffset = new Vector3(
+                //     xMultiplier * offsetFromTouchPoint.x * _scaleFactors.x,
+                //     offsetFromTouchPoint.y * _scaleFactors.y,
+                //     zMultiplier * offsetFromTouchPoint.z * _scaleFactors.z
+                // );
                 
                 // Use base position as reference point
                 Vector3 targetPos = baseLeapAnchorPosition.position + scaledOffset;
                 
                 // Smoothly interpolate to target position
                 transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
+
+                // Show and position the debug/visualization balls when retargeting
+                if (gripperBall != null)
+                {
+                    gripperBall.SetActive(true);
+                    gripperBall.transform.position = currentGripperPos;
+                }
+                if (rightFingertipBall != null)
+                {
+                    rightFingertipBall.SetActive(true);
+                    rightFingertipBall.transform.position = currentRightHandTipPos;
+                }
+                if (colliderBall != null)
+                {
+                    colliderBall.SetActive(true);
+                    colliderBall.transform.position = dynamicTouchPoint;
+                }
+                if (leftFingertipBall != null)
+                {
+                    leftFingertipBall.SetActive(true);
+                    leftFingertipBall.transform.position = currentLeftFingerPos;
+                }
+
+                Debug.Log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBcurrentRightHandTipPos: " + currentRightHandTipPos.ToString("F6"));
+                Debug.Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcurrentGripperPos: " + currentGripperPos.ToString("F6"));
+            }
+            else
+            {
+                if (gripperBall != null) gripperBall.SetActive(false);
+                if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+                if (colliderBall != null) colliderBall.SetActive(false);
+                if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
             }
         }
         else
@@ -126,7 +186,18 @@ public class LeapAnchorOffset : MonoBehaviour
             // Vector3 offset = new Vector3(0f, 0f, 0.2f);
             // transform.position = baseLeapAnchorPosition.position + offset;
             transform.position = baseLeapAnchorPosition.position;
+            if (gripperBall != null) gripperBall.SetActive(false);
+            if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+            if (colliderBall != null) colliderBall.SetActive(false);
+            if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
         }
+    }
+
+    void Start()
+    {
+        if (colliderBall != null) colliderBall.SetActive(false);
+        if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+        if (gripperBall != null) gripperBall.SetActive(false);
     }
 
     // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when trigger enters

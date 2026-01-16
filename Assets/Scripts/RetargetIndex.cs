@@ -4,16 +4,26 @@ using UnityEngine;
 
 public class RetargetIndex : MonoBehaviour
 {
-    public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
+    public string[] targetTags = { "L_IndexTipRetarget", "L_ThumbTipRetarget" };
     public Transform handIndexTip;
     public Transform gripperIndexTip;
     public LeapAnchorOffset leapAnchorOffset;
     private int touchCount = 0;
 
+    [Header("Collider Visualization")]
+    [Tooltip("Show collider visualization in Scene and Game view")]
+    public bool showColliderGizmo = true;
+    
+    [Tooltip("Color of the collider visualization (default: semi-transparent green)")]
+    public Color gizmoColor = new Color(0f, 1f, 0f, 0.3f);
+    
+    [Tooltip("Color when touching targets (default: semi-transparent yellow)")]
+    public Color gizmoColorActive = new Color(1f, 1f, 0f, 0.5f);
+
     // Store touched points and their positions
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
-    // Recorded positions when L_IndexTip first touches
+    // Recorded positions when L_IndexTipRetarget first touches
     private Vector3 recordedHandIndexTipPosition;
     private Vector3 recordedGripperIndexTipPosition;
     private Vector3 recordedLeftThumbTipPosition;
@@ -39,8 +49,8 @@ public class RetargetIndex : MonoBehaviour
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
 
-                // Record positions when L_ThumbTip enters for the first time
-                if (tag == "L_ThumbTip" && !hasRecordedPositions)
+                // Record positions when L_ThumbTipRetarget enters for the first time
+                if (tag == "L_ThumbTipRetarget" && !hasRecordedPositions)
                 {
                     // Record the touch point position at the moment of contact
                     recordedLeftThumbTipPosition = other.transform.position;
@@ -162,5 +172,58 @@ public class RetargetIndex : MonoBehaviour
         recordedGripperIndexTipPosition = Vector3.zero;
         recordedLeftThumbTipPosition = Vector3.zero;
         recordedLeftThumbTipLocalPosition = Vector3.zero;
+    }
+
+    // Visualize the collider
+    private void OnDrawGizmos()
+    {
+        if (!showColliderGizmo) return;
+
+        // Set color based on whether targets are touching
+        Gizmos.color = (touchCount > 0) ? gizmoColorActive : gizmoColor;
+
+        // Draw based on collider type
+        Collider col = GetComponent<Collider>();
+        if (col == null) return;
+
+        if (col is BoxCollider)
+        {
+            BoxCollider box = (BoxCollider)col;
+            Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+            Gizmos.matrix = rotationMatrix;
+            Gizmos.DrawCube(box.center, box.size);
+            Gizmos.DrawWireCube(box.center, box.size);
+        }
+        else if (col is SphereCollider)
+        {
+            SphereCollider sphere = (SphereCollider)col;
+            Vector3 worldCenter = transform.TransformPoint(sphere.center);
+            float worldRadius = sphere.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+            Gizmos.DrawSphere(worldCenter, worldRadius);
+            Gizmos.DrawWireSphere(worldCenter, worldRadius);
+        }
+        else if (col is CapsuleCollider)
+        {
+            CapsuleCollider capsule = (CapsuleCollider)col;
+            Vector3 worldCenter = transform.TransformPoint(capsule.center);
+            float worldRadius = capsule.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.z);
+            float worldHeight = capsule.height * transform.lossyScale.y;
+            
+            // Draw approximate capsule using spheres at top and bottom
+            Vector3 offset = Vector3.up * (worldHeight / 2f - worldRadius);
+            Gizmos.DrawWireSphere(worldCenter + offset, worldRadius);
+            Gizmos.DrawWireSphere(worldCenter - offset, worldRadius);
+        }
+        else if (col is MeshCollider)
+        {
+            MeshCollider meshCol = (MeshCollider)col;
+            if (meshCol.sharedMesh != null)
+            {
+                Gizmos.DrawWireMesh(meshCol.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+            }
+        }
+
+        // Reset matrix
+        Gizmos.matrix = Matrix4x4.identity;
     }
 }

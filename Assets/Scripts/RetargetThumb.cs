@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class RetargetThumb : MonoBehaviour
 {
-    public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
+    public string[] targetTags = { "L_IndexTipRetarget", "L_ThumbTipRetarget" };
     public Transform handThumbTip;
     public Transform gripperThumbTip;
     public LeapAnchorOffset leapAnchorOffset;
@@ -13,7 +13,7 @@ public class RetargetThumb : MonoBehaviour
     // Store touched points and their positions
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
-    // Recorded positions when L_ThumbTip first touches
+    // Recorded positions when L_ThumbTipRetarget first touches
     private Vector3 recordedHandThumbTipPosition;
     private Vector3 recordedGripperThumbTipPosition;
     private Vector3 recordedLeftThumbTipPosition;
@@ -39,8 +39,8 @@ public class RetargetThumb : MonoBehaviour
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
 
-                // Record positions when L_ThumbTip enters for the first time
-                if (tag == "L_ThumbTip" && !hasRecordedPositions)
+                // Record positions when L_ThumbTipRetarget enters for the first time
+                if (tag == "L_ThumbTipRetarget" && !hasRecordedPositions)
                 {
                     // Record the touch point position at the moment of contact
                     recordedLeftThumbTipPosition = other.transform.position;

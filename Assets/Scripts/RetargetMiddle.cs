@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class RetargetMiddle : MonoBehaviour
 {
-    public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
+    public string[] targetTags = { "L_IndexTipRetarget", "L_ThumbTipRetarget" };
     public Transform handMiddleTip;
     public Transform gripperMiddleTip;
     public LeapAnchorOffset leapAnchorOffset;
@@ -13,7 +13,7 @@ public class RetargetMiddle : MonoBehaviour
     // Store touched points and their positions
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
-    // Recorded positions when L_IndexTip first touches
+    // Recorded positions when L_IndexTipRetarget first touches
     private Vector3 recordedHandMiddleTipPosition;
     private Vector3 recordedGripperMiddleTipPosition;
     private Vector3 recordedLeftIndexTipPosition;
@@ -39,8 +39,8 @@ public class RetargetMiddle : MonoBehaviour
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
 
-                // Record positions when L_IndexTip enters for the first time
-                if (tag == "L_IndexTip" && !hasRecordedPositions)
+                // Record positions when L_IndexTipRetarget enters for the first time
+                if (tag == "L_IndexTipRetarget" && !hasRecordedPositions)
                 {
                     // Record the touch point position at the moment of contact
                     recordedLeftIndexTipPosition = other.transform.position;
