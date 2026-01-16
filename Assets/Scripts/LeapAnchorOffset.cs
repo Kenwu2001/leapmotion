@@ -109,9 +109,17 @@ public class LeapAnchorOffset : MonoBehaviour
                 else if (useThumbAbduction)
                     dynamicTouchPoint = retargetThumbAbduction.GetDynamicLeftIndexTipPosition();
                 
+                Vector3 currentLeftFingerPos = currentLeftFingerTip.position;
+                
+                // DEBUG: Key positions
+                Debug.Log($"[Positions] Gripper:{currentGripperPos.ToString("F3")} | RightHand:{currentRightHandTipPos.ToString("F3")} | TouchPoint:{dynamicTouchPoint.ToString("F3")} | LeftFinger:{currentLeftFingerPos.ToString("F3")}");
+                
                 // Recalculate scale factors with current positions
                 Vector3 touchToRightHandTip = currentRightHandTipPos - dynamicTouchPoint;
                 Vector3 touchToGripperTip = currentGripperPos - dynamicTouchPoint;
+                
+                // DEBUG: Vector distances
+                Debug.Log($"[Distances] touchToRightHand:{touchToRightHandTip.magnitude:F4} | touchToGripper:{touchToGripperTip.magnitude:F4}");
                 
                 // Calculate target scale factors with clamping to prevent extreme values
                 _targetScaleFactors = new Vector3(
@@ -122,9 +130,11 @@ public class LeapAnchorOffset : MonoBehaviour
                 
                 // Smoothly interpolate scale factors to prevent sudden jumps
                 _scaleFactors = Vector3.Lerp(_scaleFactors, _targetScaleFactors, scaleFactorDamping);
+                
+                // DEBUG: Scale factors stability
+                Debug.Log($"[ScaleFactors] Target:{_targetScaleFactors.ToString("F3")} | Smoothed:{_scaleFactors.ToString("F3")} | Delta:{(_targetScaleFactors - _scaleFactors).magnitude:F4}");
             
                 // Calculate offset from the dynamic touch point
-                Vector3 currentLeftFingerPos = currentLeftFingerTip.position;
                 Vector3 offsetFromTouchPoint = currentLeftFingerPos - dynamicTouchPoint;
 
                 // Apply smoothed scale factors directly (no dynamic sign calculation)
@@ -133,6 +143,9 @@ public class LeapAnchorOffset : MonoBehaviour
                     offsetFromTouchPoint.y * _scaleFactors.y,
                     offsetFromTouchPoint.z * _scaleFactors.z
                 );
+                
+                // DEBUG: Offset calculation
+                Debug.Log($"[Offsets] offsetFromTouch:{offsetFromTouchPoint.magnitude:F4} | scaledOffset:{scaledOffset.magnitude:F4}");
                 
                 // float xMultiplier = useIndex ? -1f : 1f;
                 // float zMultiplier = (useThumb || useThumbAbduction) ? -1f : 1f;
@@ -144,6 +157,9 @@ public class LeapAnchorOffset : MonoBehaviour
                 
                 // Use base position as reference point
                 Vector3 targetPos = baseLeapAnchorPosition.position + scaledOffset;
+                
+                // DEBUG: Final output
+                Debug.Log($"[Output] scaledOffset:{scaledOffset.ToString("F3")} | targetPos:{targetPos.ToString("F3")} | currentPos:{transform.position.ToString("F3")} | smoothSpeed:{smoothSpeed}");
                 
                 // Smoothly interpolate to target position
                 transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
@@ -169,9 +185,6 @@ public class LeapAnchorOffset : MonoBehaviour
                     leftFingertipBall.SetActive(true);
                     leftFingertipBall.transform.position = currentLeftFingerPos;
                 }
-
-                Debug.Log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBcurrentRightHandTipPos: " + currentRightHandTipPos.ToString("F6"));
-                Debug.Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcurrentGripperPos: " + currentGripperPos.ToString("F6"));
             }
             else
             {
@@ -271,13 +284,18 @@ public class LeapAnchorOffset : MonoBehaviour
         Vector3 touchToGripperTip = _recordedGripperTipPos - _recordedLeftTipPos;
 
         // Scale factor = (touch to gripper) / (touch to hand)
+        // IMPORTANT: Also clamp initial scale factors to prevent extreme starting values
         _scaleFactors = new Vector3(
-            Mathf.Abs(touchToRightHandTip.x) > 0.0001f ? touchToGripperTip.x / touchToRightHandTip.x : 1f,
-            Mathf.Abs(touchToRightHandTip.y) > 0.0001f ? touchToGripperTip.y / touchToRightHandTip.y : 1f,
-            Mathf.Abs(touchToRightHandTip.z) > 0.0001f ? touchToGripperTip.z / touchToRightHandTip.z : 1f
+            Mathf.Abs(touchToRightHandTip.x) > 0.001f ? Mathf.Clamp(touchToGripperTip.x / touchToRightHandTip.x, minScaleFactor, maxScaleFactor) : 1f,
+            Mathf.Abs(touchToRightHandTip.y) > 0.001f ? Mathf.Clamp(touchToGripperTip.y / touchToRightHandTip.y, minScaleFactor, maxScaleFactor) : 1f,
+            Mathf.Abs(touchToRightHandTip.z) > 0.001f ? Mathf.Clamp(touchToGripperTip.z / touchToRightHandTip.z, minScaleFactor, maxScaleFactor) : 1f
         );
+        
+        // Initialize target scale factors to match current (prevents initial jump)
+        _targetScaleFactors = _scaleFactors;
 
         _isRetargeting = true;
+        Debug.Log($"[StartRetargeting] Initial scale factors: {_scaleFactors.ToString("F3")} | Distances: RH={touchToRightHandTip.magnitude:F4}, G={touchToGripperTip.magnitude:F4}");
         // Debug.Log($"Touch point: {_recordedLeftTipPos}");
         // Debug.Log($"HandTipPos: {_recordedRightHandTipPos}, GripperTipPos: {_recordedGripperTipPos}");
         // Debug.Log($"Scale factors: {_scaleFactors}");

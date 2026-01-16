@@ -8,17 +8,38 @@ public class RetargetMiddle : MonoBehaviour
     public Transform handMiddleTip;
     public Transform gripperMiddleTip;
     public LeapAnchorOffset leapAnchorOffset;
-    private int touchCount = 0;
+    
+    // Track GameObjects instead of Colliders (objects may have multiple colliders)
+    private HashSet<GameObject> touchingObjects = new HashSet<GameObject>();
+
+    [Header("Collider Visualization")]
+    [Tooltip("Show collider visualization in Scene and Game view")]
+    public bool showColliderGizmo = true;
+    
+    [Tooltip("Color of the collider visualization (default: semi-transparent cyan)")]
+    public Color gizmoColor = new Color(0f, 1f, 1f, 0.3f);
+    
+    [Tooltip("Color when touching targets (default: semi-transparent yellow)")]
+    public Color gizmoColorActive = new Color(1f, 1f, 0f, 0.5f);
+    
+    [Header("Debug")]
+    [Tooltip("Enable debug logging for trigger events")]
+    public bool debugTriggerEvents = true;
 
     // Store touched points and their positions
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
-    // Recorded positions when L_IndexTipRetarget first touches
     private Vector3 recordedHandMiddleTipPosition;
     private Vector3 recordedGripperMiddleTipPosition;
     private Vector3 recordedLeftIndexTipPosition;
     private Vector3 recordedLeftIndexTipLocalPosition; // Local position relative to this collider
     public bool hasRecordedPositions = false;
+
+    private void Start()
+    {
+        // Force correct tags (in case Inspector was modified)
+        targetTags = new string[] { "L_IndexTipRetarget", "L_ThumbTipRetarget" };
+    }
 
     private void Update()
     {
@@ -35,12 +56,13 @@ public class RetargetMiddle : MonoBehaviour
         {
             if (other.CompareTag(tag))
             {
-                touchCount++;
+                // Add GameObject (automatically prevents duplicates from multiple colliders)
+                bool wasAdded = touchingObjects.Add(other.gameObject);
+                
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
 
-                // Record positions when L_IndexTipRetarget enters for the first time
-                if (tag == "L_IndexTipRetarget" && !hasRecordedPositions)
+                if (tag == "L_ThumbTipRetarget" && !hasRecordedPositions)
                 {
                     // Record the touch point position at the moment of contact
                     recordedLeftIndexTipPosition = other.transform.position;
@@ -72,12 +94,14 @@ public class RetargetMiddle : MonoBehaviour
         {
             if (other.CompareTag(tag))
             {
-                touchCount = Mathf.Max(0, touchCount - 1);
+                // Remove GameObject
+                bool wasRemoved = touchingObjects.Remove(other.gameObject);
+                
                 // Remove the touched point
                 touchedPoints.Remove(tag);
                 
                 // Only reset and stop retargeting when no targets are touching anymore
-                if (touchCount == 0)
+                if (touchingObjects.Count == 0)
                 {
                     hasRecordedPositions = false;
                     

@@ -676,7 +676,7 @@ public class ClawModuleController : MonoBehaviour
             if (thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f)
             {
                 float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y + 360f + delta * (thumbPalmAngleDiff / 45f);
-                Debug.Log($"targetY in 360 zone: {targetY}");
+                // Debug.Log($"targetY in 360 zone: {targetY}");
                 if (targetY >= 420f) targetY = 420f;
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
@@ -684,7 +684,7 @@ public class ClawModuleController : MonoBehaviour
             else
             {
                 float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y - delta * (thumbPalmAngleDiff / 45f);
-                Debug.Log($"targetY in non-360 zone: {targetY}");
+                // Debug.Log($"targetY in non-360 zone: {targetY}");
                 if (targetY <= 300f) targetY = 300f;
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);

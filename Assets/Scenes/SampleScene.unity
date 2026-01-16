@@ -10429,6 +10429,10 @@ MonoBehaviour:
   handMiddleTip: {fileID: 193597868}
   gripperMiddleTip: {fileID: 1115696000}
   leapAnchorOffset: {fileID: 1641828944}
+  showColliderGizmo: 1
+  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
+  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
+  debugTriggerEvents: 1
   hasRecordedPositions: 0
 --- !u!65 &193597870
 BoxCollider:
@@ -24226,7 +24230,7 @@ Transform:
   m_GameObject: {fileID: 882396911}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0244, y: 0, z: -0.0063}
+  m_LocalPosition: {x: -0.0244, y: -0.0046, z: 0.0006}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24251,8 +24255,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.046529062, y: 0.04929224, z: 0.037665676}
-  m_Center: {x: 0.0011349765, y: -0.0016904706, z: -0.0015821639}
+  m_Size: {x: 0.04493294, y: 0.04724626, z: 0.03380499}
+  m_Center: {x: 0.0019330342, y: 0.0021338162, z: -0.0049604815}
 --- !u!114 &882396914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24442,6 +24446,10 @@ MonoBehaviour:
   handMiddleTip: {fileID: 909210620}
   gripperMiddleTip: {fileID: 1115696000}
   leapAnchorOffset: {fileID: 1641828944}
+  showColliderGizmo: 1
+  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
+  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
+  debugTriggerEvents: 1
   hasRecordedPositions: 0
 --- !u!65 &909210622
 BoxCollider:
@@ -33829,6 +33837,10 @@ MonoBehaviour:
   handMiddleTip: {fileID: 961990162}
   gripperMiddleTip: {fileID: 1115696000}
   leapAnchorOffset: {fileID: 1641828944}
+  showColliderGizmo: 1
+  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
+  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
+  debugTriggerEvents: 1
   hasRecordedPositions: 0
 --- !u!65 &961990164
 BoxCollider:
@@ -51885,7 +51897,7 @@ Transform:
   m_GameObject: {fileID: 1776445281}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0235, y: 0.0039, z: -0.0043}
+  m_LocalPosition: {x: -0.0299, y: 0.0059, z: 0.006}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -51910,8 +51922,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.055567577, y: 0.044614453, z: 0.04021073}
-  m_Center: {x: 0.002378718, y: -0.012395995, z: 2.2451387e-10}
+  m_Size: {x: 0.05450756, y: 0.047540236, z: 0.03850054}
+  m_Center: {x: 0.006496099, y: -0.0109327715, z: 0.0023252182}
 --- !u!114 &1776445284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -51930,6 +51942,10 @@ MonoBehaviour:
   handMiddleTip: {fileID: 1776445282}
   gripperMiddleTip: {fileID: 1115696000}
   leapAnchorOffset: {fileID: 1641828944}
+  showColliderGizmo: 1
+  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
+  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
+  debugTriggerEvents: 1
   hasRecordedPositions: 0
 --- !u!1 &1784049803
 GameObject:
@@ -53180,6 +53196,10 @@ MonoBehaviour:
   handMiddleTip: {fileID: 1976175154}
   gripperMiddleTip: {fileID: 1115696000}
   leapAnchorOffset: {fileID: 1641828944}
+  showColliderGizmo: 1
+  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
+  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
+  debugTriggerEvents: 1
   hasRecordedPositions: 0
 --- !u!65 &1976175156
 BoxCollider:
