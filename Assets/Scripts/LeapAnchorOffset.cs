@@ -3,6 +3,8 @@ using UnityEngine;
 public class LeapAnchorOffset : MonoBehaviour
 {
     // scripts
+    public ModeSwitching modeSwitching;
+    public LeftHandTouchDetector leftHandTouchDetector;
     public RetargetIndex retargetIndex;
     public RetargetMiddle retargetMiddle;
     public RetargetThumb retargetThumb;
@@ -55,6 +57,27 @@ public class LeapAnchorOffset : MonoBehaviour
 
     void LateUpdate()
     {
+        // When modeSelect is true, apply the recorded offset from LeftHandTouchDetector
+        if (modeSwitching != null && modeSwitching.modeSelect)
+        {
+            if (leftHandTouchDetector != null)
+            {
+                Vector3 offset = leftHandTouchDetector.RecordedOffset;
+                Vector3 targetPos = baseLeapAnchorPosition.position + offset;
+                transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
+            }
+            else
+            {
+                transform.position = baseLeapAnchorPosition.position;
+            }
+            
+            if (gripperBall != null) gripperBall.SetActive(false);
+            if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+            if (colliderBall != null) colliderBall.SetActive(false);
+            if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
+            return;
+        }
+
         // Determine which retarget script is active
         bool useIndex = retargetIndex != null && retargetIndex.HasRecordedPositions();
         bool useMiddle = retargetMiddle != null && retargetMiddle.HasRecordedPositions();

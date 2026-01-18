@@ -12,8 +12,21 @@ public class LeftHandTouchDetector : MonoBehaviour
     public Transform rightFingerPoint;
     public Transform clawFingerPoint;
 
+    [Header("Mode Control")]
+    public ModeSwitching modeSwitching;
+
+    [Header("Recorded Offset")]
+    private Vector3 _recordedOffset = Vector3.zero;
+    private bool _isInZone = false;
+    public Vector3 RecordedOffset => _recordedOffset;
+    public bool IsInZone => _isInZone;
+
     private void OnTriggerStay(Collider other)
     {
+        // Only drive when in modeSelect
+        if (modeSwitching == null || !modeSwitching.modeSelect)
+            return;
+
         RightFingerTouchZone zone =
             other.GetComponent<RightFingerTouchZone>();
         if (zone == null) return;
@@ -41,6 +54,10 @@ public class LeftHandTouchDetector : MonoBehaviour
 
         clawFingerPoint.position = clawPos;
 
+        // Record the offset between clawFingerPoint and rightFingerPoint
+        _recordedOffset = clawPos - rightPos;
+        _isInZone = true;
+
         float dist =
             Vector3.Distance(leftHandPoint.position, rightPos);
 
@@ -49,6 +66,16 @@ public class LeftHandTouchDetector : MonoBehaviour
         t = Mathf.Clamp01(t);
 
         ApplyToClaw(zone.clawFinger, t);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        RightFingerTouchZone zone = other.GetComponent<RightFingerTouchZone>();
+        if (zone == null) return;
+
+        // Reset offset when leaving the zone
+        _recordedOffset = Vector3.zero;
+        _isInZone = false;
     }
 
     void ApplyToClaw(FingerPath clawFinger, float t)

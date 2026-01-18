@@ -36303,7 +36303,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1160728606
 Transform:
   m_ObjectHideFlags: 0
@@ -43448,6 +43448,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70ea41d1c70f1874d8a030262ae4f83d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modeSwitching: {fileID: 951283614}
+  leftHandTouchDetector: {fileID: 2101188480}
   retargetIndex: {fileID: 882396914}
   retargetMiddle: {fileID: 1776445284}
   retargetThumb: {fileID: 2086587823}
@@ -56189,6 +56191,7 @@ MonoBehaviour:
   minDistance: 0.005
   rightFingerPoint: {fileID: 642066764}
   clawFingerPoint: {fileID: 1858448098}
+  modeSwitching: {fileID: 951283614}
 --- !u!1 &2105288447
 GameObject:
   m_ObjectHideFlags: 0
