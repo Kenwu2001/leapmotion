@@ -43676,7 +43676,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   modeSwitching: {fileID: 951283614}
   leftHandTouchDetector: {fileID: 2101188480}
-  retargetTouchDetector: {fileID: 0}
+  retargetTouchDetector: {fileID: 528650935}
   retargetIndex: {fileID: 882396914}
   retargetMiddle: {fileID: 1776445284}
   retargetThumb: {fileID: 2086587823}

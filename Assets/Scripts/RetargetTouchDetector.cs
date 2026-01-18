@@ -33,34 +33,34 @@ public class RetargetTouchDetector : MonoBehaviour
         if (clawFingerPoint != null)
             clawFingerPoint.gameObject.SetActive(false);
         
-        Debug.Log($"[RetargetTouchDetector] Started on: {gameObject.name}");
+        // Debug.Log($"[RetargetTouchDetector] Started on: {gameObject.name}");
         
         // Check if this object has a collider
         Collider col = GetComponent<Collider>();
         if (col == null)
         {
-            Debug.LogError($"[RetargetTouchDetector] ERROR: No Collider on {gameObject.name}! OnTriggerStay will never be called!");
+            // Debug.LogError($"[RetargetTouchDetector] ERROR: No Collider on {gameObject.name}! OnTriggerStay will never be called!");
         }
         else
         {
-            Debug.Log($"[RetargetTouchDetector] Found Collider: {col.GetType().Name}, IsTrigger={col.isTrigger}");
+            // Debug.Log($"[RetargetTouchDetector] Found Collider: {col.GetType().Name}, IsTrigger={col.isTrigger}");
         }
         
         // Check for Rigidbody
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb == null)
         {
-            Debug.LogWarning($"[RetargetTouchDetector] No Rigidbody on {gameObject.name}. Make sure at least one colliding object has Rigidbody!");
+            // Debug.LogWarning($"[RetargetTouchDetector] No Rigidbody on {gameObject.name}. Make sure at least one colliding object has Rigidbody!");
         }
         else
         {
-            Debug.Log($"[RetargetTouchDetector] Found Rigidbody: IsKinematic={rb.isKinematic}");
+            // Debug.Log($"[RetargetTouchDetector] Found Rigidbody: IsKinematic={rb.isKinematic}");
         }
         
-        if (leftHandPoint == null) Debug.LogError("[RetargetTouchDetector] leftHandPoint is NULL!");
-        if (rightFingerPoint == null) Debug.LogWarning("[RetargetTouchDetector] rightFingerPoint is NULL!");
-        if (clawFingerPoint == null) Debug.LogWarning("[RetargetTouchDetector] clawFingerPoint is NULL!");
-        if (modeSwitching == null) Debug.LogError("[RetargetTouchDetector] modeSwitching is NULL!");
+        // if (leftHandPoint == null) Debug.LogError("[RetargetTouchDetector] leftHandPoint is NULL!");
+        // if (rightFingerPoint == null) Debug.LogWarning("[RetargetTouchDetector] rightFingerPoint is NULL!");
+        // if (clawFingerPoint == null) Debug.LogWarning("[RetargetTouchDetector] clawFingerPoint is NULL!");
+        // if (modeSwitching == null) Debug.LogError("[RetargetTouchDetector] modeSwitching is NULL!");
     }
 
     private void OnTriggerStay(Collider other)
@@ -68,30 +68,30 @@ public class RetargetTouchDetector : MonoBehaviour
         // Only drive when NOT in modeSelect (i.e., during retargeting)
         if (modeSwitching == null || modeSwitching.modeSelect)
         {
-            Debug.Log($"[RetargetTouchDetector] Blocked: modeSwitching={(modeSwitching != null ? modeSwitching.modeSelect.ToString() : "null")}");
+            // Debug.Log($"[RetargetTouchDetector] Blocked: modeSwitching={(modeSwitching != null ? modeSwitching.modeSelect.ToString() : "null")}");
             return;
         }
 
-        Debug.Log($"[RetargetTouchDetector] OnTriggerStay with: {other.gameObject.name}");
+        // Debug.Log($"[RetargetTouchDetector] OnTriggerStay with: {other.gameObject.name}");
 
         RightFingerTouchZone zone =
             other.GetComponent<RightFingerTouchZone>();
         if (zone == null)
         {
-            Debug.LogWarning($"[RetargetTouchDetector] No RightFingerTouchZone on: {other.gameObject.name}");
+            // Debug.LogWarning($"[RetargetTouchDetector] No RightFingerTouchZone on: {other.gameObject.name}");
             return;
         }
         
-        Debug.Log($"[RetargetTouchDetector] Found zone! RightFinger={(zone.rightFinger != null ? zone.rightFinger.name : "null")}, ClawFinger={(zone.clawFinger != null ? zone.clawFinger.name : "null")}");
+        // Debug.Log($"[RetargetTouchDetector] Found zone! RightFinger={(zone.rightFinger != null ? zone.rightFinger.name : "null")}, ClawFinger={(zone.clawFinger != null ? zone.clawFinger.name : "null")}");
         
         // DEBUG: Check joint count
         if (zone.clawFinger != null)
         {
             int jointCount = zone.clawFinger.GetJointCount();
-            Debug.LogWarning($"[RetargetTouchDetector] ClawFinger '{zone.clawFinger.name}' has {jointCount} joints. Expected 2 for modeSelect=false!");
+            // Debug.LogWarning($"[RetargetTouchDetector] ClawFinger '{zone.clawFinger.name}' has {jointCount} joints. Expected 2 for modeSelect=false!");
             if (jointCount != 2)
             {
-                Debug.LogError($"[RetargetTouchDetector] ERROR: Wrong FingerPath! You assigned a {jointCount}-joint FingerPath instead of a 2-joint one!");
+                // Debug.LogError($"[RetargetTouchDetector] ERROR: Wrong FingerPath! You assigned a {jointCount}-joint FingerPath instead of a 2-joint one!");
             }
         }
 
@@ -114,7 +114,7 @@ public class RetargetTouchDetector : MonoBehaviour
         if (!rightFingerPoint.gameObject.activeSelf)
             rightFingerPoint.gameObject.SetActive(true);
 
-        Debug.Log($"[RetargetTouchDetector] Set rightFingerPoint to: {rightPos}");
+        // Debug.Log($"[RetargetTouchDetector] Set rightFingerPoint to: {rightPos}");
 
         // Ensure seg is within valid range for claw finger
         int clawJointCount = zone.clawFinger.GetJointCount();
@@ -131,7 +131,7 @@ public class RetargetTouchDetector : MonoBehaviour
         if (!clawFingerPoint.gameObject.activeSelf)
             clawFingerPoint.gameObject.SetActive(true);
 
-        Debug.Log($"[RetargetTouchDetector] Set clawFingerPoint to: {clawPos}");
+        // Debug.Log($"[RetargetTouchDetector] Set clawFingerPoint to: {clawPos}");
 
         // Record the offset between clawFingerPoint and rightFingerPoint
         _recordedOffset = clawPos - rightPos;

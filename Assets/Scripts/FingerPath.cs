@@ -9,7 +9,7 @@ public class FingerPath : MonoBehaviour
     {
         if (index < 0 || index >= joints.Length)
         {
-            Debug.LogError($"Joint index {index} out of range [0, {joints.Length - 1}]");
+            // Debug.LogError($"Joint index {index} out of range [0, {joints.Length - 1}]");
             return Vector3.zero;
         }
         return joints[index].position;

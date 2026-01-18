@@ -1662,19 +1662,19 @@ public class ClawModuleController : MonoBehaviour
             float distanceFromMin = Mathf.Abs(currentTotalAngle - currentMinAngle);
             float distanceFromMax = Mathf.Abs(currentTotalAngle - currentMaxAngle);
 
-            Debug.Log("angleRange: " + angleRange + ", distanceFromMin: " + distanceFromMin + ", distanceFromMax: " + distanceFromMax);
+            // Debug.Log("angleRange: " + angleRange + ", distanceFromMin: " + distanceFromMin + ", distanceFromMax: " + distanceFromMax);
 
             // If closer to max (moving in positive direction), rotate negative
             if (distanceFromMax < distanceFromMin && angleRange > 15f)
             {
                 currentTipRotation -= rotationSpeed * Time.deltaTime;
-                Debug.Log("Rotating NEGATIVE (closer to max)");
+                // Debug.Log("Rotating NEGATIVE (closer to max)");
             }
             // If closer to min (moving in negative direction), rotate positive
             else if (distanceFromMin < distanceFromMax && angleRange > 15f)
             {
                 currentTipRotation += rotationSpeed * Time.deltaTime;
-                Debug.Log("Rotating POSITIVE (closer to min)");
+                // Debug.Log("Rotating POSITIVE (closer to min)");
             }
 
             currentTipRotation = Mathf.Clamp(currentTipRotation, -80f, 80f);
@@ -1684,7 +1684,7 @@ public class ClawModuleController : MonoBehaviour
         else
         {
             relatedMotorTriggered = false;
-            Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            // Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         if (isMapping)

@@ -37,7 +37,7 @@ public class LeftHandTouchDetector : MonoBehaviour
             return;
 
         // DEBUG: Log which collider we're touching
-        Debug.Log($"[LeftHandTouchDetector] Touching: {other.gameObject.name}");
+        // Debug.Log($"[LeftHandTouchDetector] Touching: {other.gameObject.name}");
 
         RightFingerTouchZone zone =
             other.GetComponent<RightFingerTouchZone>();

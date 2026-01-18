@@ -89,14 +89,78 @@ public class LeapAnchorOffset : MonoBehaviour
         {
             Vector3 offset = retargetTouchDetector.RecordedOffset;
             Vector3 targetPos = baseLeapAnchorPosition.position + offset;
+            
+            Debug.Log($"[LeapAnchorOffset] modeSelect=FALSE | IsInZone={retargetTouchDetector.IsInZone} | Offset={offset.ToString("F3")} | BasePos={baseLeapAnchorPosition.position.ToString("F3")} | TargetPos={targetPos.ToString("F3")} | CurrentPos={transform.position.ToString("F3")}");
+            
             transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
             
-            // Hide balls during retargeting mode
-            if (gripperBall != null) gripperBall.SetActive(false);
-            if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
-            if (colliderBall != null) colliderBall.SetActive(false);
-            if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
+            // Show and update ball positions when in zone
+            if (retargetTouchDetector.IsInZone)
+            {
+                Debug.Log($"[LeapAnchorOffset] IN ZONE! Showing balls...");
+                
+                // Show rightFingerPoint and clawFingerPoint positions
+                if (rightFingertipBall != null && retargetTouchDetector.rightFingerPoint != null)
+                {
+                    rightFingertipBall.SetActive(true);
+                    rightFingertipBall.transform.position = retargetTouchDetector.rightFingerPoint.position;
+                    Debug.Log($"[LeapAnchorOffset] rightFingertipBall at: {retargetTouchDetector.rightFingerPoint.position.ToString("F3")}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[LeapAnchorOffset] rightFingertipBall={(rightFingertipBall != null ? "OK" : "NULL")} | rightFingerPoint={(retargetTouchDetector.rightFingerPoint != null ? "OK" : "NULL")}");
+                }
+                
+                if (gripperBall != null && retargetTouchDetector.clawFingerPoint != null)
+                {
+                    gripperBall.SetActive(true);
+                    gripperBall.transform.position = retargetTouchDetector.clawFingerPoint.position;
+                    Debug.Log($"[LeapAnchorOffset] gripperBall at: {retargetTouchDetector.clawFingerPoint.position.ToString("F3")}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[LeapAnchorOffset] gripperBall={(gripperBall != null ? "OK" : "NULL")} | clawFingerPoint={(retargetTouchDetector.clawFingerPoint != null ? "OK" : "NULL")}");
+                }
+                
+                // Show left hand touch point
+                if (colliderBall != null && retargetTouchDetector.leftHandPoint != null)
+                {
+                    colliderBall.SetActive(true);
+                    colliderBall.transform.position = retargetTouchDetector.leftHandPoint.position;
+                    Debug.Log($"[LeapAnchorOffset] colliderBall at: {retargetTouchDetector.leftHandPoint.position.ToString("F3")}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[LeapAnchorOffset] colliderBall={(colliderBall != null ? "OK" : "NULL")} | leftHandPoint={(retargetTouchDetector.leftHandPoint != null ? "OK" : "NULL")}");
+                }
+                
+                // Show the anchor position itself
+                if (leftFingertipBall != null)
+                {
+                    leftFingertipBall.SetActive(true);
+                    leftFingertipBall.transform.position = transform.position;
+                    Debug.Log($"[LeapAnchorOffset] leftFingertipBall at: {transform.position.ToString("F3")}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[LeapAnchorOffset] leftFingertipBall is NULL!");
+                }
+            }
+            else
+            {
+                Debug.Log($"[LeapAnchorOffset] NOT in zone - hiding balls");
+                // Hide balls when not in zone
+                if (gripperBall != null) gripperBall.SetActive(false);
+                if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+                if (colliderBall != null) colliderBall.SetActive(false);
+                if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
+            }
+            
             return;
+        }
+        else
+        {
+            Debug.LogError("[LeapAnchorOffset] retargetTouchDetector is NULL! Check Inspector assignment!");
         }
 
         /* ===============================================
