@@ -6,22 +6,22 @@ public class FollowTransform : MonoBehaviour
     public Transform target;
 
     [Header("Offset")]
-    public Vector3 localOffset = Vector3.zero; // 以 target 的局部座標做偏移
+    public Vector3 localOffset = Vector3.zero; // Apply offset in target's local space
     public bool followRotation = true;
 
     void LateUpdate()
     {
         if (!target) return;
 
-        // 跟隨位置（含局部偏移）
+        // Follow position (with local offset)
         transform.position = target.TransformPoint(localOffset);
 
         if (followRotation)
         {
-            // 只取 target 的 X rotation
+            // Only use target's X rotation
             Vector3 targetEuler = target.rotation.eulerAngles;
 
-            // 只跟隨 X 軸旋轉，其餘固定為 0
+            // Only follow X axis rotation, others fixed to 0
             transform.rotation = Quaternion.Euler(targetEuler.x, 0f, 0f);
         }
     }

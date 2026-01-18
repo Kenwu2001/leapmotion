@@ -10,6 +10,7 @@ TagManager:
   - L_IndexTipSmall
   - L_ThumbTipRetarget
   - L_IndexTipRetarget
+  - L_ThumbTipSmall
   layers:
   - Default
   - TransparentFX

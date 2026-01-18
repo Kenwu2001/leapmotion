@@ -15,8 +15,9 @@ public class FingerLineRenderer : MonoBehaviour
     {
         if (line == null) return;
 
-        line.positionCount = 5;
-        for (int i = 0; i < 5; i++)
+        int jointCount = finger.GetJointCount();
+        line.positionCount = jointCount;
+        for (int i = 0; i < jointCount; i++)
         {
             line.SetPosition(i, finger.GetJoint(i));
         }

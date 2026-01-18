@@ -29,7 +29,10 @@ public static class FingerMath
         segmentT = 0f;
         closestPoint = Vector3.zero;
 
-        for (int i = 0; i < 4; i++)
+        // Use actual joint count instead of hardcoded 4
+        int segmentCount = finger.GetJointCount() - 1;
+        
+        for (int i = 0; i < segmentCount; i++)
         {
             float t;
             float d = DistancePointToSegment(

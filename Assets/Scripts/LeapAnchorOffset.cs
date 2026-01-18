@@ -4,7 +4,10 @@ public class LeapAnchorOffset : MonoBehaviour
 {
     // scripts
     public ModeSwitching modeSwitching;
-    public LeftHandTouchDetector leftHandTouchDetector;
+    public LeftHandTouchDetector leftHandTouchDetector; // Used for modeSelect=true
+    public RetargetTouchDetector retargetTouchDetector; // NEW: Used for modeSelect=false
+    
+    // OLD retarget scripts (commented out, kept for reference)
     public RetargetIndex retargetIndex;
     public RetargetMiddle retargetMiddle;
     public RetargetThumb retargetThumb;
@@ -78,6 +81,27 @@ public class LeapAnchorOffset : MonoBehaviour
             return;
         }
 
+        // ===============================================
+        // NEW LOGIC: When modeSelect is false (retargeting mode)
+        // Use the same offset-based approach with RetargetTouchDetector
+        // ===============================================
+        if (retargetTouchDetector != null)
+        {
+            Vector3 offset = retargetTouchDetector.RecordedOffset;
+            Vector3 targetPos = baseLeapAnchorPosition.position + offset;
+            transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
+            
+            // Hide balls during retargeting mode
+            if (gripperBall != null) gripperBall.SetActive(false);
+            if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+            if (colliderBall != null) colliderBall.SetActive(false);
+            if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
+            return;
+        }
+
+        /* ===============================================
+         * OLD RETARGETING LOGIC (COMMENTED OUT FOR REFERENCE)
+         * ===============================================
         // Determine which retarget script is active
         bool useIndex = retargetIndex != null && retargetIndex.HasRecordedPositions();
         bool useMiddle = retargetMiddle != null && retargetMiddle.HasRecordedPositions();
@@ -227,6 +251,7 @@ public class LeapAnchorOffset : MonoBehaviour
             if (colliderBall != null) colliderBall.SetActive(false);
             if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
         }
+        =============================================== */
     }
 
     void Start()
@@ -236,8 +261,36 @@ public class LeapAnchorOffset : MonoBehaviour
         if (gripperBall != null) gripperBall.SetActive(false);
     }
 
-    // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when trigger enters
+    // ===============================================
+    // LEGACY METHODS - Keep for backward compatibility
+    // These are called by old retarget scripts but no longer do anything
+    // ===============================================
     public void StartRetargeting()
+    {
+        // No longer used - new logic uses RetargetTouchDetector offset
+        // Keeping this method to avoid breaking old retarget scripts
+    }
+
+    public void StopRetargeting()
+    {
+        // No longer used - new logic uses RetargetTouchDetector offset
+        // Keeping this method to avoid breaking old retarget scripts
+    }
+
+    public bool IsRetargeting()
+    {
+        // Return true if retarget touch detector is in a zone
+        if (retargetTouchDetector != null)
+            return retargetTouchDetector.IsInZone;
+        return false;
+    }
+
+    /* ===============================================
+     * OLD RETARGETING METHODS (COMMENTED OUT FOR REFERENCE)
+     * These methods are no longer used with the new offset-based approach
+     * ===============================================
+    // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when trigger enters
+    public void StartRetargeting_OLD()
     {
         // Determine which retarget script is calling
         bool useIndex = retargetIndex != null && retargetIndex.HasRecordedPositions();
@@ -325,14 +378,15 @@ public class LeapAnchorOffset : MonoBehaviour
     }
 
     // Called by RetargetIndex, RetargetMiddle, RetargetThumb, or RetargetThumbAbduction when all triggers exit
-    public void StopRetargeting()
+    public void StopRetargeting_OLD()
     {
         _isRetargeting = false;
         // Debug.Log("Stopped retargeting - returning to normal");
     }
 
-    public bool IsRetargeting()
+    public bool IsRetargeting_OLD()
     {
         return _isRetargeting;
     }
+    =============================================== */
 }

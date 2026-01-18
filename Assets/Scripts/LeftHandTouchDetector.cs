@@ -80,7 +80,7 @@ public class LeftHandTouchDetector : MonoBehaviour
 
     void ApplyToClaw(FingerPath clawFinger, float t)
     {
-        // ✅ 這裡接馬達 / LED / Servo
+        // ✅ Connect to Motor / LED / Servo here
         // Debug.Log($"{clawFinger.name} t={t}");
     }
 }
