@@ -27,6 +27,9 @@ public class LeftHandTouchDetector : MonoBehaviour
         if (modeSwitching == null || !modeSwitching.modeSelect)
             return;
 
+        // DEBUG: Log which collider we're touching
+        Debug.Log($"[LeftHandTouchDetector] Touching: {other.gameObject.name}");
+
         RightFingerTouchZone zone =
             other.GetComponent<RightFingerTouchZone>();
         if (zone == null) return;

@@ -13223,7 +13223,7 @@ Transform:
   m_GameObject: {fileID: 517571598}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.014, y: -0, z: 0}
+  m_LocalPosition: {x: -0.014, y: 0, z: -0.006}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24976,7 +24976,6 @@ GameObject:
   - component: {fileID: 863607862}
   - component: {fileID: 863607863}
   - component: {fileID: 863607864}
-  - component: {fileID: 863607865}
   m_Layer: 0
   m_Name: L_ThumbTip
   m_TagString: L_ThumbTip
@@ -25047,24 +25046,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &863607865
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863607861}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60bf41cbcec2b2347be74d7a6a8547d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  leftHandPoint: {fileID: 863607862}
-  maxDistance: 0.04
-  minDistance: 0.005
-  rightFingerPoint: {fileID: 642066764}
-  clawFingerPoint: {fileID: 1858448098}
-  modeSwitching: {fileID: 951283614}
 --- !u!1 &867732984
 GameObject:
   m_ObjectHideFlags: 0
@@ -42311,7 +42292,7 @@ Transform:
   m_GameObject: {fileID: 1441249367}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.036, y: -0, z: 0}
+  m_LocalPosition: {x: -0.036, y: 0, z: -0.0043}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -54098,12 +54079,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1827507978}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a038ae69aec9c049a32fb08360e5856, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandPoint: {fileID: 863607862}
+  leftHandPoint: {fileID: 528650932}
   maxDistance: 0.04
   minDistance: 0.005
   rightFingerPoint: {fileID: 642066764}
