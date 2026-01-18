@@ -12059,6 +12059,12 @@ MonoBehaviour:
   twoPointRenderers:
   - {fileID: 4290315601710405860}
   - {fileID: 9165063046431338500}
+  fivePointColliders:
+  - {fileID: 1770763347}
+  - {fileID: 1100719238}
+  - {fileID: 342900465}
+  twoPointColliders:
+  - {fileID: 4290315601710405861}
 --- !u!4 &370831958
 Transform:
   m_ObjectHideFlags: 0
@@ -12259,6 +12265,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.071592376, y: 0.050943475, z: 0.047319405}
   m_Center: {x: 0.05053357, y: -0.002519078, z: -0.004847403}
+--- !u!1 &394176532
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 394176533}
+  m_Layer: 0
+  m_Name: IndexAngle4Position (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &394176533
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 394176532}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
+  m_LocalPosition: {x: 4.05, y: 3.09, z: -2.79}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3857413217209359350}
+  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
 --- !u!1 &415543494
 GameObject:
   m_ObjectHideFlags: 0
@@ -25616,6 +25653,9 @@ PrefabInstance:
       insertIndex: 0
       addedObject: {fileID: 1973250420}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: 1203819792}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1686203840}
     m_AddedComponents: []
@@ -36830,6 +36870,37 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   indexPaxiniRenderer: {fileID: 341002518}
+--- !u!1 &1203819791
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1203819792}
+  m_Layer: 0
+  m_Name: fingertipPosition (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1203819792
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203819791}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -15.9, y: 24.9, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 924669250}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1210658758
 GameObject:
   m_ObjectHideFlags: 0
@@ -54071,7 +54142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1827507979
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58363,6 +58434,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1766519164}
+  - {fileID: 394176533}
   - {fileID: 6866665991580118936}
   - {fileID: 1286275767950457343}
   - {fileID: 924669250}
@@ -58603,8 +58675,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.062072366, y: 0.033377364, z: 0.024472466}
-  m_Center: {x: -0.019934721, y: 0.0015936331, z: -0.0016886934}
+  m_Size: {x: 0.03886168, y: 0.033377364, z: 0.024472466}
+  m_Center: {x: -0.03154002, y: 0.0015936358, z: -0.0016886943}
 --- !u!114 &4290315601710405862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58631,8 +58703,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   joints:
-  - {fileID: 886858302}
-  - {fileID: 23009159}
+  - {fileID: 2079912869}
+  - {fileID: 1629205924}
 --- !u!114 &4290315601710405864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60461,8 +60533,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   joints:
-  - {fileID: 1973250420}
-  - {fileID: 1766519164}
+  - {fileID: 1203819792}
+  - {fileID: 394176533}
 --- !u!120 &9165063046431338500
 LineRenderer:
   serializedVersion: 2

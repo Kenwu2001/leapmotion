@@ -21,6 +21,15 @@ public class LeftHandTouchDetector : MonoBehaviour
     public Vector3 RecordedOffset => _recordedOffset;
     public bool IsInZone => _isInZone;
 
+    private void Start()
+    {
+        // Hide visual points initially
+        if (rightFingerPoint != null)
+            rightFingerPoint.gameObject.SetActive(false);
+        if (clawFingerPoint != null)
+            clawFingerPoint.gameObject.SetActive(false);
+    }
+
     private void OnTriggerStay(Collider other)
     {
         // Only drive when in modeSelect
@@ -46,7 +55,16 @@ public class LeftHandTouchDetector : MonoBehaviour
             out rightPos
         );
 
+        // Clamp segT to ensure it's within valid range [0, 1]
+        segT = Mathf.Clamp01(segT);
+
         rightFingerPoint.position = rightPos;
+        if (!rightFingerPoint.gameObject.activeSelf)
+            rightFingerPoint.gameObject.SetActive(true);
+
+        // Ensure seg is within valid range for claw finger
+        int clawJointCount = zone.clawFinger.GetJointCount();
+        seg = Mathf.Clamp(seg, 0, clawJointCount - 2); // Max seg is jointCount - 2
 
         Vector3 clawPos =
             Vector3.Lerp(
@@ -56,6 +74,8 @@ public class LeftHandTouchDetector : MonoBehaviour
             );
 
         clawFingerPoint.position = clawPos;
+        if (!clawFingerPoint.gameObject.activeSelf)
+            clawFingerPoint.gameObject.SetActive(true);
 
         // Record the offset between clawFingerPoint and rightFingerPoint
         _recordedOffset = clawPos - rightPos;
@@ -79,6 +99,12 @@ public class LeftHandTouchDetector : MonoBehaviour
         // Reset offset when leaving the zone
         _recordedOffset = Vector3.zero;
         _isInZone = false;
+        
+        // Hide visual points
+        if (rightFingerPoint != null)
+            rightFingerPoint.gameObject.SetActive(false);
+        if (clawFingerPoint != null)
+            clawFingerPoint.gameObject.SetActive(false);
     }
 
     void ApplyToClaw(FingerPath clawFinger, float t)

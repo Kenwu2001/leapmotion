@@ -14,6 +14,12 @@ public class FingerRendererManager : MonoBehaviour
     [Header("2-Point Finger Renderers (for modeSelect=false)")]
     public LineRenderer[] twoPointRenderers;
 
+    [Header("5-Point Colliders (for modeSelect=true)")]
+    public Collider[] fivePointColliders;
+
+    [Header("2-Point Colliders (for modeSelect=false)")]
+    public Collider[] twoPointColliders;
+
     void Update()
     {
         if (modeSwitching == null) return;
@@ -38,6 +44,26 @@ public class FingerRendererManager : MonoBehaviour
             {
                 if (renderer != null)
                     renderer.enabled = showTwoPoints;
+            }
+        }
+
+        // Enable/disable 5-point colliders
+        if (fivePointColliders != null)
+        {
+            foreach (var collider in fivePointColliders)
+            {
+                if (collider != null)
+                    collider.enabled = showFivePoints;
+            }
+        }
+
+        // Enable/disable 2-point colliders
+        if (twoPointColliders != null)
+        {
+            foreach (var collider in twoPointColliders)
+            {
+                if (collider != null)
+                    collider.enabled = showTwoPoints;
             }
         }
     }
