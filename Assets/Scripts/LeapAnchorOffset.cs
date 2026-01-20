@@ -90,7 +90,7 @@ public class LeapAnchorOffset : MonoBehaviour
             Vector3 offset = retargetTouchDetector.RecordedOffset;
             Vector3 targetPos = baseLeapAnchorPosition.position + offset;
             
-            Debug.Log($"[LeapAnchorOffset] modeSelect=FALSE | IsInZone={retargetTouchDetector.IsInZone} | Offset={offset.ToString("F3")} | BasePos={baseLeapAnchorPosition.position.ToString("F3")} | TargetPos={targetPos.ToString("F3")} | CurrentPos={transform.position.ToString("F3")}");
+            // Debug.Log($"[LeapAnchorOffset] modeSelect=FALSE | IsInZone={retargetTouchDetector.IsInZone} | Offset={offset.ToString("F3")} | BasePos={baseLeapAnchorPosition.position.ToString("F3")} | TargetPos={targetPos.ToString("F3")} | CurrentPos={transform.position.ToString("F3")}");
             
             transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
             
@@ -148,7 +148,7 @@ public class LeapAnchorOffset : MonoBehaviour
             }
             else
             {
-                Debug.Log($"[LeapAnchorOffset] NOT in zone - hiding balls");
+                // Debug.Log($"[LeapAnchorOffset] NOT in zone - hiding balls");
                 // Hide balls when not in zone
                 if (gripperBall != null) gripperBall.SetActive(false);
                 if (rightFingertipBall != null) rightFingertipBall.SetActive(false);

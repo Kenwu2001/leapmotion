@@ -35,7 +35,7 @@ public class XRDiag : MonoBehaviour
         bool hasRot = device.TryGetFeatureValue(CommonUsages.deviceRotation, out var rot);
         if (hasPos || hasRot)
         {
-            Debug.Log($"[XRDiag] {which} posOK={hasPos} rotOK={hasRot} pos={pos}");
+            // Debug.Log($"[XRDiag] {which} posOK={hasPos} rotOK={hasRot} pos={pos}");
         }
         else
         {
