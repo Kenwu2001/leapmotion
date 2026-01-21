@@ -97,29 +97,29 @@ public class LeapAnchorOffset : MonoBehaviour
             // Show and update ball positions when in zone
             if (retargetTouchDetector.IsInZone)
             {
-                Debug.Log($"[LeapAnchorOffset] IN ZONE! Showing balls...");
+                // Debug.Log($"[LeapAnchorOffset] IN ZONE! Showing balls...");
                 
                 // Show rightFingerPoint and clawFingerPoint positions
                 if (rightFingertipBall != null && retargetTouchDetector.rightFingerPoint != null)
                 {
                     rightFingertipBall.SetActive(true);
                     rightFingertipBall.transform.position = retargetTouchDetector.rightFingerPoint.position;
-                    Debug.Log($"[LeapAnchorOffset] rightFingertipBall at: {retargetTouchDetector.rightFingerPoint.position.ToString("F3")}");
+                    // Debug.Log($"[LeapAnchorOffset] rightFingertipBall at: {retargetTouchDetector.rightFingerPoint.position.ToString("F3")}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[LeapAnchorOffset] rightFingertipBall={(rightFingertipBall != null ? "OK" : "NULL")} | rightFingerPoint={(retargetTouchDetector.rightFingerPoint != null ? "OK" : "NULL")}");
+                    // Debug.LogWarning($"[LeapAnchorOffset] rightFingertipBall={(rightFingertipBall != null ? "OK" : "NULL")} | rightFingerPoint={(retargetTouchDetector.rightFingerPoint != null ? "OK" : "NULL")}");
                 }
                 
                 if (gripperBall != null && retargetTouchDetector.clawFingerPoint != null)
                 {
                     gripperBall.SetActive(true);
                     gripperBall.transform.position = retargetTouchDetector.clawFingerPoint.position;
-                    Debug.Log($"[LeapAnchorOffset] gripperBall at: {retargetTouchDetector.clawFingerPoint.position.ToString("F3")}");
+                    // Debug.Log($"[LeapAnchorOffset] gripperBall at: {retargetTouchDetector.clawFingerPoint.position.ToString("F3")}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[LeapAnchorOffset] gripperBall={(gripperBall != null ? "OK" : "NULL")} | clawFingerPoint={(retargetTouchDetector.clawFingerPoint != null ? "OK" : "NULL")}");
+                    // Debug.LogWarning($"[LeapAnchorOffset] gripperBall={(gripperBall != null ? "OK" : "NULL")} | clawFingerPoint={(retargetTouchDetector.clawFingerPoint != null ? "OK" : "NULL")}");
                 }
                 
                 // Show left hand touch point
@@ -127,11 +127,11 @@ public class LeapAnchorOffset : MonoBehaviour
                 {
                     colliderBall.SetActive(true);
                     colliderBall.transform.position = retargetTouchDetector.leftHandPoint.position;
-                    Debug.Log($"[LeapAnchorOffset] colliderBall at: {retargetTouchDetector.leftHandPoint.position.ToString("F3")}");
+                    // Debug.Log($"[LeapAnchorOffset] colliderBall at: {retargetTouchDetector.leftHandPoint.position.ToString("F3")}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[LeapAnchorOffset] colliderBall={(colliderBall != null ? "OK" : "NULL")} | leftHandPoint={(retargetTouchDetector.leftHandPoint != null ? "OK" : "NULL")}");
+                    // Debug.LogWarning($"[LeapAnchorOffset] colliderBall={(colliderBall != null ? "OK" : "NULL")} | leftHandPoint={(retargetTouchDetector.leftHandPoint != null ? "OK" : "NULL")}");
                 }
                 
                 // Show the anchor position itself
@@ -139,11 +139,11 @@ public class LeapAnchorOffset : MonoBehaviour
                 {
                     leftFingertipBall.SetActive(true);
                     leftFingertipBall.transform.position = transform.position;
-                    Debug.Log($"[LeapAnchorOffset] leftFingertipBall at: {transform.position.ToString("F3")}");
+                    // Debug.Log($"[LeapAnchorOffset] leftFingertipBall at: {transform.position.ToString("F3")}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[LeapAnchorOffset] leftFingertipBall is NULL!");
+                    // Debug.LogWarning($"[LeapAnchorOffset] leftFingertipBall is NULL!");
                 }
             }
             else
@@ -160,7 +160,7 @@ public class LeapAnchorOffset : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[LeapAnchorOffset] retargetTouchDetector is NULL! Check Inspector assignment!");
+            // Debug.LogError("[LeapAnchorOffset] retargetTouchDetector is NULL! Check Inspector assignment!");
         }
 
         /* ===============================================
