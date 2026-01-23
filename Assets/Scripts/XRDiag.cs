@@ -27,7 +27,7 @@ public class XRDiag : MonoBehaviour
         var device = InputDevices.GetDeviceAtXRNode(which);
         if (!device.isValid)
         {
-            Debug.Log($"[XRDiag] {which} device.isValid = false (possibly not connected, in hand tracking mode, or platform settings incorrect)");
+            // Debug.Log($"[XRDiag] {which} device.isValid = false (possibly not connected, in hand tracking mode, or platform settings incorrect)");
             return;
         }
 
@@ -39,7 +39,7 @@ public class XRDiag : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[XRDiag] {which} device present, but no pose returned (possibly still initializing/waking up)");
+            // Debug.Log($"[XRDiag] {which} device present, but no pose returned (possibly still initializing/waking up)");
         }
     }
 }

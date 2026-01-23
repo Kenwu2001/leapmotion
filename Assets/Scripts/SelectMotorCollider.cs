@@ -78,7 +78,7 @@ public class SelectMotorCollider : MonoBehaviour
             float timeSinceLastSwitch = Time.time - lastSwitchTime;
             if (activeTouchedMotorID != 0 && timeSinceLastSwitch < switchCooldown)
             {
-                Debug.Log($"[SelectMotor] ⏱ COOLDOWN BLOCKED: Motor {motorID} touch ignored (cooldown: {timeSinceLastSwitch:F3}s / {switchCooldown:F2}s)");
+                // Debug.Log($"[SelectMotor] ⏱ COOLDOWN BLOCKED: Motor {motorID} touch ignored (cooldown: {timeSinceLastSwitch:F3}s / {switchCooldown:F2}s)");
                 return; // Ignore this touch during cooldown
             }
             
@@ -86,23 +86,23 @@ public class SelectMotorCollider : MonoBehaviour
             if (activeTouchedMotorID != 0)
             {
                 int prevIndex = activeTouchedMotorID - 1;
-                Debug.Log($"[SelectMotor] ⚠ SWITCHING: Motor {activeTouchedMotorID} (element[{activeTouchedMotorID-1}]) -> Motor {motorID} (element[{motorID-1}])");
+                // Debug.Log($"[SelectMotor] ⚠ SWITCHING: Motor {activeTouchedMotorID} (element[{activeTouchedMotorID-1}]) -> Motor {motorID} (element[{motorID-1}])");
                 if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
                 {
-                    Debug.Log($"[SelectMotor] 🔄 Calling ForceRelease on Motor {activeTouchedMotorID}");
+                    // Debug.Log($"[SelectMotor] 🔄 Calling ForceRelease on Motor {activeTouchedMotorID}");
                     triggerDetectors[prevIndex].ForceRelease();
-                    Debug.Log($"[SelectMotor] ✓ ForceRelease completed for Motor {activeTouchedMotorID}");
+                    // Debug.Log($"[SelectMotor] ✓ ForceRelease completed for Motor {activeTouchedMotorID}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[SelectMotor] ⚠ Cannot ForceRelease Motor {activeTouchedMotorID} - prevIndex={prevIndex}, detector null={triggerDetectors[prevIndex] == null}");
+                    // Debug.LogWarning($"[SelectMotor] ⚠ Cannot ForceRelease Motor {activeTouchedMotorID} - prevIndex={prevIndex}, detector null={triggerDetectors[prevIndex] == null}");
                 }
             }
             
             activeTouchedMotorID = motorID;
             activeTouchPosition = position;
             lastSwitchTime = Time.time; // Record switch time
-            Debug.Log($"[SelectMotor] ✓ Motor {motorID} (element[{motorID-1}]) NOW ACTIVE at {position} (switch time: {Time.time:F3})");
+            // Debug.Log($"[SelectMotor] ✓ Motor {motorID} (element[{motorID-1}]) NOW ACTIVE at {position} (switch time: {Time.time:F3})");
         }
         else
         {
@@ -118,11 +118,11 @@ public class SelectMotorCollider : MonoBehaviour
         {
             activeTouchedMotorID = 0;
             activeTouchPosition = Vector3.zero;
-            Debug.Log($"[SelectMotor] ✗ Motor {motorID} (element[{motorID-1}]) RELEASED");
+            // Debug.Log($"[SelectMotor] ✗ Motor {motorID} (element[{motorID-1}]) RELEASED");
         }
         else
         {
-            Debug.Log($"[SelectMotor] ⚠ Motor {motorID} tried to release but it's not active (current active: {activeTouchedMotorID})");
+            // Debug.Log($"[SelectMotor] ⚠ Motor {motorID} tried to release but it's not active (current active: {activeTouchedMotorID})");
         }
     }
 
@@ -184,21 +184,21 @@ internal class MotorTriggerDetector : MonoBehaviour
         if (other.CompareTag(targetTag))
         {
             touchCount++;
-            Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ▶ TriggerEnter - touchCount: {touchCount}, isActive: {isActiveMotor}, Time: {Time.time:F3}, Object: {other.name}");
+            // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ▶ TriggerEnter - touchCount: {touchCount}, isActive: {isActiveMotor}, Time: {Time.time:F3}, Object: {other.name}");
             if (touchCount == 1 && manager != null)
             {
                 isActiveMotor = true;
-                Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) 📞 Calling OnMotorTouched (setting isActive=true)");
+                // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) 📞 Calling OnMotorTouched (setting isActive=true)");
                 manager.OnMotorTouched(motorID, other.transform.position);
             }
             else if (touchCount > 1)
             {
-                Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ⚠ TouchCount > 1, not calling OnMotorTouched");
+                // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ⚠ TouchCount > 1, not calling OnMotorTouched");
             }
         }
         else
         {
-            Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerEnter IGNORED - Wrong tag: {other.tag} (need: {targetTag}), Object: {other.name}");
+            // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerEnter IGNORED - Wrong tag: {other.tag} (need: {targetTag}), Object: {other.name}");
         }
     }
 
@@ -209,7 +209,7 @@ internal class MotorTriggerDetector : MonoBehaviour
             // Only log for motors 9-12 to reduce spam
             if (motorID >= 9)
             {
-                Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerStay - updating position");
+                // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerStay - updating position");
             }
             manager.OnMotorTouched(motorID, other.transform.position);
         }
@@ -218,7 +218,7 @@ internal class MotorTriggerDetector : MonoBehaviour
             // Log why we're not updating
             if (motorID >= 9)
             {
-                Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerStay BLOCKED - touchCount: {touchCount}, isActive: {isActiveMotor}");
+                // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerStay BLOCKED - touchCount: {touchCount}, isActive: {isActiveMotor}");
             }
         }
     }
@@ -229,38 +229,38 @@ internal class MotorTriggerDetector : MonoBehaviour
         {
             int prevCount = touchCount;
             touchCount = Mathf.Max(0, touchCount - 1);
-            Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ◀ TriggerExit - touchCount: {prevCount} -> {touchCount}, isActive: {isActiveMotor}, Time: {Time.time:F3}, Object: {other.name}");
+            // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ◀ TriggerExit - touchCount: {prevCount} -> {touchCount}, isActive: {isActiveMotor}, Time: {Time.time:F3}, Object: {other.name}");
             if (touchCount == 0 && isActiveMotor && manager != null)
             {
                 isActiveMotor = false;
-                Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) 📞 Calling OnMotorReleased");
+                // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) 📞 Calling OnMotorReleased");
                 manager.OnMotorReleased(motorID);
             }
             else if (touchCount == 0 && !isActiveMotor)
             {
-                Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ⚠ TouchCount=0 but NOT active (was force released?)");
+                // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ⚠ TouchCount=0 but NOT active (was force released?)");
             }
         }
         else
         {
-            Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerExit IGNORED - Wrong tag: {other.tag}, Object: {other.name}");
+            // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) TriggerExit IGNORED - Wrong tag: {other.tag}, Object: {other.name}");
         }
     }
 
     // Force this detector to stop being active (called when another motor takes over)
     public void ForceRelease()
     {
-        Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ForceRelease called - isActive: {isActiveMotor}, touchCount: {touchCount}");
+        // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ForceRelease called - isActive: {isActiveMotor}, touchCount: {touchCount}");
         if (isActiveMotor)
         {
-            Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ❌ FORCE RELEASED (touchCount still: {touchCount})");
+            // Debug.Log($"[Detector] Motor {motorID} (element[{motorID-1}]) ❌ FORCE RELEASED (touchCount still: {touchCount})");
             isActiveMotor = false;
             // Don't reset touchCount - the collider might still be physically touching
             // But we stop reporting to the manager
         }
         else
         {
-            Debug.LogWarning($"[Detector] Motor {motorID} (element[{motorID-1}]) ⚠ ForceRelease called but was NOT active! (touchCount: {touchCount})");
+            // Debug.LogWarning($"[Detector] Motor {motorID} (element[{motorID-1}]) ⚠ ForceRelease called but was NOT active! (touchCount: {touchCount})");
         }
     }
 }

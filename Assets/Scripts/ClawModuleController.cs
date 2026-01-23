@@ -385,7 +385,8 @@ public class ClawModuleController : MonoBehaviour
 
         UpdateThumbAbduction();
 
-        UpdateThumbFingerTwist();
+        // UpdateThumbFingerTwist();
+
 
         // ==============================
         // 🔹 Index Finger
@@ -398,7 +399,8 @@ public class ClawModuleController : MonoBehaviour
 
         UpdateIndexFingerAbductionByAngle();
 
-        UpdateIndexFingerTwist();
+        UpdateIndexFingerTwistByAngle();
+        // UpdateIndexFingerTwist();
 
         // UpdateInnerExtension(
         //     triggerIndexInnerExtension.isIndexInnerExtensionTouched,
@@ -476,7 +478,9 @@ public class ClawModuleController : MonoBehaviour
 
         UpdateMiddleFingerAbductionByAngle();
 
-        UpdateMiddleFingerTwist();
+        // UpdateMiddleFingerTwist();
+
+        UpdateMiddleFingerTwistByAngle();
 
         // if (MiddleAngle3Center != null)
         //     MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1 + jointAngle.middleAngle0, 0f, 0f);
@@ -1119,30 +1123,89 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle2Center.localRotation = targetRotation;
     }
 
-    private void UpdateIndexFingerTwist()
+    // private void UpdateIndexFingerTwist()
+    // {
+    //     Quaternion targetRotation = IndexAngle2CenterInitialRotation;
+    //     maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
+
+    //     // Initialize touch duration for index twist
+    //     if (!fingerTipTouchDurations.ContainsKey("IndexTwist"))
+    //     {
+    //         fingerTipTouchDurations["IndexTwist"] = 0f;
+    //     }
+
+    //     //   triggerIndexInnerExtension.isIndexInnerExtensionTouched // && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f 
+    //     if (!isFingerTipTriggered && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f && triggerRightIndexTip.isRightIndexTipTouched
+    //             && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2 && !isMiddle2Triggered
+    //             && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 6)
+    //     {
+    //         fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
+    //         // indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"] / 0.7f, 1f));
+    //         isIndex2Triggered = true;
+
+    //         // Only apply rotation after 1 second
+    //         if (fingerTipTouchDurations["IndexTwist"] > 0.7f)
+    //         {
+    //             // Only rotate if there's actual rotation happening (isClockWise != 0)
+    //             if (currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
+    //             {
+    //                 currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+    //             }
+
+    //             currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+
+    //             indexFingerJoint2MaxRotationVector =
+    //                 (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
+
+    //             // indexJoint2Renderer.material.color = greenColor;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations["IndexTwist"] = 0f;
+    //         // indexJoint2Renderer.material.color = originalColor;
+    //         isIndex2Triggered = false;
+    //     }
+
+    //     targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
+
+    //     // mapping using index and middle finger distance
+    //     if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle2Center != null)
+    //     {
+    //         float delta = maxIndexZAxisAngle;
+    //         // float targetZ = isMapping
+    //         //     ? maxIndexZAxisAngle + (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
+    //         //     : indexFingerJoint1MaxRotationVector.y + 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+    //         float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+
+    //         Vector3 euler = targetRotation.eulerAngles;
+    //         targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+    //     }
+
+    //     if (IndexAngle2Center != null)
+    //         IndexAngle2Center.localRotation = targetRotation;
+    // }
+
+    private void UpdateIndexFingerTwistByAngle()
     {
         Quaternion targetRotation = IndexAngle2CenterInitialRotation;
         maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
 
-        // Initialize touch duration for index twist
         if (!fingerTipTouchDurations.ContainsKey("IndexTwist"))
         {
             fingerTipTouchDurations["IndexTwist"] = 0f;
         }
 
-        //   triggerIndexInnerExtension.isIndexInnerExtensionTouched // && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f 
-        if (!isFingerTipTriggered && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f && triggerRightIndexTip.isRightIndexTipTouched
-                && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2 && !isMiddle2Triggered
+        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
+                && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlIndex2 && !isMiddle2Triggered
                 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 6)
         {
             fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
-            // indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"] / 0.7f, 1f));
             isIndex2Triggered = true;
 
-            // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["IndexTwist"] > 0.7f)
+            if (fingerTipTouchDurations["IndexTwist"] > 0.3f)
             {
-                // Only rotate if there's actual rotation happening (isClockWise != 0)
                 if (currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
                 {
                     currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
@@ -1152,28 +1215,22 @@ public class ClawModuleController : MonoBehaviour
 
                 indexFingerJoint2MaxRotationVector =
                     (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
-
-                // indexJoint2Renderer.material.color = greenColor;
             }
         }
         else
         {
             fingerTipTouchDurations["IndexTwist"] = 0f;
-            // indexJoint2Renderer.material.color = originalColor;
             isIndex2Triggered = false;
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
 
-        // mapping using index and middle finger distance
-        if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle2Center != null)
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle2Center != null)
         {
             float delta = maxIndexZAxisAngle;
-            // float targetZ = isMapping
-            //     ? maxIndexZAxisAngle + (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
-            //     : indexFingerJoint1MaxRotationVector.y + 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
-
-            float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+            float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            if (targetZ >= 360f) targetZ = 0.1f;
+            // Debug.Log($"targetZ: {targetZ}");
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
@@ -1183,26 +1240,76 @@ public class ClawModuleController : MonoBehaviour
             IndexAngle2Center.localRotation = targetRotation;
     }
 
-    private void UpdateMiddleFingerTwist()
+    // private void UpdateMiddleFingerTwist()
+    // {
+    //     Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
+    //     maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
+
+    //     if (!fingerTipTouchDurations.ContainsKey("MiddleTwist"))
+    //     {
+    //         fingerTipTouchDurations["MiddleTwist"] = 0f;
+    //     }
+
+    //     if (!isFingerTipTriggered && jointAngle.joints["Middle0"].localRotation.eulerAngles.z > 100.0f && triggerRightMiddleTip.isRightMiddleTipTouched
+    //          && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2 && !isIndex2Triggered
+    //         && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 10)
+    //     {
+    //         fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
+    //         isMiddle2Triggered = true;
+
+    //         if (fingerTipTouchDurations["MiddleTwist"] > 0.7f)
+    //         {
+    //             if (currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
+    //             {
+    //                 currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+    //             }
+
+    //             currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+
+    //             middleFingerJoint2MaxRotationVector =
+    //                 (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations["MiddleTwist"] = 0f;
+    //         isMiddle2Triggered = false;
+    //     }
+
+    //     targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
+
+    //     if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle2Center != null)
+    //     {
+    //         float delta = maxMiddleZAxisAngle;
+
+    //         float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+    //         if (targetZ <= 0f) targetZ = 0f;
+
+    //         Vector3 euler = targetRotation.eulerAngles;
+    //         targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+    //     }
+
+    //     if (MiddleAngle2Center != null)
+    //         MiddleAngle2Center.localRotation = targetRotation;
+    // }
+
+    private void UpdateMiddleFingerTwistByAngle()
     {
         Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
         maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
 
-        // Initialize touch duration for middle twist
         if (!fingerTipTouchDurations.ContainsKey("MiddleTwist"))
         {
             fingerTipTouchDurations["MiddleTwist"] = 0f;
         }
 
-        if (!isFingerTipTriggered && jointAngle.joints["Middle0"].localRotation.eulerAngles.z > 100.0f && triggerRightMiddleTip.isRightMiddleTipTouched
-             && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2 && !isIndex2Triggered
+        if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
+             && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlMiddle2 && !isIndex2Triggered
             && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 10)
         {
             fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
-            // middleJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["MiddleTwist"] / 0.7f, 1f));
             isMiddle2Triggered = true;
 
-            // Only apply rotation after 1 second
             if (fingerTipTouchDurations["MiddleTwist"] > 0.7f)
             {
                 if (currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
@@ -1210,35 +1317,26 @@ public class ClawModuleController : MonoBehaviour
                     currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
                 }
 
-                // if(currentMiddleRotationZ <= 0) currentMiddleRotationZ = 0; 
-                // if (currentMiddleRotationZ > 58) currentMiddleRotationZ = 58;
-
                 currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
 
                 middleFingerJoint2MaxRotationVector =
                     (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
-
-                // middleJoint2Renderer.material.color = greenColor;
             }
         }
         else
         {
             fingerTipTouchDurations["MiddleTwist"] = 0f;
-            // middleJoint2Renderer.material.color = originalColor;
             isMiddle2Triggered = false;
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
 
-        // mapping using index and middle finger distance
-        if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle2Center != null)
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle2Center != null)
         {
             float delta = maxMiddleZAxisAngle;
-            // float targetZ = isMapping
-            //     ? maxMiddleZAxisAngle - (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
-            //     : middleFingerJoint1MaxRotationVector.y - 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
 
-            float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+            float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            if (targetZ <= 0f) targetZ = 0f;
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
