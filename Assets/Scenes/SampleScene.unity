@@ -35806,28 +35806,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1086361768}
-  - component: {fileID: 1086361767}
+  - component: {fileID: 1086361769}
   m_Layer: 0
-  m_Name: PythonValue
+  m_Name: GetPaxiniValue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1086361767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1086361766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 348a166c00a0302409887cc4d59f5f93, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  host: 127.0.0.1
-  port: 50007
 --- !u!4 &1086361768
 Transform:
   m_ObjectHideFlags: 0
@@ -35843,6 +35829,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1086361769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1086361766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06817c530bf275c4799fb901957e1ac6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  host: 127.0.0.1
+  port: 50007
 --- !u!23 &1088540452 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 757301586959430559, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
@@ -61645,14 +61645,15 @@ SceneRoots:
   - {fileID: 1193337815}
   - {fileID: 282863899}
   - {fileID: 484823146}
-  - {fileID: 118535345}
-  - {fileID: 1402943339}
-  - {fileID: 1109305385}
+  - {fileID: 176034172}
   - {fileID: 500946338}
   - {fileID: 1496061579}
+  - {fileID: 1827507980}
+  - {fileID: 1109305385}
+  - {fileID: 118535345}
+  - {fileID: 1402943339}
   - {fileID: 951283615}
   - {fileID: 859541733}
-  - {fileID: 176034172}
   - {fileID: 1527934888}
   - {fileID: 1316072732}
   - {fileID: 1122764357}
@@ -61661,5 +61662,4 @@ SceneRoots:
   - {fileID: 1858448098}
   - {fileID: 370831958}
   - {fileID: 1364976179}
-  - {fileID: 1827507980}
   - {fileID: 1086361768}

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
 
-public class PythonValue : MonoBehaviour
+public class PaxiniValue : MonoBehaviour
 {
     public string host = "127.0.0.1";
     public int port = 50007;
