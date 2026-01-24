@@ -14664,6 +14664,66 @@ Transform:
   - {fileID: 360355500}
   m_Father: {fileID: 2015734717}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &689982350
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 689982352}
+  - component: {fileID: 689982351}
+  m_Layer: 0
+  m_Name: FingerSnapManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &689982351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689982350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e2a467b1de1f24da8461c2e18524a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modeSwitching: {fileID: 951283614}
+  snapConfigurations:
+  - transform1: {fileID: 2324697153451800258}
+    transform2: {fileID: 4582782382478664306}
+    angleRange1: {x: 300, y: 310}
+    angleRange2: {x: 50, y: 60}
+    snapAngle1: 305
+    snapAngle2: 55
+    axis: 1
+    enabled: 1
+    configName: 
+    isInRange: 0
+    currentAngle1: 0
+    currentAngle2: 0
+  snapDelayThreshold: 0.1
+  debugMode: 0
+--- !u!4 &689982352
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689982350}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.09129098, y: 0.05262886, z: -10.269378}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &704942202
 GameObject:
   m_ObjectHideFlags: 0
@@ -35672,6 +35732,9 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
+  thumbInRange: 0
+  indexInRange: 0
+  middleInRange: 0
 --- !u!114 &1033347338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42790,6 +42853,9 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
+  thumbInRange: 0
+  indexInRange: 0
+  middleInRange: 0
 --- !u!114 &1487720136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54016,6 +54082,9 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
+  thumbInRange: 0
+  indexInRange: 0
+  middleInRange: 0
 --- !u!114 &1776150497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59334,6 +59403,9 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
+  thumbInRange: 0
+  indexInRange: 0
+  middleInRange: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61663,3 +61735,4 @@ SceneRoots:
   - {fileID: 370831958}
   - {fileID: 1364976179}
   - {fileID: 1086361768}
+  - {fileID: 689982352}

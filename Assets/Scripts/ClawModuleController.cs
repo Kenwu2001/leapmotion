@@ -21,6 +21,8 @@ public class ClawModuleController : MonoBehaviour
 
     public ModeSwitching modeSwitching;
 
+    // public FingerSnapManager fingerSnapManager;
+
     // ==============================
     // 🔹 Thumb Transforms
     // ==============================
@@ -216,6 +218,15 @@ public class ClawModuleController : MonoBehaviour
     // Sliding window detection for middle finger indexMiddleAngleOnPalm changes
     private Queue<(float time, float angle)> middleAngleHistory = new Queue<(float, float)>();
     public bool isMiddleRotatingPositive = true; // true = positive (outward), false = negative (inward)
+
+    //
+    public bool thumbInRange = false;
+    public bool indexInRange = false;
+    public bool middleInRange = false;
+
+    // Snap state tracking
+    private bool indexSnapApplied = false;
+    private bool middleSnapApplied = false;
 
     void Start()
     {
@@ -703,75 +714,75 @@ public class ClawModuleController : MonoBehaviour
     // 🔹 Index Finger Abduction (Y-axis)
     // ==============================
 
-    private void UpdateIndexFingerAbduction()
-    {
-        maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
-        Quaternion targetRotation = IndexAngle1CenterInitialRotation;
+    // private void UpdateIndexFingerAbduction()
+    // {
+    //     maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
+    //     Quaternion targetRotation = IndexAngle1CenterInitialRotation;
 
-        // Initialize touch duration for index abduction
-        if (!fingerTipTouchDurations.ContainsKey("IndexAbduction"))
-        {
-            fingerTipTouchDurations["IndexAbduction"] = 0f;
-        }
+    //     // Initialize touch duration for index abduction
+    //     if (!fingerTipTouchDurations.ContainsKey("IndexAbduction"))
+    //     {
+    //         fingerTipTouchDurations["IndexAbduction"] = 0f;
+    //     }
 
-        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.9f
-             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
-        {
-            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
-            // indexJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["IndexAbduction"], 1f));
-            isIndex1Triggered = true;
+    //     if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.9f
+    //          && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+    //     {
+    //         fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
+    //         // indexJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["IndexAbduction"], 1f));
+    //         isIndex1Triggered = true;
 
-            // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
-            {
-                currentIndexRotationY -= rotationSpeed * Time.deltaTime;
-                currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+    //         // Only apply rotation after 1 second
+    //         if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
+    //         {
+    //             currentIndexRotationY -= rotationSpeed * Time.deltaTime;
+    //             currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
 
-                indexFingerJoint1MaxRotationVector =
-                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+    //             indexFingerJoint1MaxRotationVector =
+    //                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
 
-                // indexJoint1Renderer.material.color = yellowColor;
-            }
-        }
-        else if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance < 3.9f
-             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
-        {
-            fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
-            isIndex1Triggered = true;
+    //             // indexJoint1Renderer.material.color = yellowColor;
+    //         }
+    //     }
+    //     else if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance < 3.9f
+    //          && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+    //     {
+    //         fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
+    //         isIndex1Triggered = true;
 
-            if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
-            {
-                currentIndexRotationY += rotationSpeed * Time.deltaTime;
-                // currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
-                currentIndexRotationY = Mathf.Min(currentIndexRotationY, 0f);
+    //         if (fingerTipTouchDurations["IndexAbduction"] > 1.0f)
+    //         {
+    //             currentIndexRotationY += rotationSpeed * Time.deltaTime;
+    //             // currentIndexRotationY = Mathf.Max(currentIndexRotationY, -60f);
+    //             currentIndexRotationY = Mathf.Min(currentIndexRotationY, 0f);
 
-                indexFingerJoint1MaxRotationVector =
-                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
-            }
-        }
-        else
-        {
-            fingerTipTouchDurations["IndexAbduction"] = 0f;
-            // indexJoint1Renderer.material.color = originalColor;
-            isIndex1Triggered = false;
-        }
+    //             indexFingerJoint1MaxRotationVector =
+    //                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations["IndexAbduction"] = 0f;
+    //         // indexJoint1Renderer.material.color = originalColor;
+    //         isIndex1Triggered = false;
+    //     }
 
-        targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
+    //     targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
 
-        if (jointAngle.indexMiddleDistance < 3.5f && IndexAngle1Center != null)
-        {
-            float delta = maxIndexYAxisAngle;
-            float targetY = isMapping
-                ? maxIndexYAxisAngle + (30 - delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
-                : indexFingerJoint1MaxRotationVector.y + 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+    //     if (jointAngle.indexMiddleDistance < 3.5f && IndexAngle1Center != null)
+    //     {
+    //         float delta = maxIndexYAxisAngle;
+    //         float targetY = isMapping
+    //             ? maxIndexYAxisAngle + (30 - delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
+    //             : indexFingerJoint1MaxRotationVector.y + 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
 
-            Vector3 euler = targetRotation.eulerAngles;
-            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
-        }
+    //         Vector3 euler = targetRotation.eulerAngles;
+    //         targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+    //     }
 
-        if (IndexAngle1Center != null)
-            IndexAngle1Center.localRotation = targetRotation;
-    }
+    //     if (IndexAngle1Center != null)
+    //         IndexAngle1Center.localRotation = targetRotation;
+    // }
 
     private void UpdateIndexFingerAbductionByAngle()
     {
@@ -878,82 +889,136 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
         }
 
-        if (IndexAngle1Center != null)
+        indexInRange = IsAngleInRange(targetRotation.eulerAngles.y, 300f, 330f);
+
+        if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        {
+            Vector3 snapEuler = targetRotation.eulerAngles;
+            snapEuler.y = 315f;
+            IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            // Debug.Log("index finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+        else
+        {
             IndexAngle1Center.localRotation = targetRotation;
+        }
+
+        // IndexAngle1Center.localRotation = targetRotation;
+
+        //FIXME: here 
+        
+        // indexInRange = IsAngleInRange(targetRotation.localEulerAngles.y, 302f, 310f);
+        
+        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        // {
+        //     Vector3 snapEuler = targetRotation.eulerAngles;
+        //     snapEuler.y = 306f;
+        //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     Debug.Log("Index finger snapped###################################################");
+        // }
+        // else
+        // {
+        //     IndexAngle1Center.localRotation = targetRotation;
+        // }
+
+        // Check if targetRotation is in snap range BEFORE applying
+        // float targetAngle = targetRotation.eulerAngles.y;
+        // indexInRange = IsAngleInRange(targetAngle, 51f, 59f);
+
+        // // Apply snap logic with state tracking
+        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        // {
+        //     if (!indexSnapApplied)
+        //     {
+        //         // First time entering snap range - apply snap
+        //         Vector3 snapEuler = targetRotation.eulerAngles;
+        //         snapEuler.y = 55f;
+        //         IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //         indexSnapApplied = true;
+        //         Debug.Log("Index finger snapped to 55 degrees!");
+        //     }
+        //     // else: snap already applied, keep current rotation (don't reapply)
+        // }
+        // else
+        // {
+        //     // Out of snap range - apply normal targetRotation and reset flag
+        //     IndexAngle1Center.localRotation = targetRotation;
+        //     indexSnapApplied = false;
+        // }
     }
 
     // ==============================
     // 🔹 Middle Finger Abduction (Y-axis)
     // ==============================
 
-    private void UpdateMiddleFingerAbduction()
-    {
-        maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
-        Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
+    // private void UpdateMiddleFingerAbduction()
+    // {
+    //     maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
+    //     Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
 
-        // Initialize touch duration for middle abduction
-        if (!fingerTipTouchDurations.ContainsKey("MiddleAbduction"))
-        {
-            fingerTipTouchDurations["MiddleAbduction"] = 0f;
-        }
+    //     // Initialize touch duration for middle abduction
+    //     if (!fingerTipTouchDurations.ContainsKey("MiddleAbduction"))
+    //     {
+    //         fingerTipTouchDurations["MiddleAbduction"] = 0f;
+    //     }
 
-        if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.9f
-             && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
-        {
-            fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
-            // middleJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["MiddleAbduction"], 1f));
-            isMiddle1Triggered = true;
+    //     if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.9f
+    //          && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+    //     {
+    //         fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
+    //         // middleJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["MiddleAbduction"], 1f));
+    //         isMiddle1Triggered = true;
 
-            // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
-            {
-                currentMiddleRotationY += rotationSpeed * Time.deltaTime;
-                currentMiddleRotationY = Mathf.Min(currentMiddleRotationY, 60f);
+    //         // Only apply rotation after 1 second
+    //         if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
+    //         {
+    //             currentMiddleRotationY += rotationSpeed * Time.deltaTime;
+    //             currentMiddleRotationY = Mathf.Min(currentMiddleRotationY, 60f);
 
-                middleFingerJoint1MaxRotationVector =
-                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+    //             middleFingerJoint1MaxRotationVector =
+    //                 (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
 
-                // middleJoint1Renderer.material.color = yellowColor;
-            }
-        }
-        else if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance < 3.9f
-             && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
-        {
-            fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
-            isMiddle1Triggered = true;
+    //             // middleJoint1Renderer.material.color = yellowColor;
+    //         }
+    //     }
+    //     else if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance < 3.9f
+    //          && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+    //     {
+    //         fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
+    //         isMiddle1Triggered = true;
 
-            if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
-            {
-                currentMiddleRotationY -= rotationSpeed * Time.deltaTime;
-                currentMiddleRotationY = Mathf.Max(currentMiddleRotationY, 0f);
+    //         if (fingerTipTouchDurations["MiddleAbduction"] > 1.0f)
+    //         {
+    //             currentMiddleRotationY -= rotationSpeed * Time.deltaTime;
+    //             currentMiddleRotationY = Mathf.Max(currentMiddleRotationY, 0f);
 
-                middleFingerJoint1MaxRotationVector =
-                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
-            }
-        }
-        else
-        {
-            fingerTipTouchDurations["MiddleAbduction"] = 0f;
-            // middleJoint1Renderer.material.color = originalColor;
-            isMiddle1Triggered = false;
-        }
+    //             middleFingerJoint1MaxRotationVector =
+    //                 (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations["MiddleAbduction"] = 0f;
+    //         // middleJoint1Renderer.material.color = originalColor;
+    //         isMiddle1Triggered = false;
+    //     }
 
-        targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
+    //     targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
 
-        if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle1Center != null)
-        {
-            float delta = maxMiddleYAxisAngle;
-            float targetY = isMapping
-                ? maxMiddleYAxisAngle - (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
-                : middleFingerJoint1MaxRotationVector.y - 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
+    //     if (jointAngle.indexMiddleDistance < 3.5f && MiddleAngle1Center != null)
+    //     {
+    //         float delta = maxMiddleYAxisAngle;
+    //         float targetY = isMapping
+    //             ? maxMiddleYAxisAngle - (30 + delta) * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f)
+    //             : middleFingerJoint1MaxRotationVector.y - 30 * ((3.5f - jointAngle.indexMiddleDistance) / 1.6f);
 
-            Vector3 euler = targetRotation.eulerAngles;
-            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
-        }
+    //         Vector3 euler = targetRotation.eulerAngles;
+    //         targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+    //     }
 
-        if (MiddleAngle1Center != null)
-            MiddleAngle1Center.localRotation = targetRotation;
-    }
+    //     if (MiddleAngle1Center != null)
+    //         MiddleAngle1Center.localRotation = targetRotation;
+    // }
 
     void UpdateMiddleFingerAbductionByAngle()
     {
@@ -1058,10 +1123,66 @@ public class ClawModuleController : MonoBehaviour
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+            Debug.Log("targetRotation.y: SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS   " + targetRotation.eulerAngles.y);
         }
 
-        if (MiddleAngle1Center != null)
+        //FIXME: here
+
+        middleInRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
+
+        if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        {
+            Vector3 snapEuler = targetRotation.eulerAngles;
+            snapEuler.y = 45f;
+            MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            Debug.Log("Middle finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+        else
+        {
             MiddleAngle1Center.localRotation = targetRotation;
+        }
+
+        // MiddleAngle1Center.localRotation = targetRotation;
+        Debug.Log("MiddleAngle1Center.localRotation.y: XXXXXXXXXXXXXXXXXXXXXXXXXX   " + MiddleAngle1Center.localEulerAngles.y);
+
+        // middleInRange = IsAngleInRange(targetRotation.localEulerAngles.y, 51f, 59f);
+        
+        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        // {
+        //     Vector3 snapEuler = targetRotation.eulerAngles;
+        //     snapEuler.y = 55f;
+        //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     Debug.Log("Middle finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // }
+        // else
+        // {
+        //     MiddleAngle1Center.localRotation = targetRotation;
+        // }
+
+        // // Check if targetRotation is in snap range BEFORE applying
+        // float middleTargetAngle = targetRotation.eulerAngles.y;
+        // middleInRange = IsAngleInRange(middleTargetAngle, 51f, 59f);
+
+        // // Apply snap logic with state tracking
+        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        // {
+        //     if (!middleSnapApplied)
+        //     {
+        //         // First time entering snap range - apply snap
+        //         Vector3 snapEuler = targetRotation.eulerAngles;
+        //         snapEuler.y = 55f;
+        //         MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //         middleSnapApplied = true;
+        //         Debug.Log("Middle finger snapped to 55 degrees!");
+        //     }
+        //     // else: snap already applied, keep current rotation (don't reapply)
+        // }
+        // else
+        // {
+        //     // Out of snap range - apply normal targetRotation and reset flag
+        //     MiddleAngle1Center.localRotation = targetRotation;
+        //     middleSnapApplied = false;
+        // }
     }
 
     // ==============================
@@ -1349,6 +1470,19 @@ public class ClawModuleController : MonoBehaviour
     private float NormalizeAngle(float angle)
     {
         return angle >= 300 ? angle - 360 : angle;
+    }
+
+    private bool IsAngleInRange(float angle, float min, float max)
+    {
+        // Handle wrap-around case (e.g., 302-310 crosses 360/0 boundary)
+        if (min > max)
+        {
+            return angle >= min || angle <= max;
+        }
+        else
+        {
+            return angle >= min && angle <= max;
+        }
     }
 
     // private void UpdateInnerExtension(
