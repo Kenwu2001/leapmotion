@@ -16,6 +16,26 @@ public class PaxiniValue : MonoBehaviour
     private string latestLine = "";
     private bool hasNewData = false;
 
+    private bool isThumbPaxiniZero = false;
+    private bool isThumbTouchSnapped = false;
+    private bool isIndexPaxiniZero = false;
+    private bool isIndexTouchSnapped = false;
+    private bool isMiddlePaxiniZero = false;
+    private bool isMiddleTouchSnapped = false;
+
+    // Store initial joint transforms when snap occurs
+    private Transform initialThumb0;
+    private Transform initialThumb1;
+    private Transform initialIndex0;
+    private Transform initialIndex1;
+    private Transform initialIndex2;
+    private Transform initialMiddle0;
+    private Transform initialMiddle1;
+    private Transform initialMiddle2;
+
+    // Scripts
+    public JointAngle jointAngle;
+
     [Serializable]
     private class Payload
     {
@@ -48,6 +68,92 @@ public class PaxiniValue : MonoBehaviour
 
             Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
                       $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
+
+            if (payload.Fz_thumb == 0 && payload.Ft_thumb == 0)
+            {
+                isThumbPaxiniZero = true;
+                isThumbTouchSnapped = false;
+            }
+
+            if (payload.Fz_index == 0 && payload.Ft_index == 0)
+            {
+                isIndexPaxiniZero = true;
+                isIndexTouchSnapped = false;
+            }
+
+            if (payload.Fz_middle == 0 && payload.Ft_middle == 0)
+            {
+                isMiddlePaxiniZero = true;
+                isMiddleTouchSnapped = false;
+            }
+
+            if ((payload.Fz_thumb > 0.1f || payload.Ft_thumb > 0.1f) && isThumbPaxiniZero)
+            {
+                if (!isThumbTouchSnapped)
+                {
+                    isThumbTouchSnapped = true;
+                    isThumbPaxiniZero = false;
+                    // Record initial joint values
+                    initialThumb0 = jointAngle.GetJoint("Thumb0");
+                    initialThumb1 = jointAngle.GetJoint("Thumb1");
+                    // lock every thumb gripper motor
+                    // ...
+                }
+            }
+
+            // if thumb is snapped, continuously check if it should be cancelled
+            if (isThumbTouchSnapped)
+            {
+                // if thumb joint angle moves too much, cancel the snap
+                if (cancleTouchSnap(initialThumb0, initialThumb1))
+                {
+                    isThumbTouchSnapped = false;
+                }
+            }
+
+            if ((payload.Fz_index > 0.1f || payload.Ft_index > 0.1f) && isIndexPaxiniZero)
+            {
+                if (!isIndexTouchSnapped)
+                {
+                    isIndexTouchSnapped = true;
+                    isIndexPaxiniZero = false;
+                    // Record initial joint values
+                    initialIndex0 = jointAngle.GetJoint("Index0");
+                    initialIndex1 = jointAngle.GetJoint("Index1");
+                    initialIndex2 = jointAngle.GetJoint("Index2");
+                }
+            }
+
+            // if index is snapped, continuously check if it should be cancelled
+            if (isIndexTouchSnapped)
+            {
+                if (cancleTouchSnap(initialIndex0, initialIndex1, initialIndex2))
+                {
+                    isIndexTouchSnapped = false;
+                }
+            }
+
+            if ((payload.Fz_middle > 0.1f || payload.Ft_middle > 0.1f) && isMiddlePaxiniZero)
+            {
+                if (!isMiddleTouchSnapped)
+                {
+                    isMiddleTouchSnapped = true;
+                    isMiddlePaxiniZero = false;
+                    // Record initial joint values
+                    initialMiddle0 = jointAngle.GetJoint("Middle0");
+                    initialMiddle1 = jointAngle.GetJoint("Middle1");
+                    initialMiddle2 = jointAngle.GetJoint("Middle2");
+                }
+            }
+
+            // if middle is snapped, continuously check if it should be cancelled
+            if (isMiddleTouchSnapped)
+            {
+                if (cancleTouchSnap(initialMiddle0, initialMiddle1, initialMiddle2))
+                {
+                    isMiddleTouchSnapped = false;
+                }
+            }
         }
     }
 
@@ -81,6 +187,120 @@ public class PaxiniValue : MonoBehaviour
             }
         }
     }
+
+    bool cancleTouchSnap(Transform initialJoint0, Transform initialJoint1, Transform initialJoint2 = null)
+    {
+        if (initialJoint0 == null || initialJoint1 == null || jointAngle == null)
+            return false;
+
+        float accumulatedJoint0 = 0f;
+        float accumulatedJoint1 = 0f;
+        float accumulatedJoint2 = 0f;
+
+        float current0 = jointAngle.GetJoint(initialJoint0.name).localEulerAngles.z;
+        float current1 = jointAngle.GetJoint(initialJoint1.name).localEulerAngles.z;
+        float current2 = 0f;
+
+        current0 = current0 < 100f ? current0 + 360f : current0;
+        current1 = current1 < 100f ? current1 + 360f : current1;
+
+        accumulatedJoint0 = initialJoint0.localEulerAngles.z - current0;
+        accumulatedJoint1 = initialJoint1.localEulerAngles.z - current1;
+
+        if (initialJoint2 != null)
+        {
+            current2 = jointAngle.GetJoint(initialJoint2.name).localEulerAngles.z;
+            current2 = current2 < 100f ? current2 + 360f : current2;
+            accumulatedJoint2 = initialJoint2.localEulerAngles.z - current2;
+        }
+
+        float threshold = 15f;
+        if (initialJoint2 != null)
+        {
+            return (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 > threshold) || 
+            (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 < -threshold);
+        }
+        else
+        {
+            return (accumulatedJoint0 + accumulatedJoint1 > threshold) || (accumulatedJoint0 + accumulatedJoint1 < -threshold);
+        }
+    }
+
+    // bool cancleThumbTouchSnap()
+    // {
+    //     if (initialThumb0 == null || initialThumb1 == null || jointAngle == null)
+    //         return false;
+
+    //     Transform currentThumb0 = jointAngle.GetJoint("Thumb0");
+    //     Transform currentThumb1 = jointAngle.GetJoint("Thumb1");
+
+    //     if (currentThumb0 == null || currentThumb1 == null)
+    //         return false;
+
+    //     // Compare positions - if moved too much, cancel the snap
+    //     float distance0 = Vector3.Distance(initialThumb0.position, currentThumb0.position);
+    //     float distance1 = Vector3.Distance(initialThumb1.position, currentThumb1.position);
+
+    //     // Compare rotations - if rotated too much, cancel the snap
+    //     float angle0 = Quaternion.Angle(initialThumb0.rotation, currentThumb0.rotation);
+    //     float angle1 = Quaternion.Angle(initialThumb1.rotation, currentThumb1.rotation);
+
+    //     // Threshold values - adjust as needed
+    //     float positionThreshold = 0.01f; // 1cm
+    //     float angleThreshold = 10f; // 10 degrees
+
+    //     return distance0 > positionThreshold || distance1 > positionThreshold ||
+    //            angle0 > angleThreshold || angle1 > angleThreshold;
+    // }
+
+
+    // bool cancleIndexTouchSnap()
+    // {
+    //     if (initialIndex0 == null || initialIndex1 == null || jointAngle == null)
+    //         return false;
+
+    //     Transform currentIndex0 = jointAngle.GetJoint("Index0");
+    //     Transform currentIndex1 = jointAngle.GetJoint("Index1");
+
+    //     if (currentIndex0 == null || currentIndex1 == null)
+    //         return false;
+
+    //     float distance0 = Vector3.Distance(initialIndex0.position, currentIndex0.position);
+    //     float distance1 = Vector3.Distance(initialIndex1.position, currentIndex1.position);
+
+    //     float angle0 = Quaternion.Angle(initialIndex0.rotation, currentIndex0.rotation);
+    //     float angle1 = Quaternion.Angle(initialIndex1.rotation, currentIndex1.rotation);
+
+    //     float positionThreshold = 0.01f;
+    //     float angleThreshold = 10f;
+
+    //     return distance0 > positionThreshold || distance1 > positionThreshold ||
+    //            angle0 > angleThreshold || angle1 > angleThreshold;
+    // }
+
+    // bool cancleMiddleTouchSnap()
+    // {
+    //     if (initialMiddle0 == null || initialMiddle1 == null || jointAngle == null)
+    //         return false;
+
+    //     Transform currentMiddle0 = jointAngle.GetJoint("Middle0");
+    //     Transform currentMiddle1 = jointAngle.GetJoint("Middle1");
+
+    //     if (currentMiddle0 == null || currentMiddle1 == null)
+    //         return false;
+
+    //     float distance0 = Vector3.Distance(initialMiddle0.position, currentMiddle0.position);
+    //     float distance1 = Vector3.Distance(initialMiddle1.position, currentMiddle1.position);
+
+    //     float angle0 = Quaternion.Angle(initialMiddle0.rotation, currentMiddle0.rotation);
+    //     float angle1 = Quaternion.Angle(initialMiddle1.rotation, currentMiddle1.rotation);
+
+    //     float positionThreshold = 0.01f;
+    //     float angleThreshold = 10f;
+
+    //     return distance0 > positionThreshold || distance1 > positionThreshold ||
+    //            angle0 > angleThreshold || angle1 > angleThreshold;
+    // }
 
     void OnDestroy()
     {

@@ -35732,9 +35732,12 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
-  thumbInRange: 0
-  indexInRange: 0
-  middleInRange: 0
+  thumbIndexInThumbRange: 0
+  thumbIndexInIndexRange: 0
+  thumbMiddleInThumbRange: 0
+  thumbMiddleInMiddleRange: 0
+  indexMiddleInIndexRange: 0
+  indexMiddleInMiddleRange: 0
 --- !u!114 &1033347338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35906,6 +35909,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   host: 127.0.0.1
   port: 50007
+  jointAngle: {fileID: 1422305614}
 --- !u!23 &1088540452 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: 757301586959430559, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
@@ -42853,9 +42857,12 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
-  thumbInRange: 0
-  indexInRange: 0
-  middleInRange: 0
+  thumbIndexInThumbRange: 0
+  thumbIndexInIndexRange: 0
+  thumbMiddleInThumbRange: 0
+  thumbMiddleInMiddleRange: 0
+  indexMiddleInIndexRange: 0
+  indexMiddleInMiddleRange: 0
 --- !u!114 &1487720136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54082,9 +54089,12 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
-  thumbInRange: 0
-  indexInRange: 0
-  middleInRange: 0
+  thumbIndexInThumbRange: 0
+  thumbIndexInIndexRange: 0
+  thumbMiddleInThumbRange: 0
+  thumbMiddleInMiddleRange: 0
+  indexMiddleInIndexRange: 0
+  indexMiddleInMiddleRange: 0
 --- !u!114 &1776150497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59403,9 +59413,12 @@ MonoBehaviour:
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
-  thumbInRange: 0
-  indexInRange: 0
-  middleInRange: 0
+  thumbIndexInThumbRange: 0
+  thumbIndexInIndexRange: 0
+  thumbMiddleInThumbRange: 0
+  thumbMiddleInMiddleRange: 0
+  indexMiddleInIndexRange: 0
+  indexMiddleInMiddleRange: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:
   m_ObjectHideFlags: 0
