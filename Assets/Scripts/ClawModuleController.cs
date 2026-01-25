@@ -219,10 +219,13 @@ public class ClawModuleController : MonoBehaviour
     private Queue<(float time, float angle)> middleAngleHistory = new Queue<(float, float)>();
     public bool isMiddleRotatingPositive = true; // true = positive (outward), false = negative (inward)
 
-    //
-    public bool thumbInRange = false;
-    public bool indexInRange = false;
-    public bool middleInRange = false;
+    // For snapping
+    public bool thumbIndexInThumbRange = false; // 320-340 330
+    public bool thumbIndexInIndexRange = false; // 20-40 30
+    public bool thumbMiddleInThumbRange = false; // 20-40 30
+    public bool thumbMiddleInMiddleRange = false; //0-30
+    public bool indexMiddleInIndexRange = false; 
+    public bool indexMiddleInMiddleRange = false;
 
     // Snap state tracking
     private bool indexSnapApplied = false;
@@ -706,6 +709,28 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
+        //FIXME: more
+
+        // thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
+        // thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
+
+        // if (modeSwitching.modeSelect && thumbIndexInThumbRange && thumbIndexInIndexRange)
+        // {
+        //     Vector3 snapEuler = targetRotation.eulerAngles;
+        //     snapEuler.y = 330f;
+        //     ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        // }
+        // else if (modeSwitching.modeSelect && thumbMiddleInThumbRange && thumbMiddleInMiddleRange)
+        // {
+        //     Vector3 snapEuler = targetRotation.eulerAngles;
+        //     snapEuler.y = 20f;
+        //     ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        // }
+        // else
+        // {
+        //     ThumbAngle1Center.localRotation = targetRotation;
+        // }
+
         if (ThumbAngle1Center != null)
             ThumbAngle1Center.localRotation = targetRotation;
     }
@@ -889,62 +914,32 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
         }
 
-        indexInRange = IsAngleInRange(targetRotation.eulerAngles.y, 300f, 330f);
+        //FIXME: more
 
-        if (modeSwitching.modeSelect && indexInRange && middleInRange)
-        {
-            Vector3 snapEuler = targetRotation.eulerAngles;
-            snapEuler.y = 315f;
-            IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-            // Debug.Log("index finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        }
-        else
-        {
-            IndexAngle1Center.localRotation = targetRotation;
-        }
+        // indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 300f, 330f);
+        // thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
-        // IndexAngle1Center.localRotation = targetRotation;
-
-        //FIXME: here 
-        
-        // indexInRange = IsAngleInRange(targetRotation.localEulerAngles.y, 302f, 310f);
-        
-        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        // if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
         // {
         //     Vector3 snapEuler = targetRotation.eulerAngles;
-        //     snapEuler.y = 306f;
+        //     snapEuler.y = 315f;
         //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     Debug.Log("Index finger snapped###################################################");
+        //     // Debug.Log("index finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // }
+        // else if (modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange)
+        // {
+        //     Vector3 snapEuler = targetRotation.eulerAngles;
+        //     snapEuler.y = 30f;
+        //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     // Debug.Log("index finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         // }
         // else
         // {
         //     IndexAngle1Center.localRotation = targetRotation;
         // }
 
-        // Check if targetRotation is in snap range BEFORE applying
-        // float targetAngle = targetRotation.eulerAngles.y;
-        // indexInRange = IsAngleInRange(targetAngle, 51f, 59f);
-
-        // // Apply snap logic with state tracking
-        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
-        // {
-        //     if (!indexSnapApplied)
-        //     {
-        //         // First time entering snap range - apply snap
-        //         Vector3 snapEuler = targetRotation.eulerAngles;
-        //         snapEuler.y = 55f;
-        //         IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //         indexSnapApplied = true;
-        //         Debug.Log("Index finger snapped to 55 degrees!");
-        //     }
-        //     // else: snap already applied, keep current rotation (don't reapply)
-        // }
-        // else
-        // {
-        //     // Out of snap range - apply normal targetRotation and reset flag
-        //     IndexAngle1Center.localRotation = targetRotation;
-        //     indexSnapApplied = false;
-        // }
+        if (IndexAngle1Center != null)
+            IndexAngle1Center.localRotation = targetRotation;
     }
 
     // ==============================
@@ -1126,63 +1121,30 @@ public class ClawModuleController : MonoBehaviour
             Debug.Log("targetRotation.y: SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS   " + targetRotation.eulerAngles.y);
         }
 
-        //FIXME: here
+        //FIXME: more
 
-        middleInRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
+        // indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
+        // thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
 
-        if (modeSwitching.modeSelect && indexInRange && middleInRange)
-        {
-            Vector3 snapEuler = targetRotation.eulerAngles;
-            snapEuler.y = 45f;
-            MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-            Debug.Log("Middle finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        }
-        else
-        {
-            MiddleAngle1Center.localRotation = targetRotation;
-        }
-
-        // MiddleAngle1Center.localRotation = targetRotation;
-        Debug.Log("MiddleAngle1Center.localRotation.y: XXXXXXXXXXXXXXXXXXXXXXXXXX   " + MiddleAngle1Center.localEulerAngles.y);
-
-        // middleInRange = IsAngleInRange(targetRotation.localEulerAngles.y, 51f, 59f);
-        
-        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
+        // if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
         // {
         //     Vector3 snapEuler = targetRotation.eulerAngles;
-        //     snapEuler.y = 55f;
+        //     snapEuler.y = 45f;
         //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     Debug.Log("Middle finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // }
+        // else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
+        // {
+        //     Vector3 snapEuler = targetRotation.eulerAngles;
+        //     snapEuler.y = 15f;
+        //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
         // }
         // else
         // {
         //     MiddleAngle1Center.localRotation = targetRotation;
         // }
 
-        // // Check if targetRotation is in snap range BEFORE applying
-        // float middleTargetAngle = targetRotation.eulerAngles.y;
-        // middleInRange = IsAngleInRange(middleTargetAngle, 51f, 59f);
-
-        // // Apply snap logic with state tracking
-        // if (modeSwitching.modeSelect && indexInRange && middleInRange)
-        // {
-        //     if (!middleSnapApplied)
-        //     {
-        //         // First time entering snap range - apply snap
-        //         Vector3 snapEuler = targetRotation.eulerAngles;
-        //         snapEuler.y = 55f;
-        //         MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //         middleSnapApplied = true;
-        //         Debug.Log("Middle finger snapped to 55 degrees!");
-        //     }
-        //     // else: snap already applied, keep current rotation (don't reapply)
-        // }
-        // else
-        // {
-        //     // Out of snap range - apply normal targetRotation and reset flag
-        //     MiddleAngle1Center.localRotation = targetRotation;
-        //     middleSnapApplied = false;
-        // }
+        if (MiddleAngle1Center != null)
+            MiddleAngle1Center.localRotation = targetRotation;
     }
 
     // ==============================

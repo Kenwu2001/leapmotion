@@ -114,13 +114,17 @@ public class DebugAngle : MonoBehaviour
                 "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
                 "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 "isRightMiddleTipTouched: " + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
-                // "ThumbAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.ThumbAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
+                "ThumbAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.ThumbAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 // "ThumbAngle2Center.localRotation.eulerAngles.z: " + clawModuleController.ThumbAngle2Center.localEulerAngles.z.ToString("F4") + "°\n" +
                 "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 // "IndexAngle2Center.localRotation.eulerAngles.z: " + clawModuleController.IndexAngle2Center.localEulerAngles.z.ToString("F4") + "°\n" +
                 "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
-                "indexInRange: " + clawModuleController.indexInRange.ToString() + "\n" +
-                "middleInRange: " + clawModuleController.middleInRange.ToString() + "\n";
+                // "indexMiddleInIndexRange: " + clawModuleController.indexMiddleInIndexRange.ToString() + "\n" +
+                // "indexMiddleInMiddleRange: " + clawModuleController.indexMiddleInMiddleRange.ToString() + "\n" +
+                "thumbIndexInThumbRange: " + clawModuleController.thumbIndexInThumbRange.ToString() + "\n" +
+                "thumbIndexInIndexRange: " + clawModuleController.thumbIndexInIndexRange.ToString() + "\n" +
+                "thumbMiddleInThumbRange: " + clawModuleController.thumbMiddleInThumbRange.ToString() + "\n" +
+                "thumbMiddleInMiddleRange: " + clawModuleController.thumbMiddleInMiddleRange.ToString() + "\n";
                 // "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localRotation.y.ToString("F4") + "°\n";
                 // "MiddleAngle2Center.localRotation.eulerAngles.z,: " + clawModuleController.MiddleAngle2Center.localEulerAngles.z.ToString("F4") + "°\n";
                 // "GetDynamicLeftThumbTipPosition" + retargetIndex.GetDynamicLeftThumbTipPosition().ToString("F4") + "\n";
