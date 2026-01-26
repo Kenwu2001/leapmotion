@@ -404,11 +404,14 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle3Center,
             ref isThumb3Triggered,
             isIndex3Triggered || isMiddle3Triggered,
+            ref _thumbMotor3Locked,
+            ref _thumbMotor3LockedRot,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
             3,  // Expected motor ID for thumb
             20.0f,  // Thumb requires 20 degree change
-            jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
+            jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
+            paxiniValue.isThumbTouchSnapped
         );
 
         UpdateFingertipExtensionV2(
@@ -425,11 +428,14 @@ public class ClawModuleController : MonoBehaviour
             ThumbAngle4Center,
             ref isThumb4Triggered,
             isIndex4Triggered || isMiddle4Triggered,
+            ref _thumbMotor4Locked,
+            ref _thumbMotor4LockedRot,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
             4,  // Expected motor ID for thumb
             20.0f,  // Thumb requires 20 degree change
-            jointAngle.thumbPalmAngle  // Track thumbPalmAngle changes
+            jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
+            paxiniValue.isThumbTouchSnapped
         );
 
         UpdateThumbAbduction();
@@ -495,9 +501,14 @@ public class ClawModuleController : MonoBehaviour
             IndexAngle3Center,
             ref isIndex3Triggered,
             isThumb3Triggered || isMiddle3Triggered,
+            ref _indexMotor3Locked,
+            ref _indexMotor3LockedRot,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
-            7
+            7,
+            15.0f,
+            null,
+            paxiniValue.isIndexTouchSnapped
         );
 
         UpdateFingertipExtensionV2(
@@ -514,9 +525,14 @@ public class ClawModuleController : MonoBehaviour
             IndexAngle4Center,
             ref isIndex4Triggered,
             isThumb4Triggered || isMiddle4Triggered,
+            ref _indexMotor4Locked,
+            ref _indexMotor4LockedRot,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
-            8
+            8,
+            15.0f,
+            null,
+            paxiniValue.isIndexTouchSnapped
         );
 
         // ==============================
@@ -564,7 +580,7 @@ public class ClawModuleController : MonoBehaviour
         //     ref isMiddle4Triggered
         // );
 
-        UpdateFingertipExtensionV2( // inner part
+        UpdateFingertipExtensionV2(
             triggerRightMiddleTip.isRightMiddleTipTouched,
             jointAngle.middleAngle2,
             "Middle2",
@@ -578,9 +594,14 @@ public class ClawModuleController : MonoBehaviour
             MiddleAngle3Center,
             ref isMiddle3Triggered,
             isThumb3Triggered || isIndex3Triggered,
+            ref _middleMotor3Locked,
+            ref _middleMotor3LockedRot,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
-            11
+            11,
+            15.0f,
+            null,
+            paxiniValue.isMiddleTouchSnapped
         );
 
         UpdateFingertipExtensionV2(
@@ -597,9 +618,14 @@ public class ClawModuleController : MonoBehaviour
             MiddleAngle4Center,
             ref isMiddle4Triggered,
             isThumb4Triggered || isIndex4Triggered,
+            ref _middleMotor4Locked,
+            ref _middleMotor4LockedRot,
             modeSwitching.modeManipulate,
             modeSwitching.currentRedMotorID,
-            12
+            12,
+            15.0f,
+            null,
+            paxiniValue.isMiddleTouchSnapped
         );
     }
 
@@ -1295,8 +1321,24 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
-        if (ThumbAngle2Center != null)
-            ThumbAngle2Center.localRotation = targetRotation;
+        if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
+        {
+            if (!_thumbMotor2Locked && ThumbAngle2Center != null)
+            {
+                _thumbMotor2Locked = true;
+                _thumbMotor2LockedRot = ThumbAngle2Center.localRotation;
+            }
+
+            if (ThumbAngle2Center != null)
+                ThumbAngle2Center.localRotation = _thumbMotor2LockedRot;
+        }
+        else
+        {
+            _thumbMotor2Locked = false;
+
+            if (ThumbAngle2Center != null)
+                ThumbAngle2Center.localRotation = targetRotation;
+        }
     }
 
     // private void UpdateIndexFingerTwist()
@@ -1412,8 +1454,24 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
-        if (IndexAngle2Center != null)
-            IndexAngle2Center.localRotation = targetRotation;
+        if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+        {
+            if (!_indexMotor2Locked && IndexAngle2Center != null)
+            {
+                _indexMotor2Locked = true;
+                _indexMotor2LockedRot = IndexAngle2Center.localRotation;
+            }
+
+            if (IndexAngle2Center != null)
+                IndexAngle2Center.localRotation = _indexMotor2LockedRot;
+        }
+        else
+        {
+            _indexMotor2Locked = false;
+
+            if (IndexAngle2Center != null)
+                IndexAngle2Center.localRotation = targetRotation;
+        }
     }
 
     // private void UpdateMiddleFingerTwist()
@@ -1518,8 +1576,24 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
-        if (MiddleAngle2Center != null)
-            MiddleAngle2Center.localRotation = targetRotation;
+        if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+        {
+            if (!_middleMotor2Locked && MiddleAngle2Center != null)
+            {
+                _middleMotor2Locked = true;
+                _middleMotor2LockedRot = MiddleAngle2Center.localRotation;
+            }
+
+            if (MiddleAngle2Center != null)
+                MiddleAngle2Center.localRotation = _middleMotor2LockedRot;
+        }
+        else
+        {
+            _middleMotor2Locked = false;
+
+            if (MiddleAngle2Center != null)
+                MiddleAngle2Center.localRotation = targetRotation;
+        }
     }
 
     private float NormalizeAngle(float angle)
@@ -1728,11 +1802,14 @@ public class ClawModuleController : MonoBehaviour
         Transform jointTransform,
         ref bool relatedMotorTriggered,
         bool shouldPreventActivation,
+        ref bool motorLocked,
+        ref Quaternion motorLockedRotation,
         bool isManipulatingMode = false,
         int motorID = -2,
         int expectedMotorID = -3,
         float angleThreshold = 15.0f,
-        float? additionalAngle = null)
+        float? additionalAngle = null,
+        bool paxiniTouchSnapped = false)
     {
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
@@ -1983,8 +2060,25 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
         }
 
-        if (jointTransform != null)
-            jointTransform.localRotation = targetRotation;
+        // Apply motor locking logic
+        if (modeSwitching.modeSelect && paxiniTouchSnapped)
+        {
+            if (!motorLocked && jointTransform != null)
+            {
+                motorLocked = true;
+                motorLockedRotation = jointTransform.localRotation;
+            }
+
+            if (jointTransform != null)
+                jointTransform.localRotation = motorLockedRotation;
+        }
+        else
+        {
+            motorLocked = false;
+
+            if (jointTransform != null)
+                jointTransform.localRotation = targetRotation;
+        }
     }
 
     // ==============================
