@@ -17,6 +17,7 @@ public class DebugAngle : MonoBehaviour
     public RetargetIndex retargetIndex;
     public SelectMotorCollider SelectMotorCollider;
     public ModeSwitching modeSwitching;
+    public PaxiniValue paxiniValue;
 
     // middle 59 58 57
     // index 302 303 304
@@ -120,10 +121,12 @@ public class DebugAngle : MonoBehaviour
                 // "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 // "indexMiddleInIndexRange: " + clawModuleController.indexMiddleInIndexRange.ToString() + "\n" +
                 // "indexMiddleInMiddleRange: " + clawModuleController.indexMiddleInMiddleRange.ToString() + "\n" +
-                "thumbIndexInThumbRange: " + clawModuleController.thumbIndexInThumbRange.ToString() + "\n" +
-                "thumbIndexInIndexRange: " + clawModuleController.thumbIndexInIndexRange.ToString() + "\n" +
-                "thumbMiddleInThumbRange: " + clawModuleController.thumbMiddleInThumbRange.ToString() + "\n" +
-                "thumbMiddleInMiddleRange: " + clawModuleController.thumbMiddleInMiddleRange.ToString() + "\n" +
+                // "thumbIndexInThumbRange: " + clawModuleController.thumbIndexInThumbRange.ToString() + "\n" +
+                // "thumbIndexInIndexRange: " + clawModuleController.thumbIndexInIndexRange.ToString() + "\n" +
+                // "thumbMiddleInThumbRange: " + clawModuleController.thumbMiddleInThumbRange.ToString() + "\n" +
+                // "thumbMiddleInMiddleRange: " + clawModuleController.thumbMiddleInMiddleRange.ToString() + "\n" +
+                "paxini isMiddlePaxiniZero: " + paxiniValue.isMiddlePaxiniZero.ToString() + "\n" +
+                "paxini isMiddleTouchSnapped: " + paxiniValue.isMiddleTouchSnapped.ToString() + "\n" +
                 "joints[Thumb0].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 "joints[Thumb0].localEulerAngles.z: " + jointAngle.joints["Thumb0"].localEulerAngles.z.ToString("F4") + "°\n" +
                 "joints[Thumb1].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +

@@ -16,22 +16,22 @@ public class PaxiniValue : MonoBehaviour
     private string latestLine = "";
     private bool hasNewData = false;
 
-    private bool isThumbPaxiniZero = false;
-    private bool isThumbTouchSnapped = false;
-    private bool isIndexPaxiniZero = false;
-    private bool isIndexTouchSnapped = false;
-    private bool isMiddlePaxiniZero = false;
-    private bool isMiddleTouchSnapped = false;
+    public bool isThumbPaxiniZero = false;
+    public bool isThumbTouchSnapped = false;
+    public bool isIndexPaxiniZero = false;
+    public bool isIndexTouchSnapped = false;
+    public bool isMiddlePaxiniZero = false;
+    public bool isMiddleTouchSnapped = false;
 
-    // Store initial joint transforms when snap occurs
-    private Transform initialThumb0;
-    private Transform initialThumb1;
-    private Transform initialIndex0;
-    private Transform initialIndex1;
-    private Transform initialIndex2;
-    private Transform initialMiddle0;
-    private Transform initialMiddle1;
-    private Transform initialMiddle2;
+    // Store initial joint angle values when snap occurs
+    private float initialThumb0Angle;
+    private float initialThumb1Angle;
+    private float initialIndex0Angle;
+    private float initialIndex1Angle;
+    private float initialIndex2Angle;
+    private float initialMiddle0Angle;
+    private float initialMiddle1Angle;
+    private float initialMiddle2Angle;
 
     // Scripts
     public JointAngle jointAngle;
@@ -62,12 +62,12 @@ public class PaxiniValue : MonoBehaviour
         {
             hasNewData = false;
 
-            Debug.Log($"[Unity] Raw JSON: {latestLine}");
+            // Debug.Log($"[Unity] Raw JSON: {latestLine}");
 
             var payload = JsonUtility.FromJson<Payload>(latestLine);
 
-            Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
-                      $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
+            // Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
+            //           $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
 
             if (payload.Fz_thumb == 0 && payload.Ft_thumb == 0)
             {
@@ -93,9 +93,16 @@ public class PaxiniValue : MonoBehaviour
                 {
                     isThumbTouchSnapped = true;
                     isThumbPaxiniZero = false;
-                    // Record initial joint values
-                    initialThumb0 = jointAngle.GetJoint("Thumb0");
-                    initialThumb1 = jointAngle.GetJoint("Thumb1");
+                    // Record initial joint angle values
+                    Transform thumb0 = jointAngle.GetJoint("Thumb0");
+                    Transform thumb1 = jointAngle.GetJoint("Thumb1");
+                    if (thumb0 != null && thumb1 != null)
+                    {
+                        initialThumb0Angle = thumb0.localEulerAngles.z;
+                        initialThumb1Angle = thumb1.localEulerAngles.z;
+                        initialThumb0Angle = initialThumb0Angle < 100f ? initialThumb0Angle + 360f : initialThumb0Angle;
+                        initialThumb1Angle = initialThumb1Angle < 100f ? initialThumb1Angle + 360f : initialThumb1Angle;
+                    }
                     // lock every thumb gripper motor
                     // ...
                 }
@@ -105,7 +112,7 @@ public class PaxiniValue : MonoBehaviour
             if (isThumbTouchSnapped)
             {
                 // if thumb joint angle moves too much, cancel the snap
-                if (cancleTouchSnap(initialThumb0, initialThumb1))
+                if (cancleTouchSnap("Thumb0", "Thumb1", initialThumb0Angle, initialThumb1Angle))
                 {
                     isThumbTouchSnapped = false;
                 }
@@ -117,17 +124,26 @@ public class PaxiniValue : MonoBehaviour
                 {
                     isIndexTouchSnapped = true;
                     isIndexPaxiniZero = false;
-                    // Record initial joint values
-                    initialIndex0 = jointAngle.GetJoint("Index0");
-                    initialIndex1 = jointAngle.GetJoint("Index1");
-                    initialIndex2 = jointAngle.GetJoint("Index2");
+                    // Record initial joint angle values
+                    Transform index0 = jointAngle.GetJoint("Index0");
+                    Transform index1 = jointAngle.GetJoint("Index1");
+                    Transform index2 = jointAngle.GetJoint("Index2");
+                    if (index0 != null && index1 != null && index2 != null)
+                    {
+                        initialIndex0Angle = index0.localEulerAngles.z;
+                        initialIndex1Angle = index1.localEulerAngles.z;
+                        initialIndex2Angle = index2.localEulerAngles.z;
+                        initialIndex0Angle = initialIndex0Angle < 100f ? initialIndex0Angle + 360f : initialIndex0Angle;
+                        initialIndex1Angle = initialIndex1Angle < 100f ? initialIndex1Angle + 360f : initialIndex1Angle;
+                        initialIndex2Angle = initialIndex2Angle < 100f ? initialIndex2Angle + 360f : initialIndex2Angle;
+                    }
                 }
             }
 
             // if index is snapped, continuously check if it should be cancelled
             if (isIndexTouchSnapped)
             {
-                if (cancleTouchSnap(initialIndex0, initialIndex1, initialIndex2))
+                if (cancleTouchSnap("Index0", "Index1", initialIndex0Angle, initialIndex1Angle, "Index2", initialIndex2Angle))
                 {
                     isIndexTouchSnapped = false;
                 }
@@ -139,17 +155,27 @@ public class PaxiniValue : MonoBehaviour
                 {
                     isMiddleTouchSnapped = true;
                     isMiddlePaxiniZero = false;
-                    // Record initial joint values
-                    initialMiddle0 = jointAngle.GetJoint("Middle0");
-                    initialMiddle1 = jointAngle.GetJoint("Middle1");
-                    initialMiddle2 = jointAngle.GetJoint("Middle2");
+                    // Record initial joint angle values
+                    Transform middle0 = jointAngle.GetJoint("Middle0");
+                    Transform middle1 = jointAngle.GetJoint("Middle1");
+                    Transform middle2 = jointAngle.GetJoint("Middle2");
+                    if (middle0 != null && middle1 != null && middle2 != null)
+                    {
+                        initialMiddle0Angle = middle0.localEulerAngles.z;
+                        initialMiddle1Angle = middle1.localEulerAngles.z;
+                        initialMiddle2Angle = middle2.localEulerAngles.z;
+                        initialMiddle0Angle = initialMiddle0Angle < 100f ? initialMiddle0Angle + 360f : initialMiddle0Angle;
+                        initialMiddle1Angle = initialMiddle1Angle < 100f ? initialMiddle1Angle + 360f : initialMiddle1Angle;
+                        initialMiddle2Angle = initialMiddle2Angle < 100f ? initialMiddle2Angle + 360f : initialMiddle2Angle;
+                    }
                 }
             }
 
             // if middle is snapped, continuously check if it should be cancelled
             if (isMiddleTouchSnapped)
             {
-                if (cancleTouchSnap(initialMiddle0, initialMiddle1, initialMiddle2))
+                Debug.Log("Checking cancleMiddleTouchSnap...");
+                if (cancleTouchSnap("Middle0", "Middle1", initialMiddle0Angle, initialMiddle1Angle, "Middle2", initialMiddle2Angle))
                 {
                     isMiddleTouchSnapped = false;
                 }
@@ -188,35 +214,56 @@ public class PaxiniValue : MonoBehaviour
         }
     }
 
-    bool cancleTouchSnap(Transform initialJoint0, Transform initialJoint1, Transform initialJoint2 = null)
+    bool cancleTouchSnap(string joint0Name, string joint1Name, float initial0Angle, float initial1Angle, 
+                         string joint2Name = null, float initial2Angle = 0f)
     {
-        if (initialJoint0 == null || initialJoint1 == null || jointAngle == null)
+        if (jointAngle == null)
             return false;
+
+        Debug.Log("111111111111111111111111111111111111111");
+
+        Transform joint0 = jointAngle.GetJoint(joint0Name);
+        Transform joint1 = jointAngle.GetJoint(joint1Name);
+        
+        if (joint0 == null || joint1 == null)
+            return false;
+
+        Debug.Log("22222222222222222222222222222222222222222");
+        
 
         float accumulatedJoint0 = 0f;
         float accumulatedJoint1 = 0f;
         float accumulatedJoint2 = 0f;
 
-        float current0 = jointAngle.GetJoint(initialJoint0.name).localEulerAngles.z;
-        float current1 = jointAngle.GetJoint(initialJoint1.name).localEulerAngles.z;
-        float current2 = 0f;
+        // Get current angles
+        float current0 = joint0.localEulerAngles.z;
+        float current1 = joint1.localEulerAngles.z;
 
         current0 = current0 < 100f ? current0 + 360f : current0;
         current1 = current1 < 100f ? current1 + 360f : current1;
 
-        accumulatedJoint0 = initialJoint0.localEulerAngles.z - current0;
-        accumulatedJoint1 = initialJoint1.localEulerAngles.z - current1;
+        accumulatedJoint0 = initial0Angle - current0;
+        accumulatedJoint1 = initial1Angle - current1;
 
-        if (initialJoint2 != null)
+        if (joint2Name != null)
         {
-            current2 = jointAngle.GetJoint(initialJoint2.name).localEulerAngles.z;
+            Transform joint2 = jointAngle.GetJoint(joint2Name);
+            if (joint2 == null)
+                return false;
+
+            Debug.Log("33333333333333333333333333333333333333333333");
+            
+                
+            float current2 = joint2.localEulerAngles.z;
             current2 = current2 < 100f ? current2 + 360f : current2;
-            accumulatedJoint2 = initialJoint2.localEulerAngles.z - current2;
+            accumulatedJoint2 = initial2Angle - current2;
         }
 
         float threshold = 15f;
-        if (initialJoint2 != null)
+        if (joint2Name != null)
         {
+            Debug.Log("accumulatedJoint0, accumulatedJoint1, accumulatedJoint2: " + accumulatedJoint0 + ", " + accumulatedJoint1 + ", " + accumulatedJoint2);
+
             return (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 > threshold) || 
             (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 < -threshold);
         }

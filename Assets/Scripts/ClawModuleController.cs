@@ -21,6 +21,8 @@ public class ClawModuleController : MonoBehaviour
 
     public ModeSwitching modeSwitching;
 
+    public PaxiniValue paxiniValue;
+
     // public FingerSnapManager fingerSnapManager;
 
     // ==============================
@@ -224,12 +226,45 @@ public class ClawModuleController : MonoBehaviour
     public bool thumbIndexInIndexRange = false; // 20-40 30
     public bool thumbMiddleInThumbRange = false; // 20-40 30
     public bool thumbMiddleInMiddleRange = false; //0-30
-    public bool indexMiddleInIndexRange = false; 
+    public bool indexMiddleInIndexRange = false;
     public bool indexMiddleInMiddleRange = false;
 
     // Snap state tracking
-    private bool indexSnapApplied = false;
-    private bool middleSnapApplied = false;
+    private bool _thumbMotor1Locked = false;
+    private Quaternion _thumbMotor1LockedRot;
+
+    private bool _thumbMotor2Locked = false;
+    private Quaternion _thumbMotor2LockedRot;
+
+    private bool _thumbMotor3Locked = false;
+    private Quaternion _thumbMotor3LockedRot;
+
+    private bool _thumbMotor4Locked = false;
+    private Quaternion _thumbMotor4LockedRot;
+
+    private bool _indexMotor1Locked = false;
+    private Quaternion _indexMotor1LockedRot;
+
+    private bool _indexMotor2Locked = false;
+    private Quaternion _indexMotor2LockedRot;
+
+    private bool _indexMotor3Locked = false;
+    private Quaternion _indexMotor3LockedRot;
+
+    private bool _indexMotor4Locked = false;
+    private Quaternion _indexMotor4LockedRot;
+
+    private bool _middleMotor1Locked = false;
+    private Quaternion _middleMotor1LockedRot;
+
+    private bool _middleMotor2Locked = false;
+    private Quaternion _middleMotor2LockedRot;
+
+    private bool _middleMotor3Locked = false;
+    private Quaternion _middleMotor3LockedRot;
+
+    private bool _middleMotor4Locked = false;
+    private Quaternion _middleMotor4LockedRot;
 
     void Start()
     {
@@ -731,8 +766,28 @@ public class ClawModuleController : MonoBehaviour
         //     ThumbAngle1Center.localRotation = targetRotation;
         // }
 
-        if (ThumbAngle1Center != null)
-            ThumbAngle1Center.localRotation = targetRotation;
+        //FIXME: haha
+        if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
+        {
+            if (!_thumbMotor1Locked && ThumbAngle1Center != null)
+            {
+                _thumbMotor1Locked = true;
+                _thumbMotor1LockedRot = ThumbAngle1Center.localRotation;
+            }
+
+            if (ThumbAngle1Center != null)
+                ThumbAngle1Center.localRotation = _thumbMotor1LockedRot;
+        }
+        else
+        {
+            _thumbMotor1Locked = false;
+
+            if (ThumbAngle1Center != null)
+                ThumbAngle1Center.localRotation = targetRotation;
+        }
+
+        // if (ThumbAngle1Center != null)
+        //     ThumbAngle1Center.localRotation = targetRotation;
     }
 
     // ==============================
@@ -938,8 +993,27 @@ public class ClawModuleController : MonoBehaviour
         //     IndexAngle1Center.localRotation = targetRotation;
         // }
 
-        if (IndexAngle1Center != null)
-            IndexAngle1Center.localRotation = targetRotation;
+        if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+        {
+            if (!_indexMotor1Locked && IndexAngle1Center != null)
+            {
+                _indexMotor1Locked = true;
+                _indexMotor1LockedRot = IndexAngle1Center.localRotation;
+            }
+
+            if (IndexAngle1Center != null)
+                IndexAngle1Center.localRotation = _indexMotor1LockedRot;
+        }
+        else
+        {
+            _indexMotor1Locked = false;
+
+            if (IndexAngle1Center != null)
+                IndexAngle1Center.localRotation = targetRotation;
+        }
+
+        // if (IndexAngle1Center != null)
+        //     IndexAngle1Center.localRotation = targetRotation;
     }
 
     // ==============================
@@ -1118,7 +1192,7 @@ public class ClawModuleController : MonoBehaviour
 
             Vector3 euler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
-            Debug.Log("targetRotation.y: SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS   " + targetRotation.eulerAngles.y);
+            // Debug.Log("targetRotation.y: SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS   " + targetRotation.eulerAngles.y);
         }
 
         //FIXME: more
@@ -1143,8 +1217,27 @@ public class ClawModuleController : MonoBehaviour
         //     MiddleAngle1Center.localRotation = targetRotation;
         // }
 
-        if (MiddleAngle1Center != null)
-            MiddleAngle1Center.localRotation = targetRotation;
+        if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+        {
+            if (!_middleMotor1Locked && MiddleAngle1Center != null)
+            {
+                _middleMotor1Locked = true;
+                _middleMotor1LockedRot = MiddleAngle1Center.localRotation;
+            }
+
+            if (MiddleAngle1Center != null)
+                MiddleAngle1Center.localRotation = _middleMotor1LockedRot;
+        }
+        else
+        {
+            _middleMotor1Locked = false;
+
+            if (MiddleAngle1Center != null)
+                MiddleAngle1Center.localRotation = targetRotation;
+        }
+
+        // if (MiddleAngle1Center != null)
+        //     MiddleAngle1Center.localRotation = targetRotation;
     }
 
     // ==============================

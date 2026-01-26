@@ -11113,6 +11113,7 @@ MonoBehaviour:
   retargetIndex: {fileID: 882396914}
   SelectMotorCollider: {fileID: 859541734}
   modeSwitching: {fileID: 951283614}
+  paxiniValue: {fileID: 1086361769}
 --- !u!1 &282863895
 GameObject:
   m_ObjectHideFlags: 0
@@ -35653,6 +35654,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 0}
   triggerMiddleInnerExtension: {fileID: 0}
   modeSwitching: {fileID: 0}
+  paxiniValue: {fileID: 0}
   ThumbAngle1Center: {fileID: 1173910316}
   ThumbAngle2Center: {fileID: 83926891}
   ThumbAngle3Center: {fileID: 115009900}
@@ -35909,6 +35911,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   host: 127.0.0.1
   port: 50007
+  isThumbPaxiniZero: 0
+  isThumbTouchSnapped: 0
+  isIndexPaxiniZero: 0
+  isIndexTouchSnapped: 0
+  isMiddlePaxiniZero: 0
+  isMiddleTouchSnapped: 0
   jointAngle: {fileID: 1422305614}
 --- !u!23 &1088540452 stripped
 MeshRenderer:
@@ -42778,6 +42786,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 349889824}
   triggerMiddleInnerExtension: {fileID: 797724206}
   modeSwitching: {fileID: 0}
+  paxiniValue: {fileID: 0}
   ThumbAngle1Center: {fileID: 2014701384}
   ThumbAngle2Center: {fileID: 1772311579}
   ThumbAngle3Center: {fileID: 218314563}
@@ -54010,6 +54019,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 827141708}
   triggerMiddleInnerExtension: {fileID: 1189440883}
   modeSwitching: {fileID: 0}
+  paxiniValue: {fileID: 0}
   ThumbAngle1Center: {fileID: 1091200612}
   ThumbAngle2Center: {fileID: 1676111424}
   ThumbAngle3Center: {fileID: 902642472}
@@ -59334,6 +59344,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 1893964448}
   triggerMiddleInnerExtension: {fileID: 1019242406}
   modeSwitching: {fileID: 951283614}
+  paxiniValue: {fileID: 1086361769}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
