@@ -2096,8 +2096,8 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
 
-        Debug.Log("jointAngleValue is: " + jointAngleValue + " + currentTipRotation is : " + currentTipRotation);
-        Debug.Log("jointAngleValue + currentTipRotation is: " + (jointAngleValue + currentTipRotation));
+        // Debug.Log("jointAngleValue is: " + jointAngleValue + " + currentTipRotation is : " + currentTipRotation);
+        // Debug.Log("jointAngleValue + currentTipRotation is: " + (jointAngleValue + currentTipRotation));
 
         // Apply motor locking logic
         if (modeSwitching.modeSelect && paxiniTouchSnapped)

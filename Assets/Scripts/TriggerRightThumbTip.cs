@@ -37,7 +37,11 @@ public class TriggerRightThumbTip : MonoBehaviour
         if (!isInitialized || thumbPaxiniRenderer == null || modeSwitching == null)
             return;
 
-        if (touchedColliders.Count > 0 && modeSwitching.modeManipulate)
+        // Check if collider is enabled
+        Collider col = GetComponent<Collider>();
+        bool isColliderEnabled = col != null && col.enabled;
+
+        if (touchedColliders.Count > 0 && modeSwitching.modeManipulate && isColliderEnabled)
         {
             thumbPaxiniRenderer.material.color = Color.green;
         }
@@ -45,6 +49,13 @@ public class TriggerRightThumbTip : MonoBehaviour
         {
             thumbPaxiniRenderer.material.color = originalColor;
         }
+    }
+
+    // Public method to clear all touch records (called when collider is disabled)
+    public void ClearTouches()
+    {
+        touchedColliders.Clear();
+        touchedPoints.Clear();
     }
 
     private void OnTriggerEnter(Collider other)
