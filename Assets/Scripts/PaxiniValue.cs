@@ -69,25 +69,25 @@ public class PaxiniValue : MonoBehaviour
             // Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
             //           $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
 
-            if (payload.Fz_thumb == 0 && payload.Ft_thumb == 0)
+            if (payload.Fz_thumb == 0)
             {
                 isThumbPaxiniZero = true;
                 isThumbTouchSnapped = false;
             }
 
-            if (payload.Fz_index == 0 && payload.Ft_index == 0)
+            if (payload.Fz_index == 0)
             {
                 isIndexPaxiniZero = true;
                 isIndexTouchSnapped = false;
             }
 
-            if (payload.Fz_middle == 0 && payload.Ft_middle == 0)
+            if (payload.Fz_middle == 0)
             {
                 isMiddlePaxiniZero = true;
                 isMiddleTouchSnapped = false;
             }
 
-            if ((payload.Fz_thumb > 0.1f || payload.Ft_thumb > 0.1f) && isThumbPaxiniZero)
+            if (payload.Fz_thumb > 0.4f && isThumbPaxiniZero)
             {
                 if (!isThumbTouchSnapped)
                 {
@@ -118,7 +118,7 @@ public class PaxiniValue : MonoBehaviour
                 }
             }
 
-            if ((payload.Fz_index > 0.1f || payload.Ft_index > 0.1f) && isIndexPaxiniZero)
+            if (payload.Fz_index > 0.4f && isIndexPaxiniZero)
             {
                 if (!isIndexTouchSnapped)
                 {
@@ -149,7 +149,7 @@ public class PaxiniValue : MonoBehaviour
                 }
             }
 
-            if ((payload.Fz_middle > 0.1f || payload.Ft_middle > 0.1f) && isMiddlePaxiniZero)
+            if (payload.Fz_middle > 0.4f && isMiddlePaxiniZero)
             {
                 if (!isMiddleTouchSnapped)
                 {
