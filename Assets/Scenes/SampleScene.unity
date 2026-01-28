@@ -10553,8 +10553,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.02362848, y: 0.017735224, z: 0.04021074}
-  m_Center: {x: -0.01053074, y: 0.014304876, z: -0.0009038176}
+  m_Size: {x: 0.02362848, y: 0.03669939, z: 0.04021074}
+  m_Center: {x: -0.010530719, y: 0.0048227003, z: -0.0009038178}
 --- !u!1 &197146935
 GameObject:
   m_ObjectHideFlags: 0
@@ -11283,9 +11283,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   modeSwitching: {fileID: 951283614}
   selectMotorCollider: {fileID: 859541734}
-  thumbTipCollider: {fileID: 187972393}
-  indexTipCollider: {fileID: 1201296082}
-  middleTipCollider: {fileID: 1307753526}
+  thumbTipCollider: {fileID: 187972395}
+  indexTipCollider: {fileID: 1201296084}
+  middleTipCollider: {fileID: 1307753528}
   isThumbColliderActive: 0
   isIndexColliderActive: 0
   isMiddleColliderActive: 0
@@ -25608,8 +25608,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.014748388, y: 0.026611168, z: 0.044949707}
-  m_Center: {x: -0.016165739, y: 0.015637439, z: -0.0032732866}
+  m_Size: {x: 0.014748388, y: 0.044319324, z: 0.044949707}
+  m_Center: {x: -0.016165655, y: 0.006783215, z: -0.0032732869}
 --- !u!1 &909256953
 GameObject:
   m_ObjectHideFlags: 0
@@ -35036,8 +35036,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.02359103, y: 0.036072943, z: 0.04021074}
-  m_Center: {x: -0.010226512, y: 0.023473734, z: -0.00090381736}
+  m_Size: {x: 0.02359103, y: 0.05265028, z: 0.04021074}
+  m_Center: {x: -0.01022644, y: 0.0151849175, z: -0.00090381753}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -55710,8 +55710,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.015794927, y: 0.02426725, z: 0.041273553}
-  m_Center: {x: -0.014573185, y: 0.015896572, z: -0.0014352263}
+  m_Size: {x: 0.015794927, y: 0.038009327, z: 0.041273553}
+  m_Center: {x: -0.014573115, y: 0.009025418, z: -0.0014352265}
 --- !u!1001 &1977922664
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61787,8 +61787,11 @@ MeshRenderer:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 705507995}
+  - {fileID: 689982352}
+  - {fileID: 1827507980}
+  - {fileID: 1109305385}
   - {fileID: 1440235664}
+  - {fileID: 705507995}
   - {fileID: 520482696}
   - {fileID: 1193337815}
   - {fileID: 282863899}
@@ -61796,8 +61799,6 @@ SceneRoots:
   - {fileID: 176034172}
   - {fileID: 500946338}
   - {fileID: 1496061579}
-  - {fileID: 1827507980}
-  - {fileID: 1109305385}
   - {fileID: 118535345}
   - {fileID: 1402943339}
   - {fileID: 951283615}
@@ -61811,5 +61812,4 @@ SceneRoots:
   - {fileID: 370831958}
   - {fileID: 1364976179}
   - {fileID: 1086361768}
-  - {fileID: 689982352}
   - {fileID: 307052366}
