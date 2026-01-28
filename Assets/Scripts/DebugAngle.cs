@@ -119,30 +119,30 @@ public class DebugAngle : MonoBehaviour
                 // "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 // "IndexAngle2Center.localRotation.eulerAngles.z: " + clawModuleController.IndexAngle2Center.localEulerAngles.z.ToString("F4") + "°\n" +
                 // "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
-                // "indexMiddleInIndexRange: " + clawModuleController.indexMiddleInIndexRange.ToString() + "\n" +
-                // "indexMiddleInMiddleRange: " + clawModuleController.indexMiddleInMiddleRange.ToString() + "\n" +
-                // "thumbIndexInThumbRange: " + clawModuleController.thumbIndexInThumbRange.ToString() + "\n" +
-                // "thumbIndexInIndexRange: " + clawModuleController.thumbIndexInIndexRange.ToString() + "\n" +
-                // "thumbMiddleInThumbRange: " + clawModuleController.thumbMiddleInThumbRange.ToString() + "\n" +
-                // "thumbMiddleInMiddleRange: " + clawModuleController.thumbMiddleInMiddleRange.ToString() + "\n" +
+                "indexMiddleInIndexRange: " + clawModuleController.indexMiddleInIndexRange.ToString() + "\n" +
+                "indexMiddleInMiddleRange: " + clawModuleController.indexMiddleInMiddleRange.ToString() + "\n" +
+                "thumbIndexInThumbRange: " + clawModuleController.thumbIndexInThumbRange.ToString() + "\n" +
+                "thumbIndexInIndexRange: " + clawModuleController.thumbIndexInIndexRange.ToString() + "\n" +
+                "thumbMiddleInThumbRange: " + clawModuleController.thumbMiddleInThumbRange.ToString() + "\n" +
+                "thumbMiddleInMiddleRange: " + clawModuleController.thumbMiddleInMiddleRange.ToString() + "\n" +
                 "paxini isMiddlePaxiniZero: " + paxiniValue.isMiddlePaxiniZero.ToString() + "\n" +
-                "paxini isMiddleTouchSnapped: " + paxiniValue.isMiddleTouchSnapped.ToString() + "\n" +
-                "joints[Thumb0].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Thumb0].localEulerAngles.z: " + jointAngle.joints["Thumb0"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Thumb1].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Thumb1].localEulerAngles.z: " + jointAngle.joints["Thumb1"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Index0].localEulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Index1].localRotation.eulerAngles.z: " + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Index1].localEulerAngles.z: " + jointAngle.joints["Index1"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Index2].localRotation.eulerAngles.z: " + jointAngle.joints["Index2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Index2].localEulerAngles.z: " + jointAngle.joints["Index2"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Middle0].localRotation.eulerAngles.z: " + jointAngle.joints["Middle0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Middle0].localEulerAngles.z: " + jointAngle.joints["Middle0"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Middle1].localRotation.eulerAngles.z: " + jointAngle.joints["Middle1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Middle1].localEulerAngles.z: " + jointAngle.joints["Middle1"].localEulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Middle2].localRotation.eulerAngles.z: " + jointAngle.joints["Middle2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "joints[Middle2].localEulerAngles.z: " + jointAngle.joints["Middle2"].localEulerAngles.z.ToString("F4") + "°\n";
+                "paxini isMiddleTouchSnapped: " + paxiniValue.isMiddleTouchSnapped.ToString() + "\n";
+                // "joints[Thumb0].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Thumb0].localEulerAngles.z: " + jointAngle.joints["Thumb0"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Thumb1].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Thumb1].localEulerAngles.z: " + jointAngle.joints["Thumb1"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Index0].localRotation.eulerAngles.z: " + jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Index0].localEulerAngles.z: " + jointAngle.joints["Index0"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Index1].localRotation.eulerAngles.z: " + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Index1].localEulerAngles.z: " + jointAngle.joints["Index1"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Index2].localRotation.eulerAngles.z: " + jointAngle.joints["Index2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Index2].localEulerAngles.z: " + jointAngle.joints["Index2"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Middle0].localRotation.eulerAngles.z: " + jointAngle.joints["Middle0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Middle0].localEulerAngles.z: " + jointAngle.joints["Middle0"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Middle1].localRotation.eulerAngles.z: " + jointAngle.joints["Middle1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Middle1].localEulerAngles.z: " + jointAngle.joints["Middle1"].localEulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Middle2].localRotation.eulerAngles.z: " + jointAngle.joints["Middle2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                // "joints[Middle2].localEulerAngles.z: " + jointAngle.joints["Middle2"].localEulerAngles.z.ToString("F4") + "°\n";
 
 
                 // "MiddleAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.MiddleAngle1Center.localRotation.y.ToString("F4") + "°\n";

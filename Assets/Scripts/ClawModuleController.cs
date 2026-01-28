@@ -775,9 +775,10 @@ public class ClawModuleController : MonoBehaviour
 
         //TODO: thumb snapping logic
 
-        // thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
-        // thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
+        thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
+        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
 
+        // Original code (kept for reference):
         // if (modeSwitching.modeSelect && thumbIndexInThumbRange && thumbIndexInIndexRange)
         // {
         //     Vector3 snapEuler = targetRotation.eulerAngles;
@@ -794,9 +795,30 @@ public class ClawModuleController : MonoBehaviour
         // {
         //     ThumbAngle1Center.localRotation = targetRotation;
         // }
+        //
+        // if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
+        // {
+        //     if (!_thumbMotor1Locked && ThumbAngle1Center != null)
+        //     {
+        //         _thumbMotor1Locked = true;
+        //         _thumbMotor1LockedRot = ThumbAngle1Center.localRotation;
+        //     }
+        //
+        //     if (ThumbAngle1Center != null)
+        //         ThumbAngle1Center.localRotation = _thumbMotor1LockedRot;
+        // }
+        // else
+        // {
+        //     _thumbMotor1Locked = false;
+        //
+        //     if (ThumbAngle1Center != null)
+        //         ThumbAngle1Center.localRotation = targetRotation;
+        // }
 
+        // Unified rotation logic: handle snapping, locking, and normal rotation
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
+            // Touch snapping is active - lock the current rotation
             if (!_thumbMotor1Locked && ThumbAngle1Center != null)
             {
                 _thumbMotor1Locked = true;
@@ -808,14 +830,31 @@ public class ClawModuleController : MonoBehaviour
         }
         else
         {
+            // No touch snapping - apply angle-based snapping or normal rotation
             _thumbMotor1Locked = false;
 
             if (ThumbAngle1Center != null)
-                ThumbAngle1Center.localRotation = targetRotation;
-        }
+            {
+                // if (modeSwitching.modeSelect && thumbIndexInThumbRange && thumbIndexInIndexRange)
+                // {
+                //     Vector3 snapEuler = targetRotation.eulerAngles;
+                //     snapEuler.y = 330f;
+                //     ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                // }
+                // else if (modeSwitching.modeSelect && thumbMiddleInThumbRange && thumbMiddleInMiddleRange)
+                // {
+                //     Vector3 snapEuler = targetRotation.eulerAngles;
+                //     snapEuler.y = 20f;
+                //     ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                // }
+                // else
+                // {
+                //     ThumbAngle1Center.localRotation = targetRotation;
+                // }
 
-        // if (ThumbAngle1Center != null)
-        //     ThumbAngle1Center.localRotation = targetRotation;
+                ThumbAngle1Center.localRotation = targetRotation;
+            }
+        }
     }
     #endregion
 
@@ -1001,30 +1040,50 @@ public class ClawModuleController : MonoBehaviour
 
         //TODO: index sanpping logic
 
-        // indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 300f, 330f);
-        // thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
+        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 300f, 330f);
+        thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
+        // Original code (kept for reference):
         // if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
         // {
         //     Vector3 snapEuler = targetRotation.eulerAngles;
         //     snapEuler.y = 315f;
         //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     // Debug.Log("index finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         // }
         // else if (modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange)
         // {
         //     Vector3 snapEuler = targetRotation.eulerAngles;
         //     snapEuler.y = 30f;
         //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     // Debug.Log("index finger snapped!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         // }
         // else
         // {
         //     IndexAngle1Center.localRotation = targetRotation;
         // }
+        //
+        // if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+        // {
+        //     if (!_indexMotor1Locked && IndexAngle1Center != null)
+        //     {
+        //         _indexMotor1Locked = true;
+        //         _indexMotor1LockedRot = IndexAngle1Center.localRotation;
+        //     }
+        //
+        //     if (IndexAngle1Center != null)
+        //         IndexAngle1Center.localRotation = _indexMotor1LockedRot;
+        // }
+        // else
+        // {
+        //     _indexMotor1Locked = false;
+        //
+        //     if (IndexAngle1Center != null)
+        //         IndexAngle1Center.localRotation = targetRotation;
+        // }
 
+        // Unified rotation logic: handle snapping, locking, and normal rotation
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
+            // Touch snapping is active - lock the current rotation
             if (!_indexMotor1Locked && IndexAngle1Center != null)
             {
                 _indexMotor1Locked = true;
@@ -1036,14 +1095,31 @@ public class ClawModuleController : MonoBehaviour
         }
         else
         {
+            // No touch snapping - apply angle-based snapping or normal rotation
             _indexMotor1Locked = false;
 
             if (IndexAngle1Center != null)
-                IndexAngle1Center.localRotation = targetRotation;
-        }
+            {
+                // if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
+                // {
+                //     Vector3 snapEuler = targetRotation.eulerAngles;
+                //     snapEuler.y = 315f;
+                //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                // }
+                // else if (modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange)
+                // {
+                //     Vector3 snapEuler = targetRotation.eulerAngles;
+                //     snapEuler.y = 30f;
+                //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                // }
+                // else
+                // {
+                //     IndexAngle1Center.localRotation = targetRotation;
+                // }
 
-        // if (IndexAngle1Center != null)
-        //     IndexAngle1Center.localRotation = targetRotation;
+                IndexAngle1Center.localRotation = targetRotation;
+            }
+        }
     }
     #endregion
 
@@ -1229,9 +1305,10 @@ public class ClawModuleController : MonoBehaviour
 
         //TODO: middle snapping logic
 
-        // indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
-        // thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
+        indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
+        thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
 
+        // Original code (kept for reference):
         // if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
         // {
         //     Vector3 snapEuler = targetRotation.eulerAngles;
@@ -1248,9 +1325,30 @@ public class ClawModuleController : MonoBehaviour
         // {
         //     MiddleAngle1Center.localRotation = targetRotation;
         // }
+        //
+        // if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+        // {
+        //     if (!_middleMotor1Locked && MiddleAngle1Center != null)
+        //     {
+        //         _middleMotor1Locked = true;
+        //         _middleMotor1LockedRot = MiddleAngle1Center.localRotation;
+        //     }
+        //
+        //     if (MiddleAngle1Center != null)
+        //         MiddleAngle1Center.localRotation = _middleMotor1LockedRot;
+        // }
+        // else
+        // {
+        //     _middleMotor1Locked = false;
+        //
+        //     if (MiddleAngle1Center != null)
+        //         MiddleAngle1Center.localRotation = targetRotation;
+        // }
 
+        // Unified rotation logic: handle snapping, locking, and normal rotation
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
+            // Touch snapping is active - lock the current rotation
             if (!_middleMotor1Locked && MiddleAngle1Center != null)
             {
                 _middleMotor1Locked = true;
@@ -1262,14 +1360,31 @@ public class ClawModuleController : MonoBehaviour
         }
         else
         {
+            // No touch snapping - apply angle-based snapping or normal rotation
             _middleMotor1Locked = false;
 
             if (MiddleAngle1Center != null)
-                MiddleAngle1Center.localRotation = targetRotation;
-        }
+            {
+                // if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
+                // {
+                //     Vector3 snapEuler = targetRotation.eulerAngles;
+                //     snapEuler.y = 45f;
+                //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                // }
+                // else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
+                // {
+                //     Vector3 snapEuler = targetRotation.eulerAngles;
+                //     snapEuler.y = 15f;
+                //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                // }
+                // else
+                // {
+                //     MiddleAngle1Center.localRotation = targetRotation;
+                // }
 
-        // if (MiddleAngle1Center != null)
-        //     MiddleAngle1Center.localRotation = targetRotation;
+                MiddleAngle1Center.localRotation = targetRotation;
+            }
+        }
     }
     #endregion
 
