@@ -1040,7 +1040,7 @@ public class ClawModuleController : MonoBehaviour
 
         //TODO: index sanpping logic
 
-        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 300f, 330f);
+        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 295f, 335f);
         thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
         // Original code (kept for reference):
@@ -1103,7 +1103,7 @@ public class ClawModuleController : MonoBehaviour
                 if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
                 {
                     Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 315f;
+                    snapEuler.y = 330f; //FIXME: adjust snap angle if needed
                     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 }
                 // else if (modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange)
@@ -1368,7 +1368,7 @@ public class ClawModuleController : MonoBehaviour
                 if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
                 {
                     Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 45f;
+                    snapEuler.y = 30f;
                     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 }
                 // else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
