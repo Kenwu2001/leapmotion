@@ -1100,24 +1100,24 @@ public class ClawModuleController : MonoBehaviour
 
             if (IndexAngle1Center != null)
             {
-                // if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
-                // {
-                //     Vector3 snapEuler = targetRotation.eulerAngles;
-                //     snapEuler.y = 315f;
-                //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-                // }
+                if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
+                {
+                    Vector3 snapEuler = targetRotation.eulerAngles;
+                    snapEuler.y = 315f;
+                    IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                }
                 // else if (modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange)
                 // {
                 //     Vector3 snapEuler = targetRotation.eulerAngles;
                 //     snapEuler.y = 30f;
                 //     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 // }
-                // else
-                // {
-                //     IndexAngle1Center.localRotation = targetRotation;
-                // }
+                else
+                {
+                    IndexAngle1Center.localRotation = targetRotation;
+                }
 
-                IndexAngle1Center.localRotation = targetRotation;
+                // IndexAngle1Center.localRotation = targetRotation;
             }
         }
     }
@@ -1365,24 +1365,24 @@ public class ClawModuleController : MonoBehaviour
 
             if (MiddleAngle1Center != null)
             {
-                // if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
-                // {
-                //     Vector3 snapEuler = targetRotation.eulerAngles;
-                //     snapEuler.y = 45f;
-                //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-                // }
+                if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
+                {
+                    Vector3 snapEuler = targetRotation.eulerAngles;
+                    snapEuler.y = 45f;
+                    MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                }
                 // else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
                 // {
                 //     Vector3 snapEuler = targetRotation.eulerAngles;
                 //     snapEuler.y = 15f;
                 //     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 // }
-                // else
-                // {
-                //     MiddleAngle1Center.localRotation = targetRotation;
-                // }
+                else
+                {
+                    MiddleAngle1Center.localRotation = targetRotation;
+                }
 
-                MiddleAngle1Center.localRotation = targetRotation;
+                // MiddleAngle1Center.localRotation = targetRotation;
             }
         }
     }
