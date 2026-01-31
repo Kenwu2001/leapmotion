@@ -49,7 +49,7 @@ public class DeltaUserStudy : MonoBehaviour
     private Renderer currentSelectedRenderer;
 
     public Color purpleColor = new Color(0.5f, 0f, 0.5f);
-    private float rotationSpeed = 20f;
+    private float rotationSpeed = 18f;
     
     // Store initial rotation of each joint
     private Quaternion[,] initialRotations = new Quaternion[4, 3];
@@ -149,10 +149,16 @@ public class DeltaUserStudy : MonoBehaviour
         // QE rotation control
         HandleRotation();
         
+        // UO keys - Control all Row 3 motors simultaneously
+        HandleRow3Rotation();
+        
+        // IK keys - Control all Row 2 motors simultaneously
+        HandleRow2Rotation();
+        
         // R key - Set all Angle3 joints (row 2) to 89 degrees
         if (Input.GetKeyDown(KeyCode.J))
         {
-            SetRow2To89Degrees();
+            // SetRow2To89Degrees();
         }
 
         if (Input.GetKeyDown(KeyCode.P))
@@ -266,6 +272,122 @@ public class DeltaUserStudy : MonoBehaviour
             // Debug output
             string axisName = currentRow == 0 ? "Y" : (currentRow == 1 ? "Z" : "X");
             // Debug.Log($"Row {currentRow}, Col {currentCol} - {axisName} axis: {currentAngle:F2}°");
+        }
+    }
+    
+    void HandleRow3Rotation()
+    {
+        // U key - decrease angle for all Row 3 motors
+        // O key - increase angle for all Row 3 motors
+        
+        int targetRow = 3; // Row 3: ThumbAngle4Center, IndexAngle4Center, MiddleAngle4Center
+        float rotationDelta = rotationSpeed * Time.deltaTime;
+        bool rotationChanged = false;
+        
+        // U key - decrease angle
+        if (Input.GetKey(KeyCode.U))
+        {
+            rotationChanged = true;
+            // Apply to all columns in Row 3
+            for (int col = 0; col < COLS; col++)
+            {
+                currentRotations[targetRow, col] -= rotationDelta;
+            }
+        }
+        
+        // O key - increase angle
+        if (Input.GetKey(KeyCode.J))
+        {
+            rotationChanged = true;
+            // Apply to all columns in Row 3
+            for (int col = 0; col < COLS; col++)
+            {
+                currentRotations[targetRow, col] += rotationDelta;
+            }
+        }
+        
+        if (rotationChanged)
+        {
+            // Apply rotation to all motors in Row 3
+            for (int col = 0; col < COLS; col++)
+            {
+                Transform t = motorArray[targetRow, col];
+                if (t != null)
+                {
+                    // Limit angle range to -60 to 60 degrees
+                    currentRotations[targetRow, col] = 
+                        Mathf.Clamp(currentRotations[targetRow, col], -60f, 60f);
+                    
+                    // Apply rotation: initial rotation * current angle change
+                    Quaternion initialRotation = initialRotations[targetRow, col];
+                    float currentAngle = currentRotations[targetRow, col];
+                    
+                    // Row 3 uses X axis (same as Row 2)
+                    Quaternion deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
+                    t.localRotation = initialRotation * deltaRotation;
+                }
+            }
+            
+            // Debug output (optional)
+            // Debug.Log($"Row 3 - All motors X axis: {currentRotations[targetRow, 0]:F2}°");
+        }
+    }
+    
+    void HandleRow2Rotation()
+    {
+        // I key - decrease angle for all Row 2 motors
+        // K key - increase angle for all Row 2 motors
+        
+        int targetRow = 2; // Row 2: ThumbAngle3Center, IndexAngle3Center, MiddleAngle3Center
+        float rotationDelta = rotationSpeed * Time.deltaTime;
+        bool rotationChanged = false;
+        
+        // I key - decrease angle
+        if (Input.GetKey(KeyCode.I))
+        {
+            rotationChanged = true;
+            // Apply to all columns in Row 2
+            for (int col = 0; col < COLS; col++)
+            {
+                currentRotations[targetRow, col] -= rotationDelta;
+            }
+        }
+        
+        // K key - increase angle
+        if (Input.GetKey(KeyCode.K))
+        {
+            rotationChanged = true;
+            // Apply to all columns in Row 2
+            for (int col = 0; col < COLS; col++)
+            {
+                currentRotations[targetRow, col] += rotationDelta;
+            }
+        }
+        
+        if (rotationChanged)
+        {
+            // Apply rotation to all motors in Row 2
+            for (int col = 0; col < COLS; col++)
+            {
+                Transform t = motorArray[targetRow, col];
+                if (t != null)
+                {
+                    // Limit angle range to -89 to 89 degrees
+                    currentRotations[targetRow, col] = 
+                        Mathf.Clamp(currentRotations[targetRow, col], -60f, 60f);
+                    
+                    // Apply rotation: initial rotation * current angle change
+                    Quaternion initialRotation = initialRotations[targetRow, col];
+                    float currentAngle = currentRotations[targetRow, col];
+                    
+                    // Row 2 uses X axis
+                    Quaternion deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
+                    t.localRotation = initialRotation * deltaRotation;
+                }
+            }
+            
+            // Debug output (optional)
+            // Debug.Log($"Row 2 - All motors X axis: {currentRotations[targetRow, 0]:F2}°");
         }
     }
     

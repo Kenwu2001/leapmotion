@@ -34,6 +34,9 @@ public class ModeSwitching : MonoBehaviour
     public int lastTouchedMotorID = 0;
     public int currentRedMotorID = 0; // Currently selected motor (displayed in red)
     private bool hasEnteredCloseRange = false; // Track if we've entered < 0.16f during manipulation
+    private bool hasSetManipulateColors = false; // Track if we've set manipulate colors
+
+    public Material yellowMaterial;
     
     void Start()
     {
@@ -72,21 +75,114 @@ public class ModeSwitching : MonoBehaviour
         // Transition: Select → Manipulate (distance increases)
         if (modeSelect && motorSelected)
         {
-            if (jointAngle.GetLIndexToIndex2Distance() > 0.16f)
+            float distance = jointAngle.GetLIndexToIndex2Distance();
+            
+            if (distance > 0.16f)
             {
                 modeSelect = false;
                 motorSelected = false;
                 modeManipulate = true;
                 hasEnteredCloseRange = false; // Reset when entering manipulate mode
+                hasSetManipulateColors = false; // Reset color flag
             }
         }
 
         // Mode Manipulate: Track state and exit conditions
         if (modeManipulate)
         {
-            baseRenderer.material.color = Color.green; // Indicate Manipulate mode
+            // baseRenderer.material.color = Color.green; // Indicate Manipulate mode
             
             float distance = jointAngle.GetLIndexToIndex2Distance();
+
+            // Set colors only once when entering manipulate mode
+            if (!hasSetManipulateColors)
+            {
+                if (currentRedMotorID == 1)
+                {
+                    thumbJoint1Renderer.material.color = Color.red; // Keep red
+                    thumbJoint2Renderer.material = yellowMaterial;
+                    thumbJoint3Renderer.material = yellowMaterial;
+                    thumbJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 2)
+                {
+                    thumbJoint2Renderer.material.color = Color.red; // Keep red
+                    thumbJoint1Renderer.material = yellowMaterial;
+                    thumbJoint3Renderer.material = yellowMaterial;
+                    thumbJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 3)
+                {
+                    thumbJoint3Renderer.material.color = Color.red; // Keep red
+                    thumbJoint1Renderer.material = yellowMaterial;
+                    thumbJoint2Renderer.material = yellowMaterial;
+                    thumbJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 4)
+                {
+                    thumbJoint4Renderer.material.color = Color.red; // Keep red
+                    thumbJoint1Renderer.material = yellowMaterial;
+                    thumbJoint2Renderer.material = yellowMaterial;
+                    thumbJoint3Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 5)
+                {
+                    indexJoint1Renderer.material.color = Color.red; // Keep red
+                    indexJoint2Renderer.material = yellowMaterial;
+                    indexJoint3Renderer.material = yellowMaterial;
+                    indexJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 6)
+                {
+                    indexJoint2Renderer.material.color = Color.red; // Keep red
+                    indexJoint1Renderer.material = yellowMaterial;
+                    indexJoint3Renderer.material = yellowMaterial;
+                    indexJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 7)
+                {
+                    indexJoint3Renderer.material.color = Color.red; // Keep red
+                    indexJoint1Renderer.material = yellowMaterial;
+                    indexJoint2Renderer.material = yellowMaterial;
+                    indexJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 8)
+                {
+                    indexJoint4Renderer.material.color = Color.red; // Keep red
+                    indexJoint1Renderer.material = yellowMaterial;
+                    indexJoint2Renderer.material = yellowMaterial;
+                    indexJoint3Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 9)
+                {
+                    middleJoint1Renderer.material.color = Color.red; // Keep red
+                    middleJoint2Renderer.material = yellowMaterial;
+                    middleJoint3Renderer.material = yellowMaterial;
+                    middleJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 10)
+                {
+                    middleJoint2Renderer.material.color = Color.red; // Keep red
+                    middleJoint1Renderer.material = yellowMaterial;
+                    middleJoint3Renderer.material = yellowMaterial;
+                    middleJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 11)
+                {
+                    middleJoint3Renderer.material.color = Color.red; // Keep red
+                    middleJoint1Renderer.material = yellowMaterial;
+                    middleJoint2Renderer.material = yellowMaterial;
+                    middleJoint4Renderer.material = yellowMaterial;
+                }
+                else if (currentRedMotorID == 12)
+                {
+                    middleJoint4Renderer.material.color = Color.red; // Keep red
+                    middleJoint1Renderer.material = yellowMaterial;
+                    middleJoint2Renderer.material = yellowMaterial;
+                    middleJoint3Renderer.material = yellowMaterial;
+                }
+                hasSetManipulateColors = true;
+            }
             
             // Track if we've entered close range (< 0.16f) for manipulation
             if (distance < 0.16f)
@@ -105,7 +201,8 @@ public class ModeSwitching : MonoBehaviour
                 currentRedMotorID = 0; // Clear the red motor record
                 lastTouchedMotorID = 0;
                 hasEnteredCloseRange = false;
-                baseRenderer.material.color = originalColor; // Reset base color
+                hasSetManipulateColors = false; // Reset color flag
+                // baseRenderer.material.color = originalColor; // Reset base color
             }
         }
     }
@@ -114,7 +211,7 @@ public class ModeSwitching : MonoBehaviour
     {
         // Reset all colors first
         ResetAllColors();
-        
+                
         // Set the specific motor's color
         switch (motorID)
         {
@@ -153,6 +250,8 @@ public class ModeSwitching : MonoBehaviour
                 break;
             case 12:
                 middleJoint4Renderer.material.color = color;
+                break;
+            default:
                 break;
         }
     }
