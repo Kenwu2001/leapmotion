@@ -23,7 +23,7 @@ public class WristAngleUdpSender : MonoBehaviour
 
         // Debug.Log($"Wrist Angle: {angle:F1}°, Direction: {direction}");
 
-        // 傳 angle（Python 會算 direction）或直接傳 direction 都行
+        // Send angle (Python calculates direction) or directly send direction
         string msg = $"W,{angle:F1}";
         // string msg = $"D,{direction}";
 

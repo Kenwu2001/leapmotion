@@ -408,7 +408,7 @@ public class ClawModuleController : MonoBehaviour
             ref _thumbMotor3Locked,
             ref _thumbMotor3LockedRot,
             modeSwitching.modeManipulate,
-            modeSwitching.currentRedMotorID,
+            modeSwitching.confirmedMotorID,
             3,  // Expected motor ID for thumb
             20.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
@@ -432,7 +432,7 @@ public class ClawModuleController : MonoBehaviour
             ref _thumbMotor4Locked,
             ref _thumbMotor4LockedRot,
             modeSwitching.modeManipulate,
-            modeSwitching.currentRedMotorID,
+            modeSwitching.confirmedMotorID,
             4,  // Expected motor ID for thumb
             20.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
@@ -505,7 +505,7 @@ public class ClawModuleController : MonoBehaviour
             ref _indexMotor3Locked,
             ref _indexMotor3LockedRot,
             modeSwitching.modeManipulate,
-            modeSwitching.currentRedMotorID,
+            modeSwitching.confirmedMotorID,
             7,
             15.0f,
             null,
@@ -529,7 +529,7 @@ public class ClawModuleController : MonoBehaviour
             ref _indexMotor4Locked,
             ref _indexMotor4LockedRot,
             modeSwitching.modeManipulate,
-            modeSwitching.currentRedMotorID,
+            modeSwitching.confirmedMotorID,
             8,
             15.0f,
             null,
@@ -598,7 +598,7 @@ public class ClawModuleController : MonoBehaviour
             ref _middleMotor3Locked,
             ref _middleMotor3LockedRot,
             modeSwitching.modeManipulate,
-            modeSwitching.currentRedMotorID,
+            modeSwitching.confirmedMotorID,
             11,
             15.0f,
             null,
@@ -622,7 +622,7 @@ public class ClawModuleController : MonoBehaviour
             ref _middleMotor4Locked,
             ref _middleMotor4LockedRot,
             modeSwitching.modeManipulate,
-            modeSwitching.currentRedMotorID,
+            modeSwitching.confirmedMotorID,
             12,
             15.0f,
             null,
@@ -661,7 +661,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched
              && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1
-             && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 1)
+             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 1)
         {
             fingerTipTouchDurations["ThumbAbduction"] += Time.deltaTime;
             isThumb1Triggered = true;
@@ -874,7 +874,7 @@ public class ClawModuleController : MonoBehaviour
     //     }
 
     //     if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance > 3.9f
-    //          && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+    //          && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 5)
     //     {
     //         fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
     //         // indexJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["IndexAbduction"], 1f));
@@ -893,7 +893,7 @@ public class ClawModuleController : MonoBehaviour
     //         }
     //     }
     //     else if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched && jointAngle.indexMiddleDistance < 3.9f
-    //          && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+    //          && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 5)
     //     {
     //         fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
     //         isIndex1Triggered = true;
@@ -945,7 +945,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
-             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 5)
+             && !isAnyMotor4Triggered && canControlIndex1 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 5)
         {
             fingerTipTouchDurations["IndexAbduction"] += Time.deltaTime;
             isIndex1Triggered = true;
@@ -1139,7 +1139,7 @@ public class ClawModuleController : MonoBehaviour
     //     }
 
     //     if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance > 3.9f
-    //          && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+    //          && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
     //     {
     //         fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
     //         // middleJoint1Renderer.material.color = Color.Lerp(originalColor, yellowColor, Mathf.Min(fingerTipTouchDurations["MiddleAbduction"], 1f));
@@ -1158,7 +1158,7 @@ public class ClawModuleController : MonoBehaviour
     //         }
     //     }
     //     else if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched && jointAngle.indexMiddleDistance < 3.9f
-    //          && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+    //          && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
     //     {
     //         fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
     //         isMiddle1Triggered = true;
@@ -1209,7 +1209,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
-             && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 9)
+             && !isAnyMotor4Triggered && canControlMiddle1 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
         {
             fingerTipTouchDurations["MiddleAbduction"] += Time.deltaTime;
             isMiddle1Triggered = true;
@@ -1407,7 +1407,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive
-            && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 2) //  && jointAngle.thumbPalmAngle > 10f && jointAngle.thumbPalmAngle < 55f
+            && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 2) //  && jointAngle.thumbPalmAngle > 10f && jointAngle.thumbPalmAngle < 55f
         {
             fingerTipTouchDurations["ThumbTwist"] += Time.deltaTime;
             // thumbJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbTwist"] / 0.7f, 1f));
@@ -1499,7 +1499,7 @@ public class ClawModuleController : MonoBehaviour
     //     //   triggerIndexInnerExtension.isIndexInnerExtensionTouched // && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f 
     //     if (!isFingerTipTriggered && jointAngle.joints["Index0"].localRotation.eulerAngles.z > 100.0f && triggerRightIndexTip.isRightIndexTipTouched
     //             && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlIndex2 && !isMiddle2Triggered
-    //             && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 6)
+    //             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 6)
     //     {
     //         fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
     //         // indexJoint2Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["IndexTwist"] / 0.7f, 1f));
@@ -1562,7 +1562,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
                 && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlIndex2 && !isMiddle2Triggered
-                && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 6)
+                && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 6)
         {
             fingerTipTouchDurations["IndexTwist"] += Time.deltaTime;
             isIndex2Triggered = true;
@@ -1632,7 +1632,7 @@ public class ClawModuleController : MonoBehaviour
 
     //     if (!isFingerTipTriggered && jointAngle.joints["Middle0"].localRotation.eulerAngles.z > 100.0f && triggerRightMiddleTip.isRightMiddleTipTouched
     //          && jointAngle.isPlaneActive && !isAnyMotor4Triggered && jointAngle.indexMiddleDistance < 3.5f && canControlMiddle2 && !isIndex2Triggered
-    //         && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 10)
+    //         && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 10)
     //     {
     //         fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
     //         isMiddle2Triggered = true;
@@ -1686,7 +1686,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
              && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlMiddle2 && !isIndex2Triggered
-            && modeSwitching.modeManipulate && modeSwitching.currentRedMotorID == 10)
+            && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 10)
         {
             fingerTipTouchDurations["MiddleTwist"] += Time.deltaTime;
             isMiddle2Triggered = true;

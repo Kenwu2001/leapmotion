@@ -36,7 +36,7 @@ public class ManipulationColliderManager : MonoBehaviour
         // Only manage colliders when in manipulate mode
         if (modeSwitching.modeManipulate)
         {
-            int motorID = modeSwitching.currentRedMotorID; // Updated to use currentRedMotorID
+            int motorID = modeSwitching.confirmedMotorID; // Updated to use confirmedMotorID (deep red indicates confirmed selection)
 
             // Only update if motorID has changed
             if (motorID != lastMotorID)

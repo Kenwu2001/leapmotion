@@ -4,9 +4,9 @@ using UnityEngine.XR;
 
 public class LeapToHeadMapper : MonoBehaviour
 {
-    public Transform headTransform;      // XR Rig 的 Main Camera (使用者頭部)
-    public Transform leftHandModel;      // 左手模型
-    public Transform rightHandModel;     // 右手模型
+    public Transform headTransform;      // Main Camera of the XR Rig (user's head)
+    public Transform leftHandModel;      // Left hand model
+    public Transform rightHandModel;     // Right hand model
 
     void Update()
     {
@@ -24,7 +24,7 @@ public class LeapToHeadMapper : MonoBehaviour
             if (device.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 devicePosition) &&
                 device.TryGetFeatureValue(CommonUsages.deviceRotation, out Quaternion deviceRotation))
             {
-                // 將手的位置轉換為以頭部為原點的區域座標
+                // Convert the hand position to a local coordinate system with the head as the origin
                 Vector3 localToHead = headTransform.InverseTransformPoint(devicePosition);
                 Quaternion localRotToHead = Quaternion.Inverse(headTransform.rotation) * deviceRotation;
 

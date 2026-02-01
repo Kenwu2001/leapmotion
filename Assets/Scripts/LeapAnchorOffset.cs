@@ -102,7 +102,7 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Show rightFingerPoint and clawFingerPoint positions
                 if (rightFingertipBall != null && retargetTouchDetector.rightFingerPoint != null)
                 {
-                    rightFingertipBall.SetActive(true);
+                    // rightFingertipBall.SetActive(true);
                     rightFingertipBall.transform.position = retargetTouchDetector.rightFingerPoint.position;
                     // Debug.Log($"[LeapAnchorOffset] rightFingertipBall at: {retargetTouchDetector.rightFingerPoint.position.ToString("F3")}");
                 }
@@ -113,7 +113,7 @@ public class LeapAnchorOffset : MonoBehaviour
                 
                 if (gripperBall != null && retargetTouchDetector.clawFingerPoint != null)
                 {
-                    gripperBall.SetActive(true);
+                    // gripperBall.SetActive(true);
                     gripperBall.transform.position = retargetTouchDetector.clawFingerPoint.position;
                     // Debug.Log($"[LeapAnchorOffset] gripperBall at: {retargetTouchDetector.clawFingerPoint.position.ToString("F3")}");
                 }
@@ -125,7 +125,7 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Show left hand touch point
                 if (colliderBall != null && retargetTouchDetector.leftHandPoint != null)
                 {
-                    colliderBall.SetActive(true);
+                    // colliderBall.SetActive(true);
                     colliderBall.transform.position = retargetTouchDetector.leftHandPoint.position;
                     // Debug.Log($"[LeapAnchorOffset] colliderBall at: {retargetTouchDetector.leftHandPoint.position.ToString("F3")}");
                 }
@@ -137,7 +137,7 @@ public class LeapAnchorOffset : MonoBehaviour
                 // Show the anchor position itself
                 if (leftFingertipBall != null)
                 {
-                    leftFingertipBall.SetActive(true);
+                    // leftFingertipBall.SetActive(true);
                     leftFingertipBall.transform.position = transform.position;
                     // Debug.Log($"[LeapAnchorOffset] leftFingertipBall at: {transform.position.ToString("F3")}");
                 }
@@ -148,12 +148,10 @@ public class LeapAnchorOffset : MonoBehaviour
             }
             else
             {
-                // Debug.Log($"[LeapAnchorOffset] NOT in zone - hiding balls");
-                // Hide balls when not in zone
-                if (gripperBall != null) gripperBall.SetActive(false);
-                if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
-                if (colliderBall != null) colliderBall.SetActive(false);
-                if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
+                // if (gripperBall != null) gripperBall.SetActive(false);
+                // if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+                // if (colliderBall != null) colliderBall.SetActive(false);
+                // if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
             }
             
             return;
