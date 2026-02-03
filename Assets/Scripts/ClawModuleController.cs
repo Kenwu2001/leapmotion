@@ -2202,7 +2202,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (isMapping)
         {
-            float finalAngle = Mathf.Clamp(1.3f * jointAngleValue + currentTipRotation, -80f, 50f);
+            float finalAngle = Mathf.Clamp(2.0f * jointAngleValue + currentTipRotation, -80f, 50f);
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
         else
