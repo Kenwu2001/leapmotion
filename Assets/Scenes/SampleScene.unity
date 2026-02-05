@@ -25259,6 +25259,8 @@ MonoBehaviour:
   - {fileID: 193597867}
   targetTag: L_IndexTipSmall
   switchCooldown: 0
+  showDebugSpheres: 0
+  debugToggleKey: 100
   leftHandPoint: {fileID: 2101188477}
   rightIndexPath: {fileID: 1770763351}
   clawIndexPath: {fileID: 7989475972956683515}

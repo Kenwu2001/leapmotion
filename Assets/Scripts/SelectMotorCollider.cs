@@ -15,6 +15,13 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Minimum time (seconds) between motor switches to prevent rapid switching")]
     public float switchCooldown = 0f;
     
+    [Header("Debug Settings")]
+    [Tooltip("Toggle to show/hide debug spheres")]
+    public bool showDebugSpheres = true;
+    
+    [Tooltip("Key to toggle debug spheres on/off")]
+    public KeyCode debugToggleKey = KeyCode.D;
+    
     [Header("Index Finger Projection Settings")]
     [Tooltip("Left hand point for projection (L_IndexTipSmall transform)")]
     public Transform leftHandPoint;
@@ -129,6 +136,19 @@ public class SelectMotorCollider : MonoBehaviour
 
     private void Update()
     {
+        // Toggle debug spheres with key press
+        if (Input.GetKeyDown(debugToggleKey))
+        {
+            showDebugSpheres = !showDebugSpheres;
+            Debug.Log($"[SelectMotorCollider] Debug spheres: {(showDebugSpheres ? "ON" : "OFF")}");
+            
+            // If turning off, hide all spheres immediately
+            if (!showDebugSpheres)
+            {
+                HideAllDebugSpheres();
+            }
+        }
+        
         // Handle Index finger projection-based selection (motors 5-8)
         UpdateIndexFingerProjection();
         
@@ -139,6 +159,21 @@ public class SelectMotorCollider : MonoBehaviour
         currentTouchedMotorID = activeTouchedMotorID;
         touchPosition = activeTouchPosition;
         isAnyMotorTouched = activeTouchedMotorID != 0;
+    }
+    
+    /// <summary>
+    /// Hides all debug spheres
+    /// </summary>
+    private void HideAllDebugSpheres()
+    {
+        if (indexRightFingerProjectionSphere != null)
+            indexRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (indexClawProjectionSphere != null)
+            indexClawProjectionSphere.gameObject.SetActive(false);
+        if (middleRightFingerProjectionSphere != null)
+            middleRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (middleClawProjectionSphere != null)
+            middleClawProjectionSphere.gameObject.SetActive(false);
     }
     
     /// <summary>
@@ -215,16 +250,27 @@ public class SelectMotorCollider : MonoBehaviour
         indexClawPosition = clawPos;
         indexClawProjectionPosition = clawPos;
         
-        // Update debug spheres
-        if (indexRightFingerProjectionSphere != null)
+        // Update debug spheres (only if enabled)
+        if (showDebugSpheres)
         {
-            indexRightFingerProjectionSphere.gameObject.SetActive(true);
-            indexRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            if (indexRightFingerProjectionSphere != null)
+            {
+                indexRightFingerProjectionSphere.gameObject.SetActive(true);
+                indexRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            }
+            if (indexClawProjectionSphere != null && clawIndexPath != null)
+            {
+                indexClawProjectionSphere.gameObject.SetActive(true);
+                indexClawProjectionSphere.position = clawPos;
+            }
         }
-        if (indexClawProjectionSphere != null && clawIndexPath != null)
+        else
         {
-            indexClawProjectionSphere.gameObject.SetActive(true);
-            indexClawProjectionSphere.position = clawPos;
+            // Hide spheres when debug is disabled
+            if (indexRightFingerProjectionSphere != null)
+                indexRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (indexClawProjectionSphere != null)
+                indexClawProjectionSphere.gameObject.SetActive(false);
         }
         
         // Check if motor changed
@@ -339,16 +385,27 @@ public class SelectMotorCollider : MonoBehaviour
         middleClawPosition = clawPos;
         middleClawProjectionPosition = clawPos;
         
-        // Update debug spheres
-        if (middleRightFingerProjectionSphere != null)
+        // Update debug spheres (only if enabled)
+        if (showDebugSpheres)
         {
-            middleRightFingerProjectionSphere.gameObject.SetActive(true);
-            middleRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            if (middleRightFingerProjectionSphere != null)
+            {
+                middleRightFingerProjectionSphere.gameObject.SetActive(true);
+                middleRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            }
+            if (middleClawProjectionSphere != null && clawMiddlePath != null)
+            {
+                middleClawProjectionSphere.gameObject.SetActive(true);
+                middleClawProjectionSphere.position = clawPos;
+            }
         }
-        if (middleClawProjectionSphere != null && clawMiddlePath != null)
+        else
         {
-            middleClawProjectionSphere.gameObject.SetActive(true);
-            middleClawProjectionSphere.position = clawPos;
+            // Hide spheres when debug is disabled
+            if (middleRightFingerProjectionSphere != null)
+                middleRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (middleClawProjectionSphere != null)
+                middleClawProjectionSphere.gameObject.SetActive(false);
         }
         
         // Check if motor changed
