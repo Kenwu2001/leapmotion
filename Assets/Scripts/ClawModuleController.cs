@@ -1931,6 +1931,10 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
         }
 
+        // Snap range check for Y-axis
+        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 295f, 335f);
+        thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
+
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
             if (!_indexMotor1Locked && IndexAngle1Center != null)
@@ -1947,7 +1951,18 @@ public class ClawModuleController : MonoBehaviour
             _indexMotor1Locked = false;
 
             if (IndexAngle1Center != null)
-                IndexAngle1Center.localRotation = targetRotation;
+            {
+                if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
+                {
+                    Vector3 snapEuler = targetRotation.eulerAngles;
+                    snapEuler.y = 330f; //FIXME: adjust snap angle if needed
+                    IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                }
+                else
+                {
+                    IndexAngle1Center.localRotation = targetRotation;
+                }
+            }
         }
     }
     #endregion
@@ -2131,6 +2146,10 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
         }
 
+        // Snap range check for Y-axis
+        indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
+        thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
+
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
             if (!_middleMotor1Locked && MiddleAngle1Center != null)
@@ -2147,7 +2166,18 @@ public class ClawModuleController : MonoBehaviour
             _middleMotor1Locked = false;
 
             if (MiddleAngle1Center != null)
-                MiddleAngle1Center.localRotation = targetRotation;
+            {
+                if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
+                {
+                    Vector3 snapEuler = targetRotation.eulerAngles;
+                    snapEuler.y = 30f; //FIXME: adjust snap angle if needed
+                    MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                }
+                else
+                {
+                    MiddleAngle1Center.localRotation = targetRotation;
+                }
+            }
         }
     }
     #endregion
