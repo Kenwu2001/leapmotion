@@ -266,6 +266,27 @@ public class ClawModuleController : MonoBehaviour
     private bool _middleMotor4Locked = false;
     private Quaternion _middleMotor4LockedRot;
 
+    // ==============================
+    // 🔹 Manipulation Freeze State
+    // ==============================
+    // Track if we are actively manipulating (fingertip touched and green)
+    public bool isActivelyManipulating = false;
+    private bool _manipulationFreezeInitialized = false;
+    
+    // Locked rotations for ALL motors during manipulation
+    private Quaternion _freezeThumbMotor1Rot;
+    private Quaternion _freezeThumbMotor2Rot;
+    private Quaternion _freezeThumbMotor3Rot;
+    private Quaternion _freezeThumbMotor4Rot;
+    private Quaternion _freezeIndexMotor1Rot;
+    private Quaternion _freezeIndexMotor2Rot;
+    private Quaternion _freezeIndexMotor3Rot;
+    private Quaternion _freezeIndexMotor4Rot;
+    private Quaternion _freezeMiddleMotor1Rot;
+    private Quaternion _freezeMiddleMotor2Rot;
+    private Quaternion _freezeMiddleMotor3Rot;
+    private Quaternion _freezeMiddleMotor4Rot;
+
     void Start()
     {
         originalColor = thumbJoint1Renderer.material.color;
@@ -346,6 +367,45 @@ public class ClawModuleController : MonoBehaviour
 
         canControlMiddle2 = !isThumb1Triggered && !isThumb2Triggered && !isThumb3Triggered &&
                             !isIndex1Triggered && !isIndex3Triggered && !isMiddle1Triggered && !isMiddle3Triggered;
+
+        // ==============================
+        // 🔹 Manipulation Freeze Logic
+        // ==============================
+        // Detect if any fingertip is being touched and we're in manipulation mode
+        bool anyFingertipTouched = triggerRightThumbTip.isRightThumbTipTouched ||
+                                   triggerRightIndexTip.isRightIndexTipTouched ||
+                                   triggerRightMiddleTip.isRightMiddleTipTouched;
+        
+        // Check if manipulation is active (in modeManipulate + fingertip touched)
+        // This matches the "green" condition: fingertip turns green when touched in modeManipulate
+        bool wasActivelyManipulating = isActivelyManipulating;
+        isActivelyManipulating = modeSwitching.modeManipulate && anyFingertipTouched;
+        
+        // Initialize freeze rotations when manipulation starts
+        if (isActivelyManipulating && !_manipulationFreezeInitialized)
+        {
+            _manipulationFreezeInitialized = true;
+            
+            // Store current rotations of all motors
+            if (ThumbAngle1Center != null) _freezeThumbMotor1Rot = ThumbAngle1Center.localRotation;
+            if (ThumbAngle2Center != null) _freezeThumbMotor2Rot = ThumbAngle2Center.localRotation;
+            if (ThumbAngle3Center != null) _freezeThumbMotor3Rot = ThumbAngle3Center.localRotation;
+            if (ThumbAngle4Center != null) _freezeThumbMotor4Rot = ThumbAngle4Center.localRotation;
+            if (IndexAngle1Center != null) _freezeIndexMotor1Rot = IndexAngle1Center.localRotation;
+            if (IndexAngle2Center != null) _freezeIndexMotor2Rot = IndexAngle2Center.localRotation;
+            if (IndexAngle3Center != null) _freezeIndexMotor3Rot = IndexAngle3Center.localRotation;
+            if (IndexAngle4Center != null) _freezeIndexMotor4Rot = IndexAngle4Center.localRotation;
+            if (MiddleAngle1Center != null) _freezeMiddleMotor1Rot = MiddleAngle1Center.localRotation;
+            if (MiddleAngle2Center != null) _freezeMiddleMotor2Rot = MiddleAngle2Center.localRotation;
+            if (MiddleAngle3Center != null) _freezeMiddleMotor3Rot = MiddleAngle3Center.localRotation;
+            if (MiddleAngle4Center != null) _freezeMiddleMotor4Rot = MiddleAngle4Center.localRotation;
+        }
+        
+        // Reset freeze state when manipulation ends
+        if (!isActivelyManipulating)
+        {
+            _manipulationFreezeInitialized = false;
+        }
 
         HandleInput();
 
@@ -630,6 +690,46 @@ public class ClawModuleController : MonoBehaviour
             paxiniValue.isMiddleTouchSnapped
         );
         #endregion
+
+        // ==============================
+        // 🔹 Apply Freeze to Non-Target Motors During Manipulation
+        // ==============================
+        if (isActivelyManipulating && _manipulationFreezeInitialized)
+        {
+            int targetMotorID = modeSwitching.confirmedMotorID;
+            
+            // Freeze all motors except the one being controlled
+            // Motor IDs: 1=Thumb1, 2=Thumb2, 3=Thumb3, 4=Thumb4
+            //            5=Index1, 6=Index2, 7=Index3, 8=Index4
+            //            9=Middle1, 10=Middle2, 11=Middle3, 12=Middle4
+            
+            if (targetMotorID != 1 && ThumbAngle1Center != null)
+                ThumbAngle1Center.localRotation = _freezeThumbMotor1Rot;
+            if (targetMotorID != 2 && ThumbAngle2Center != null)
+                ThumbAngle2Center.localRotation = _freezeThumbMotor2Rot;
+            if (targetMotorID != 3 && ThumbAngle3Center != null)
+                ThumbAngle3Center.localRotation = _freezeThumbMotor3Rot;
+            if (targetMotorID != 4 && ThumbAngle4Center != null)
+                ThumbAngle4Center.localRotation = _freezeThumbMotor4Rot;
+            
+            if (targetMotorID != 5 && IndexAngle1Center != null)
+                IndexAngle1Center.localRotation = _freezeIndexMotor1Rot;
+            if (targetMotorID != 6 && IndexAngle2Center != null)
+                IndexAngle2Center.localRotation = _freezeIndexMotor2Rot;
+            if (targetMotorID != 7 && IndexAngle3Center != null)
+                IndexAngle3Center.localRotation = _freezeIndexMotor3Rot;
+            if (targetMotorID != 8 && IndexAngle4Center != null)
+                IndexAngle4Center.localRotation = _freezeIndexMotor4Rot;
+            
+            if (targetMotorID != 9 && MiddleAngle1Center != null)
+                MiddleAngle1Center.localRotation = _freezeMiddleMotor1Rot;
+            if (targetMotorID != 10 && MiddleAngle2Center != null)
+                MiddleAngle2Center.localRotation = _freezeMiddleMotor2Rot;
+            if (targetMotorID != 11 && MiddleAngle3Center != null)
+                MiddleAngle3Center.localRotation = _freezeMiddleMotor3Rot;
+            if (targetMotorID != 12 && MiddleAngle4Center != null)
+                MiddleAngle4Center.localRotation = _freezeMiddleMotor4Rot;
+        }
     }
 
     // ==============================
