@@ -452,11 +452,12 @@ public class ClawModuleController : MonoBehaviour
         //     IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1 + jointAngle.indexAngle0, 0f, 0f);
 
         // UpdateIndexFingerAbduction();
-
-        UpdateIndexFingerAbductionByAngle();
-
-        UpdateIndexFingerTwistByAngle();
         // UpdateIndexFingerTwist();
+
+        // UpdateIndexFingerAbductionByAngle();
+        UpdateIndexFingerAbductionByAngleByZ();
+        // UpdateIndexFingerTwistByAngle();
+        UpdateIndexFingerTwistByAngleByY();
 
         // UpdateInnerExtension(
         //     triggerIndexInnerExtension.isIndexInnerExtensionTouched,
@@ -541,12 +542,12 @@ public class ClawModuleController : MonoBehaviour
         // ==============================
 
         // UpdateMiddleFingerAbduction();
-
-        UpdateMiddleFingerAbductionByAngle();
-
         // UpdateMiddleFingerTwist();
 
-        UpdateMiddleFingerTwistByAngle();
+        // UpdateMiddleFingerAbductionByAngle();
+        UpdateMiddleFingerAbductionByAngleByZ();
+        // UpdateMiddleFingerTwistByAngle();
+        UpdateMiddleFingerTwistByAngleByY();
 
         // if (MiddleAngle3Center != null)
         //     MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1 + jointAngle.middleAngle0, 0f, 0f);
@@ -1123,6 +1124,133 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
+    #region IndexAbductionByZ
+    /// <summary>
+    /// Controls Index finger Z-axis abduction (swapped from Y-axis), motorID == 6
+    /// </summary>
+    private void UpdateIndexFingerAbductionByAngleByZ()
+    {
+        maxIndexZAxisAngle = NormalizeAngle(indexFingerJoint2MaxRotationVector.z);
+        Quaternion targetRotation = IndexAngle2CenterInitialRotation;
+
+        // Initialize touch duration for index abduction Z
+        if (!fingerTipTouchDurations.ContainsKey("IndexAbductionZ"))
+        {
+            fingerTipTouchDurations["IndexAbductionZ"] = 0f;
+        }
+
+        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
+             && !isAnyMotor4Triggered && canControlIndex2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 6)
+        {
+            fingerTipTouchDurations["IndexAbductionZ"] += Time.deltaTime;
+            isIndex2Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["IndexAbductionZ"] > 1.0f)
+            {
+                // Initialize tracking on first frame after 1 second
+                if (fingerTipTouchDurations["IndexAbductionZ"] <= 1.0f + Time.deltaTime)
+                {
+                    indexAngleHistory.Clear();
+                    isIndexRotatingNegative = true;
+                }
+
+                float currentTime = Time.time;
+                indexAngleHistory.Enqueue((currentTime, jointAngle.indexMiddleAngleOnPalm));
+
+                // Clean up old entries while keeping at least one reference point
+                if (indexAngleHistory.Count > 0)
+                {
+                    float oldestTime = indexAngleHistory.Peek().time;
+                    float timeDiff = currentTime - oldestTime;
+
+                    if (timeDiff > DETECTION_WINDOW + 0.1f)
+                    {
+                        while (indexAngleHistory.Count > 1 &&
+                               currentTime - indexAngleHistory.Peek().time > DETECTION_WINDOW)
+                        {
+                            indexAngleHistory.Dequeue();
+                        }
+                    }
+
+                    // Check if we have enough history to detect direction change
+                    if (timeDiff >= DETECTION_WINDOW)
+                    {
+                        float oldestAngle = indexAngleHistory.Peek().angle;
+                        float currentAngle = jointAngle.indexMiddleAngleOnPalm;
+                        float angleChange = currentAngle - oldestAngle;
+
+                        // If angle increased by >= 5 degrees, switch to negative direction (outward)
+                        if (angleChange >= DIRECTION_THRESHOLD)
+                        {
+                            isIndexRotatingNegative = true;
+                        }
+                        // If angle decreased by >= 5 degrees, switch to positive direction (inward)
+                        else if (angleChange <= -DIRECTION_THRESHOLD)
+                        {
+                            isIndexRotatingNegative = false;
+                        }
+                        // Otherwise, keep current direction
+                    }
+                }
+
+                // Apply rotation based on current direction (Z-axis)
+                if (isIndexRotatingNegative)
+                {
+                    currentIndexRotationZ -= rotationSpeed * Time.deltaTime;
+                    currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+                }
+                else
+                {
+                    currentIndexRotationZ += rotationSpeed * Time.deltaTime;
+                    currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+                }
+
+                indexFingerJoint2MaxRotationVector =
+                    (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZ)).eulerAngles;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["IndexAbductionZ"] = 0f;
+            isIndex2Triggered = false;
+            indexAngleHistory.Clear();
+            isIndexRotatingNegative = true;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
+
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && IndexAngle2Center != null)
+        {
+            float delta = maxIndexZAxisAngle;
+            float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            if (targetZ >= 360f) targetZ = 0.1f;
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+        }
+
+        if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+        {
+            if (!_indexMotor2Locked && IndexAngle2Center != null)
+            {
+                _indexMotor2Locked = true;
+                _indexMotor2LockedRot = IndexAngle2Center.localRotation;
+            }
+
+            if (IndexAngle2Center != null)
+                IndexAngle2Center.localRotation = _indexMotor2LockedRot;
+        }
+        else
+        {
+            _indexMotor2Locked = false;
+
+            if (IndexAngle2Center != null)
+                IndexAngle2Center.localRotation = targetRotation;
+        }
+    }
+    #endregion
+
     // ==============================
     // 🔹 Middle Finger Abduction (Y-axis)
     // ==============================
@@ -1388,6 +1516,134 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
+    #region MiddleAbductionByZ
+    /// <summary>
+    /// Controls Middle finger Z-axis abduction (swapped from Y-axis), motorID == 10
+    /// </summary>
+    void UpdateMiddleFingerAbductionByAngleByZ()
+    {
+        maxMiddleZAxisAngle = NormalizeAngle(middleFingerJoint2MaxRotationVector.z);
+        Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
+
+        // Initialize touch duration for middle abduction Z
+        if (!fingerTipTouchDurations.ContainsKey("MiddleAbductionZ"))
+        {
+            fingerTipTouchDurations["MiddleAbductionZ"] = 0f;
+        }
+
+        if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
+             && !isAnyMotor4Triggered && canControlMiddle2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 10)
+        {
+            fingerTipTouchDurations["MiddleAbductionZ"] += Time.deltaTime;
+            isMiddle2Triggered = true;
+
+            // Only apply rotation after 1 second
+            if (fingerTipTouchDurations["MiddleAbductionZ"] > 1.0f)
+            {
+                // Initialize tracking on first frame after 1 second
+                if (fingerTipTouchDurations["MiddleAbductionZ"] <= 1.0f + Time.deltaTime)
+                {
+                    middleAngleHistory.Clear();
+                    isMiddleRotatingPositive = true;
+                }
+
+                float currentTime = Time.time;
+                middleAngleHistory.Enqueue((currentTime, jointAngle.indexMiddleAngleOnPalm));
+
+                // Clean up old entries while keeping at least one reference point
+                if (middleAngleHistory.Count > 0)
+                {
+                    float oldestTime = middleAngleHistory.Peek().time;
+                    float timeDiff = currentTime - oldestTime;
+
+                    if (timeDiff > DETECTION_WINDOW + 0.1f)
+                    {
+                        while (middleAngleHistory.Count > 1 &&
+                               currentTime - middleAngleHistory.Peek().time > DETECTION_WINDOW)
+                        {
+                            middleAngleHistory.Dequeue();
+                        }
+                    }
+
+                    // Check if we have enough history to detect direction change
+                    if (timeDiff >= DETECTION_WINDOW)
+                    {
+                        float oldestAngle = middleAngleHistory.Peek().angle;
+                        float currentAngle = jointAngle.indexMiddleAngleOnPalm;
+                        float angleChange = currentAngle - oldestAngle;
+
+                        // If angle increased by >= 5 degrees, switch to positive direction (+=, outward)
+                        if (angleChange >= DIRECTION_THRESHOLD)
+                        {
+                            isMiddleRotatingPositive = true;
+                        }
+                        // If angle decreased by >= 5 degrees, switch to negative direction (-=, inward)
+                        else if (angleChange <= -DIRECTION_THRESHOLD)
+                        {
+                            isMiddleRotatingPositive = false;
+                        }
+                        // Otherwise, keep current direction
+                    }
+                }
+
+                // Apply rotation based on current direction (Z-axis)
+                if (isMiddleRotatingPositive)
+                {
+                    currentMiddleRotationZ += rotationSpeed * Time.deltaTime;
+                    currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                }
+                else
+                {
+                    currentMiddleRotationZ -= rotationSpeed * Time.deltaTime;
+                    currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                }
+
+                middleFingerJoint2MaxRotationVector =
+                    (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["MiddleAbductionZ"] = 0f;
+            isMiddle2Triggered = false;
+            middleAngleHistory.Clear();
+            isMiddleRotatingPositive = true;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
+
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle2Center != null)
+        {
+            float delta = maxMiddleZAxisAngle;
+
+            float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            if (targetZ <= 0f) targetZ = 0f;
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+        }
+
+        if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+        {
+            if (!_middleMotor2Locked && MiddleAngle2Center != null)
+            {
+                _middleMotor2Locked = true;
+                _middleMotor2LockedRot = MiddleAngle2Center.localRotation;
+            }
+
+            if (MiddleAngle2Center != null)
+                MiddleAngle2Center.localRotation = _middleMotor2LockedRot;
+        }
+        else
+        {
+            _middleMotor2Locked = false;
+
+            if (MiddleAngle2Center != null)
+                MiddleAngle2Center.localRotation = targetRotation;
+        }
+    }
+    #endregion
+
 
     // ==============================
     // 🔹 Twist
@@ -1620,6 +1876,82 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
+    #region IndexTwistByY
+    /// <summary>
+    /// Controls Index finger Y-axis twist (swapped from Z-axis), motorID == 5
+    /// </summary>
+    private void UpdateIndexFingerTwistByAngleByY()
+    {
+        Quaternion targetRotation = IndexAngle1CenterInitialRotation;
+        maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
+
+        if (!fingerTipTouchDurations.ContainsKey("IndexTwistY"))
+        {
+            fingerTipTouchDurations["IndexTwistY"] = 0f;
+        }
+
+        if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
+                && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlIndex1 && !isMiddle1Triggered
+                && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 5)
+        {
+            fingerTipTouchDurations["IndexTwistY"] += Time.deltaTime;
+            isIndex1Triggered = true;
+
+            if (fingerTipTouchDurations["IndexTwistY"] > 0.3f)
+            {
+                if (currentIndexRotationY >= -60f && currentIndexRotationY <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
+                {
+                    currentIndexRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                }
+
+                currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -60f, 0f);
+
+                indexFingerJoint1MaxRotationVector =
+                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["IndexTwistY"] = 0f;
+            isIndex1Triggered = false;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
+
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && IndexAngle1Center != null)
+        {
+            float delta = maxIndexYAxisAngle;
+            float targetY = isMapping
+                ? maxIndexYAxisAngle + (30 - delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+                : indexFingerJoint1MaxRotationVector.y + 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+
+            if (targetY >= 70) targetY = 70f;
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+        }
+
+        if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+        {
+            if (!_indexMotor1Locked && IndexAngle1Center != null)
+            {
+                _indexMotor1Locked = true;
+                _indexMotor1LockedRot = IndexAngle1Center.localRotation;
+            }
+
+            if (IndexAngle1Center != null)
+                IndexAngle1Center.localRotation = _indexMotor1LockedRot;
+        }
+        else
+        {
+            _indexMotor1Locked = false;
+
+            if (IndexAngle1Center != null)
+                IndexAngle1Center.localRotation = targetRotation;
+        }
+    }
+    #endregion
+
     // private void UpdateMiddleFingerTwist()
     // {
     //     Quaternion targetRotation = MiddleAngle2CenterInitialRotation;
@@ -1740,6 +2072,82 @@ public class ClawModuleController : MonoBehaviour
 
             if (MiddleAngle2Center != null)
                 MiddleAngle2Center.localRotation = targetRotation;
+        }
+    }
+    #endregion
+
+    #region MiddleTwistByY
+    /// <summary>
+    /// Controls Middle finger Y-axis twist (swapped from Z-axis), motorID == 9
+    /// </summary>
+    private void UpdateMiddleFingerTwistByAngleByY()
+    {
+        Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
+        maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
+
+        if (!fingerTipTouchDurations.ContainsKey("MiddleTwistY"))
+        {
+            fingerTipTouchDurations["MiddleTwistY"] = 0f;
+        }
+
+        if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
+             && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlMiddle1 && !isIndex1Triggered
+            && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
+        {
+            fingerTipTouchDurations["MiddleTwistY"] += Time.deltaTime;
+            isMiddle1Triggered = true;
+
+            if (fingerTipTouchDurations["MiddleTwistY"] > 0.7f)
+            {
+                if (currentMiddleRotationY <= 60f && currentMiddleRotationY >= 0)
+                {
+                    currentMiddleRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                }
+
+                currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, 0f, 60f);
+
+                middleFingerJoint1MaxRotationVector =
+                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["MiddleTwistY"] = 0f;
+            isMiddle1Triggered = false;
+        }
+
+        targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
+
+        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle1Center != null)
+        {
+            float delta = maxMiddleYAxisAngle;
+            float targetY = isMapping
+                ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+                : middleFingerJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+
+            if (targetY <= -70f) targetY = -70f;
+
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+        }
+
+        if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+        {
+            if (!_middleMotor1Locked && MiddleAngle1Center != null)
+            {
+                _middleMotor1Locked = true;
+                _middleMotor1LockedRot = MiddleAngle1Center.localRotation;
+            }
+
+            if (MiddleAngle1Center != null)
+                MiddleAngle1Center.localRotation = _middleMotor1LockedRot;
+        }
+        else
+        {
+            _middleMotor1Locked = false;
+
+            if (MiddleAngle1Center != null)
+                MiddleAngle1Center.localRotation = targetRotation;
         }
     }
     #endregion
