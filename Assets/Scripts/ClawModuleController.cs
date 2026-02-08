@@ -409,7 +409,7 @@ public class ClawModuleController : MonoBehaviour
 
         HandleInput();
 
-        #region Update fingers
+        #region UpdateFingers
         // ==============================
         // 🔹 Thumb
         // ==============================
@@ -960,6 +960,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
+    #region ThumbAbdV2
     void UpdateThumbAbductionV2()
     {
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
@@ -1055,6 +1056,7 @@ public class ClawModuleController : MonoBehaviour
             }
         }
     }
+    #endregion
 
     // ==============================
     // 🔹 Index Finger Abduction (Y-axis)
@@ -1321,7 +1323,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region IndexAbductionByZ
+    #region IndexAbdByZ
     /// <summary>
     /// Controls Index finger Z-axis abduction (swapped from Y-axis), motorID == 6
     /// </summary>
@@ -1713,7 +1715,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region MiddleAbductionByZ
+    #region MiddleAbdByZ
     /// <summary>
     /// Controls Middle finger Z-axis abduction (swapped from Y-axis), motorID == 10
     /// </summary>
@@ -1938,6 +1940,8 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
+
+    #region ThumbTwistV2
     void UpdateThumbFingerTwistV2()
     {
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
@@ -2085,6 +2089,7 @@ public class ClawModuleController : MonoBehaviour
             // Debug.Log("ThumbAngle2Center.localRotation.eulerAngles.z : " + ThumbAngle2Center.localRotation.eulerAngles.z);
         }
     }
+    #endregion
 
     // private void UpdateIndexFingerTwist()
     // {
@@ -2719,7 +2724,7 @@ public class ClawModuleController : MonoBehaviour
     //         jointTransform.localRotation = targetRotation;
     // }
 
-    #region FingertipExtensionV2
+    #region ExtensionV2
     private void UpdateFingertipExtensionV2(
         bool isTipTouched,
         float jointAngleValue,
