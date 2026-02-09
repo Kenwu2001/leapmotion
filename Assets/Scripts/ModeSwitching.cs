@@ -51,13 +51,46 @@ public class ModeSwitching : MonoBehaviour
 
     public Material yellowMaterial;
     
+    [Header("=== New Feature: Fingertip Priority Selection ===")]
+    [Tooltip("Enable fingertip priority mode: Fingertip motors (4, 8, 12) must be confirmed before selecting other motors")]
+    public bool useFingertipFirst = false;
+    
+    [Tooltip("Current selection phase")]
+    public SelectionPhase currentPhase = SelectionPhase.SelectingFingertip;
+    
+    [Tooltip("ID of the confirmed fingertip motor")]
+    public int confirmedFingertipID = 0;
+    
+    public Color grayColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Gray (disabled/unselectable)
+    
+    public enum SelectionPhase
+    {
+        SelectingFingertip,   // Phase 1: Selecting fingertip (4, 8, 12)
+        SelectingMotor,       // Phase 2: Selecting the motor of the finger
+        MotorConfirmed        // Final motor confirmed
+    }
+    
     void Start()
     {
         originalColor = thumbJoint1Renderer.material.color;
         modeSelect = true;
         motorSelected = false;
         modeManipulate = false;
+        
+        // Initialize fingertip priority feature
+        if (useFingertipFirst)
+        {
+            currentPhase = SelectionPhase.SelectingFingertip;
+            confirmedFingertipID = 0;
+        }
+        
         ResetAllColors();
+
+        // If fingertip priority mode is enabled, initially gray out non-fingertip motors
+        if (useFingertipFirst)
+        {
+            UpdateGrayColors();
+        }
     }
 
     void Update()
@@ -65,20 +98,20 @@ public class ModeSwitching : MonoBehaviour
         if (modeSelect && SelectMotorCollider != null)
         {
             int currentMotorID = SelectMotorCollider.currentTouchedMotorID;
-            
-            // 馬達切換了
+
+            // Motor switched
             if (currentMotorID != lastTouchedMotorID)
             {
                 if (currentMotorID != 0)
                 {
-                    // 新馬達被觸碰
-                    touchStartTime = Time.time; // 記錄開始觸碰時間
-                    isConfirmed = false; // 新觸碰還未確認
+                    // New motor touched
+                    touchStartTime = Time.time; // Record the start touch time
+                    isConfirmed = false; // New touch not yet confirmed
                     currentRedMotorID = currentMotorID;
-                    
-                    // 更新顏色顯示
+
+                    // Update color display
                     UpdateMotorColors();
-                    
+
                     if (!motorSelected)
                     {
                         motorSelected = true;
@@ -86,32 +119,49 @@ public class ModeSwitching : MonoBehaviour
                 }
                 else
                 {
-                    // 離開所有馬達 - 只保留深紅色的確認選擇
+                    // Left all motors - only keep the confirmed selection in dark red
                     currentRedMotorID = 0;
                     UpdateMotorColors();
                 }
-                
+
                 lastTouchedMotorID = currentMotorID;
             }
             else if (currentMotorID != 0)
             {
-                // 持續觸碰同一個馬達 - 檢查是否超過確認時間
+                // Continuously touching the same motor - check if confirmation time exceeded
                 if (!isConfirmed && (Time.time - touchStartTime) >= confirmationTime)
                 {
-                    // 超過確認時間，變成深紅色（確認選擇）
+                    // Exceeded confirmation time, turn dark red (confirmed selection)
                     isConfirmed = true;
-                    confirmedMotorID = currentMotorID; // 記錄確認選擇的馬達
+
+                    // Handle confirmation logic based on whether fingertip priority mode is enabled
+                    if (useFingertipFirst)
+                    {
+                        HandleFingertipFirstConfirmation(currentMotorID);
+                    }
+                    else
+                    {
+                        confirmedMotorID = currentMotorID; // Original logic
+                    }
+
                     UpdateMotorColors();
                 }
             }
         }
-        
+
         // Transition: Select → Manipulate (distance increases)
-        // 只有確認選擇了馬達（深紅色）才能進入 Manipulate 模式
-        if (modeSelect && motorSelected && confirmedMotorID != 0)
+        // Only confirmed motor (dark red) can enter Manipulate mode
+        // Fingertip priority mode: Must be in MotorConfirmed phase
+        bool canEnterManipulate = modeSelect && motorSelected && confirmedMotorID != 0;
+        if (useFingertipFirst)
+        {
+            canEnterManipulate = canEnterManipulate && currentPhase == SelectionPhase.MotorConfirmed;
+        }
+
+        if (canEnterManipulate)
         {
             float distance = jointAngle.GetLIndexToIndex2Distance();
-            
+
             if (distance > 0.16f)
             {
                 modeSelect = false;
@@ -126,7 +176,7 @@ public class ModeSwitching : MonoBehaviour
         if (modeManipulate)
         {
             // baseRenderer.material.color = Color.green; // Indicate Manipulate mode
-            
+
             float distance = jointAngle.GetLIndexToIndex2Distance();
 
             // Set colors only once when entering manipulate mode
@@ -218,13 +268,13 @@ public class ModeSwitching : MonoBehaviour
                 }
                 hasSetManipulateColors = true;
             }
-            
+
             // Track if we've entered close range (< 0.16f) for manipulation
             if (distance < 0.16f)
             {
                 hasEnteredCloseRange = true;
             }
-            
+
             // Only exit if we've performed manipulation (entered close range) 
             // and then moved back out (> 0.16f)
             if (hasEnteredCloseRange && distance > 0.16f)
@@ -241,44 +291,61 @@ public class ModeSwitching : MonoBehaviour
                 hasEnteredCloseRange = false;
                 hasSetManipulateColors = false; // Reset color flag
                 // baseRenderer.material.color = originalColor; // Reset base color
+
+                // Reset fingertip priority mode state
+                if (useFingertipFirst)
+                {
+                    currentPhase = SelectionPhase.SelectingFingertip;
+                    confirmedFingertipID = 0;
+                    SelectMotorCollider.ResetFingertipConfirmation();
+                    UpdateGrayColors(); // Gray out non-fingertip motors again
+                }
             }
         }
     }
     
     /// <summary>
-    /// 更新馬達顏色：
-    /// - 確認選擇的馬達（confirmedMotorID）顯示深紅色
-    /// - 當前觸碰但未確認的馬達顯示淺紅色
+    /// Update motor colors:
+    /// - The confirmed motor (`confirmedMotorID`) is shown in dark red
+    /// - The currently touched but unconfirmed motor is shown in light red
     /// </summary>
     private void UpdateMotorColors()
     {
-        // 先重置所有顏色
-        ResetAllColors();
+        // Reset all colors first
+        if (useFingertipFirst)
+        {
+            // Fingertip-first mode: set gray base
+            UpdateGrayColors();
+        }
+        else
+        {
+            ResetAllColors();
+        }
         
-        // 如果有確認選擇的馬達，顯示深紅色
+        // If there is a confirmed motor, show it in dark red
         if (confirmedMotorID != 0)
         {
             SetMotorColorDirect(confirmedMotorID, darkRedColor);
         }
         
-        // 如果當前觸碰的馬達不是確認選擇的馬達，顯示淺紅色
+        // If the currently touched motor is not the confirmed one, show it in light red
         if (currentRedMotorID != 0 && currentRedMotorID != confirmedMotorID)
         {
             if (isConfirmed)
             {
-                // 如果當前觸碰的已經確認了，用深紅色
+                // If the current touch is confirmed, use dark red
                 SetMotorColorDirect(currentRedMotorID, darkRedColor);
             }
             else
             {
-                // 還沒確認，用淺紅色
+                // Not yet confirmed, use light red
                 SetMotorColorDirect(currentRedMotorID, lightRedColor);
             }
         }
     }
     
     /// <summary>
-    /// 直接設定單個馬達的顏色（不重置其他顏色）
+    /// Set a single motor's color directly (do not reset other colors)
     /// </summary>
     private void SetMotorColorDirect(int motorID, Color color)
     {
@@ -364,5 +431,161 @@ public class ModeSwitching : MonoBehaviour
         middleJoint2Renderer.material.color = originalColor;
         middleJoint3Renderer.material.color = originalColor;
         middleJoint4Renderer.material.color = originalColor;
+    }
+    
+    /// <summary>
+    /// Handle motor confirmation logic for fingertip-first mode
+    /// </summary>
+    private void HandleFingertipFirstConfirmation(int motorID)
+    {
+        switch (currentPhase)
+        {
+            case SelectionPhase.SelectingFingertip:
+                // Phase 1: only accept fingertip motors (4, 8, 12)
+                if (motorID == 4 || motorID == 8 || motorID == 12)
+                {
+                    confirmedFingertipID = motorID;
+                    confirmedMotorID = motorID; // Temporarily record as the confirmed motor
+                    
+                    // Notify SelectMotorCollider that a fingertip has been confirmed
+                    SelectMotorCollider.OnFingertipConfirmed(motorID);
+                    
+                    // Enter phase 2
+                    currentPhase = SelectionPhase.SelectingMotor;
+                    
+                    // Update gray display (other motors of this finger are now selectable)
+                    UpdateGrayColors();
+                    
+                    Debug.Log($"[ModeSwitching] Fingertip motor {motorID} confirmed. Entering motor selection phase.");
+                }
+                break;
+                
+            case SelectionPhase.SelectingMotor:
+            case SelectionPhase.MotorConfirmed:
+                // Check whether a new fingertip was selected (switch finger/change mind)
+                if (motorID == 4 || motorID == 8 || motorID == 12)
+                {
+                    if (motorID != confirmedFingertipID)
+                    {
+                        // Switch to the new finger
+                        confirmedFingertipID = motorID;
+                        confirmedMotorID = motorID;
+                        
+                        // Notify SelectMotorCollider that the fingertip switched
+                        SelectMotorCollider.OnFingertipConfirmed(motorID);
+                        
+                        // Return to phase 2 (selecting motors of that finger)
+                        currentPhase = SelectionPhase.SelectingMotor;
+                        
+                        // Update gray display
+                        UpdateGrayColors();
+                        
+                        Debug.Log($"[ModeSwitching] Switched to new fingertip motor {motorID}!");
+                    }
+                    else
+                    {
+                        // Still the same fingertip
+                        confirmedMotorID = motorID;
+                        currentPhase = SelectionPhase.MotorConfirmed;
+                        Debug.Log($"[ModeSwitching] Maintaining fingertip motor {motorID}");
+                    }
+                }
+                else
+                {
+                    // Selecting another motor of the confirmed finger
+                    confirmedMotorID = motorID;
+                    currentPhase = SelectionPhase.MotorConfirmed;
+                    Debug.Log($"[ModeSwitching] Motor {motorID} confirmed. Can enter manipulate mode.");
+                }
+                break;
+        }
+    }
+    
+    /// <summary>
+    /// Update gray display (unselectable motors)
+    /// </summary>
+    private void UpdateGrayColors()
+    {
+        if (!useFingertipFirst)
+        {
+            ResetAllColors();
+            return;
+        }
+        
+        if (currentPhase == SelectionPhase.SelectingFingertip)
+        {
+            // Phase 1: only fingertips (4, 8, 12) are selectable, others gray out
+            thumbJoint1Renderer.material.color = grayColor;
+            thumbJoint2Renderer.material.color = grayColor;
+            thumbJoint3Renderer.material.color = grayColor;
+            thumbJoint4Renderer.material.color = originalColor; // Motor 4 - fingertip selectable
+            
+            indexJoint1Renderer.material.color = grayColor;
+            indexJoint2Renderer.material.color = grayColor;
+            indexJoint3Renderer.material.color = grayColor;
+            indexJoint4Renderer.material.color = originalColor; // Motor 8 - fingertip selectable
+            
+            middleJoint1Renderer.material.color = grayColor;
+            middleJoint2Renderer.material.color = grayColor;
+            middleJoint3Renderer.material.color = grayColor;
+            middleJoint4Renderer.material.color = originalColor; // Motor 12 - fingertip selectable
+        }
+        else if (currentPhase == SelectionPhase.SelectingMotor || currentPhase == SelectionPhase.MotorConfirmed)
+        {
+            // Phase 2/3: motors of the confirmed finger are selectable, other fingers' fingertips remain selectable
+            switch (confirmedFingertipID)
+            {
+                case 4: // Thumb
+                    thumbJoint1Renderer.material.color = originalColor;
+                    thumbJoint2Renderer.material.color = originalColor;
+                    thumbJoint3Renderer.material.color = originalColor;
+                    thumbJoint4Renderer.material.color = originalColor;
+                    
+                    indexJoint1Renderer.material.color = grayColor;
+                    indexJoint2Renderer.material.color = grayColor;
+                    indexJoint3Renderer.material.color = grayColor;
+                    indexJoint4Renderer.material.color = originalColor; // Index fingertip remains selectable
+                    
+                    middleJoint1Renderer.material.color = grayColor;
+                    middleJoint2Renderer.material.color = grayColor;
+                    middleJoint3Renderer.material.color = grayColor;
+                    middleJoint4Renderer.material.color = originalColor; // Middle fingertip remains selectable
+                    break;
+                    
+                case 8: // Index finger
+                    thumbJoint1Renderer.material.color = grayColor;
+                    thumbJoint2Renderer.material.color = grayColor;
+                    thumbJoint3Renderer.material.color = grayColor;
+                    thumbJoint4Renderer.material.color = originalColor; // Thumb fingertip remains selectable
+                    
+                    indexJoint1Renderer.material.color = originalColor;
+                    indexJoint2Renderer.material.color = originalColor;
+                    indexJoint3Renderer.material.color = originalColor;
+                    indexJoint4Renderer.material.color = originalColor;
+                    
+                    middleJoint1Renderer.material.color = grayColor;
+                    middleJoint2Renderer.material.color = grayColor;
+                    middleJoint3Renderer.material.color = grayColor;
+                    middleJoint4Renderer.material.color = originalColor; // Middle fingertip remains selectable
+                    break;
+                    
+                case 12: // Middle finger
+                    thumbJoint1Renderer.material.color = grayColor;
+                    thumbJoint2Renderer.material.color = grayColor;
+                    thumbJoint3Renderer.material.color = grayColor;
+                    thumbJoint4Renderer.material.color = originalColor; // Thumb fingertip remains selectable
+                    
+                    indexJoint1Renderer.material.color = grayColor;
+                    indexJoint2Renderer.material.color = grayColor;
+                    indexJoint3Renderer.material.color = grayColor;
+                    indexJoint4Renderer.material.color = originalColor; // Index fingertip remains selectable
+                    
+                    middleJoint1Renderer.material.color = originalColor;
+                    middleJoint2Renderer.material.color = originalColor;
+                    middleJoint3Renderer.material.color = originalColor;
+                    middleJoint4Renderer.material.color = originalColor;
+                    break;
+            }
+        }
     }
 }

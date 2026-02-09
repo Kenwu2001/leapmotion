@@ -3,26 +3,26 @@ using UnityEngine.XR;
 
 public class ControllerLocator : MonoBehaviour
 {
-    [Header("選擇要追蹤的控制器")]
+    [Header("Select the controller to track")]
     public XRNode which = XRNode.RightHand;
 
-    [Header("要比較的物件（例如某個目標或道具）")]
+    [Header("Object to compare (e.g., a target or prop)")]
     public Transform target;
 
     void Update()
     {
-        // 取得指定控制器
+        // Get the specified controller
         var device = InputDevices.GetDeviceAtXRNode(which);
         if (!device.isValid) return;
 
-        // 更新控制器位置與旋轉
+        // Update controller position and rotation
         if (device.TryGetFeatureValue(CommonUsages.devicePosition, out var pos) &&
             device.TryGetFeatureValue(CommonUsages.deviceRotation, out var rot))
         {
             transform.localPosition = pos;
             transform.localRotation = rot;
 
-            // 若指定了目標，就計算相對位置
+            // If a target is specified, compute relative position
             if (target != null)
             {
                 Vector3 localPos = transform.InverseTransformPoint(target.position);

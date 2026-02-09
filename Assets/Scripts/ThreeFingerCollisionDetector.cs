@@ -8,7 +8,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
     public GameObject[] jointColliders = new GameObject[6];
 
     [Header("Finger Grouping (0=Thumb, 1=Index, 2=Middle)")]
-    [Tooltip("為每個 collider 指定所屬手指：0=拇指, 1=食指, 2=中指")]
+    [Tooltip("Assign each collider's finger group: 0=Thumb, 1=Index, 2=Middle")]
     public int[] fingerGroups = new int[6] { 0, 0, 1, 1, 2, 2 };
 
     [Header("Collision Setup")]

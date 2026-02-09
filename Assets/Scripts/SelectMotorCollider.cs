@@ -81,6 +81,19 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Projection position on claw middle finger")]
     public Vector3 middleClawProjectionPosition = Vector3.zero;
 
+    [Header("=== New Feature: Fingertip Priority Selection ===")]
+    [Tooltip("Enable fingertip-first mode: Fingertip motors (4, 8, 12) must be confirmed before other motors can be selected")]
+    public bool useFingertipFirst = false;
+    
+    [Tooltip("Confirmed fingertip motor ID (4=Thumb, 8=Index, 12=Middle, 0=None)")]
+    public int confirmedFingertipMotorID = 0;
+    
+    [Tooltip("Whether the fingertip has been confirmed")]
+    public bool isFingertipConfirmed = false;
+    
+    [Tooltip("Current selectable motor range")]
+    public string selectableMotorRange = "All (1-12)";
+
     // Track which motor is currently touched (1-12, 0 = none)
     private int activeTouchedMotorID = 0;
     private Vector3 activeTouchPosition = Vector3.zero;
@@ -132,6 +145,14 @@ public class SelectMotorCollider : MonoBehaviour
             middleRightFingerProjectionSphere.gameObject.SetActive(false);
         if (middleClawProjectionSphere != null)
             middleClawProjectionSphere.gameObject.SetActive(false);
+        
+        // Initialize fingertip-first feature state
+        if (useFingertipFirst)
+        {
+            confirmedFingertipMotorID = 0;
+            isFingertipConfirmed = false;
+            UpdateSelectableMotorRangeText();
+        }
     }
 
     private void Update()
@@ -174,6 +195,108 @@ public class SelectMotorCollider : MonoBehaviour
             middleRightFingerProjectionSphere.gameObject.SetActive(false);
         if (middleClawProjectionSphere != null)
             middleClawProjectionSphere.gameObject.SetActive(false);
+    }
+    
+    /// <summary>
+    /// Update the selectable motor range text
+    /// </summary>
+    private void UpdateSelectableMotorRangeText()
+    {
+        if (!useFingertipFirst)
+        {
+            selectableMotorRange = "All (1-12)";
+        }
+        else if (!isFingertipConfirmed)
+        {
+            selectableMotorRange = "Fingertips only (4, 8, 12)";
+        }
+        else
+        {
+            switch (confirmedFingertipMotorID)
+            {
+                case 4:
+                    selectableMotorRange = "Thumb (1-4)";
+                    break;
+                case 8:
+                    selectableMotorRange = "Index (5-8)";
+                    break;
+                case 12:
+                    selectableMotorRange = "Middle (9-12)";
+                    break;
+                default:
+                    selectableMotorRange = "Fingertips only (4, 8, 12)";
+                    break;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Check whether a motor can be selected by touch (fingertip-first mode)
+    /// </summary>
+    /// <param name="motorID">Motor ID (1-12)</param>
+    /// <returns>True if selectable</returns>
+    public bool IsMotorSelectable(int motorID)
+    {
+        // If fingertip-first is not enabled, all motors are selectable
+        if (!useFingertipFirst)
+        {
+            return true;
+        }
+        
+        // Fingertip motors are always selectable
+        if (motorID == 4 || motorID == 8 || motorID == 12)
+        {
+            return true;
+        }
+        
+        // If a fingertip hasn't been confirmed yet, other motors are not selectable
+        if (!isFingertipConfirmed)
+        {
+            return false;
+        }
+        
+        // Determine selectable motors based on the confirmed fingertip
+        switch (confirmedFingertipMotorID)
+        {
+            case 4: // Thumb confirmed → motors 1-4 selectable
+                return motorID >= 1 && motorID <= 4;
+            case 8: // Index confirmed → motors 5-8 selectable
+                return motorID >= 5 && motorID <= 8;
+            case 12: // Middle confirmed → motors 9-12 selectable
+                return motorID >= 9 && motorID <= 12;
+            default:
+                return false;
+        }
+    }
+    
+    /// <summary>
+    /// Called when a fingertip motor is confirmed (invoked by ModeSwitching)
+    /// </summary>
+    /// <param name="fingertipMotorID">Fingertip motor ID (4, 8, or 12)</param>
+    public void OnFingertipConfirmed(int fingertipMotorID)
+    {
+        if (!useFingertipFirst) return;
+        
+        if (fingertipMotorID == 4 || fingertipMotorID == 8 || fingertipMotorID == 12)
+        {
+            confirmedFingertipMotorID = fingertipMotorID;
+            isFingertipConfirmed = true;
+            UpdateSelectableMotorRangeText();
+            Debug.Log($"[SelectMotorCollider] Fingertip motor {fingertipMotorID} confirmed! Selectable range: {selectableMotorRange}");
+        }
+    }
+    
+    /// <summary>
+    /// Reset fingertip confirmation state (call when leaving selection mode or after operation)
+    /// </summary>
+    public void ResetFingertipConfirmation()
+    {
+        if (!useFingertipFirst) return;
+        
+        confirmedFingertipMotorID = 0;
+        isFingertipConfirmed = false;
+        UpdateSelectableMotorRangeText();
+        Debug.Log($"[SelectMotorCollider] Fingertip confirmation state reset");
     }
     
     /// <summary>
@@ -243,6 +366,29 @@ public class SelectMotorCollider : MonoBehaviour
         
         // Clamp to valid range (5-8)
         motorID = Mathf.Clamp(motorID, 5, 8);
+        
+        // New feature: check motor selectability (fingertip-first mode)
+        if (!IsMotorSelectable(motorID))
+        {
+            // Motor not selectable — clear state
+            if (indexProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == indexProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                indexProjectionMotorID = 0;
+            }
+            
+            // Hide debug spheres
+            if (indexRightFingerProjectionSphere != null)
+                indexRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (indexClawProjectionSphere != null)
+                indexClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
         
         // Update index projection state
         indexSegmentIndex = segmentIndex;
@@ -379,6 +525,29 @@ public class SelectMotorCollider : MonoBehaviour
         // Clamp to valid range (9-12)
         motorID = Mathf.Clamp(motorID, 9, 12);
         
+        // New feature: check motor selectability (fingertip-first mode)
+        if (!IsMotorSelectable(motorID))
+        {
+            // Motor not selectable — clear state
+            if (middleProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == middleProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                middleProjectionMotorID = 0;
+            }
+            
+            // Hide debug spheres
+            if (middleRightFingerProjectionSphere != null)
+                middleRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (middleClawProjectionSphere != null)
+                middleClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
         // Update middle projection state
         middleSegmentIndex = segmentIndex;
         middleProjectionPosition = closestPointOnRightFinger;
@@ -452,6 +621,13 @@ public class SelectMotorCollider : MonoBehaviour
         // Only handle motors 1-4 via collider (Thumb only)
         if (motorID < 1 || motorID > 4)
             return;
+        
+        // New feature: check motor selectability (fingertip-first mode)
+        if (!IsMotorSelectable(motorID))
+        {
+            // Debug.Log($"[SelectMotorCollider] Motor {motorID} currently not selectable (need to confirm fingertip motor 4 first)");
+            return;
+        }
             
         // Only allow one motor at a time
         if (activeTouchedMotorID != motorID)

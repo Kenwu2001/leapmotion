@@ -25279,6 +25279,10 @@ MonoBehaviour:
   indexClawProjectionPosition: {x: 0, y: 0, z: 0}
   middleSegmentIndex: -1
   middleClawProjectionPosition: {x: 0, y: 0, z: 0}
+  useFingertipFirst: 1
+  confirmedFingertipMotorID: 0
+  isFingertipConfirmed: 0
+  selectableMotorRange: All (1-12)
 --- !u!1 &863607861
 GameObject:
   m_ObjectHideFlags: 0
@@ -35066,6 +35070,10 @@ MonoBehaviour:
   currentRedMotorID: 0
   confirmedMotorID: 0
   yellowMaterial: {fileID: 2100000, guid: bede593eb192ee043bbb583abb9425cc, type: 2}
+  useFingertipFirst: 1
+  currentPhase: 0
+  confirmedFingertipID: 0
+  grayColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!4 &951283615
 Transform:
   m_ObjectHideFlags: 0
@@ -35917,6 +35925,7 @@ MonoBehaviour:
   thumbMiddleInMiddleRange: 0
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
+  isActivelyManipulating: 0
 --- !u!114 &1033347338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43155,6 +43164,7 @@ MonoBehaviour:
   thumbMiddleInMiddleRange: 0
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
+  isActivelyManipulating: 0
 --- !u!114 &1487720136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54394,6 +54404,7 @@ MonoBehaviour:
   thumbMiddleInMiddleRange: 0
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
+  isActivelyManipulating: 0
 --- !u!114 &1776150497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59829,6 +59840,7 @@ MonoBehaviour:
   thumbMiddleInMiddleRange: 0
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
+  isActivelyManipulating: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:
   m_ObjectHideFlags: 0
