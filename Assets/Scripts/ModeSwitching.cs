@@ -182,6 +182,9 @@ public class ModeSwitching : MonoBehaviour
             // Set colors only once when entering manipulate mode
             if (!hasSetManipulateColors)
             {
+                // Reset all motors to original color first (no gray in manipulation mode)
+                ResetAllColors();
+                
                 if (confirmedMotorID == 1)
                 {
                     thumbJoint1Renderer.material.color = Color.red; // Keep red
