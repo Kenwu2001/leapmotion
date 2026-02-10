@@ -29,6 +29,15 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Key to toggle debug spheres on/off")]
     public KeyCode debugToggleKey = KeyCode.D;
     
+    [Tooltip("Toggle to show/hide debug LineRenderers (5-point, 2-point, frozen)")]
+    public bool showDebugLines = true;
+    
+    [Tooltip("Key to toggle debug LineRenderers on/off")]
+    public KeyCode debugLineToggleKey = KeyCode.L;
+    
+    [Tooltip("Reference to FingerRendererManager (for toggling 5-point/2-point line renderers)")]
+    public FingerRendererManager fingerRendererManager;
+    
     [Header("=== Thumb Projection Settings ===")]
     [Tooltip("Use projection-based detection for thumb instead of colliders (motors 1-4)")]
     public bool useThumbProjection = false;
@@ -205,6 +214,10 @@ public class SelectMotorCollider : MonoBehaviour
     private Vector3 frozenBaseLocalPos;  // base position relative to R_Wrist
     private bool frozenCaptured = false; // whether frozen positions have been captured
     private int frozenFingertipID = 0;   // which fingertip was frozen (4, 8, 12)
+    
+    // When true, all visuals are force-hidden (e.g. during modeManipulate)
+    private bool _visualsForceHidden = false;
+    public bool isVisualsForceHidden => _visualsForceHidden;
 
     private void Start()
     {
@@ -247,6 +260,14 @@ public class SelectMotorCollider : MonoBehaviour
         if (middleClawProjectionSphere != null)
             middleClawProjectionSphere.gameObject.SetActive(false);
         
+        // Auto-find FingerRendererManager if not assigned
+        if (fingerRendererManager == null)
+        {
+            fingerRendererManager = FindObjectOfType<FingerRendererManager>();
+            if (fingerRendererManager != null)
+                Debug.Log("[SelectMotorCollider] Auto-found FingerRendererManager");
+        }
+        
         // Auto-create frozen line renderers and endpoint spheres
         CreateFrozenVisuals();
         
@@ -274,6 +295,27 @@ public class SelectMotorCollider : MonoBehaviour
             if (!showDebugSpheres)
             {
                 HideAllDebugSpheres();
+            }
+        }
+        
+        // Toggle debug LineRenderers with key press
+        if (Input.GetKeyDown(debugLineToggleKey))
+        {
+            showDebugLines = !showDebugLines;
+            Debug.Log($"[SelectMotorCollider] Debug lines: {(showDebugLines ? "ON" : "OFF")}");
+            
+            if (!showDebugLines)
+            {
+                // Hide all line renderers immediately
+                HideAllLineRenderers();
+            }
+            else
+            {
+                // Restore FingerRendererManager visibility
+                if (fingerRendererManager != null)
+                {
+                    fingerRendererManager.SetLineRenderersVisible(true);
+                }
             }
         }
         
@@ -331,8 +373,8 @@ public class SelectMotorCollider : MonoBehaviour
                 break;
         }
         
-        // Update frozen line visuals
-        if (projectionMode == ProjectionMode.FrozenLine && frozenCaptured)
+        // Update frozen line visuals (skip if force-hidden during manipulate mode)
+        if (projectionMode == ProjectionMode.FrozenLine && frozenCaptured && !_visualsForceHidden)
         {
             UpdateFrozenVisuals();
         }
@@ -360,7 +402,59 @@ public class SelectMotorCollider : MonoBehaviour
             middleRightFingerProjectionSphere.gameObject.SetActive(false);
         if (middleClawProjectionSphere != null)
             middleClawProjectionSphere.gameObject.SetActive(false);
-        HideFrozenVisuals();
+        
+        // Also hide frozen endpoint spheres
+        if (frozenThumbTipSphere != null) frozenThumbTipSphere.gameObject.SetActive(false);
+        if (frozenThumbBaseSphere != null) frozenThumbBaseSphere.gameObject.SetActive(false);
+        if (frozenIndexTipSphere != null) frozenIndexTipSphere.gameObject.SetActive(false);
+        if (frozenIndexBaseSphere != null) frozenIndexBaseSphere.gameObject.SetActive(false);
+        if (frozenMiddleTipSphere != null) frozenMiddleTipSphere.gameObject.SetActive(false);
+        if (frozenMiddleBaseSphere != null) frozenMiddleBaseSphere.gameObject.SetActive(false);
+    }
+    
+    /// <summary>
+    /// Hides all debug LineRenderers (frozen lines + FingerRendererManager lines)
+    /// </summary>
+    private void HideAllLineRenderers()
+    {
+        // Hide frozen line renderers
+        if (frozenThumbLineRenderer != null) frozenThumbLineRenderer.enabled = false;
+        if (frozenIndexLineRenderer != null) frozenIndexLineRenderer.enabled = false;
+        if (frozenMiddleLineRenderer != null) frozenMiddleLineRenderer.enabled = false;
+        
+        // Hide FingerRendererManager lines (5-point + 2-point)
+        if (fingerRendererManager != null)
+        {
+            fingerRendererManager.SetLineRenderersVisible(false);
+        }
+    }
+    
+    /// <summary>
+    /// Hide ALL debug visuals (spheres + LineRenderers).
+    /// Called when entering modeManipulate.
+    /// </summary>
+    public void HideAllDebugVisuals()
+    {
+        _visualsForceHidden = true;
+        HideAllDebugSpheres();
+        HideAllLineRenderers();
+    }
+    
+    /// <summary>
+    /// Restore debug visuals based on current showDebugSpheres / showDebugLines flags.
+    /// Called when leaving modeManipulate.
+    /// </summary>
+    public void RestoreDebugVisuals()
+    {
+        _visualsForceHidden = false;
+        
+        // Restore FingerRendererManager line visibility based on current toggle
+        if (fingerRendererManager != null)
+        {
+            fingerRendererManager.SetLineRenderersVisible(showDebugLines);
+        }
+        // Spheres and frozen lines will be restored naturally by the projection Update methods
+        // based on the showDebugSpheres / showDebugLines flags
     }
     
     /// <summary>
@@ -1871,13 +1965,20 @@ public class SelectMotorCollider : MonoBehaviour
                 break;
         }
         
-        // Update LineRenderer
+        // Update LineRenderer (respect showDebugLines toggle)
         if (lr != null)
         {
-            lr.enabled = true;
-            lr.positionCount = 2;
-            lr.SetPosition(0, tipWorld);
-            lr.SetPosition(1, baseWorld);
+            if (showDebugLines)
+            {
+                lr.enabled = true;
+                lr.positionCount = 2;
+                lr.SetPosition(0, tipWorld);
+                lr.SetPosition(1, baseWorld);
+            }
+            else
+            {
+                lr.enabled = false;
+            }
         }
         
         // Update endpoint spheres

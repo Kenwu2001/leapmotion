@@ -12127,6 +12127,7 @@ MonoBehaviour:
   - {fileID: 4290315601710405861}
   - {fileID: 3723644640160013170}
   - {fileID: 4680002839260911678}
+  lineRenderersVisible: 1
 --- !u!4 &370831958
 Transform:
   m_ObjectHideFlags: 0
@@ -25264,6 +25265,9 @@ MonoBehaviour:
   switchCooldown: 0
   showDebugSpheres: 1
   debugToggleKey: 100
+  showDebugLines: 1
+  debugLineToggleKey: 108
+  fingerRendererManager: {fileID: 370831957}
   useThumbProjection: 0
   rightThumbPath: {fileID: 342900468}
   clawThumbPath: {fileID: 1171298832504171240}

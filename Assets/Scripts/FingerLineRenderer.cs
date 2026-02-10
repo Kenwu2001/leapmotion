@@ -24,6 +24,16 @@ public class FingerLineRenderer : MonoBehaviour
     void LateUpdate()
     {
         if (line == null) return;
+        
+        // Respect showDebugLines toggle and force-hidden state from SelectMotorCollider
+        if (selectMotorCollider != null && (!selectMotorCollider.showDebugLines || selectMotorCollider.isVisualsForceHidden))
+        {
+            line.enabled = false;
+            return;
+        }
+        
+        // If line was disabled by FingerRendererManager (wrong mode), don't override
+        if (!line.enabled) return;
 
         int jointCount = finger.GetJointCount();
         

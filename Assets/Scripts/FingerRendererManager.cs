@@ -20,6 +20,12 @@ public class FingerRendererManager : MonoBehaviour
     [Header("2-Point Colliders (for modeSelect=false)")]
     public Collider[] twoPointColliders;
 
+    /// <summary>
+    /// External override: when false, all line renderers are forced hidden.
+    /// Controlled by SelectMotorCollider's showDebugLines toggle.
+    /// </summary>
+    [HideInInspector] public bool lineRenderersVisible = true;
+
     void Update()
     {
         if (modeSwitching == null) return;
@@ -27,23 +33,23 @@ public class FingerRendererManager : MonoBehaviour
         bool showFivePoints = modeSwitching.modeSelect;
         bool showTwoPoints = !modeSwitching.modeSelect;
 
-        // Enable/disable 5-point renderers
+        // Enable/disable 5-point renderers (respect external visibility override)
         if (fivePointRenderers != null)
         {
             foreach (var renderer in fivePointRenderers)
             {
                 if (renderer != null)
-                    renderer.enabled = showFivePoints;
+                    renderer.enabled = showFivePoints && lineRenderersVisible;
             }
         }
 
-        // Enable/disable 2-point renderers
+        // Enable/disable 2-point renderers (respect external visibility override)
         if (twoPointRenderers != null)
         {
             foreach (var renderer in twoPointRenderers)
             {
                 if (renderer != null)
-                    renderer.enabled = showTwoPoints;
+                    renderer.enabled = showTwoPoints && lineRenderersVisible;
             }
         }
 
@@ -64,6 +70,33 @@ public class FingerRendererManager : MonoBehaviour
             {
                 if (collider != null)
                     collider.enabled = showTwoPoints;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Set visibility of all line renderers (called by SelectMotorCollider)
+    /// </summary>
+    public void SetLineRenderersVisible(bool visible)
+    {
+        lineRenderersVisible = visible;
+        
+        if (!visible)
+        {
+            // Immediately disable all renderers
+            if (fivePointRenderers != null)
+            {
+                foreach (var renderer in fivePointRenderers)
+                {
+                    if (renderer != null) renderer.enabled = false;
+                }
+            }
+            if (twoPointRenderers != null)
+            {
+                foreach (var renderer in twoPointRenderers)
+                {
+                    if (renderer != null) renderer.enabled = false;
+                }
             }
         }
     }

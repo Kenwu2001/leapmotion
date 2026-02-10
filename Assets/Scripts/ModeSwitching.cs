@@ -169,6 +169,12 @@ public class ModeSwitching : MonoBehaviour
                 modeManipulate = true;
                 hasEnteredCloseRange = false; // Reset when entering manipulate mode
                 hasSetManipulateColors = false; // Reset color flag
+                
+                // Hide all debug visuals (spheres + LineRenderers) when entering manipulate mode
+                if (SelectMotorCollider != null)
+                {
+                    SelectMotorCollider.HideAllDebugVisuals();
+                }
             }
         }
 
@@ -294,6 +300,12 @@ public class ModeSwitching : MonoBehaviour
                 hasEnteredCloseRange = false;
                 hasSetManipulateColors = false; // Reset color flag
                 // baseRenderer.material.color = originalColor; // Reset base color
+
+                // Restore debug visuals based on current toggle states
+                if (SelectMotorCollider != null)
+                {
+                    SelectMotorCollider.RestoreDebugVisuals();
+                }
 
                 // Reset fingertip priority mode state
                 if (useFingertipFirst)
