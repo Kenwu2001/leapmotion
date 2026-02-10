@@ -11626,7 +11626,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 342900463}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -11729,12 +11729,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 342900463}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a8d9a8ab22e30e48b352b7cb81c0df5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 342900466}
+  useTwoPointMode: 1
 --- !u!114 &342900468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25259,7 +25260,7 @@ MonoBehaviour:
   - {fileID: 193597867}
   targetTag: L_IndexTipSmall
   switchCooldown: 0
-  showDebugSpheres: 0
+  showDebugSpheres: 1
   debugToggleKey: 100
   leftHandPoint: {fileID: 2101188477}
   rightIndexPath: {fileID: 1770763351}
@@ -25283,6 +25284,9 @@ MonoBehaviour:
   confirmedFingertipMotorID: 0
   isFingertipConfirmed: 0
   selectableMotorRange: All (1-12)
+  useTwoPointProjection: 1
+  indexProjectionPercent: 0
+  middleProjectionPercent: 0
 --- !u!1 &863607861
 GameObject:
   m_ObjectHideFlags: 0
@@ -36160,7 +36164,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1100719232}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -36263,12 +36267,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1100719232}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a8d9a8ab22e30e48b352b7cb81c0df5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 1100719234}
+  useTwoPointMode: 1
 --- !u!114 &1100719236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50125,7 +50130,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5548453466829855470, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5565309899965974109, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalScale.y
@@ -54061,7 +54066,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1770763346}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -54182,12 +54187,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1770763346}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a8d9a8ab22e30e48b352b7cb81c0df5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 1770763350}
+  useTwoPointMode: 1
 --- !u!1 &1772311578
 GameObject:
   m_ObjectHideFlags: 0
@@ -58023,6 +58029,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 1171298832504171238}
+  useTwoPointMode: 0
 --- !u!114 &1171298832504171240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59285,6 +59292,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 3723644640160013169}
+  useTwoPointMode: 0
 --- !u!114 &3723644640160013172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59659,6 +59667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 4290315601710405860}
+  useTwoPointMode: 0
 --- !u!114 &4290315601710405863
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60084,6 +60093,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 4680002839260911677}
+  useTwoPointMode: 0
 --- !u!114 &4680002839260911680
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60350,6 +60360,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 5903652984707887456}
+  useTwoPointMode: 0
 --- !u!114 &5903652984707887455
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60802,6 +60813,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 6441641261443209385}
+  useTwoPointMode: 0
 --- !u!114 &6441641261443209387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61203,6 +61215,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 7315649324720747012}
+  useTwoPointMode: 0
 --- !u!114 &7315649324720747014
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61480,6 +61493,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 7989475972956683517}
+  useTwoPointMode: 0
 --- !u!120 &7989475972956683517
 LineRenderer:
   serializedVersion: 2
@@ -62067,6 +62081,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 9165063046431338500}
+  useTwoPointMode: 0
 --- !u!114 &9176546004172917305 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9176546003548163704, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}

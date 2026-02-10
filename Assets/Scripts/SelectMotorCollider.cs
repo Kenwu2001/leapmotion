@@ -94,6 +94,17 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Current selectable motor range")]
     public string selectableMotorRange = "All (1-12)";
 
+    [Header("=== New Feature: Two-Point Projection ===")]
+    [Tooltip("Enable two-point projection: Hand finger uses only tip and base (1 segment), percentage maps smoothly to 4 claw segments")]
+    public bool useTwoPointProjection = false;
+    
+    [Header("Two-Point Projection Debug")]
+    [Tooltip("Index finger projection percentage (0=tip, 100=base)")]
+    public float indexProjectionPercent = 0f;
+    
+    [Tooltip("Middle finger projection percentage (0=tip, 100=base)")]
+    public float middleProjectionPercent = 0f;
+
     // Track which motor is currently touched (1-12, 0 = none)
     private int activeTouchedMotorID = 0;
     private Vector3 activeTouchPosition = Vector3.zero;
@@ -171,10 +182,16 @@ public class SelectMotorCollider : MonoBehaviour
         }
         
         // Handle Index finger projection-based selection (motors 5-8)
-        UpdateIndexFingerProjection();
+        if (useTwoPointProjection)
+            UpdateIndexFingerProjection_TwoPoint();
+        else
+            UpdateIndexFingerProjection();
         
         // Handle Middle finger projection-based selection (motors 9-12)
-        UpdateMiddleFingerProjection();
+        if (useTwoPointProjection)
+            UpdateMiddleFingerProjection_TwoPoint();
+        else
+            UpdateMiddleFingerProjection();
         
         // Update debug info
         currentTouchedMotorID = activeTouchedMotorID;
@@ -611,6 +628,332 @@ public class SelectMotorCollider : MonoBehaviour
         else
         {
             // Same motor - just update position
+            activeTouchPosition = closestPointOnRightFinger;
+        }
+    }
+
+    /// <summary>
+    /// [Two-Point] Updates index finger motor selection using single-segment percentage mapping.
+    /// Hand finger: tip (joint 0) + base (last joint) = 1 segment.
+    /// Percentage 0-100 maps smoothly to 4 claw segments (motors 5-8).
+    /// </summary>
+    private void UpdateIndexFingerProjection_TwoPoint()
+    {
+        bool isIndexTouched = triggerRightIndexTip != null && triggerRightIndexTip.isRightIndexTipTouched;
+        
+        if (!isIndexTouched || leftHandPoint == null || rightIndexPath == null)
+        {
+            if (indexProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == indexProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                indexProjectionMotorID = 0;
+                indexSegmentIndex = -1;
+            }
+            indexProjectionPercent = 0f;
+            
+            if (indexRightFingerProjectionSphere != null)
+                indexRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (indexClawProjectionSphere != null)
+                indexClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        // Two-point mode: use only tip (joint 0) and base (last joint)
+        int jointCount = rightIndexPath.GetJointCount();
+        Vector3 tipPoint = rightIndexPath.GetJoint(0);
+        Vector3 basePoint = rightIndexPath.GetJoint(jointCount - 1);
+        
+        // Project left hand point onto this single segment
+        float t;
+        FingerMath.DistancePointToSegment(leftHandPoint.position, tipPoint, basePoint, out t);
+        t = Mathf.Clamp01(t);
+        
+        // t: 0 = tip, 1 = base → percentage 0-100
+        float percentage = t * 100f;
+        indexProjectionPercent = percentage;
+        
+        // Map percentage to 4 equal zones on the claw (0-25, 25-50, 50-75, 75-100)
+        int clawSegIndex;
+        float localT;
+        if (percentage >= 100f)
+        {
+            clawSegIndex = 3;
+            localT = 1f;
+        }
+        else
+        {
+            clawSegIndex = Mathf.Clamp((int)(percentage / 25f), 0, 3);
+            localT = (percentage - clawSegIndex * 25f) / 25f;
+        }
+        localT = Mathf.Clamp01(localT);
+        
+        // Convert claw segment to motor ID (index: seg 0 → motor 8, seg 3 → motor 5)
+        int motorID = 8 - clawSegIndex;
+        motorID = Mathf.Clamp(motorID, 5, 8);
+        
+        // Closest point on the hand finger line (for debug sphere)
+        Vector3 closestPointOnRightFinger = Vector3.Lerp(tipPoint, basePoint, t);
+        
+        // Calculate claw position using claw's actual segments
+        Vector3 clawPos = Vector3.zero;
+        if (clawIndexPath != null)
+        {
+            int clawJointCount = clawIndexPath.GetJointCount();
+            int clampedSeg = Mathf.Clamp(clawSegIndex, 0, clawJointCount - 2);
+            clawPos = Vector3.Lerp(
+                clawIndexPath.GetJoint(clampedSeg),
+                clawIndexPath.GetJoint(clampedSeg + 1),
+                localT
+            );
+        }
+        
+        // Check motor selectability (fingertip-first mode)
+        if (!IsMotorSelectable(motorID))
+        {
+            if (indexProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == indexProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                indexProjectionMotorID = 0;
+            }
+            
+            if (indexRightFingerProjectionSphere != null)
+                indexRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (indexClawProjectionSphere != null)
+                indexClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        // Update index projection state
+        indexSegmentIndex = clawSegIndex;
+        indexProjectionPosition = closestPointOnRightFinger;
+        indexClawPosition = clawPos;
+        indexClawProjectionPosition = clawPos;
+        
+        // Update debug spheres
+        if (showDebugSpheres)
+        {
+            if (indexRightFingerProjectionSphere != null)
+            {
+                indexRightFingerProjectionSphere.gameObject.SetActive(true);
+                indexRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            }
+            if (indexClawProjectionSphere != null && clawIndexPath != null)
+            {
+                indexClawProjectionSphere.gameObject.SetActive(true);
+                indexClawProjectionSphere.position = clawPos;
+            }
+        }
+        else
+        {
+            if (indexRightFingerProjectionSphere != null)
+                indexRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (indexClawProjectionSphere != null)
+                indexClawProjectionSphere.gameObject.SetActive(false);
+        }
+        
+        // Motor switch logic
+        if (motorID != indexProjectionMotorID)
+        {
+            float timeSinceLastSwitch = Time.time - lastSwitchTime;
+            if (activeTouchedMotorID != 0 && activeTouchedMotorID != motorID && timeSinceLastSwitch < switchCooldown)
+            {
+                return;
+            }
+            
+            if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
+            {
+                int prevIndex = activeTouchedMotorID - 1;
+                if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
+                {
+                    triggerDetectors[prevIndex].ForceRelease();
+                }
+            }
+            
+            if (activeTouchedMotorID >= 9 && activeTouchedMotorID <= 12)
+            {
+                middleProjectionMotorID = 0;
+            }
+            
+            indexProjectionMotorID = motorID;
+            activeTouchedMotorID = motorID;
+            activeTouchPosition = closestPointOnRightFinger;
+            lastSwitchTime = Time.time;
+        }
+        else
+        {
+            activeTouchPosition = closestPointOnRightFinger;
+        }
+    }
+    
+    /// <summary>
+    /// [Two-Point] Updates middle finger motor selection using single-segment percentage mapping.
+    /// Hand finger: tip (joint 0) + base (last joint) = 1 segment.
+    /// Percentage 0-100 maps smoothly to 4 claw segments (motors 9-12).
+    /// </summary>
+    private void UpdateMiddleFingerProjection_TwoPoint()
+    {
+        bool isMiddleTouched = triggerRightMiddleTip != null && triggerRightMiddleTip.isRightMiddleTipTouched;
+        
+        if (!isMiddleTouched || leftHandPoint == null || rightMiddlePath == null)
+        {
+            if (middleProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == middleProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                middleProjectionMotorID = 0;
+                middleSegmentIndex = -1;
+            }
+            middleProjectionPercent = 0f;
+            
+            if (middleRightFingerProjectionSphere != null)
+                middleRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (middleClawProjectionSphere != null)
+                middleClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        // Two-point mode: use only tip (joint 0) and base (last joint)
+        int jointCount = rightMiddlePath.GetJointCount();
+        Vector3 tipPoint = rightMiddlePath.GetJoint(0);
+        Vector3 basePoint = rightMiddlePath.GetJoint(jointCount - 1);
+        
+        // Project left hand point onto this single segment
+        float t;
+        FingerMath.DistancePointToSegment(leftHandPoint.position, tipPoint, basePoint, out t);
+        t = Mathf.Clamp01(t);
+        
+        // t: 0 = tip, 1 = base → percentage 0-100
+        float percentage = t * 100f;
+        middleProjectionPercent = percentage;
+        
+        // Map percentage to 4 equal zones on the claw (0-25, 25-50, 50-75, 75-100)
+        int clawSegIndex;
+        float localT;
+        if (percentage >= 100f)
+        {
+            clawSegIndex = 3;
+            localT = 1f;
+        }
+        else
+        {
+            clawSegIndex = Mathf.Clamp((int)(percentage / 25f), 0, 3);
+            localT = (percentage - clawSegIndex * 25f) / 25f;
+        }
+        localT = Mathf.Clamp01(localT);
+        
+        // Convert claw segment to motor ID (middle: seg 0 → motor 12, seg 3 → motor 9)
+        int motorID = 12 - clawSegIndex;
+        motorID = Mathf.Clamp(motorID, 9, 12);
+        
+        // Closest point on the hand finger line (for debug sphere)
+        Vector3 closestPointOnRightFinger = Vector3.Lerp(tipPoint, basePoint, t);
+        
+        // Calculate claw position using claw's actual segments
+        Vector3 clawPos = Vector3.zero;
+        if (clawMiddlePath != null)
+        {
+            int clawJointCount = clawMiddlePath.GetJointCount();
+            int clampedSeg = Mathf.Clamp(clawSegIndex, 0, clawJointCount - 2);
+            clawPos = Vector3.Lerp(
+                clawMiddlePath.GetJoint(clampedSeg),
+                clawMiddlePath.GetJoint(clampedSeg + 1),
+                localT
+            );
+        }
+        
+        // Check motor selectability (fingertip-first mode)
+        if (!IsMotorSelectable(motorID))
+        {
+            if (middleProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == middleProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                middleProjectionMotorID = 0;
+            }
+            
+            if (middleRightFingerProjectionSphere != null)
+                middleRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (middleClawProjectionSphere != null)
+                middleClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        // Update middle projection state
+        middleSegmentIndex = clawSegIndex;
+        middleProjectionPosition = closestPointOnRightFinger;
+        middleClawPosition = clawPos;
+        middleClawProjectionPosition = clawPos;
+        
+        // Update debug spheres
+        if (showDebugSpheres)
+        {
+            if (middleRightFingerProjectionSphere != null)
+            {
+                middleRightFingerProjectionSphere.gameObject.SetActive(true);
+                middleRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            }
+            if (middleClawProjectionSphere != null && clawMiddlePath != null)
+            {
+                middleClawProjectionSphere.gameObject.SetActive(true);
+                middleClawProjectionSphere.position = clawPos;
+            }
+        }
+        else
+        {
+            if (middleRightFingerProjectionSphere != null)
+                middleRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (middleClawProjectionSphere != null)
+                middleClawProjectionSphere.gameObject.SetActive(false);
+        }
+        
+        // Motor switch logic
+        if (motorID != middleProjectionMotorID)
+        {
+            float timeSinceLastSwitch = Time.time - lastSwitchTime;
+            if (activeTouchedMotorID != 0 && activeTouchedMotorID != motorID && timeSinceLastSwitch < switchCooldown)
+            {
+                return;
+            }
+            
+            if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
+            {
+                int prevIndex = activeTouchedMotorID - 1;
+                if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
+                {
+                    triggerDetectors[prevIndex].ForceRelease();
+                }
+            }
+            
+            if (activeTouchedMotorID >= 5 && activeTouchedMotorID <= 8)
+            {
+                indexProjectionMotorID = 0;
+            }
+            
+            middleProjectionMotorID = motorID;
+            activeTouchedMotorID = motorID;
+            activeTouchPosition = closestPointOnRightFinger;
+            lastSwitchTime = Time.time;
+        }
+        else
+        {
             activeTouchPosition = closestPointOnRightFinger;
         }
     }
