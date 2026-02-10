@@ -5,9 +5,14 @@ public class FingerLineRenderer : MonoBehaviour
 {
     public LineRenderer line;
     
-    [Header("Two-Point Mode")]
-    [Tooltip("When enabled, only draw tip and base (2 points) instead of all joints")]
-    public bool useTwoPointMode = false;
+    [Header("Auto-Sync")]
+    [Tooltip("Reference to SelectMotorCollider to auto-sync visualization with projection mode")]
+    public SelectMotorCollider selectMotorCollider;
+    
+    [Tooltip("Which fingertip this line renderer represents (4=Thumb, 8=Index, 12=Middle)")]
+    public int fingertipID = 0;
+    
+    [HideInInspector] public bool useTwoPointMode = false;
     
     private FingerPath finger;
 
@@ -21,6 +26,44 @@ public class FingerLineRenderer : MonoBehaviour
         if (line == null) return;
 
         int jointCount = finger.GetJointCount();
+        
+        if (selectMotorCollider != null)
+        {
+            switch (selectMotorCollider.projectionMode)
+            {
+                case ProjectionMode.FrozenLine:
+                    useTwoPointMode = true;
+                    // If frozen is active for THIS finger, show frozen positions
+                    if (selectMotorCollider.isFrozenLineActive && selectMotorCollider.frozenFingerID == fingertipID)
+                    {
+                        Vector3 tipWorld, baseWorld;
+                        selectMotorCollider.GetFrozenWorldPositions(out tipWorld, out baseWorld);
+                        if (tipWorld != Vector3.zero || baseWorld != Vector3.zero)
+                        {
+                            line.positionCount = 2;
+                            line.SetPosition(0, tipWorld);
+                            line.SetPosition(1, baseWorld);
+                            return; // Done, skip normal drawing
+                        }
+                    }
+                    // Not frozen yet or different finger → show live 2-point
+                    if (jointCount >= 2)
+                    {
+                        line.positionCount = 2;
+                        line.SetPosition(0, finger.GetJoint(0));
+                        line.SetPosition(1, finger.GetJoint(jointCount - 1));
+                    }
+                    return;
+                    
+                case ProjectionMode.TwoPoint:
+                    useTwoPointMode = true;
+                    break;
+                    
+                default: // FivePoint
+                    useTwoPointMode = false;
+                    break;
+            }
+        }
         
         if (useTwoPointMode && jointCount >= 2)
         {

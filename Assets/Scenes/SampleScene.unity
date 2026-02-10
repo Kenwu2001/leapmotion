@@ -11735,6 +11735,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 342900466}
+  selectMotorCollider: {fileID: 859541734}
+  fingertipID: 0
   useTwoPointMode: 1
 --- !u!114 &342900468
 MonoBehaviour:
@@ -25292,10 +25294,26 @@ MonoBehaviour:
   confirmedFingertipMotorID: 0
   isFingertipConfirmed: 0
   selectableMotorRange: All (1-12)
-  useTwoPointProjection: 1
+  projectionMode: 1
   indexProjectionPercent: 0
   middleProjectionPercent: 0
   thumbProjectionPercent: 0
+  rWristTransform: {fileID: 2468996038092723760}
+  frozenThumbLineRenderer: {fileID: 0}
+  frozenIndexLineRenderer: {fileID: 0}
+  frozenMiddleLineRenderer: {fileID: 0}
+  frozenThumbTipSphere: {fileID: 0}
+  frozenThumbBaseSphere: {fileID: 0}
+  frozenIndexTipSphere: {fileID: 0}
+  frozenIndexBaseSphere: {fileID: 0}
+  frozenMiddleTipSphere: {fileID: 0}
+  frozenMiddleBaseSphere: {fileID: 0}
+  frozenLineColor: {r: 0, g: 1, b: 1, a: 1}
+  frozenLineWidth: 0.003
+  frozenSphereRadius: 0.005
+  frozenSphereColor: {r: 0, g: 1, b: 1, a: 1}
+  isFrozenLineActive: 0
+  frozenFingerID: 0
 --- !u!1 &863607861
 GameObject:
   m_ObjectHideFlags: 0
@@ -36387,6 +36405,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 1100719234}
+  selectMotorCollider: {fileID: 859541734}
+  fingertipID: 0
   useTwoPointMode: 1
 --- !u!114 &1100719236
 MonoBehaviour:
@@ -54307,6 +54327,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 1770763350}
+  selectMotorCollider: {fileID: 859541734}
+  fingertipID: 0
   useTwoPointMode: 1
 --- !u!1 &1772311578
 GameObject:
@@ -58248,6 +58270,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 1171298832504171238}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &1171298832504171240
 MonoBehaviour:
@@ -59511,6 +59535,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 3723644640160013169}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &3723644640160013172
 MonoBehaviour:
@@ -59886,6 +59912,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 4290315601710405860}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &4290315601710405863
 MonoBehaviour:
@@ -60312,6 +60340,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 4680002839260911677}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &4680002839260911680
 MonoBehaviour:
@@ -60579,6 +60609,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 5903652984707887456}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &5903652984707887455
 MonoBehaviour:
@@ -61032,6 +61064,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 6441641261443209385}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &6441641261443209387
 MonoBehaviour:
@@ -61434,6 +61468,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 7315649324720747012}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &7315649324720747014
 MonoBehaviour:
@@ -61712,6 +61748,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 7989475972956683517}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!120 &7989475972956683517
 LineRenderer:
@@ -62300,6 +62338,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line: {fileID: 9165063046431338500}
+  selectMotorCollider: {fileID: 0}
+  fingertipID: 0
   useTwoPointMode: 0
 --- !u!114 &9176546004172917305 stripped
 MonoBehaviour:

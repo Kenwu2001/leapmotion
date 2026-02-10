@@ -301,6 +301,7 @@ public class ModeSwitching : MonoBehaviour
                     currentPhase = SelectionPhase.SelectingFingertip;
                     confirmedFingertipID = 0;
                     SelectMotorCollider.ResetFingertipConfirmation();
+                    SelectMotorCollider.ReleaseFrozenLine();
                     UpdateGrayColors(); // Gray out non-fingertip motors again
                 }
             }
@@ -453,6 +454,9 @@ public class ModeSwitching : MonoBehaviour
                     // Notify SelectMotorCollider that a fingertip has been confirmed
                     SelectMotorCollider.OnFingertipConfirmed(motorID);
                     
+                    // Capture frozen line for this finger
+                    SelectMotorCollider.CaptureFrozenLine(motorID);
+                    
                     // Enter phase 2
                     currentPhase = SelectionPhase.SelectingMotor;
                     
@@ -476,6 +480,9 @@ public class ModeSwitching : MonoBehaviour
                         
                         // Notify SelectMotorCollider that the fingertip switched
                         SelectMotorCollider.OnFingertipConfirmed(motorID);
+                        
+                        // Capture frozen line for the new finger
+                        SelectMotorCollider.CaptureFrozenLine(motorID);
                         
                         // Return to phase 2 (selecting motors of that finger)
                         currentPhase = SelectionPhase.SelectingMotor;

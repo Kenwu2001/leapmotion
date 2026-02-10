@@ -2,6 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum ProjectionMode
+{
+    FivePoint,   // Original multi-segment projection (5 joints)
+    TwoPoint,    // Two-point projection (tip + base, 1 segment)
+    FrozenLine   // Frozen two-point projection (locked to wrist)
+}
+
 public class SelectMotorCollider : MonoBehaviour
 {
     [Header("12 Motor Colliders (for Thumb only - motors 1-4)")]
@@ -120,9 +127,9 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Current selectable motor range")]
     public string selectableMotorRange = "All (1-12)";
 
-    [Header("=== New Feature: Two-Point Projection ===")]
-    [Tooltip("Enable two-point projection: Hand finger uses only tip and base (1 segment), percentage maps smoothly to 4 claw segments")]
-    public bool useTwoPointProjection = false;
+    [Header("=== Projection Mode ===")]
+    [Tooltip("Select projection method: FivePoint (5 joints), TwoPoint (tip+base), FrozenLine (locked to wrist)")]
+    public ProjectionMode projectionMode = ProjectionMode.FivePoint;
     
     [Header("Two-Point Projection Debug")]
     [Tooltip("Index finger projection percentage (0=tip, 100=base)")]
@@ -133,6 +140,40 @@ public class SelectMotorCollider : MonoBehaviour
     
     [Tooltip("Thumb projection percentage (0=tip, 100=base)")]
     public float thumbProjectionPercent = 0f;
+
+    // Convenience properties for backward compatibility
+    public bool useTwoPointProjection => projectionMode == ProjectionMode.TwoPoint;
+    public bool useFrozenTwoPoint => projectionMode == ProjectionMode.FrozenLine;
+    
+    [Tooltip("R_Wrist transform (right hand wrist bone)")]
+    public Transform rWristTransform;
+    
+    [Header("Frozen Line Visualization (Auto-Created)")]
+    [HideInInspector] public LineRenderer frozenThumbLineRenderer;
+    [HideInInspector] public LineRenderer frozenIndexLineRenderer;
+    [HideInInspector] public LineRenderer frozenMiddleLineRenderer;
+    
+    [HideInInspector] public Transform frozenThumbTipSphere;
+    [HideInInspector] public Transform frozenThumbBaseSphere;
+    [HideInInspector] public Transform frozenIndexTipSphere;
+    [HideInInspector] public Transform frozenIndexBaseSphere;
+    [HideInInspector] public Transform frozenMiddleTipSphere;
+    [HideInInspector] public Transform frozenMiddleBaseSphere;
+    
+    [Tooltip("Color of the frozen projection line")]
+    public Color frozenLineColor = Color.cyan;
+    [Tooltip("Width of the frozen projection line")]
+    public float frozenLineWidth = 0.003f;
+    [Tooltip("Radius of the frozen endpoint spheres")]
+    public float frozenSphereRadius = 0.005f;
+    [Tooltip("Color of the frozen endpoint spheres")]
+    public Color frozenSphereColor = Color.cyan;
+    
+    [Header("Frozen Projection Debug")]
+    [Tooltip("Whether a frozen line is currently active")]
+    public bool isFrozenLineActive = false;
+    [Tooltip("Which finger is frozen (0=none, 4=thumb, 8=index, 12=middle)")]
+    public int frozenFingerID = 0;
 
     // Track which motor is currently touched (1-12, 0 = none)
     private int activeTouchedMotorID = 0;
@@ -158,6 +199,12 @@ public class SelectMotorCollider : MonoBehaviour
     private int middleProjectionMotorID = 0;
     private Vector3 middleProjectionPosition = Vector3.zero;
     private Vector3 middleClawPosition = Vector3.zero;
+    
+    // Frozen two-point state
+    private Vector3 frozenTipLocalPos;   // tip position relative to R_Wrist
+    private Vector3 frozenBaseLocalPos;  // base position relative to R_Wrist
+    private bool frozenCaptured = false; // whether frozen positions have been captured
+    private int frozenFingertipID = 0;   // which fingertip was frozen (4, 8, 12)
 
     private void Start()
     {
@@ -200,6 +247,12 @@ public class SelectMotorCollider : MonoBehaviour
         if (middleClawProjectionSphere != null)
             middleClawProjectionSphere.gameObject.SetActive(false);
         
+        // Auto-create frozen line renderers and endpoint spheres
+        CreateFrozenVisuals();
+        
+        // Hide frozen endpoint spheres and lines initially
+        HideFrozenVisuals();
+        
         // Initialize fingertip-first feature state
         if (useFingertipFirst)
         {
@@ -227,23 +280,62 @@ public class SelectMotorCollider : MonoBehaviour
         // Handle Thumb projection-based selection (motors 1-4) if enabled
         if (useThumbProjection)
         {
-            if (useTwoPointProjection)
-                UpdateThumbProjection_TwoPoint();
-            else
-                UpdateThumbProjection();
+            switch (projectionMode)
+            {
+                case ProjectionMode.FrozenLine:
+                    if (frozenCaptured && frozenFingertipID == 4)
+                        UpdateFrozenProjection(1, 4, clawThumbPath);
+                    else
+                        UpdateThumbProjection_TwoPoint(); // fallback before frozen capture
+                    break;
+                case ProjectionMode.TwoPoint:
+                    UpdateThumbProjection_TwoPoint();
+                    break;
+                default: // FivePoint
+                    UpdateThumbProjection();
+                    break;
+            }
         }
         
         // Handle Index finger projection-based selection (motors 5-8)
-        if (useTwoPointProjection)
-            UpdateIndexFingerProjection_TwoPoint();
-        else
-            UpdateIndexFingerProjection();
+        switch (projectionMode)
+        {
+            case ProjectionMode.FrozenLine:
+                if (frozenCaptured && frozenFingertipID == 8)
+                    UpdateFrozenProjection(5, 8, clawIndexPath);
+                else
+                    UpdateIndexFingerProjection_TwoPoint(); // fallback before frozen capture
+                break;
+            case ProjectionMode.TwoPoint:
+                UpdateIndexFingerProjection_TwoPoint();
+                break;
+            default: // FivePoint
+                UpdateIndexFingerProjection();
+                break;
+        }
         
         // Handle Middle finger projection-based selection (motors 9-12)
-        if (useTwoPointProjection)
-            UpdateMiddleFingerProjection_TwoPoint();
-        else
-            UpdateMiddleFingerProjection();
+        switch (projectionMode)
+        {
+            case ProjectionMode.FrozenLine:
+                if (frozenCaptured && frozenFingertipID == 12)
+                    UpdateFrozenProjection(9, 12, clawMiddlePath);
+                else
+                    UpdateMiddleFingerProjection_TwoPoint(); // fallback before frozen capture
+                break;
+            case ProjectionMode.TwoPoint:
+                UpdateMiddleFingerProjection_TwoPoint();
+                break;
+            default: // FivePoint
+                UpdateMiddleFingerProjection();
+                break;
+        }
+        
+        // Update frozen line visuals
+        if (projectionMode == ProjectionMode.FrozenLine && frozenCaptured)
+        {
+            UpdateFrozenVisuals();
+        }
         
         // Update debug info
         currentTouchedMotorID = activeTouchedMotorID;
@@ -268,6 +360,7 @@ public class SelectMotorCollider : MonoBehaviour
             middleRightFingerProjectionSphere.gameObject.SetActive(false);
         if (middleClawProjectionSphere != null)
             middleClawProjectionSphere.gameObject.SetActive(false);
+        HideFrozenVisuals();
     }
     
     /// <summary>
@@ -1445,6 +1538,376 @@ public class SelectMotorCollider : MonoBehaviour
     public Vector3 GetThumbClawProjectionPosition()
     {
         return thumbClawPosition;
+    }
+    
+    // ========== Frozen Two-Point Projection Methods ==========
+    
+    /// <summary>
+    /// Capture the frozen two-point line when a fingertip is touched.
+    /// Called by ModeSwitching when entering SelectingMotor phase.
+    /// </summary>
+    /// <param name="fingertipMotorID">4=Thumb, 8=Index, 12=Middle</param>
+    public void CaptureFrozenLine(int fingertipMotorID)
+    {
+        if (!useFrozenTwoPoint || rWristTransform == null) return;
+        
+        // Block frozen capture for thumb if thumb projection is disabled
+        if (fingertipMotorID == 4 && !useThumbProjection) return;
+        
+        // Clean up any existing frozen line before capturing a new one
+        HideFrozenVisuals();
+        frozenCaptured = false;
+        
+        FingerPath fingerPath = null;
+        switch (fingertipMotorID)
+        {
+            case 4: fingerPath = rightThumbPath; break;
+            case 8: fingerPath = rightIndexPath; break;
+            case 12: fingerPath = rightMiddlePath; break;
+            default: return;
+        }
+        
+        if (fingerPath == null || fingerPath.GetJointCount() < 2) return;
+        
+        // Get world positions of tip and base
+        Vector3 tipWorld = fingerPath.GetJoint(0);
+        Vector3 baseWorld = fingerPath.GetJoint(fingerPath.GetJointCount() - 1);
+        
+        // Convert to local positions relative to R_Wrist
+        frozenTipLocalPos = rWristTransform.InverseTransformPoint(tipWorld);
+        frozenBaseLocalPos = rWristTransform.InverseTransformPoint(baseWorld);
+        
+        frozenCaptured = true;
+        frozenFingertipID = fingertipMotorID;
+        frozenFingerID = fingertipMotorID;
+        isFrozenLineActive = true;
+        
+        Debug.Log($"[SelectMotorCollider] Frozen line captured for finger {fingertipMotorID}: tip={tipWorld}, base={baseWorld}");
+    }
+    
+    /// <summary>
+    /// Release the frozen two-point line.
+    /// Called by ModeSwitching when leaving SelectingMotor or resetting.
+    /// </summary>
+    public void ReleaseFrozenLine()
+    {
+        frozenCaptured = false;
+        frozenFingertipID = 0;
+        frozenFingerID = 0;
+        isFrozenLineActive = false;
+        HideFrozenVisuals();
+        
+        Debug.Log($"[SelectMotorCollider] Frozen line released");
+    }
+    
+    /// <summary>
+    /// Get current frozen world positions (reconstructed from wrist)
+    /// </summary>
+    public void GetFrozenWorldPositions(out Vector3 tipWorld, out Vector3 baseWorld)
+    {
+        if (frozenCaptured && rWristTransform != null)
+        {
+            tipWorld = rWristTransform.TransformPoint(frozenTipLocalPos);
+            baseWorld = rWristTransform.TransformPoint(frozenBaseLocalPos);
+        }
+        else
+        {
+            tipWorld = Vector3.zero;
+            baseWorld = Vector3.zero;
+        }
+    }
+    
+    /// <summary>
+    /// Generic frozen two-point projection update for any finger.
+    /// Projects leftHandPoint onto the frozen line, maps to 4 claw segments.
+    /// </summary>
+    private void UpdateFrozenProjection(int motorMin, int motorMax, FingerPath clawPath)
+    {
+        if (!frozenCaptured || rWristTransform == null || leftHandPoint == null)
+            return;
+        
+        // Use the same fingertip touch gate as 5-point / 2-point projections
+        bool isTouched = false;
+        if (motorMin == 1)
+            isTouched = triggerRightThumbTip != null && triggerRightThumbTip.isRightThumbTipTouched;
+        else if (motorMin == 5)
+            isTouched = triggerRightIndexTip != null && triggerRightIndexTip.isRightIndexTipTouched;
+        else if (motorMin == 9)
+            isTouched = triggerRightMiddleTip != null && triggerRightMiddleTip.isRightMiddleTipTouched;
+        
+        if (!isTouched)
+        {
+            int clearMotorID = (motorMin == 1) ? thumbProjectionMotorID : (motorMin == 5) ? indexProjectionMotorID : middleProjectionMotorID;
+            if (clearMotorID != 0 && activeTouchedMotorID == clearMotorID)
+            {
+                activeTouchedMotorID = 0;
+                activeTouchPosition = Vector3.zero;
+            }
+            if (motorMin == 1) { thumbProjectionMotorID = 0; thumbSegmentIndex = -1; }
+            else if (motorMin == 5) { indexProjectionMotorID = 0; indexSegmentIndex = -1; }
+            else if (motorMin == 9) { middleProjectionMotorID = 0; middleSegmentIndex = -1; }
+            return;
+        }
+        
+        // Reconstruct world positions from wrist-local offsets
+        Vector3 tipWorld = rWristTransform.TransformPoint(frozenTipLocalPos);
+        Vector3 baseWorld = rWristTransform.TransformPoint(frozenBaseLocalPos);
+        
+        // Project leftHandPoint onto the frozen line
+        float t;
+        FingerMath.DistancePointToSegment(leftHandPoint.position, tipWorld, baseWorld, out t);
+        t = Mathf.Clamp01(t);
+        
+        float percentage = t * 100f;
+        
+        // Update the correct percentage debug field
+        if (motorMin == 1) thumbProjectionPercent = percentage;
+        else if (motorMin == 5) indexProjectionPercent = percentage;
+        else if (motorMin == 9) middleProjectionPercent = percentage;
+        
+        // Map to 4 claw segments
+        int clawSegIndex;
+        float localT;
+        if (percentage >= 100f)
+        {
+            clawSegIndex = 3;
+            localT = 1f;
+        }
+        else
+        {
+            clawSegIndex = Mathf.Clamp((int)(percentage / 25f), 0, 3);
+            localT = (percentage - clawSegIndex * 25f) / 25f;
+        }
+        localT = Mathf.Clamp01(localT);
+        
+        // Motor ID: seg 0 → motorMax, seg 3 → motorMin
+        int motorID = motorMax - clawSegIndex;
+        motorID = Mathf.Clamp(motorID, motorMin, motorMax);
+        
+        Vector3 closestPoint = Vector3.Lerp(tipWorld, baseWorld, t);
+        
+        // Calculate claw position
+        Vector3 clawPos = Vector3.zero;
+        if (clawPath != null)
+        {
+            int clawJointCount = clawPath.GetJointCount();
+            int clampedSeg = Mathf.Clamp(clawSegIndex, 0, clawJointCount - 2);
+            clawPos = Vector3.Lerp(
+                clawPath.GetJoint(clampedSeg),
+                clawPath.GetJoint(clampedSeg + 1),
+                localT
+            );
+        }
+        
+        // Check motor selectability
+        if (!IsMotorSelectable(motorID))
+            return;
+        
+        // Update state based on which finger
+        if (motorMin == 1)
+        {
+            thumbSegmentIndex = clawSegIndex;
+            thumbProjectionPosition = closestPoint;
+            thumbClawPosition = clawPos;
+            thumbClawProjectionPosition = clawPos;
+        }
+        else if (motorMin == 5)
+        {
+            indexSegmentIndex = clawSegIndex;
+            indexProjectionPosition = closestPoint;
+            indexClawPosition = clawPos;
+            indexClawProjectionPosition = clawPos;
+        }
+        else if (motorMin == 9)
+        {
+            middleSegmentIndex = clawSegIndex;
+            middleProjectionPosition = closestPoint;
+            middleClawPosition = clawPos;
+            middleClawProjectionPosition = clawPos;
+        }
+        
+        // Update debug spheres for the projection point on the frozen line
+        Transform rightSphere = null, clawSphere = null;
+        if (motorMin == 1) { rightSphere = thumbRightFingerProjectionSphere; clawSphere = thumbClawProjectionSphere; }
+        else if (motorMin == 5) { rightSphere = indexRightFingerProjectionSphere; clawSphere = indexClawProjectionSphere; }
+        else if (motorMin == 9) { rightSphere = middleRightFingerProjectionSphere; clawSphere = middleClawProjectionSphere; }
+        
+        if (showDebugSpheres)
+        {
+            if (rightSphere != null) { rightSphere.gameObject.SetActive(true); rightSphere.position = closestPoint; }
+            if (clawSphere != null && clawPath != null) { clawSphere.gameObject.SetActive(true); clawSphere.position = clawPos; }
+        }
+        else
+        {
+            if (rightSphere != null) rightSphere.gameObject.SetActive(false);
+            if (clawSphere != null) clawSphere.gameObject.SetActive(false);
+        }
+        
+        // Motor switch logic
+        int prevMotorID = (motorMin == 1) ? thumbProjectionMotorID : (motorMin == 5) ? indexProjectionMotorID : middleProjectionMotorID;
+        
+        if (motorID != prevMotorID)
+        {
+            float timeSinceLastSwitch = Time.time - lastSwitchTime;
+            if (activeTouchedMotorID != 0 && activeTouchedMotorID != motorID && timeSinceLastSwitch < switchCooldown)
+                return;
+            
+            // Clear other projections
+            if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4 && motorMin != 1)
+                thumbProjectionMotorID = 0;
+            if (activeTouchedMotorID >= 5 && activeTouchedMotorID <= 8 && motorMin != 5)
+                indexProjectionMotorID = 0;
+            if (activeTouchedMotorID >= 9 && activeTouchedMotorID <= 12 && motorMin != 9)
+                middleProjectionMotorID = 0;
+            
+            if (motorMin == 1) thumbProjectionMotorID = motorID;
+            else if (motorMin == 5) indexProjectionMotorID = motorID;
+            else if (motorMin == 9) middleProjectionMotorID = motorID;
+            
+            activeTouchedMotorID = motorID;
+            activeTouchPosition = closestPoint;
+            lastSwitchTime = Time.time;
+        }
+        else
+        {
+            activeTouchPosition = closestPoint;
+        }
+    }
+    
+    /// <summary>
+    /// Auto-create frozen LineRenderers and endpoint spheres at runtime
+    /// </summary>
+    private void CreateFrozenVisuals()
+    {
+        // Create frozen LineRenderers
+        frozenThumbLineRenderer = CreateFrozenLineRenderer("FrozenThumbLine");
+        frozenIndexLineRenderer = CreateFrozenLineRenderer("FrozenIndexLine");
+        frozenMiddleLineRenderer = CreateFrozenLineRenderer("FrozenMiddleLine");
+        
+        // Create frozen endpoint spheres
+        frozenThumbTipSphere = CreateFrozenSphere("FrozenThumbTipSphere");
+        frozenThumbBaseSphere = CreateFrozenSphere("FrozenThumbBaseSphere");
+        frozenIndexTipSphere = CreateFrozenSphere("FrozenIndexTipSphere");
+        frozenIndexBaseSphere = CreateFrozenSphere("FrozenIndexBaseSphere");
+        frozenMiddleTipSphere = CreateFrozenSphere("FrozenMiddleTipSphere");
+        frozenMiddleBaseSphere = CreateFrozenSphere("FrozenMiddleBaseSphere");
+        
+        Debug.Log("[SelectMotorCollider] Frozen visuals auto-created (3 LineRenderers + 6 Spheres)");
+    }
+    
+    private LineRenderer CreateFrozenLineRenderer(string name)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(this.transform);
+        
+        LineRenderer lr = go.AddComponent<LineRenderer>();
+        lr.positionCount = 2;
+        lr.startWidth = frozenLineWidth;
+        lr.endWidth = frozenLineWidth;
+        lr.useWorldSpace = true;
+        lr.enabled = false;
+        
+        // Use Unlit color material
+        lr.material = new Material(Shader.Find("Sprites/Default"));
+        lr.startColor = frozenLineColor;
+        lr.endColor = frozenLineColor;
+        
+        return lr;
+    }
+    
+    private Transform CreateFrozenSphere(string name)
+    {
+        GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        go.name = name;
+        go.transform.SetParent(this.transform);
+        go.transform.localScale = Vector3.one * frozenSphereRadius * 2f;
+        
+        // Remove collider so it doesn't interfere with physics
+        Collider col = go.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+        
+        // Set color
+        Renderer rend = go.GetComponent<Renderer>();
+        if (rend != null)
+        {
+            rend.material = new Material(Shader.Find("Sprites/Default"));
+            rend.material.color = frozenSphereColor;
+        }
+        
+        go.SetActive(false);
+        return go.transform;
+    }
+    
+    /// <summary>
+    /// Update the frozen line and endpoint sphere visuals
+    /// </summary>
+    private void UpdateFrozenVisuals()
+    {
+        if (!frozenCaptured || rWristTransform == null) return;
+        
+        Vector3 tipWorld = rWristTransform.TransformPoint(frozenTipLocalPos);
+        Vector3 baseWorld = rWristTransform.TransformPoint(frozenBaseLocalPos);
+        
+        // Get the correct LineRenderer and spheres based on frozen finger
+        LineRenderer lr = null;
+        Transform tipSphere = null, baseSphere = null;
+        
+        switch (frozenFingertipID)
+        {
+            case 4:
+                lr = frozenThumbLineRenderer;
+                tipSphere = frozenThumbTipSphere;
+                baseSphere = frozenThumbBaseSphere;
+                break;
+            case 8:
+                lr = frozenIndexLineRenderer;
+                tipSphere = frozenIndexTipSphere;
+                baseSphere = frozenIndexBaseSphere;
+                break;
+            case 12:
+                lr = frozenMiddleLineRenderer;
+                tipSphere = frozenMiddleTipSphere;
+                baseSphere = frozenMiddleBaseSphere;
+                break;
+        }
+        
+        // Update LineRenderer
+        if (lr != null)
+        {
+            lr.enabled = true;
+            lr.positionCount = 2;
+            lr.SetPosition(0, tipWorld);
+            lr.SetPosition(1, baseWorld);
+        }
+        
+        // Update endpoint spheres
+        if (showDebugSpheres)
+        {
+            if (tipSphere != null) { tipSphere.gameObject.SetActive(true); tipSphere.position = tipWorld; }
+            if (baseSphere != null) { baseSphere.gameObject.SetActive(true); baseSphere.position = baseWorld; }
+        }
+        else
+        {
+            if (tipSphere != null) tipSphere.gameObject.SetActive(false);
+            if (baseSphere != null) baseSphere.gameObject.SetActive(false);
+        }
+    }
+    
+    /// <summary>
+    /// Hide all frozen visuals (lines, spheres)
+    /// </summary>
+    private void HideFrozenVisuals()
+    {
+        if (frozenThumbLineRenderer != null) frozenThumbLineRenderer.enabled = false;
+        if (frozenIndexLineRenderer != null) frozenIndexLineRenderer.enabled = false;
+        if (frozenMiddleLineRenderer != null) frozenMiddleLineRenderer.enabled = false;
+        
+        if (frozenThumbTipSphere != null) frozenThumbTipSphere.gameObject.SetActive(false);
+        if (frozenThumbBaseSphere != null) frozenThumbBaseSphere.gameObject.SetActive(false);
+        if (frozenIndexTipSphere != null) frozenIndexTipSphere.gameObject.SetActive(false);
+        if (frozenIndexBaseSphere != null) frozenIndexBaseSphere.gameObject.SetActive(false);
+        if (frozenMiddleTipSphere != null) frozenMiddleTipSphere.gameObject.SetActive(false);
+        if (frozenMiddleBaseSphere != null) frozenMiddleBaseSphere.gameObject.SetActive(false);
     }
 }
 
