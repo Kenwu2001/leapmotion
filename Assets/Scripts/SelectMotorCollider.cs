@@ -22,6 +22,25 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Key to toggle debug spheres on/off")]
     public KeyCode debugToggleKey = KeyCode.D;
     
+    [Header("=== Thumb Projection Settings ===")]
+    [Tooltip("Use projection-based detection for thumb instead of colliders (motors 1-4)")]
+    public bool useThumbProjection = false;
+    
+    [Tooltip("Right hand thumb FingerPath with joints (segments = motors 1-4)")]
+    public FingerPath rightThumbPath;
+    
+    [Tooltip("Claw thumb FingerPath")]
+    public FingerPath clawThumbPath;
+    
+    [Tooltip("TriggerRightThumbTip to detect when thumb is being touched")]
+    public TriggerRightThumbTip triggerRightThumbTip;
+    
+    [Header("Thumb Debug Spheres")]
+    [Tooltip("Sphere to show projection on right hand thumb")]
+    public Transform thumbRightFingerProjectionSphere;
+    [Tooltip("Sphere to show projection on claw thumb")]
+    public Transform thumbClawProjectionSphere;
+    
     [Header("Index Finger Projection Settings")]
     [Tooltip("Left hand point for projection (L_IndexTipSmall transform)")]
     public Transform leftHandPoint;
@@ -74,6 +93,13 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Projection position on claw index finger")]
     public Vector3 indexClawProjectionPosition = Vector3.zero;
     
+    [Header("Thumb Projection Debug")]
+    [Tooltip("Current segment index on thumb (0-3)")]
+    public int thumbSegmentIndex = -1;
+    
+    [Tooltip("Projection position on claw thumb")]
+    public Vector3 thumbClawProjectionPosition = Vector3.zero;
+    
     [Header("Middle Finger Projection Debug")]
     [Tooltip("Current segment index on middle finger (0-3)")]
     public int middleSegmentIndex = -1;
@@ -104,6 +130,9 @@ public class SelectMotorCollider : MonoBehaviour
     
     [Tooltip("Middle finger projection percentage (0=tip, 100=base)")]
     public float middleProjectionPercent = 0f;
+    
+    [Tooltip("Thumb projection percentage (0=tip, 100=base)")]
+    public float thumbProjectionPercent = 0f;
 
     // Track which motor is currently touched (1-12, 0 = none)
     private int activeTouchedMotorID = 0;
@@ -114,6 +143,11 @@ public class SelectMotorCollider : MonoBehaviour
     
     // Child trigger components for each motor (only used for motors 1-4 Thumb)
     private MotorTriggerDetector[] triggerDetectors = new MotorTriggerDetector[12];
+    
+    // Thumb projection state
+    private int thumbProjectionMotorID = 0;
+    private Vector3 thumbProjectionPosition = Vector3.zero;
+    private Vector3 thumbClawPosition = Vector3.zero;
     
     // Index finger projection state
     private int indexProjectionMotorID = 0;
@@ -127,23 +161,32 @@ public class SelectMotorCollider : MonoBehaviour
 
     private void Start()
     {
-        // Setup trigger detectors for motor colliders 1-4 (Thumb only)
-        for (int i = 0; i < 4; i++) // Only motors 1-4
+        // Setup trigger detectors for motor colliders 1-4 (Thumb only) - skip if using projection mode
+        if (!useThumbProjection)
         {
-            if (motorColliders[i] != null)
+            for (int i = 0; i < 4; i++) // Only motors 1-4
             {
-                // Add or get the detector component
-                MotorTriggerDetector detector = motorColliders[i].GetComponent<MotorTriggerDetector>();
-                if (detector == null)
+                if (motorColliders[i] != null)
                 {
-                    detector = motorColliders[i].AddComponent<MotorTriggerDetector>();
+                    // Add or get the detector component
+                    MotorTriggerDetector detector = motorColliders[i].GetComponent<MotorTriggerDetector>();
+                    if (detector == null)
+                    {
+                        detector = motorColliders[i].AddComponent<MotorTriggerDetector>();
+                    }
+                    
+                    // Initialize with motorID 1-4 (i+1)
+                    detector.Initialize(i + 1, targetTag, this);
+                    triggerDetectors[i] = detector;
                 }
-                
-                // Initialize with motorID 1-4 (i+1)
-                detector.Initialize(i + 1, targetTag, this);
-                triggerDetectors[i] = detector;
             }
         }
+        
+        // Hide thumb debug spheres initially
+        if (thumbRightFingerProjectionSphere != null)
+            thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (thumbClawProjectionSphere != null)
+            thumbClawProjectionSphere.gameObject.SetActive(false);
         
         // Hide index finger debug spheres initially
         if (indexRightFingerProjectionSphere != null)
@@ -181,6 +224,15 @@ public class SelectMotorCollider : MonoBehaviour
             }
         }
         
+        // Handle Thumb projection-based selection (motors 1-4) if enabled
+        if (useThumbProjection)
+        {
+            if (useTwoPointProjection)
+                UpdateThumbProjection_TwoPoint();
+            else
+                UpdateThumbProjection();
+        }
+        
         // Handle Index finger projection-based selection (motors 5-8)
         if (useTwoPointProjection)
             UpdateIndexFingerProjection_TwoPoint();
@@ -204,6 +256,10 @@ public class SelectMotorCollider : MonoBehaviour
     /// </summary>
     private void HideAllDebugSpheres()
     {
+        if (thumbRightFingerProjectionSphere != null)
+            thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (thumbClawProjectionSphere != null)
+            thumbClawProjectionSphere.gameObject.SetActive(false);
         if (indexRightFingerProjectionSphere != null)
             indexRightFingerProjectionSphere.gameObject.SetActive(false);
         if (indexClawProjectionSphere != null)
@@ -314,6 +370,292 @@ public class SelectMotorCollider : MonoBehaviour
         isFingertipConfirmed = false;
         UpdateSelectableMotorRangeText();
         Debug.Log($"[SelectMotorCollider] Fingertip confirmation state reset");
+    }
+    
+    /// <summary>
+    /// Updates thumb motor selection based on projection (motors 1-4).
+    /// Uses multi-segment projection like index/middle fingers.
+    /// </summary>
+    private void UpdateThumbProjection()
+    {
+        bool isThumbTouched = triggerRightThumbTip != null && triggerRightThumbTip.isRightThumbTipTouched;
+        
+        if (!isThumbTouched || leftHandPoint == null || rightThumbPath == null)
+        {
+            if (thumbProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == thumbProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                thumbProjectionMotorID = 0;
+                thumbSegmentIndex = -1;
+            }
+            
+            if (thumbRightFingerProjectionSphere != null)
+                thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null)
+                thumbClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        int segmentIndex;
+        float segmentT;
+        Vector3 closestPointOnRightFinger;
+        
+        FingerMath.ClosestPointOnFinger(
+            leftHandPoint.position,
+            rightThumbPath,
+            out segmentIndex,
+            out segmentT,
+            out closestPointOnRightFinger
+        );
+        
+        segmentT = Mathf.Clamp01(segmentT);
+        
+        Vector3 clawPos = Vector3.zero;
+        if (clawThumbPath != null)
+        {
+            int clawJointCount = clawThumbPath.GetJointCount();
+            int clampedSeg = Mathf.Clamp(segmentIndex, 0, clawJointCount - 2);
+            clawPos = Vector3.Lerp(
+                clawThumbPath.GetJoint(clampedSeg),
+                clawThumbPath.GetJoint(clampedSeg + 1),
+                segmentT
+            );
+        }
+        
+        // Convert segment index to motor ID (1-4)
+        // segment 0 → motor 4, segment 1 → motor 3, segment 2 → motor 2, segment 3 → motor 1
+        int motorID = 4 - segmentIndex;
+        motorID = Mathf.Clamp(motorID, 1, 4);
+        
+        if (!IsMotorSelectable(motorID))
+        {
+            if (thumbProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == thumbProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                thumbProjectionMotorID = 0;
+            }
+            
+            if (thumbRightFingerProjectionSphere != null)
+                thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null)
+                thumbClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        thumbSegmentIndex = segmentIndex;
+        thumbProjectionPosition = closestPointOnRightFinger;
+        thumbClawPosition = clawPos;
+        thumbClawProjectionPosition = clawPos;
+        
+        if (showDebugSpheres)
+        {
+            if (thumbRightFingerProjectionSphere != null)
+            {
+                thumbRightFingerProjectionSphere.gameObject.SetActive(true);
+                thumbRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            }
+            if (thumbClawProjectionSphere != null && clawThumbPath != null)
+            {
+                thumbClawProjectionSphere.gameObject.SetActive(true);
+                thumbClawProjectionSphere.position = clawPos;
+            }
+        }
+        else
+        {
+            if (thumbRightFingerProjectionSphere != null)
+                thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null)
+                thumbClawProjectionSphere.gameObject.SetActive(false);
+        }
+        
+        if (motorID != thumbProjectionMotorID)
+        {
+            float timeSinceLastSwitch = Time.time - lastSwitchTime;
+            if (activeTouchedMotorID != 0 && activeTouchedMotorID != motorID && timeSinceLastSwitch < switchCooldown)
+            {
+                return;
+            }
+            
+            // Clear index projection if it was active
+            if (activeTouchedMotorID >= 5 && activeTouchedMotorID <= 8)
+            {
+                indexProjectionMotorID = 0;
+            }
+            
+            // Clear middle projection if it was active
+            if (activeTouchedMotorID >= 9 && activeTouchedMotorID <= 12)
+            {
+                middleProjectionMotorID = 0;
+            }
+            
+            thumbProjectionMotorID = motorID;
+            activeTouchedMotorID = motorID;
+            activeTouchPosition = closestPointOnRightFinger;
+            lastSwitchTime = Time.time;
+        }
+        else
+        {
+            activeTouchPosition = closestPointOnRightFinger;
+        }
+    }
+    
+    /// <summary>
+    /// [Two-Point] Updates thumb motor selection using single-segment percentage mapping.
+    /// Hand thumb: tip (joint 0) + base (last joint) = 1 segment.
+    /// Percentage 0-100 maps smoothly to 4 claw segments (motors 1-4).
+    /// </summary>
+    private void UpdateThumbProjection_TwoPoint()
+    {
+        bool isThumbTouched = triggerRightThumbTip != null && triggerRightThumbTip.isRightThumbTipTouched;
+        
+        if (!isThumbTouched || leftHandPoint == null || rightThumbPath == null)
+        {
+            if (thumbProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == thumbProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                thumbProjectionMotorID = 0;
+                thumbSegmentIndex = -1;
+            }
+            thumbProjectionPercent = 0f;
+            
+            if (thumbRightFingerProjectionSphere != null)
+                thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null)
+                thumbClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        int jointCount = rightThumbPath.GetJointCount();
+        Vector3 tipPoint = rightThumbPath.GetJoint(0);
+        Vector3 basePoint = rightThumbPath.GetJoint(jointCount - 1);
+        
+        float t;
+        FingerMath.DistancePointToSegment(leftHandPoint.position, tipPoint, basePoint, out t);
+        t = Mathf.Clamp01(t);
+        
+        float percentage = t * 100f;
+        thumbProjectionPercent = percentage;
+        
+        int clawSegIndex;
+        float localT;
+        if (percentage >= 100f)
+        {
+            clawSegIndex = 3;
+            localT = 1f;
+        }
+        else
+        {
+            clawSegIndex = Mathf.Clamp((int)(percentage / 25f), 0, 3);
+            localT = (percentage - clawSegIndex * 25f) / 25f;
+        }
+        localT = Mathf.Clamp01(localT);
+        
+        // Convert claw segment to motor ID (thumb: seg 0 → motor 4, seg 3 → motor 1)
+        int motorID = 4 - clawSegIndex;
+        motorID = Mathf.Clamp(motorID, 1, 4);
+        
+        Vector3 closestPointOnRightFinger = Vector3.Lerp(tipPoint, basePoint, t);
+        
+        Vector3 clawPos = Vector3.zero;
+        if (clawThumbPath != null)
+        {
+            int clawJointCount = clawThumbPath.GetJointCount();
+            int clampedSeg = Mathf.Clamp(clawSegIndex, 0, clawJointCount - 2);
+            clawPos = Vector3.Lerp(
+                clawThumbPath.GetJoint(clampedSeg),
+                clawThumbPath.GetJoint(clampedSeg + 1),
+                localT
+            );
+        }
+        
+        if (!IsMotorSelectable(motorID))
+        {
+            if (thumbProjectionMotorID != 0)
+            {
+                if (activeTouchedMotorID == thumbProjectionMotorID)
+                {
+                    activeTouchedMotorID = 0;
+                    activeTouchPosition = Vector3.zero;
+                }
+                thumbProjectionMotorID = 0;
+            }
+            
+            if (thumbRightFingerProjectionSphere != null)
+                thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null)
+                thumbClawProjectionSphere.gameObject.SetActive(false);
+            
+            return;
+        }
+        
+        thumbSegmentIndex = clawSegIndex;
+        thumbProjectionPosition = closestPointOnRightFinger;
+        thumbClawPosition = clawPos;
+        thumbClawProjectionPosition = clawPos;
+        
+        if (showDebugSpheres)
+        {
+            if (thumbRightFingerProjectionSphere != null)
+            {
+                thumbRightFingerProjectionSphere.gameObject.SetActive(true);
+                thumbRightFingerProjectionSphere.position = closestPointOnRightFinger;
+            }
+            if (thumbClawProjectionSphere != null && clawThumbPath != null)
+            {
+                thumbClawProjectionSphere.gameObject.SetActive(true);
+                thumbClawProjectionSphere.position = clawPos;
+            }
+        }
+        else
+        {
+            if (thumbRightFingerProjectionSphere != null)
+                thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null)
+                thumbClawProjectionSphere.gameObject.SetActive(false);
+        }
+        
+        if (motorID != thumbProjectionMotorID)
+        {
+            float timeSinceLastSwitch = Time.time - lastSwitchTime;
+            if (activeTouchedMotorID != 0 && activeTouchedMotorID != motorID && timeSinceLastSwitch < switchCooldown)
+            {
+                return;
+            }
+            
+            if (activeTouchedMotorID >= 5 && activeTouchedMotorID <= 8)
+            {
+                indexProjectionMotorID = 0;
+            }
+            
+            if (activeTouchedMotorID >= 9 && activeTouchedMotorID <= 12)
+            {
+                middleProjectionMotorID = 0;
+            }
+            
+            thumbProjectionMotorID = motorID;
+            activeTouchedMotorID = motorID;
+            activeTouchPosition = closestPointOnRightFinger;
+            lastSwitchTime = Time.time;
+        }
+        else
+        {
+            activeTouchPosition = closestPointOnRightFinger;
+        }
     }
     
     /// <summary>
@@ -449,6 +791,9 @@ public class SelectMotorCollider : MonoBehaviour
             // If currently active motor is a collider-based motor (1-4), force release it
             if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
             {
+                // Clear thumb projection if using projection mode
+                thumbProjectionMotorID = 0;
+                
                 int prevIndex = activeTouchedMotorID - 1;
                 if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
                 {
@@ -607,6 +952,9 @@ public class SelectMotorCollider : MonoBehaviour
             // If currently active motor is a collider-based motor (1-4), force release it
             if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
             {
+                // Clear thumb projection if using projection mode
+                thumbProjectionMotorID = 0;
+                
                 int prevIndex = activeTouchedMotorID - 1;
                 if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
                 {
@@ -772,6 +1120,8 @@ public class SelectMotorCollider : MonoBehaviour
             
             if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
             {
+                thumbProjectionMotorID = 0;
+                
                 int prevIndex = activeTouchedMotorID - 1;
                 if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
                 {
@@ -935,6 +1285,8 @@ public class SelectMotorCollider : MonoBehaviour
             
             if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
             {
+                thumbProjectionMotorID = 0;
+                
                 int prevIndex = activeTouchedMotorID - 1;
                 if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
                 {
@@ -963,6 +1315,10 @@ public class SelectMotorCollider : MonoBehaviour
     {
         // Only handle motors 1-4 via collider (Thumb only)
         if (motorID < 1 || motorID > 4)
+            return;
+        
+        // If thumb projection mode is enabled, ignore collider-based thumb touches
+        if (useThumbProjection)
             return;
         
         // New feature: check motor selectability (fingertip-first mode)
@@ -1079,6 +1435,16 @@ public class SelectMotorCollider : MonoBehaviour
     public Vector3 GetMiddleClawProjectionPosition()
     {
         return middleClawPosition;
+    }
+    
+    public int GetThumbSegmentIndex()
+    {
+        return thumbSegmentIndex;
+    }
+    
+    public Vector3 GetThumbClawProjectionPosition()
+    {
+        return thumbClawPosition;
     }
 }
 
