@@ -19,6 +19,8 @@ public class DebugAngle : MonoBehaviour
     public ModeSwitching modeSwitching;
     public PaxiniValue paxiniValue;
 
+    public GameObject r_wrist;
+
     // middle 59 58 57
     // index 302 303 304
 
@@ -27,6 +29,15 @@ public class DebugAngle : MonoBehaviour
         if (angleText != null && jointAngle != null)
         {
             angleText.text = "" +
+                // r_wrist 世界坐標和旋轉
+                (r_wrist != null ? 
+                    "r_wrist Position: X=" + r_wrist.transform.position.x.ToString("F2") + 
+                    ", Y=" + r_wrist.transform.position.y.ToString("F2") + 
+                    ", Z=" + r_wrist.transform.position.z.ToString("F2") + "\n" +
+                    "r_wrist Rotation: X=" + r_wrist.transform.eulerAngles.x.ToString("F2") + 
+                    ", Y=" + r_wrist.transform.eulerAngles.y.ToString("F2") + 
+                    ", Z=" + r_wrist.transform.eulerAngles.z.ToString("F2") + "\n" 
+                    : "r_wrist not assigned\n") +
                 // + ((int)jointAngle.thumbAngle0).ToString() + " "
                 // + ((int)jointAngle.thumbAngle1).ToString() + "\n"
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
