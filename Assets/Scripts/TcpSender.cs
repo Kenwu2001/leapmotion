@@ -13,6 +13,7 @@ public class DataToSend
     public float rot_x;
     public float rot_y;
     public float rot_z;
+    public bool new_session;
 }
 
 public class TcpSender : MonoBehaviour
@@ -74,7 +75,8 @@ public class TcpSender : MonoBehaviour
                     pos_z = pos.z,
                     rot_x = rot.x,
                     rot_y = rot.y,
-                    rot_z = rot.z
+                    rot_z = rot.z,
+                    new_session = !waseSendingLastFrame
                 };
 
                 string json = JsonUtility.ToJson(dataObj) + "\n";
