@@ -502,7 +502,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.01
   m_Center: {x: -0.02, y: 0.008, z: 0}
@@ -10472,8 +10472,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.064087525, y: 0.07954685, z: 0.06455403}
-  m_Center: {x: -0.030638417, y: -0.016820773, z: -0.0016595707}
+  m_Size: {x: 0.06408752, y: 0.08612137, z: 0.0745426}
+  m_Center: {x: -0.03063842, y: -0.020108053, z: 0.0033346296}
 --- !u!114 &187972396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10522,6 +10522,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   r_wrist: {fileID: 183310080}
   isSending: 0
+  maxDeltaPosition: 0.03
+  maxDeltaRotation: 10
+  maxPositionFromOrigin: 0.5
+  maxConsecutiveAnomalies: 3
 --- !u!4 &188813410
 Transform:
   m_ObjectHideFlags: 0
@@ -37466,8 +37470,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.083438374, y: 0.087082565, z: 0.055013236}
-  m_Center: {x: -0.015918162, y: -0.020588461, z: -0.008194202}
+  m_Size: {x: 0.08919655, y: 0.1554686, z: 0.09850774}
+  m_Center: {x: -0.018796982, y: -0.054781143, z: 0.013553018}
 --- !u!114 &1201296085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38072,8 +38076,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.10030697, y: 0.115863435, z: 0.05905226}
-  m_Center: {x: -0.0021535463, y: -0.029613597, z: 0.0011038666}
+  m_Size: {x: 0.10030697, y: 0.115863435, z: 0.086837575}
+  m_Center: {x: -0.002153592, y: -0.029613353, z: 0.01499646}
 --- !u!114 &1307753529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53832,7 +53836,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8880001930163941418, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -55160,7 +55164,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.01
   m_Center: {x: -0.02, y: 0, z: 0.005}

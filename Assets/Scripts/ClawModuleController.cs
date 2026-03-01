@@ -80,7 +80,8 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Configuration
     // ==============================
-    private float rotationSpeed = 13f; // degrees per second
+    private float rotationSpeed = 15f; // degrees per second
+    public float twistRotationSpeed = 20f; // degrees per second (for twist operations)
     public bool isMapping = true;
     public float tt = 0f;
 
@@ -1870,7 +1871,7 @@ public class ClawModuleController : MonoBehaviour
 
             if (fingerTipTouchDurations["ThumbTwist"] > 0.7f)
             {
-                currentThumbRotationZ -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
+                currentThumbRotationZ -= (-jointAngle.isClockWise) * twistRotationSpeed * Time.deltaTime;
                 currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
 
                 thumbFingerJoint2MaxRotationVector =
@@ -2016,12 +2017,12 @@ public class ClawModuleController : MonoBehaviour
 
                 if (isThumbRotatingNegative)
                 {
-                    currentThumbRotationZ += rotationSpeed * Time.deltaTime;
+                    currentThumbRotationZ += twistRotationSpeed * Time.deltaTime;
                     currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
                 }
                 else
                 {
-                    currentThumbRotationZ -= rotationSpeed * Time.deltaTime;
+                    currentThumbRotationZ -= twistRotationSpeed * Time.deltaTime;
                     currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
                 }
 
@@ -2117,7 +2118,7 @@ public class ClawModuleController : MonoBehaviour
     //             // Only rotate if there's actual rotation happening (isClockWise != 0)
     //             if (currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
     //             {
-    //                 currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+    //                 currentIndexRotationZ -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
     //             }
 
     //             currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
@@ -2177,7 +2178,7 @@ public class ClawModuleController : MonoBehaviour
             {
                 if (currentIndexRotationZ >= -58f && currentIndexRotationZ <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
                 {
-                    currentIndexRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                    currentIndexRotationZ -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
                 }
 
                 currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
@@ -2251,7 +2252,7 @@ public class ClawModuleController : MonoBehaviour
             {
                 if (currentIndexRotationY >= -60f && currentIndexRotationY <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
                 {
-                    currentIndexRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                    currentIndexRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
                 }
 
                 currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -60f, 0f);
@@ -2338,7 +2339,7 @@ public class ClawModuleController : MonoBehaviour
     //         {
     //             if (currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
     //             {
-    //                 currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+    //                 currentMiddleRotationZ -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
     //             }
 
     //             currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
@@ -2392,7 +2393,7 @@ public class ClawModuleController : MonoBehaviour
             {
                 if (currentMiddleRotationZ <= 58f && currentMiddleRotationZ >= 0)
                 {
-                    currentMiddleRotationZ -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                    currentMiddleRotationZ -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
                 }
 
                 currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
@@ -2466,7 +2467,7 @@ public class ClawModuleController : MonoBehaviour
             {
                 if (currentMiddleRotationY <= 60f && currentMiddleRotationY >= 0)
                 {
-                    currentMiddleRotationY -= jointAngle.isClockWise * rotationSpeed * Time.deltaTime;
+                    currentMiddleRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
                 }
 
                 currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, 0f, 60f);

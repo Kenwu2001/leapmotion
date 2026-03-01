@@ -239,8 +239,9 @@ public class JointAngle : MonoBehaviour
                     projectedIndexTip = ProjectPointOnPlane(indexTipPos, planePoint, planeNormal);
                     projectedThumbTip = ProjectPointOnPlane(thumbTipPos, planePoint, planeNormal);
 
-                    lineRenderer.SetPosition(0, projectedIndexTip);
-                    lineRenderer.SetPosition(1, projectedThumbTip);
+                    // Draw red line using raw (unprojected) positions
+                    lineRenderer.SetPosition(0, indexTipPos);
+                    lineRenderer.SetPosition(1, thumbTipPos);
 
                     // Debug.Log($"Active Joint: {activeJoint}, ProjectedIndex: {projectedIndexTip}, ProjectedThumb: {projectedThumbTip}");
 
