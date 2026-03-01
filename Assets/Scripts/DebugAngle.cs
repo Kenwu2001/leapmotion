@@ -18,6 +18,8 @@ public class DebugAngle : MonoBehaviour
     public SelectMotorCollider SelectMotorCollider;
     public ModeSwitching modeSwitching;
     public PaxiniValue paxiniValue;
+    public TcpSender tcpSender;
+    public TriggerRightWrist triggerRightWrist;
 
     public GameObject r_wrist;
 
@@ -137,7 +139,9 @@ public class DebugAngle : MonoBehaviour
                 "thumbMiddleInThumbRange: " + clawModuleController.thumbMiddleInThumbRange.ToString() + "\n" +
                 "thumbMiddleInMiddleRange: " + clawModuleController.thumbMiddleInMiddleRange.ToString() + "\n" +
                 "paxini isMiddlePaxiniZero: " + paxiniValue.isMiddlePaxiniZero.ToString() + "\n" +
-                "paxini isMiddleTouchSnapped: " + paxiniValue.isMiddleTouchSnapped.ToString() + "\n";
+                "paxini isMiddleTouchSnapped: " + paxiniValue.isMiddleTouchSnapped.ToString() + "\n" +
+                "isRightWristTouched: " + triggerRightWrist.isRightWristTouched.ToString() + "\n" +
+                "tcpSender isSending: " + tcpSender.isSending.ToString() + "\n";
                 // "joints[Thumb0].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "joints[Thumb0].localEulerAngles.z: " + jointAngle.joints["Thumb0"].localEulerAngles.z.ToString("F4") + "°\n" +
                 // "joints[Thumb1].localRotation.eulerAngles.z: " + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
