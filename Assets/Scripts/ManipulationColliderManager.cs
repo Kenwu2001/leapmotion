@@ -100,7 +100,7 @@ public class ManipulationColliderManager : MonoBehaviour
         if (collider != null)
         {
             // Log the current state for debugging
-            Debug.Log($"Setting collider {collider.name} to {(enabled ? "enabled" : "disabled")}");
+            // Debug.Log($"Setting collider {collider.name} to {(enabled ? "enabled" : "disabled")}");
 
             // If disabling, clear touch records first
             if (!enabled)

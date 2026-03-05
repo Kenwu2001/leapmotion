@@ -461,7 +461,7 @@ public class ModeSwitching : MonoBehaviour
                 if (motorID == 4 || motorID == 8 || motorID == 12)
                 {
                     confirmedFingertipID = motorID;
-                    confirmedMotorID = motorID; // Temporarily record as the confirmed motor
+                    confirmedMotorID = motorID; // Record as the confirmed motor
                     
                     // Notify SelectMotorCollider that a fingertip has been confirmed
                     SelectMotorCollider.OnFingertipConfirmed(motorID);
@@ -469,13 +469,16 @@ public class ModeSwitching : MonoBehaviour
                     // Capture frozen line for this finger
                     SelectMotorCollider.CaptureFrozenLine(motorID);
                     
-                    // Enter phase 2
-                    currentPhase = SelectionPhase.SelectingMotor;
+                    // Go directly to MotorConfirmed so that the user can
+                    // separate hands immediately to enter manipulation mode.
+                    // If they later touch a different motor on the same finger,
+                    // the MotorConfirmed case below will handle the switch.
+                    currentPhase = SelectionPhase.MotorConfirmed;
                     
                     // Update gray display (other motors of this finger are now selectable)
                     UpdateGrayColors();
                     
-                    Debug.Log($"[ModeSwitching] Fingertip motor {motorID} confirmed. Entering motor selection phase.");
+                    // Debug.Log($"[ModeSwitching] Fingertip motor {motorID} confirmed. Ready for manipulation (or select another motor).");
                 }
                 break;
                 

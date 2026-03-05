@@ -189,7 +189,7 @@ public class PaxiniValue : MonoBehaviour
         {
             try
             {
-                Debug.Log("[Unity] Connecting to Python...");
+                Debug.Log("[Unity] Connecting to Python Paxini...");
                 client = new TcpClient(host, port);
 
                 using var stream = client.GetStream();

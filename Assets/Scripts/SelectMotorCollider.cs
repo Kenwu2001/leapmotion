@@ -542,7 +542,7 @@ public class SelectMotorCollider : MonoBehaviour
             confirmedFingertipMotorID = fingertipMotorID;
             isFingertipConfirmed = true;
             UpdateSelectableMotorRangeText();
-            Debug.Log($"[SelectMotorCollider] Fingertip motor {fingertipMotorID} confirmed! Selectable range: {selectableMotorRange}");
+            // Debug.Log($"[SelectMotorCollider] Fingertip motor {fingertipMotorID} confirmed! Selectable range: {selectableMotorRange}");
         }
     }
     
@@ -1886,7 +1886,7 @@ public class SelectMotorCollider : MonoBehaviour
         frozenMiddleTipSphere = CreateFrozenSphere("FrozenMiddleTipSphere");
         frozenMiddleBaseSphere = CreateFrozenSphere("FrozenMiddleBaseSphere");
         
-        Debug.Log("[SelectMotorCollider] Frozen visuals auto-created (3 LineRenderers + 6 Spheres)");
+        // Debug.Log("[SelectMotorCollider] Frozen visuals auto-created (3 LineRenderers + 6 Spheres)");
     }
     
     private LineRenderer CreateFrozenLineRenderer(string name)
