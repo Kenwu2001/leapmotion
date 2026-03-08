@@ -65,6 +65,19 @@ public class DeltaUserStudy : MonoBehaviour
     private float[,] currentRotations = new float[4, 3];
         
     // Start is called before the first frame update
+    /// <summary>
+    /// Awake runs before ALL Start() calls.
+    /// Disable ModeSwitching here so its Start() never sets joints to gray.
+    /// </summary>
+    void Awake()
+    {
+        if (!this.enabled) return;
+        if (modeSwitching != null)
+        {
+            modeSwitching.enabled = false;
+        }
+    }
+
     void Start()
     {
         // Initialize array

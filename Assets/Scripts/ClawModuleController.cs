@@ -305,10 +305,28 @@ public class ClawModuleController : MonoBehaviour
     private float kbRotationSpeed = 18f;
     private bool _prevUseKeyboardControl = false;
 
+    /// <summary>
+    /// Awake runs before ALL Start() calls.
+    /// Save originalColor here (before any Start() can change material colors).
+    /// If keyboard mode is on, disable ModeSwitching so its Start()
+    /// never runs and never sets joints to gray.
+    /// </summary>
+    void Awake()
+    {
+        if (!this.enabled) return;
+
+        // Capture the TRUE original color before any Start() modifies materials
+        if (thumbJoint1Renderer != null)
+            originalColor = thumbJoint1Renderer.material.color;
+
+        if (useKeyboardControl && modeSwitching != null)
+        {
+            modeSwitching.enabled = false;
+        }
+    }
+
     void Start()
     {
-        originalColor = thumbJoint1Renderer.material.color;
-
         // --- Initialize Thumb ---
         ThumbAngle1CenterInitialRotation = ThumbAngle1Center.localRotation;
         ThumbAngle2CenterInitialRotation = ThumbAngle2Center.localRotation;
