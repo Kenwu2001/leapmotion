@@ -6,6 +6,13 @@ public class DeltaUserStudy : MonoBehaviour
 {
     public JointAngle jointAngle;
 
+    [Header("=== Collider/Mode References (disable in keyboard-only mode) ===")]
+    public ModeSwitching modeSwitching;
+    public TriggerRightIndexTip triggerRightIndexTip;
+    public TriggerRightMiddleTip triggerRightMiddleTip;
+    public TriggerRightThumbTip triggerRightThumbTip;
+    public TriggerRightThumbAbduction triggerRightThumbAbduction;
+
     public Transform ThumbAngle1Center;
     public Transform ThumbAngle2Center;
     public Transform ThumbAngle3Center;
@@ -76,11 +83,18 @@ public class DeltaUserStudy : MonoBehaviour
             {thumbJoint4Renderer, indexJoint4Renderer, middleJoint4Renderer}
         };
         
-        // Save original colors of all objects
+        // Disable ModeSwitching and all colliders FIRST, before saving colors
+        // (prevents ModeSwitching.Start from setting joints to gray)
+        DisableCollidersAndModes();
+
+        // Save original colors (should all be originalColor now, not gray)
         SaveOriginalColors();
         
         // Initialize initial rotations
         InitializeRotations();
+
+        // Ensure all joints are originalColor
+        SetAllOriginalColors();
         
         // Set initial position to IndexAngle4Center
         UpdateSelection();
@@ -422,6 +436,55 @@ public class DeltaUserStudy : MonoBehaviour
                 {
                     currentRotations[row, col] = 0f;
                     t.localRotation = initialRotations[row, col];
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Disable ModeSwitching script and all trigger colliders.
+    /// This ensures keyboard-only mode has no mode transitions and no accidental collider triggers.
+    /// </summary>
+    void DisableCollidersAndModes()
+    {
+        if (modeSwitching != null)
+        {
+            modeSwitching.modeSelect = false;
+            modeSwitching.modeManipulate = false;
+            modeSwitching.motorSelected = false;
+            modeSwitching.confirmedMotorID = 0;
+            modeSwitching.enabled = false;
+
+            if (modeSwitching.SelectMotorCollider != null)
+                modeSwitching.SelectMotorCollider.enabled = false;
+        }
+
+        DisableTriggerCollider(triggerRightIndexTip);
+        DisableTriggerCollider(triggerRightMiddleTip);
+        DisableTriggerCollider(triggerRightThumbTip);
+        DisableTriggerCollider(triggerRightThumbAbduction);
+    }
+
+    void DisableTriggerCollider(MonoBehaviour trigger)
+    {
+        if (trigger == null) return;
+        Collider col = trigger.GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+    }
+
+    /// <summary>
+    /// Sets all 12 motor renderers to originalColor.
+    /// </summary>
+    void SetAllOriginalColors()
+    {
+        for (int row = 0; row < ROWS; row++)
+        {
+            for (int col = 0; col < COLS; col++)
+            {
+                Renderer renderer = rendererArray[row, col];
+                if (renderer != null && originalColors.ContainsKey(renderer))
+                {
+                    renderer.material.color = originalColors[renderer];
                 }
             }
         }

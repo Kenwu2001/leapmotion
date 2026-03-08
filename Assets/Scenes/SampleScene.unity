@@ -36165,6 +36165,7 @@ MonoBehaviour:
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
+  useKeyboardControl: 0
 --- !u!114 &1033347338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43577,6 +43578,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1498998533}
+  modeSwitching: {fileID: 0}
+  triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
+  triggerRightThumbAbduction: {fileID: 0}
   ThumbAngle1Center: {fileID: 2014701384}
   ThumbAngle2Center: {fileID: 1772311579}
   ThumbAngle3Center: {fileID: 218314563}
@@ -43711,6 +43717,7 @@ MonoBehaviour:
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
+  useKeyboardControl: 0
 --- !u!114 &1487720136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54940,6 +54947,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 2060227445}
+  modeSwitching: {fileID: 0}
+  triggerRightIndexTip: {fileID: 0}
+  triggerRightMiddleTip: {fileID: 0}
+  triggerRightThumbTip: {fileID: 0}
+  triggerRightThumbAbduction: {fileID: 0}
   ThumbAngle1Center: {fileID: 1091200612}
   ThumbAngle2Center: {fileID: 1676111424}
   ThumbAngle3Center: {fileID: 902642472}
@@ -55074,6 +55086,7 @@ MonoBehaviour:
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
+  useKeyboardControl: 0
 --- !u!114 &1776150497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60715,6 +60728,7 @@ MonoBehaviour:
   indexMiddleInIndexRange: 0
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
+  useKeyboardControl: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60728,6 +60742,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1422305614}
+  modeSwitching: {fileID: 951283614}
+  triggerRightIndexTip: {fileID: 1201296085}
+  triggerRightMiddleTip: {fileID: 1307753529}
+  triggerRightThumbTip: {fileID: 187972396}
+  triggerRightThumbAbduction: {fileID: 2050949041}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
