@@ -10522,10 +10522,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   r_wrist: {fileID: 183310080}
   isSending: 0
+  rotationMode: 0
   maxDeltaPosition: 0.03
   maxDeltaRotation: 10
   maxPositionFromOrigin: 0.5
   maxConsecutiveAnomalies: 3
+  showDebugValues: 0
+  debug_pos_x: 0
+  debug_pos_y: 0
+  debug_pos_z: 0
+  debug_euler_x: 0
+  debug_euler_y: 0
+  debug_euler_z: 0
+  debug_quat_x: 0
+  debug_quat_y: 0
+  debug_quat_z: 0
+  debug_quat_w: 0
+  debug_matrix_row0: {x: 0, y: 0, z: 0}
+  debug_matrix_row1: {x: 0, y: 0, z: 0}
+  debug_matrix_row2: {x: 0, y: 0, z: 0}
 --- !u!4 &188813410
 Transform:
   m_ObjectHideFlags: 0

@@ -4,15 +4,39 @@ using System.Text;
 using System;
 using System.Collections;
 
+public enum RotationType
+{
+    Euler,
+    Quaternion,
+    RotationMatrix
+}
+
 [System.Serializable]
 public class DataToSend
 {
     public float pos_x;
     public float pos_y;
     public float pos_z;
+
+    // rotation_type: "euler", "quaternion", "rotation_matrix"
+    public string rotation_type;
+
+    // Euler (degrees)
     public float rot_x;
     public float rot_y;
     public float rot_z;
+
+    // Quaternion
+    public float quat_x;
+    public float quat_y;
+    public float quat_z;
+    public float quat_w;
+
+    // Rotation Matrix (row-major 3x3)
+    public float r00, r01, r02;
+    public float r10, r11, r12;
+    public float r20, r21, r22;
+
     public bool new_session;
 }
 
@@ -27,6 +51,10 @@ public class TcpSender : MonoBehaviour
     string serverIP = "192.168.200.117"; // robot IP address
     int port = 5005;
 
+    [Header("=== Rotation Mode ===")]
+    [Tooltip("Choose which rotation representation to send")]
+    public RotationType rotationMode = RotationType.Euler;
+
     [Header("=== Safety Settings ===")]
     [Tooltip("Maximum allowed position change per frame (meters). If exceeded, the frame is discarded.")]
     public float maxDeltaPosition = 0.03f;
@@ -40,9 +68,28 @@ public class TcpSender : MonoBehaviour
     [Tooltip("Number of consecutive anomalies before auto-stopping")]
     public int maxConsecutiveAnomalies = 3;
 
+    [Header("=== Debug ===")]
+    public bool showDebugValues = false;
+
+    // Debug fields (drawn by Custom Editor)
+    [HideInInspector] public float debug_pos_x;
+    [HideInInspector] public float debug_pos_y;
+    [HideInInspector] public float debug_pos_z;
+    [HideInInspector] public float debug_euler_x;
+    [HideInInspector] public float debug_euler_y;
+    [HideInInspector] public float debug_euler_z;
+    [HideInInspector] public float debug_quat_x;
+    [HideInInspector] public float debug_quat_y;
+    [HideInInspector] public float debug_quat_z;
+    [HideInInspector] public float debug_quat_w;
+    [HideInInspector] public Vector3 debug_matrix_row0;
+    [HideInInspector] public Vector3 debug_matrix_row1;
+    [HideInInspector] public Vector3 debug_matrix_row2;
+
     private bool waseSendingLastFrame = false;
     private Vector3 originPosition;
     private Vector3 originRotation;
+    private Quaternion originQuaternion;
 
     // Safety tracking
     private Vector3 lastRawPosition;
@@ -52,13 +99,17 @@ public class TcpSender : MonoBehaviour
 
     void Start()
     {
+        ConnectToServer();
+        StartCoroutine(SendLoop());
+    }
+
+    void ConnectToServer()
+    {
         try
         {
             client = new TcpClient(serverIP, port);
             stream = client.GetStream();
             Debug.Log("Connected to server");
-
-            StartCoroutine(SendLoop());
         }
         catch (Exception e)
         {
@@ -77,6 +128,7 @@ public class TcpSender : MonoBehaviour
                 {
                     originPosition = r_wrist.transform.position;
                     originRotation = r_wrist.transform.eulerAngles;
+                    originQuaternion = r_wrist.transform.rotation;
                     lastRawPosition = r_wrist.transform.position;
                     lastRawRotation = r_wrist.transform.eulerAngles;
                     consecutiveAnomalyCount = 0;
@@ -135,11 +187,18 @@ public class TcpSender : MonoBehaviour
 
                 // Calculate offset from origin
                 Vector3 pos = currentRawPos - originPosition;
-                Vector3 rot = new Vector3(
+                Vector3 euler = new Vector3(
                     Mathf.DeltaAngle(originRotation.x, currentRawRot.x),
                     Mathf.DeltaAngle(originRotation.y, currentRawRot.y),
                     Mathf.DeltaAngle(originRotation.z, currentRawRot.z)
                 );
+
+                // Relative quaternion: from origin to current
+                Quaternion currentQuat = r_wrist.transform.rotation;
+                Quaternion relativeQuat = Quaternion.Inverse(originQuaternion) * currentQuat;
+
+                // Rotation matrix from relative quaternion
+                Matrix4x4 rotMatrix = Matrix4x4.Rotate(relativeQuat);
 
                 // --- Safety Check 2: Workspace boundary ---
                 if (pos.magnitude > maxPositionFromOrigin)
@@ -148,21 +207,69 @@ public class TcpSender : MonoBehaviour
                     pos = pos.normalized * maxPositionFromOrigin;
                 }
 
+                // Update debug variables
+                debug_pos_x = pos.x;
+                debug_pos_y = pos.y;
+                debug_pos_z = pos.z;
+                debug_euler_x = euler.x;
+                debug_euler_y = euler.y;
+                debug_euler_z = euler.z;
+                debug_quat_x = relativeQuat.x;
+                debug_quat_y = relativeQuat.y;
+                debug_quat_z = relativeQuat.z;
+                debug_quat_w = relativeQuat.w;
+                debug_matrix_row0 = new Vector3(rotMatrix.m00, rotMatrix.m01, rotMatrix.m02);
+                debug_matrix_row1 = new Vector3(rotMatrix.m10, rotMatrix.m11, rotMatrix.m12);
+                debug_matrix_row2 = new Vector3(rotMatrix.m20, rotMatrix.m21, rotMatrix.m22);
+
+                // Build data object
                 var dataObj = new DataToSend
                 {
                     pos_x = pos.x,
                     pos_y = pos.y,
                     pos_z = pos.z,
-                    rot_x = rot.x,
-                    rot_y = rot.y,
-                    rot_z = rot.z,
                     new_session = !waseSendingLastFrame
                 };
 
+                switch (rotationMode)
+                {
+                    case RotationType.Euler:
+                        dataObj.rotation_type = "euler";
+                        dataObj.rot_x = euler.x;
+                        dataObj.rot_y = euler.y;
+                        dataObj.rot_z = euler.z;
+                        break;
+
+                    case RotationType.Quaternion:
+                        dataObj.rotation_type = "quaternion";
+                        dataObj.quat_x = relativeQuat.x;
+                        dataObj.quat_y = relativeQuat.y;
+                        dataObj.quat_z = relativeQuat.z;
+                        dataObj.quat_w = relativeQuat.w;
+                        break;
+
+                    case RotationType.RotationMatrix:
+                        dataObj.rotation_type = "rotation_matrix";
+                        dataObj.r00 = rotMatrix.m00; dataObj.r01 = rotMatrix.m01; dataObj.r02 = rotMatrix.m02;
+                        dataObj.r10 = rotMatrix.m10; dataObj.r11 = rotMatrix.m11; dataObj.r12 = rotMatrix.m12;
+                        dataObj.r20 = rotMatrix.m20; dataObj.r21 = rotMatrix.m21; dataObj.r22 = rotMatrix.m22;
+                        break;
+                }
+
                 string json = JsonUtility.ToJson(dataObj) + "\n";
 
-                byte[] bytes = Encoding.UTF8.GetBytes(json);
-                stream.Write(bytes, 0, bytes.Length);
+                if (stream != null)
+                {
+                    try
+                    {
+                        byte[] bytes = Encoding.UTF8.GetBytes(json);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("Send error: " + e.Message);
+                    }
+                }
 
                 Debug.Log("Sent: " + json);
             }
