@@ -11213,7 +11213,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &282863896
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -36119,7 +36119,6 @@ MonoBehaviour:
   middleJoint4Renderer: {fileID: 564750034}
   twistRotationSpeed: 20
   isMapping: 1
-  tt: 0
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -36181,6 +36180,10 @@ MonoBehaviour:
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
   useKeyboardControl: 0
+  useFullExtensionClampRange: 0
+  innerExtensionUseMapping: 1
+  tipExtensionUseMapping: 0
+  tt: 0
 --- !u!114 &1033347338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43671,7 +43674,6 @@ MonoBehaviour:
   middleJoint4Renderer: {fileID: 591962168}
   twistRotationSpeed: 20
   isMapping: 1
-  tt: 0
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -43733,6 +43735,10 @@ MonoBehaviour:
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
   useKeyboardControl: 0
+  useFullExtensionClampRange: 0
+  innerExtensionUseMapping: 1
+  tipExtensionUseMapping: 0
+  tt: 0
 --- !u!114 &1487720136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55040,7 +55046,6 @@ MonoBehaviour:
   middleJoint4Renderer: {fileID: 197146937}
   twistRotationSpeed: 20
   isMapping: 1
-  tt: 0
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -55102,6 +55107,10 @@ MonoBehaviour:
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
   useKeyboardControl: 0
+  useFullExtensionClampRange: 0
+  innerExtensionUseMapping: 1
+  tipExtensionUseMapping: 0
+  tt: 0
 --- !u!114 &1776150497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60682,7 +60691,6 @@ MonoBehaviour:
   middleJoint4Renderer: {fileID: 7769744222350259651}
   twistRotationSpeed: 20
   isMapping: 1
-  tt: 0
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -60744,6 +60752,10 @@ MonoBehaviour:
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
   useKeyboardControl: 0
+  useFullExtensionClampRange: 0
+  innerExtensionUseMapping: 1
+  tipExtensionUseMapping: 1
+  tt: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:
   m_ObjectHideFlags: 0

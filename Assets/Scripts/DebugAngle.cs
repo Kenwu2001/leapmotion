@@ -61,7 +61,7 @@ public class DebugAngle : MonoBehaviour
                 // // "currentTouchedMotorID: " + SelectMotorCollider.currentTouchedMotorID.ToString() + "\n" +
                 // "GetLIndexToIndex2Distance: " + jointAngle.GetLIndexToIndex2Distance().ToString("F2") + "\n" +
                 // "Thumb0 angle" +  jointAngle.joints["Thumb0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                // "Thumb1 angle" + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
+                "Thumb1 angle" + jointAngle.joints["Thumb1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index1 angle" + jointAngle.joints["Index1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Index2 angle" + jointAngle.joints["Index2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Middle0 angle" +  jointAngle.joints["Middle0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +

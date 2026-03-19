@@ -83,7 +83,6 @@ public class ClawModuleController : MonoBehaviour
     private float rotationSpeed = 15f; // degrees per second
     public float twistRotationSpeed = 20f; // degrees per second (for twist operations)
     public bool isMapping = true;
-    public float tt = 0f;
 
     // ==============================
     // 🔹 Colors
@@ -294,6 +293,16 @@ public class ClawModuleController : MonoBehaviour
     [Header("=== Keyboard Control ===")]
     [Tooltip("ON: Enable WASD+QE keyboard control for motor offsets")]
     public bool useKeyboardControl = false;
+
+    [Header("=== Extension Clamp Range ===")]
+    [Tooltip("Off: clamp X extension/tip to (-80, 50). On: clamp to (-90, 90).")]
+    public bool useFullExtensionClampRange = false;
+    [Header("=== Extension Mapping Mode ===")]
+    [Tooltip("ON: inner-part extension (row 3) uses mapping formula")]
+    public bool innerExtensionUseMapping = true;
+    [Tooltip("ON: tip-part extension (row 4) uses mapping formula")]
+    public bool tipExtensionUseMapping = false;
+    public float tt = 0f;
 
     private int kbCurrentRow = 3;
     private int kbCurrentCol = 1;
@@ -545,6 +554,7 @@ public class ClawModuleController : MonoBehaviour
             3,  // Expected motor ID for thumb
             20.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
+            innerExtensionUseMapping,
             paxiniValue.isThumbTouchSnapped
         );
 
@@ -569,6 +579,7 @@ public class ClawModuleController : MonoBehaviour
             4,  // Expected motor ID for thumb
             20.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
+            tipExtensionUseMapping,
             paxiniValue.isThumbTouchSnapped
         );
 
@@ -644,6 +655,7 @@ public class ClawModuleController : MonoBehaviour
             7,
             15.0f,
             null,
+            innerExtensionUseMapping,
             paxiniValue.isIndexTouchSnapped
         );
 
@@ -668,6 +680,7 @@ public class ClawModuleController : MonoBehaviour
             8,
             15.0f,
             null,
+            tipExtensionUseMapping,
             paxiniValue.isIndexTouchSnapped
         );
 
@@ -737,6 +750,7 @@ public class ClawModuleController : MonoBehaviour
             11,
             15.0f,
             null,
+            innerExtensionUseMapping,
             paxiniValue.isMiddleTouchSnapped
         );
 
@@ -761,6 +775,7 @@ public class ClawModuleController : MonoBehaviour
             12,
             15.0f,
             null,
+            tipExtensionUseMapping,
             paxiniValue.isMiddleTouchSnapped
         );
         #endregion
@@ -2623,6 +2638,9 @@ public class ClawModuleController : MonoBehaviour
         }
     }
 
+    private float ExtensionClampMin => useFullExtensionClampRange ? -90f : -80f;
+    private float ExtensionClampMax => useFullExtensionClampRange ? 90f : 50f;
+
     // private void UpdateInnerExtension(
     //     bool isInnerExtensionTouched,
     //     bool isTipTouched,
@@ -2819,6 +2837,7 @@ public class ClawModuleController : MonoBehaviour
         int expectedMotorID = -3,
         float angleThreshold = 15.0f,
         float? additionalAngle = null,
+        bool useMappingForThisExtension = true,
         bool paxiniTouchSnapped = false)
     {
         // Initialize rotation based on jointAngleValue for the base angle
@@ -3051,7 +3070,7 @@ public class ClawModuleController : MonoBehaviour
                 // Debug.Log("Rotating POSITIVE (closer to min)");
             }
 
-            currentTipRotation = Mathf.Clamp(currentTipRotation, -80f, 50f); // negative: face body, positive: away from body
+            currentTipRotation = Mathf.Clamp(currentTipRotation, ExtensionClampMin, ExtensionClampMax); // negative: face body, positive: away from body
             // jointRenderer.material.color = activeColor;
             relatedMotorTriggered = true;
         }
@@ -3061,14 +3080,14 @@ public class ClawModuleController : MonoBehaviour
             // Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
-        if (isMapping)
+        if (useMappingForThisExtension)
         {
-            float finalAngle = Mathf.Clamp(2.0f * jointAngleValue + currentTipRotation, -80f, 50f);
+            float finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation, ExtensionClampMin, ExtensionClampMax);
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
         else
         {
-            float finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation, -80f, 50f);
+            float finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation, ExtensionClampMin, ExtensionClampMax);
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
 
@@ -3439,15 +3458,15 @@ public class ClawModuleController : MonoBehaviour
                 {
                     case 0:
                         currentThumbInnerExtensionRotationZ += delta;
-                        currentThumbInnerExtensionRotationZ = Mathf.Clamp(currentThumbInnerExtensionRotationZ, -80f, 50f);
+                        currentThumbInnerExtensionRotationZ = Mathf.Clamp(currentThumbInnerExtensionRotationZ, ExtensionClampMin, ExtensionClampMax);
                         break;
                     case 1:
                         currentIndexInnerExtensionRotationZ += delta;
-                        currentIndexInnerExtensionRotationZ = Mathf.Clamp(currentIndexInnerExtensionRotationZ, -80f, 50f);
+                        currentIndexInnerExtensionRotationZ = Mathf.Clamp(currentIndexInnerExtensionRotationZ, ExtensionClampMin, ExtensionClampMax);
                         break;
                     case 2:
                         currentMiddleInnerExtensionRotationZ += delta;
-                        currentMiddleInnerExtensionRotationZ = Mathf.Clamp(currentMiddleInnerExtensionRotationZ, -80f, 50f);
+                        currentMiddleInnerExtensionRotationZ = Mathf.Clamp(currentMiddleInnerExtensionRotationZ, ExtensionClampMin, ExtensionClampMax);
                         break;
                 }
                 break;
@@ -3457,15 +3476,15 @@ public class ClawModuleController : MonoBehaviour
                 {
                     case 0:
                         currentThumbTipRotationZ += delta;
-                        currentThumbTipRotationZ = Mathf.Clamp(currentThumbTipRotationZ, -80f, 50f);
+                        currentThumbTipRotationZ = Mathf.Clamp(currentThumbTipRotationZ, ExtensionClampMin, ExtensionClampMax);
                         break;
                     case 1:
                         currentIndexTipRotationZ += delta;
-                        currentIndexTipRotationZ = Mathf.Clamp(currentIndexTipRotationZ, -80f, 50f);
+                        currentIndexTipRotationZ = Mathf.Clamp(currentIndexTipRotationZ, ExtensionClampMin, ExtensionClampMax);
                         break;
                     case 2:
                         currentMiddleTipRotationZ += delta;
-                        currentMiddleTipRotationZ = Mathf.Clamp(currentMiddleTipRotationZ, -80f, 50f);
+                        currentMiddleTipRotationZ = Mathf.Clamp(currentMiddleTipRotationZ, ExtensionClampMin, ExtensionClampMax);
                         break;
                 }
                 break;
