@@ -302,6 +302,9 @@ public class ClawModuleController : MonoBehaviour
     public bool innerExtensionUseMapping = true;
     [Tooltip("ON: tip-part extension (row 4) uses mapping formula")]
     public bool tipExtensionUseMapping = false;
+    [Header("=== Extension Offset ===")]
+    [Tooltip("Positive value pushes extension joints further inward on X axis.")]
+    public float extensionInwardOffsetDeg = 20f;
     public float tt = 0f;
 
     private int kbCurrentRow = 3;
@@ -552,7 +555,7 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.modeManipulate,
             modeSwitching.confirmedMotorID,
             3,  // Expected motor ID for thumb
-            20.0f,  // Thumb requires 20 degree change
+            5.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
             innerExtensionUseMapping,
             paxiniValue.isThumbTouchSnapped
@@ -577,7 +580,7 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.modeManipulate,
             modeSwitching.confirmedMotorID,
             4,  // Expected motor ID for thumb
-            20.0f,  // Thumb requires 20 degree change
+            5.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
             tipExtensionUseMapping,
             paxiniValue.isThumbTouchSnapped
@@ -653,7 +656,7 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.modeManipulate,
             modeSwitching.confirmedMotorID,
             7,
-            15.0f,
+            5.0f,
             null,
             innerExtensionUseMapping,
             paxiniValue.isIndexTouchSnapped
@@ -678,7 +681,7 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.modeManipulate,
             modeSwitching.confirmedMotorID,
             8,
-            15.0f,
+            5.0f,
             null,
             tipExtensionUseMapping,
             paxiniValue.isIndexTouchSnapped
@@ -748,7 +751,7 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.modeManipulate,
             modeSwitching.confirmedMotorID,
             11,
-            15.0f,
+            5.0f,
             null,
             innerExtensionUseMapping,
             paxiniValue.isMiddleTouchSnapped
@@ -773,7 +776,7 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.modeManipulate,
             modeSwitching.confirmedMotorID,
             12,
-            15.0f,
+            5.0f,
             null,
             tipExtensionUseMapping,
             paxiniValue.isMiddleTouchSnapped
@@ -1068,7 +1071,7 @@ public class ClawModuleController : MonoBehaviour
             // thumbJoint1Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"] / 0.7f, 1f));
             isThumb1Triggered = true;
 
-            if (fingerTipTouchDurations["ThumbAbduction"] > 0.7f)
+            if (fingerTipTouchDurations["ThumbAbduction"] > 0.2f)
             {
                 currentThumbRotationY -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
                 currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 60f);
@@ -1432,11 +1435,11 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["IndexAbductionZ"] += Time.deltaTime;
             isIndex2Triggered = true;
 
-            // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["IndexAbductionZ"] > 1.0f)
+            // Only apply rotation after 0.2 second
+            if (fingerTipTouchDurations["IndexAbductionZ"] > 0.2f)
             {
-                // Initialize tracking on first frame after 1 second
-                if (fingerTipTouchDurations["IndexAbductionZ"] <= 1.0f + Time.deltaTime)
+                // Initialize tracking on first frame after 0.2 second
+                if (fingerTipTouchDurations["IndexAbductionZ"] <= 0.2f + Time.deltaTime)
                 {
                     indexAngleHistory.Clear();
                     isIndexRotatingNegative = true;
@@ -1824,11 +1827,11 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["MiddleAbductionZ"] += Time.deltaTime;
             isMiddle2Triggered = true;
 
-            // Only apply rotation after 1 second
-            if (fingerTipTouchDurations["MiddleAbductionZ"] > 1.0f)
+            // Only apply rotation after 0.2 second
+            if (fingerTipTouchDurations["MiddleAbductionZ"] > 0.2f)
             {
-                // Initialize tracking on first frame after 1 second
-                if (fingerTipTouchDurations["MiddleAbductionZ"] <= 1.0f + Time.deltaTime)
+                // Initialize tracking on first frame after 0.2 second
+                if (fingerTipTouchDurations["MiddleAbductionZ"] <= 0.2f + Time.deltaTime)
                 {
                     middleAngleHistory.Clear();
                     isMiddleRotatingPositive = true;
@@ -2048,10 +2051,10 @@ public class ClawModuleController : MonoBehaviour
             isThumb2Triggered = true;
 
             // Only apply rotation after 0.3 seconds
-            if (fingerTipTouchDurations["ThumbTwist"] > 0.3f)
+            if (fingerTipTouchDurations["ThumbTwist"] > 0.2f)
             {
-                // Initialize tracking on first frame after 0.3 seconds
-                if (fingerTipTouchDurations["ThumbTwist"] <= 0.3f + Time.deltaTime)
+                // Initialize tracking on first frame after 0.2 seconds
+                if (fingerTipTouchDurations["ThumbTwist"] <= 0.2f + Time.deltaTime)
                 {
                     thumbAngleHistory.Clear();
                     isThumbRotatingNegative = true;
@@ -2335,7 +2338,7 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["IndexTwistY"] += Time.deltaTime;
             isIndex1Triggered = true;
 
-            if (fingerTipTouchDurations["IndexTwistY"] > 0.3f)
+            if (fingerTipTouchDurations["IndexTwistY"] > 0.2f)
             {
                 if (currentIndexRotationY >= -60f && currentIndexRotationY <= 0 && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
                 {
@@ -2550,7 +2553,7 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["MiddleTwistY"] += Time.deltaTime;
             isMiddle1Triggered = true;
 
-            if (fingerTipTouchDurations["MiddleTwistY"] > 0.7f)
+            if (fingerTipTouchDurations["MiddleTwistY"] > 0.2f)
             {
                 if (currentMiddleRotationY <= 60f && currentMiddleRotationY >= 0)
                 {
@@ -3082,12 +3085,12 @@ public class ClawModuleController : MonoBehaviour
 
         if (useMappingForThisExtension)
         {
-            float finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation, ExtensionClampMin, ExtensionClampMax);
+            float finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
         else
         {
-            float finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation, ExtensionClampMin, ExtensionClampMax);
+            float finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
 

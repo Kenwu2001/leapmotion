@@ -498,14 +498,14 @@ public class ModeSwitching : MonoBehaviour
                         
                         // Capture frozen line for the new finger
                         SelectMotorCollider.CaptureFrozenLine(motorID);
-                        
-                        // Return to phase 2 (selecting motors of that finger)
-                        currentPhase = SelectionPhase.SelectingMotor;
+
+                        // New fingertip is already confirmed, allow immediate manipulation.
+                        currentPhase = SelectionPhase.MotorConfirmed;
                         
                         // Update gray display
                         UpdateGrayColors();
                         
-                        Debug.Log($"[ModeSwitching] Switched to new fingertip motor {motorID}!");
+                        Debug.Log($"[ModeSwitching] Switched to new fingertip motor {motorID}. Ready for manipulation.");
                     }
                     else
                     {

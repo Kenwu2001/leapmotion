@@ -36183,6 +36183,7 @@ MonoBehaviour:
   useFullExtensionClampRange: 0
   innerExtensionUseMapping: 1
   tipExtensionUseMapping: 0
+  extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &1033347338
 MonoBehaviour:
@@ -43738,6 +43739,7 @@ MonoBehaviour:
   useFullExtensionClampRange: 0
   innerExtensionUseMapping: 1
   tipExtensionUseMapping: 0
+  extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &1487720136
 MonoBehaviour:
@@ -55110,6 +55112,7 @@ MonoBehaviour:
   useFullExtensionClampRange: 0
   innerExtensionUseMapping: 1
   tipExtensionUseMapping: 0
+  extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &1776150497
 MonoBehaviour:
@@ -60755,6 +60758,7 @@ MonoBehaviour:
   useFullExtensionClampRange: 0
   innerExtensionUseMapping: 1
   tipExtensionUseMapping: 1
+  extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:
