@@ -30,7 +30,7 @@ public class ModeSwitching : MonoBehaviour
     
     [Header("Selection Timing")]
     [Tooltip("How many seconds to confirm selection (turn dark red)")]
-    public float confirmationTime = 0.5f; // Confirm after exceeding this time
+    public float confirmationTime = 0.25f; // Confirm after exceeding this time
     
     public bool modeSelect = true;
     public bool motorSelected = false;

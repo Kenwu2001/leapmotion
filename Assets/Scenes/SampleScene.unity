@@ -11638,6 +11638,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -12731,6 +12732,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -13944,6 +13946,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -24722,6 +24725,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -25436,9 +25440,9 @@ MonoBehaviour:
   - {fileID: 193597867}
   targetTag: L_IndexTipSmall
   switchCooldown: 0
-  showDebugSpheres: 1
+  showDebugSpheres: 0
   debugToggleKey: 100
-  showDebugLines: 1
+  showDebugLines: 0
   debugLineToggleKey: 108
   fingerRendererManager: {fileID: 370831957}
   useThumbProjection: 0
@@ -35221,6 +35225,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -35270,7 +35275,7 @@ MonoBehaviour:
   baseRenderer: {fileID: 6337283073714088674}
   lightRedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
   darkRedColor: {r: 1, g: 0, b: 0, a: 1}
-  confirmationTime: 0.5
+  confirmationTime: 0.25
   modeSelect: 1
   motorSelected: 0
   modeManipulate: 0
@@ -36233,6 +36238,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -39621,6 +39627,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -44055,6 +44062,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -57663,6 +57671,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  showDebugVisuals: 0
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -60755,7 +60764,7 @@ MonoBehaviour:
   indexMiddleInMiddleRange: 0
   isActivelyManipulating: 0
   useKeyboardControl: 0
-  useFullExtensionClampRange: 0
+  useFullExtensionClampRange: 1
   innerExtensionUseMapping: 1
   tipExtensionUseMapping: 1
   extensionInwardOffsetDeg: 20

@@ -40,6 +40,9 @@ public class JointAngle : MonoBehaviour
     public Vector3 projectedIndexTip;
     public Vector3 projectedThumbTip;
 
+    [Header("Debug Visuals")]
+    public bool showDebugVisuals = false; // Set to false to hide the red line and green plane
+
     private LineRenderer lineRenderer;
     private GameObject debugPlane;
 
@@ -355,7 +358,7 @@ public class JointAngle : MonoBehaviour
                     lineRenderer.SetPosition(1, thumbTipPos);
                 }
 
-                lineRenderer.enabled = true;
+                lineRenderer.enabled = showDebugVisuals; // Replaced lineRenderer.enabled = true;
 
                 if (hasPreviousFrame && isClockWise != 0)
                 {

@@ -210,7 +210,7 @@ public class ClawModuleController : MonoBehaviour
 
     // Sliding window detection for thumbPalmAngle changes
     private Queue<(float time, float angle)> thumbAngleHistory = new Queue<(float, float)>();
-    private const float DETECTION_WINDOW = 0.5f;
+    private const float DETECTION_WINDOW = 0.2f;
     private const float DIRECTION_THRESHOLD = 5f;
 
     // Sliding window detection for indexMiddleAngleOnPalm changes
@@ -3080,12 +3080,21 @@ public class ClawModuleController : MonoBehaviour
         else
         {
             relatedMotorTriggered = false;
-            // Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            // Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");   90 -30
         }
 
         if (useMappingForThisExtension)
         {
-            float finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            // Only apply the 2.5x multiplier if the joint name indicates it is a thumb joint
+            float finalAngle;
+            if (jointName.Contains("Thumb"))
+            {
+                finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            }
+            else
+            {
+                finalAngle = Mathf.Clamp(2.0f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            }
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
         else
