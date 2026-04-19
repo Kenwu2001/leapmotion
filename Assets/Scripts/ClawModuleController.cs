@@ -1051,7 +1051,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region ThumbAbdV2
+    #region @ThumbAbdV2
     void UpdateThumbAbductionV2()
     {
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
@@ -1123,7 +1123,7 @@ public class ClawModuleController : MonoBehaviour
         thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
         thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
 
-        // Unified rotation logic: handle snapping, locking, and normal rotation
+        //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
             // Touch snapping is active - lock the current rotation
@@ -1394,7 +1394,7 @@ public class ClawModuleController : MonoBehaviour
                 if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
                 {
                     Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 330f; //FIXME: adjust snap angle if needed
+                    snapEuler.y = 330f; // adjust snap angle if needed
                     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 }
                 // else if (modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange)
@@ -1414,7 +1414,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region IndexAbdByZ
+    #region @IndexAbdByZ
     /// <summary>
     /// Controls Index finger Z-axis abduction (swapped from Y-axis), motorID == 6
     /// </summary>
@@ -1520,6 +1520,7 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
+        //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
             if (!_indexMotor2Locked && IndexAngle2Center != null)
@@ -1806,7 +1807,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region MiddleAbdByZ
+    #region @MiddleAbdByZ
     /// <summary>
     /// Controls Middle finger Z-axis abduction (swapped from Y-axis), motorID == 10
     /// </summary>
@@ -1913,6 +1914,7 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
+        //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
             if (!_middleMotor2Locked && MiddleAngle2Center != null)
@@ -1939,7 +1941,6 @@ public class ClawModuleController : MonoBehaviour
     // 🔹 Twist
     // ==============================
 
-    //FIXME: don't limit the twist direction
     #region ThumbTwist
     private void UpdateThumbFingerTwist()
     {
@@ -2032,7 +2033,7 @@ public class ClawModuleController : MonoBehaviour
     #endregion
 
 
-    #region ThumbTwistV2
+    #region @ThumbTwistV2
     void UpdateThumbFingerTwistV2()
     {
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
@@ -2159,6 +2160,8 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
+        
+        //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
             if (!_thumbMotor2Locked && ThumbAngle2Center != null)
@@ -2317,7 +2320,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region IndexTwistByY
+    #region @IndexTwistByY
     /// <summary>
     /// Controls Index finger Y-axis twist (swapped from Z-axis), motorID == 5
     /// </summary>
@@ -2376,6 +2379,7 @@ public class ClawModuleController : MonoBehaviour
         indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 295f, 335f);
         thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
+        //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
             if (!_indexMotor1Locked && IndexAngle1Center != null)
@@ -2396,7 +2400,7 @@ public class ClawModuleController : MonoBehaviour
                 if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
                 {
                     Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 330f; //FIXME: adjust snap angle if needed
+                    snapEuler.y = 330f; // adjust snap angle if needed
                     IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 }
                 else
@@ -2532,7 +2536,7 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region MiddleTwistByY
+    #region @MiddleTwistByY
     /// <summary>
     /// Controls Middle finger Y-axis twist (swapped from Z-axis), motorID == 9
     /// </summary>
@@ -2591,6 +2595,7 @@ public class ClawModuleController : MonoBehaviour
         indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
         thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
 
+        //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
             if (!_middleMotor1Locked && MiddleAngle1Center != null)
@@ -2611,7 +2616,7 @@ public class ClawModuleController : MonoBehaviour
                 if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
                 {
                     Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 30f; //FIXME: adjust snap angle if needed
+                    snapEuler.y = 30f; // adjust snap angle if needed
                     MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
                 }
                 else
@@ -2818,7 +2823,7 @@ public class ClawModuleController : MonoBehaviour
     //         jointTransform.localRotation = targetRotation;
     // }
 
-    #region ExtensionV2
+    #region @ExtensionV2
     private void UpdateFingertipExtensionV2(
         bool isTipTouched,
         float jointAngleValue,
@@ -3110,7 +3115,7 @@ public class ClawModuleController : MonoBehaviour
         // Debug.Log("jointAngleValue is: " + jointAngleValue + " + currentTipRotation is : " + currentTipRotation);
         // Debug.Log("jointAngleValue + currentTipRotation is: " + (jointAngleValue + currentTipRotation));
 
-        // Apply motor locking logic
+        //FIXME: Apply motor locking logic for extension
         if (modeSwitching.modeSelect && paxiniTouchSnapped)
         {
             if (!motorLocked && jointTransform != null)
