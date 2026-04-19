@@ -3091,9 +3091,13 @@ public class ClawModuleController : MonoBehaviour
             {
                 finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
             }
-            else
+            else if (jointName.Contains("Index"))
             {
                 finalAngle = Mathf.Clamp(2.0f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            }
+            else
+            {
+                finalAngle = Mathf.Clamp(1.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
             }
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }

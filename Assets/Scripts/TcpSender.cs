@@ -121,6 +121,11 @@ public class TcpSender : MonoBehaviour
     {
         while (true)
         {
+            if (isSending != waseSendingLastFrame)
+            {
+                Debug.Log("isSending 狀態改變!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@: " + isSending);
+            }
+
             if (isSending && r_wrist != null)
             {
                 // Turn on toggle, record the current position and rotation as origin
@@ -271,7 +276,7 @@ public class TcpSender : MonoBehaviour
                     }
                 }
 
-                Debug.Log("Sent: " + json);
+                // Debug.Log("Sent: " + json);
             }
 
             waseSendingLastFrame = isSending;

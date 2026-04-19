@@ -7,6 +7,15 @@ public class TriggerRightWrist : MonoBehaviour
     public TcpSender tcpSender;
     public string leftPinkyName = "L_PinkyTip";
     public bool isRightWristTouched = false;
+    public GameObject indicatorQuad; // The quad to show/hide
+
+    private void Start()
+    {
+        if (indicatorQuad != null)
+        {
+            indicatorQuad.SetActive(false); // Hide at start
+        }
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -16,6 +25,11 @@ public class TriggerRightWrist : MonoBehaviour
             if (tcpSender != null)
             {
                 tcpSender.isSending = !tcpSender.isSending;
+                
+                if (indicatorQuad != null)
+                {
+                    indicatorQuad.SetActive(tcpSender.isSending);
+                }
             }
         }
     }
