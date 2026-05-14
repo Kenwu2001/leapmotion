@@ -1828,7 +1828,7 @@ public class ClawModuleController : MonoBehaviour
             float finalAngle;
             if (jointName.Contains("Thumb"))
             {
-                finalAngle = Mathf.Clamp(2.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+                finalAngle = Mathf.Clamp(2.1f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
             }
             else if (jointName.Contains("Index"))
             {
