@@ -27,3 +27,7 @@ Uing this script to enable debugging lines.
 
 Using this script to enable retargeting.
 ![alt text](image-1.png)
+
+#### Clockwise/counterclockwise red line
+
+![alt text](image-2.png)
