@@ -15,3 +15,15 @@ You have to buy a Leapmotion2 so as to implement the project.
 - Creating a 3D Unity scene first.
 - Seting up with Leapmotion2
     - (How to setup Leapmotion2)[https://docs.ultraleap.com/xr-and-tabletop/xr/unity/getting-started/index.html]
+
+### Feature
+
+#### SelectMotorCollider
+
+Uing this script to enable debugging lines.
+![alt text](image.png)
+
+#### Retargeting
+
+Using this script to enable retargeting.
+![alt text](image-1.png)
