@@ -201,6 +201,11 @@ public class ClawModuleController : MonoBehaviour
 
     public bool isFingerTipTriggered = false;
     public float totalAngleChange = 0f;
+    public float jointAngleValueDebug = 0f;
+    public float currentTipRotationDebug = 0f;
+    public float mappedJointAngleValueDebug = 0f;
+    public float finalAngleDebug = 0f;
+    public Vector3 targetRotationEulerDebug = Vector3.zero;
 
     // Track thumbPalmAngle changes for direction switching
     private float previousThumbPalmAngle = 0f;
@@ -272,7 +277,7 @@ public class ClawModuleController : MonoBehaviour
     // Track if we are actively manipulating (fingertip touched and green)
     public bool isActivelyManipulating = false;
     private bool _manipulationFreezeInitialized = false;
-    
+
     // Locked rotations for ALL motors during manipulation
     private Quaternion _freezeThumbMotor1Rot;
     private Quaternion _freezeThumbMotor2Rot;
@@ -444,17 +449,17 @@ public class ClawModuleController : MonoBehaviour
         bool anyFingertipTouched = triggerRightThumbTip.isRightThumbTipTouched ||
                                    triggerRightIndexTip.isRightIndexTipTouched ||
                                    triggerRightMiddleTip.isRightMiddleTipTouched;
-        
+
         // Check if manipulation is active (in modeManipulate + fingertip touched)
         // This matches the "green" condition: fingertip turns green when touched in modeManipulate
         bool wasActivelyManipulating = isActivelyManipulating;
         isActivelyManipulating = modeSwitching.modeManipulate && anyFingertipTouched;
-        
+
         // Initialize freeze rotations when manipulation starts
         if (isActivelyManipulating && !_manipulationFreezeInitialized)
         {
             _manipulationFreezeInitialized = true;
-            
+
             // Store current rotations of all motors
             if (ThumbAngle1Center != null) _freezeThumbMotor1Rot = ThumbAngle1Center.localRotation;
             if (ThumbAngle2Center != null) _freezeThumbMotor2Rot = ThumbAngle2Center.localRotation;
@@ -469,7 +474,7 @@ public class ClawModuleController : MonoBehaviour
             if (MiddleAngle3Center != null) _freezeMiddleMotor3Rot = MiddleAngle3Center.localRotation;
             if (MiddleAngle4Center != null) _freezeMiddleMotor4Rot = MiddleAngle4Center.localRotation;
         }
-        
+
         // Reset freeze state when manipulation ends
         if (!isActivelyManipulating)
         {
@@ -677,12 +682,12 @@ public class ClawModuleController : MonoBehaviour
         if (isActivelyManipulating && _manipulationFreezeInitialized)
         {
             int targetMotorID = modeSwitching.confirmedMotorID;
-            
+
             // Freeze all motors except the one being controlled
             // Motor IDs: 1=Thumb1, 2=Thumb2, 3=Thumb3, 4=Thumb4
             //            5=Index1, 6=Index2, 7=Index3, 8=Index4
             //            9=Middle1, 10=Middle2, 11=Middle3, 12=Middle4
-            
+
             if (targetMotorID != 1 && ThumbAngle1Center != null)
                 ThumbAngle1Center.localRotation = _freezeThumbMotor1Rot;
             if (targetMotorID != 2 && ThumbAngle2Center != null)
@@ -691,7 +696,7 @@ public class ClawModuleController : MonoBehaviour
                 ThumbAngle3Center.localRotation = _freezeThumbMotor3Rot;
             if (targetMotorID != 4 && ThumbAngle4Center != null)
                 ThumbAngle4Center.localRotation = _freezeThumbMotor4Rot;
-            
+
             if (targetMotorID != 5 && IndexAngle1Center != null)
                 IndexAngle1Center.localRotation = _freezeIndexMotor1Rot;
             if (targetMotorID != 6 && IndexAngle2Center != null)
@@ -700,7 +705,7 @@ public class ClawModuleController : MonoBehaviour
                 IndexAngle3Center.localRotation = _freezeIndexMotor3Rot;
             if (targetMotorID != 8 && IndexAngle4Center != null)
                 IndexAngle4Center.localRotation = _freezeIndexMotor4Rot;
-            
+
             if (targetMotorID != 9 && MiddleAngle1Center != null)
                 MiddleAngle1Center.localRotation = _freezeMiddleMotor1Rot;
             if (targetMotorID != 10 && MiddleAngle2Center != null)
@@ -1215,7 +1220,7 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        
+
         //FIXME: snapping
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
@@ -1467,7 +1472,7 @@ public class ClawModuleController : MonoBehaviour
         int expectedMotorID = -3,
         float angleThreshold = 15.0f,
         float? additionalAngle = null,
-        bool useMappingForThisExtension = true,
+        bool useFullRangeMappingForThisExtension = true,
         bool paxiniTouchSnapped = false)
     {
         // Initialize rotation based on jointAngleValue for the base angle
@@ -1710,30 +1715,79 @@ public class ClawModuleController : MonoBehaviour
             // Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");   90 -30
         }
 
-        if (useMappingForThisExtension)
+        float mappedJointAngleValue = 0f;
+        float finalAngle;
+
+        if (useFullRangeMappingForThisExtension)
         {
-            // Only apply the 2.5x multiplier if the joint name indicates it is a thumb joint
-            float finalAngle;
+            // float finalAngle;
+            // if (jointName.Contains("Thumb"))
+            // {
+            //     finalAngle = Mathf.Clamp(2.1f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            // }
+            // else if (jointName.Contains("Index"))
+            // {
+            //     finalAngle = Mathf.Clamp(2.0f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            // }
+            // else
+            // {
+            //     finalAngle = Mathf.Clamp(1.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            // }
+            finalAngle = 0f;
+
             if (jointName.Contains("Thumb"))
             {
-                finalAngle = Mathf.Clamp(2.1f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+                if(expectedMotorID == 3)
+                {
+                    mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+                else if(expectedMotorID == 4)
+                {
+                    mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
             }
             else if (jointName.Contains("Index"))
             {
-                finalAngle = Mathf.Clamp(2.0f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+                if(expectedMotorID == 7)
+                {
+                    mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 55));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+                else if(expectedMotorID == 8)
+                {
+                    mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 30));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
             }
             else
             {
-                finalAngle = Mathf.Clamp(1.5f * jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+                if(expectedMotorID == 11)
+                {
+                    mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 60));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+                else if(expectedMotorID == 12)
+                {
+                    mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
             }
+
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
         else
         {
-            float finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
 
+        jointAngleValueDebug = jointAngleValue;
+        currentTipRotationDebug = currentTipRotation;
+        mappedJointAngleValueDebug = mappedJointAngleValue;
+        finalAngleDebug = finalAngle;
+        targetRotationEulerDebug = targetRotation.eulerAngles;
         // Debug.Log("jointAngleValue is: " + jointAngleValue + " + currentTipRotation is : " + currentTipRotation);
         // Debug.Log("jointAngleValue + currentTipRotation is: " + (jointAngleValue + currentTipRotation));
 
@@ -1758,6 +1812,17 @@ public class ClawModuleController : MonoBehaviour
         }
     }
     #endregion
+
+    public static float Remap(
+    float inMin,
+    float inMax,
+    float outMin,
+    float outMax,
+    float value)
+    {
+        float t = Mathf.InverseLerp(inMin, inMax, value);
+        return Mathf.Lerp(outMin, outMax, t);
+    }
 
     #region ResetFunction
     // ==============================

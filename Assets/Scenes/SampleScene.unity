@@ -11245,7 +11245,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &282863896
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -36336,7 +36336,7 @@ MonoBehaviour:
   middleJoint3Renderer: {fileID: 0}
   middleJoint4Renderer: {fileID: 564750034}
   twistRotationSpeed: 20
-  isMapping: 1
+  isFullRangeMapping: 1
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -36399,8 +36399,8 @@ MonoBehaviour:
   isActivelyManipulating: 0
   useKeyboardControl: 0
   useFullExtensionClampRange: 0
-  innerExtensionUseMapping: 1
-  tipExtensionUseMapping: 0
+  innerExtensionFullRangeMapping: 1
+  tipExtensionFullRangeMapping: 0
   extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &1033347338
@@ -43948,7 +43948,7 @@ MonoBehaviour:
   middleJoint3Renderer: {fileID: 858237930}
   middleJoint4Renderer: {fileID: 591962168}
   twistRotationSpeed: 20
-  isMapping: 1
+  isFullRangeMapping: 1
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -44011,8 +44011,8 @@ MonoBehaviour:
   isActivelyManipulating: 0
   useKeyboardControl: 0
   useFullExtensionClampRange: 0
-  innerExtensionUseMapping: 1
-  tipExtensionUseMapping: 0
+  innerExtensionFullRangeMapping: 1
+  tipExtensionFullRangeMapping: 0
   extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &1487720136
@@ -55359,7 +55359,7 @@ MonoBehaviour:
   middleJoint3Renderer: {fileID: 1223705070}
   middleJoint4Renderer: {fileID: 197146937}
   twistRotationSpeed: 20
-  isMapping: 1
+  isFullRangeMapping: 1
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -55422,8 +55422,8 @@ MonoBehaviour:
   isActivelyManipulating: 0
   useKeyboardControl: 0
   useFullExtensionClampRange: 0
-  innerExtensionUseMapping: 1
-  tipExtensionUseMapping: 0
+  innerExtensionFullRangeMapping: 1
+  tipExtensionFullRangeMapping: 0
   extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &1776150497
@@ -59903,7 +59903,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tcpSender: {fileID: 188813409}
-  leftPinkyName: L_PinkyTip
+  leftIndexTipName: L_IndexTip
   isRightWristTouched: 0
   indicatorQuad: {fileID: 668308670}
 --- !u!4 &2468996038922426834 stripped
@@ -61062,7 +61062,7 @@ MonoBehaviour:
   middleJoint3Renderer: {fileID: 3100906007860502076}
   middleJoint4Renderer: {fileID: 7769744222350259651}
   twistRotationSpeed: 20
-  isMapping: 1
+  isFullRangeMapping: 1
   redColor: {r: 1, g: 0, b: 0, a: 1}
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
@@ -61125,8 +61125,8 @@ MonoBehaviour:
   isActivelyManipulating: 0
   useKeyboardControl: 0
   useFullExtensionClampRange: 1
-  innerExtensionUseMapping: 1
-  tipExtensionUseMapping: 1
+  innerExtensionFullRangeMapping: 1
+  tipExtensionFullRangeMapping: 1
   extensionInwardOffsetDeg: 20
   tt: 0
 --- !u!114 &4551987535763487161
