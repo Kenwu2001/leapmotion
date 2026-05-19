@@ -5,7 +5,8 @@ using UnityEngine;
 public class TriggerRightWrist : MonoBehaviour
 {
     public TcpSender tcpSender;
-    public string leftPinkyName = "L_PinkyTip";
+    // public string leftPinkyName = "L_PinkyTip";
+    public string leftIndexTipName = "L_IndexTip";
     public bool isRightWristTouched = false;
     public GameObject indicatorQuad; // The quad to show/hide
 
@@ -19,7 +20,7 @@ public class TriggerRightWrist : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag(leftPinkyName))
+        if (other.CompareTag(leftIndexTipName))
         {
             isRightWristTouched = true;
             if (tcpSender != null)
@@ -36,7 +37,7 @@ public class TriggerRightWrist : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag(leftPinkyName))
+        if (other.CompareTag(leftIndexTipName))
         {
             isRightWristTouched = false;
         }
