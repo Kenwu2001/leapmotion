@@ -179,7 +179,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
 
     void StopMotors()
     {
-        originalMappingState = clawController.isMapping;
+        originalMappingState = clawController.isFullRangeMapping;
 
         storedThumbRotationY = clawController.currentThumbRotationY;
         storedThumbRotationZ = clawController.currentThumbRotationZ;
@@ -188,12 +188,12 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         storedMiddleRotationY = clawController.currentMiddleRotationY;
         storedMiddleRotationZ = clawController.currentMiddleRotationZ;
 
-        clawController.isMapping = false;
+        clawController.isFullRangeMapping = false;
     }
 
     void KeepMotorsStopped()
     {
-        clawController.isMapping = false;
+        clawController.isFullRangeMapping = false;
         clawController.currentThumbRotationY = storedThumbRotationY;
         clawController.currentThumbRotationZ = storedThumbRotationZ;
         clawController.currentIndexRotationY = storedIndexRotationY;
@@ -204,7 +204,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
 
     void ResumeMotors()
     {
-        clawController.isMapping = originalMappingState;
+        clawController.isFullRangeMapping = originalMappingState;
     }
 
     void OnDrawGizmos()

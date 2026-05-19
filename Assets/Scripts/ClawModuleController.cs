@@ -82,7 +82,7 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     private float rotationSpeed = 15f; // degrees per second
     public float twistRotationSpeed = 20f; // degrees per second (for twist operations)
-    public bool isMapping = true;
+    public bool isFullRangeMapping = true;
 
     // ==============================
     // 🔹 Colors
@@ -297,11 +297,11 @@ public class ClawModuleController : MonoBehaviour
     [Header("=== Extension Clamp Range ===")]
     [Tooltip("Off: clamp X extension/tip to (-80, 50). On: clamp to (-90, 90).")]
     public bool useFullExtensionClampRange = false;
-    [Header("=== Extension Mapping Mode ===")]
-    [Tooltip("ON: inner-part extension (row 3) uses mapping formula")]
-    public bool innerExtensionUseMapping = true;
-    [Tooltip("ON: tip-part extension (row 4) uses mapping formula")]
-    public bool tipExtensionUseMapping = false;
+    [Header("=== Extension Full Range Mapping Mode ===")]
+    [Tooltip("ON: inner-part extension (row 3) uses full range mapping formula")]
+    public bool innerExtensionFullRangeMapping = true;
+    [Tooltip("ON: tip-part extension (row 4) uses full range mapping formula")]
+    public bool tipExtensionFullRangeMapping = false;
     [Header("=== Extension Offset ===")]
     [Tooltip("Positive value pushes extension joints further inward on X axis.")]
     public float extensionInwardOffsetDeg = 20f;
@@ -499,44 +499,7 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Thumb
         // ==============================
 
-        // if (ThumbAngle3Center != null)
-        //     ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1*1.7f, 0f, 0f);
-
-        // UpdateInnerExtension(
-        //     triggerThumbInnerExtension.isThumbInnerExtensionTouched,
-        //     triggerRightThumbTip.isRightThumbTipTouched,
-        //     jointAngle.thumbAngle1,
-        //     "Thumb3",
-        //     "Thumb0",
-        //     ref currentThumbInnerExtensionRotationZ,
-        //     rotationSpeed,
-        //     thumbJoint3Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     ThumbAngle3Center,
-        //     ref isThumb3Triggered,
-        //     () => jointAngle.thumbAngle0 == 0f
-        //     // () => jointAngle.thumbPalmAngle < 10f
-        //     // jointAngle.thumbAngle0 == 0f
-        // );
-
-        // UpdateFingertipExtension(
-        //     triggerRightThumbTip.isRightThumbTipTouched,
-        //     jointAngle.thumbAngle1,
-        //     302f,
-        //     "Thumb1",
-        //     "Thumb0",
-        //     ref currentThumbTipRotationZ,
-        //     rotationSpeed,
-        //     thumbJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     ThumbAngle4Center,
-        //     ref isThumb4Triggered,
-        //     () => jointAngle.thumbAngle0 == 0f
-        // );
-
-        UpdateFingertipExtensionV2( // inner part
+        UpdateFingertipExtension( // inner part
             triggerRightThumbTip.isRightThumbTipTouched,
             jointAngle.thumbAngle1,
             "Thumb1",
@@ -557,11 +520,11 @@ public class ClawModuleController : MonoBehaviour
             3,  // Expected motor ID for thumb
             5.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
-            innerExtensionUseMapping,
+            innerExtensionFullRangeMapping,
             paxiniValue.isThumbTouchSnapped
         );
 
-        UpdateFingertipExtensionV2(
+        UpdateFingertipExtension(
             triggerRightThumbTip.isRightThumbTipTouched,
             jointAngle.thumbAngle1,
             "Thumb1",
@@ -582,15 +545,13 @@ public class ClawModuleController : MonoBehaviour
             4,  // Expected motor ID for thumb
             5.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
-            tipExtensionUseMapping,
+            tipExtensionFullRangeMapping,
             paxiniValue.isThumbTouchSnapped
         );
 
-        // UpdateThumbAbduction();
-        UpdateThumbAbductionV2();
+        UpdateThumbAbduction();
 
-        // UpdateThumbFingerTwist();
-        UpdateThumbFingerTwistV2();
+        UpdateThumbFingerPronation();
 
         // ==============================
         // 🔹 Index Finger
@@ -599,45 +560,10 @@ public class ClawModuleController : MonoBehaviour
         // if (IndexAngle3Center != null)
         //     IndexAngle3Center.localRotation = Quaternion.Euler(jointAngle.indexAngle1 + jointAngle.indexAngle0, 0f, 0f);
 
-        // UpdateIndexFingerAbduction();
-        // UpdateIndexFingerTwist();
-
-        // UpdateIndexFingerAbductionByAngle();
         UpdateIndexFingerAbductionByAngleByZ();
-        // UpdateIndexFingerTwistByAngle();
-        UpdateIndexFingerTwistByAngleByY();
+        UpdateIndexFingerPronationByAngleByY();
 
-        // UpdateInnerExtension(
-        //     triggerIndexInnerExtension.isIndexInnerExtensionTouched,
-        //     triggerRightIndexTip.isRightIndexTipTouched,
-        //     jointAngle.indexAngle1,
-        //     "Index3",
-        //     "Index0",
-        //     ref currentIndexInnerExtensionRotationZ,
-        //     rotationSpeed,
-        //     indexJoint3Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     IndexAngle3Center,
-        //     ref isIndex3Triggered
-        // );
-
-        // UpdateFingertipExtension(
-        //     triggerRightIndexTip.isRightIndexTipTouched,
-        //     jointAngle.indexAngle2,
-        //     302f,
-        //     "Index2",
-        //     "Index0",
-        //     ref currentIndexTipRotationZ,
-        //     rotationSpeed,
-        //     indexJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     IndexAngle4Center,
-        //     ref isIndex4Triggered
-        // );
-
-        UpdateFingertipExtensionV2( // inner part
+        UpdateFingertipExtension( // inner part
             triggerRightIndexTip.isRightIndexTipTouched,
             jointAngle.indexAngle1,
             "Index2",
@@ -658,11 +584,11 @@ public class ClawModuleController : MonoBehaviour
             7,
             5.0f,
             null,
-            innerExtensionUseMapping,
+            innerExtensionFullRangeMapping,
             paxiniValue.isIndexTouchSnapped
         );
 
-        UpdateFingertipExtensionV2(
+        UpdateFingertipExtension(
             triggerRightIndexTip.isRightIndexTipTouched,
             jointAngle.indexAngle2,
             "Index2",
@@ -683,7 +609,7 @@ public class ClawModuleController : MonoBehaviour
             8,
             5.0f,
             null,
-            tipExtensionUseMapping,
+            tipExtensionFullRangeMapping,
             paxiniValue.isIndexTouchSnapped
         );
 
@@ -691,48 +617,10 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Middle Finger State
         // ==============================
 
-        // UpdateMiddleFingerAbduction();
-        // UpdateMiddleFingerTwist();
-
-        // UpdateMiddleFingerAbductionByAngle();
         UpdateMiddleFingerAbductionByAngleByZ();
-        // UpdateMiddleFingerTwistByAngle();
-        UpdateMiddleFingerTwistByAngleByY();
+        UpdateMiddleFingerPronationByAngleByY();
 
-        // if (MiddleAngle3Center != null)
-        //     MiddleAngle3Center.localRotation = Quaternion.Euler(jointAngle.middleAngle1 + jointAngle.middleAngle0, 0f, 0f);
-
-        // UpdateInnerExtension(
-        //     triggerMiddleInnerExtension.isMiddleInnerExtensionTouched,
-        //     triggerRightMiddleTip.isRightMiddleTipTouched,
-        //     jointAngle.middleAngle1,
-        //     "Middle3",
-        //     "Middle0",
-        //     ref currentMiddleInnerExtensionRotationZ,
-        //     rotationSpeed,
-        //     middleJoint3Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     MiddleAngle3Center,
-        //     ref isMiddle3Triggered
-        // );
-
-        // UpdateFingertipExtension(
-        //     triggerRightMiddleTip.isRightMiddleTipTouched,
-        //     jointAngle.middleAngle2,
-        //     302f,
-        //     "Middle2",
-        //     "Middle0",
-        //     ref currentMiddleTipRotationZ,
-        //     rotationSpeed,
-        //     middleJoint4Renderer,
-        //     purpleColor,
-        //     originalColor,
-        //     MiddleAngle4Center,
-        //     ref isMiddle4Triggered
-        // );
-
-        UpdateFingertipExtensionV2(
+        UpdateFingertipExtension(
             triggerRightMiddleTip.isRightMiddleTipTouched,
             jointAngle.middleAngle1,
             "Middle2",
@@ -753,11 +641,11 @@ public class ClawModuleController : MonoBehaviour
             11,
             5.0f,
             null,
-            innerExtensionUseMapping,
+            innerExtensionFullRangeMapping,
             paxiniValue.isMiddleTouchSnapped
         );
 
-        UpdateFingertipExtensionV2(
+        UpdateFingertipExtension(
             triggerRightMiddleTip.isRightMiddleTipTouched,
             jointAngle.middleAngle2,
             "Middle2",
@@ -778,7 +666,7 @@ public class ClawModuleController : MonoBehaviour
             12,
             5.0f,
             null,
-            tipExtensionUseMapping,
+            tipExtensionFullRangeMapping,
             paxiniValue.isMiddleTouchSnapped
         );
         #endregion
@@ -831,7 +719,7 @@ public class ClawModuleController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.M))
         {
-            isMapping = !isMapping;
+            isFullRangeMapping = !isFullRangeMapping;
         }
 
         if (Input.GetKeyDown(KeyCode.R))
@@ -841,7 +729,7 @@ public class ClawModuleController : MonoBehaviour
     }
 
     #region @ThumbAbdV2
-    void UpdateThumbAbductionV2()
+    void UpdateThumbAbduction()
     {
         Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
         maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
@@ -885,7 +773,7 @@ public class ClawModuleController : MonoBehaviour
 
         // mapping using thumb palm angle
         float thumbPalmAngleDiff = 45f - jointAngle.thumbPalmAngle;
-        if (isMapping && Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
+        if (isFullRangeMapping && Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
         {
             float delta = maxThumbYAxisAngle;
 
@@ -1200,8 +1088,8 @@ public class ClawModuleController : MonoBehaviour
     // 🔹 Twist
     // ==============================
 
-    #region @ThumbTwistV2
-    void UpdateThumbFingerTwistV2()
+    #region @ThumbPronation
+    void UpdateThumbFingerPronation()
     {
         Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
         maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
@@ -1304,7 +1192,7 @@ public class ClawModuleController : MonoBehaviour
         // mapping using wrist thumb angle
         float wristThumbAngleDiff = 45f - jointAngle.wristThumbAngle;           // float wristThumbAngleDiff = 30f - jointAngle.wristThumbAngle;
 
-        if (isMapping && Mathf.Abs(currentThumbRotationZ) > 0.1f && Mathf.Abs(wristThumbAngleDiff) > 0.1f)
+        if (isFullRangeMapping && Mathf.Abs(currentThumbRotationZ) > 0.1f && Mathf.Abs(wristThumbAngleDiff) > 0.1f)
         {
             float delta = maxThumbZAxisAngle;
             if (delta <= 0)
@@ -1352,11 +1240,11 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region @IndexTwistByY
+    #region @IndexPronation
     /// <summary>
     /// Controls Index finger Y-axis twist (swapped from Z-axis), motorID == 5
     /// </summary>
-    private void UpdateIndexFingerTwistByAngleByY()
+    private void UpdateIndexFingerPronationByAngleByY()
     {
         Quaternion targetRotation = IndexAngle1CenterInitialRotation;
         maxIndexYAxisAngle = NormalizeAngle(indexFingerJoint1MaxRotationVector.y);
@@ -1397,7 +1285,7 @@ public class ClawModuleController : MonoBehaviour
         if (jointAngle.indexMiddleAngleOnPalm < 57f && IndexAngle1Center != null)
         {
             float delta = maxIndexYAxisAngle;
-            float targetY = isMapping
+            float targetY = isFullRangeMapping
                 ? maxIndexYAxisAngle + (30 - delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
                 : indexFingerJoint1MaxRotationVector.y + 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
 
@@ -1444,11 +1332,11 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region @MiddleTwistByY
+    #region @MiddlePronation
     /// <summary>
-    /// Controls Middle finger Y-axis twist (swapped from Z-axis), motorID == 9
+    /// Controls Middle finger Y-axis pronation (swapped from Z-axis), motorID == 9
     /// </summary>
-    private void UpdateMiddleFingerTwistByAngleByY()
+    private void UpdateMiddleFingerPronationByAngleByY()
     {
         Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
         maxMiddleYAxisAngle = NormalizeAngle(middleFingerJoint1MaxRotationVector.y);
@@ -1489,7 +1377,7 @@ public class ClawModuleController : MonoBehaviour
         if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle1Center != null)
         {
             float delta = maxMiddleYAxisAngle;
-            float targetY = isMapping
+            float targetY = isFullRangeMapping
                 ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
                 : middleFingerJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
 
@@ -1557,8 +1445,8 @@ public class ClawModuleController : MonoBehaviour
     private float ExtensionClampMin => useFullExtensionClampRange ? -90f : -80f;
     private float ExtensionClampMax => useFullExtensionClampRange ? 90f : 50f;
 
-    #region @ExtensionV2
-    private void UpdateFingertipExtensionV2(
+    #region @Extension
+    private void UpdateFingertipExtension(
         bool isTipTouched,
         float jointAngleValue,
         string jointName,
@@ -1877,7 +1765,7 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     public void ResetFingerRotations()
     {
-        isMapping = true;
+        isFullRangeMapping = true;
 
         currentThumbRotationY = currentThumbRotationZ = 0f;
         currentIndexRotationY = currentIndexRotationZ = 0f;
@@ -2152,7 +2040,7 @@ public class ClawModuleController : MonoBehaviour
     /// <summary>
     /// Apply keyboard rotation delta to the correct offset variable for [row, col],
     /// using the same clamp limits as the manipulation functions.
-    /// Also updates the MaxRotationVector so isMapping formulas stay consistent.
+    /// Also updates the MaxRotationVector so isFullRangeMapping formulas stay consistent.
     /// </summary>
     void KbApplyRotation(int row, int col, float delta)
     {
