@@ -1779,17 +1779,62 @@ public class ClawModuleController : MonoBehaviour
         }
         else
         {
-            finalAngle = Mathf.Clamp(jointAngleValue + currentTipRotation - extensionInwardOffsetDeg, ExtensionClampMin, ExtensionClampMax);
+            finalAngle = 0f;
+
+            if (jointName.Contains("Thumb"))
+            {
+                if(expectedMotorID == 3)
+                {
+                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    else mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 35));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+                else if(expectedMotorID == 4)
+                {
+                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    else mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 35));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+            }
+            else if (jointName.Contains("Index"))
+            {
+                if(expectedMotorID == 7)
+                {
+                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 55));
+                    else mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 10, 55));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+                else if(expectedMotorID == 8)
+                {
+                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 30));
+                    else mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 10, 30));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+            }
+            else
+            {
+                if(expectedMotorID == 11)
+                {
+                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 60));
+                    else mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 60));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+                else if(expectedMotorID == 12)
+                {
+                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    else mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 35));
+                    finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
+                }
+            }
+
             targetRotation = Quaternion.Euler(finalAngle, 0f, 0f);
         }
 
-        jointAngleValueDebug = jointAngleValue;
-        currentTipRotationDebug = currentTipRotation;
-        mappedJointAngleValueDebug = mappedJointAngleValue;
-        finalAngleDebug = finalAngle;
-        targetRotationEulerDebug = targetRotation.eulerAngles;
-        // Debug.Log("jointAngleValue is: " + jointAngleValue + " + currentTipRotation is : " + currentTipRotation);
-        // Debug.Log("jointAngleValue + currentTipRotation is: " + (jointAngleValue + currentTipRotation));
+        // jointAngleValueDebug = jointAngleValue;
+        // currentTipRotationDebug = currentTipRotation;
+        // mappedJointAngleValueDebug = mappedJointAngleValue;
+        // finalAngleDebug = finalAngle;
+        // targetRotationEulerDebug = targetRotation.eulerAngles;
 
         //FIXME: Apply motor locking logic for extension
         if (modeSwitching.modeSelect && paxiniTouchSnapped)
