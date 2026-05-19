@@ -1307,7 +1307,7 @@ public class ClawModuleController : MonoBehaviour
 
 
             // 往左轉 maxIndexYAxisAngle 最多會是 0 往 -60, targetY 往右是 0 往 60
-            if(isFullRangeMapping)
+            if (isFullRangeMapping)
             {
                 float targetY = Remap(20, 57, 60, maxIndexYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
@@ -1316,7 +1316,7 @@ public class ClawModuleController : MonoBehaviour
             else
             {
                 float targetY;
-                if(maxIndexYAxisAngle < 0) targetY = Remap(20, 57, 60 + maxIndexYAxisAngle, maxIndexYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                if (maxIndexYAxisAngle < 0) targetY = Remap(20, 57, 60 + maxIndexYAxisAngle, maxIndexYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 else targetY = Remap(20, 57, 60, maxIndexYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
@@ -1383,12 +1383,12 @@ public class ClawModuleController : MonoBehaviour
 
             if (fingerTipTouchDurations["MiddleTwistY"] > 0.2f)
             {
-                if (currentMiddleRotationY <= 60f && currentMiddleRotationY >= 0)
+                if (currentMiddleRotationY <= 60f && currentMiddleRotationY >= -60)
                 {
                     currentMiddleRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
                 }
 
-                currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, 0f, 60f);
+                currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, -60f, 60f);
 
                 middleFingerJoint1MaxRotationVector =
                     (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
@@ -1404,15 +1404,30 @@ public class ClawModuleController : MonoBehaviour
 
         if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle1Center != null)
         {
-            float delta = maxMiddleYAxisAngle;
-            float targetY = isFullRangeMapping
-                ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
-                : middleFingerJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            // float delta = maxMiddleYAxisAngle;
+            // float targetY = isFullRangeMapping
+            //     ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+            //     : middleFingerJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
 
-            if (targetY <= -70f) targetY = -70f;
+            // if (targetY <= -70f) targetY = -70f;
 
-            Vector3 euler = targetRotation.eulerAngles;
-            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+            // Vector3 euler = targetRotation.eulerAngles;
+            // targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+
+            if (isFullRangeMapping)
+            {
+                float targetY = Remap(20, 57, -60, maxMiddleYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                Vector3 euler = targetRotation.eulerAngles;
+                targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+            }
+            else
+            {
+                float targetY;
+                if (maxMiddleYAxisAngle > 0) targetY = Remap(20, 57, -60 + maxMiddleYAxisAngle, maxMiddleYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                else targetY = Remap(20, 57, -60, maxMiddleYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                Vector3 euler = targetRotation.eulerAngles;
+                targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+            }
         }
 
         // Snap range check for Y-axis
@@ -1760,12 +1775,12 @@ public class ClawModuleController : MonoBehaviour
 
             if (jointName.Contains("Thumb"))
             {
-                if(expectedMotorID == 3)
+                if (expectedMotorID == 3)
                 {
                     mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
-                else if(expectedMotorID == 4)
+                else if (expectedMotorID == 4)
                 {
                     mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
@@ -1773,12 +1788,12 @@ public class ClawModuleController : MonoBehaviour
             }
             else if (jointName.Contains("Index"))
             {
-                if(expectedMotorID == 7)
+                if (expectedMotorID == 7)
                 {
                     mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 55));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
-                else if(expectedMotorID == 8)
+                else if (expectedMotorID == 8)
                 {
                     mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 30));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
@@ -1786,12 +1801,12 @@ public class ClawModuleController : MonoBehaviour
             }
             else
             {
-                if(expectedMotorID == 11)
+                if (expectedMotorID == 11)
                 {
                     mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 60));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
-                else if(expectedMotorID == 12)
+                else if (expectedMotorID == 12)
                 {
                     mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
@@ -1806,45 +1821,45 @@ public class ClawModuleController : MonoBehaviour
 
             if (jointName.Contains("Thumb"))
             {
-                if(expectedMotorID == 3)
+                if (expectedMotorID == 3)
                 {
-                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    if (currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
                     else mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 35));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
-                else if(expectedMotorID == 4)
+                else if (expectedMotorID == 4)
                 {
-                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    if (currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
                     else mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 35));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
             }
             else if (jointName.Contains("Index"))
             {
-                if(expectedMotorID == 7)
+                if (expectedMotorID == 7)
                 {
-                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 55));
+                    if (currentTipRotation >= 0) mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 55));
                     else mappedJointAngleValue = Remap(10, 55, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 10, 55));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
-                else if(expectedMotorID == 8)
+                else if (expectedMotorID == 8)
                 {
-                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 30));
+                    if (currentTipRotation >= 0) mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 10, 30));
                     else mappedJointAngleValue = Remap(10, 30, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 10, 30));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
             }
             else
             {
-                if(expectedMotorID == 11)
+                if (expectedMotorID == 11)
                 {
-                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 60));
+                    if (currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 60));
                     else mappedJointAngleValue = Remap(15, 60, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 60));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
-                else if(expectedMotorID == 12)
+                else if (expectedMotorID == 12)
                 {
-                    if(currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
+                    if (currentTipRotation >= 0) mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90, Mathf.Clamp(jointAngleValue, 15, 35));
                     else mappedJointAngleValue = Remap(15, 35, currentTipRotation, 90 + currentTipRotation, Mathf.Clamp(jointAngleValue, 15, 35));
                     finalAngle = Mathf.Clamp(mappedJointAngleValue, ExtensionClampMin, ExtensionClampMax);
                 }
