@@ -9,6 +9,10 @@ public class PaxiniValue : MonoBehaviour
     public string host = "127.0.0.1";
     public int port = 50007;
 
+    public float LatestFzThumb { get; private set; }
+    public float LatestFzIndex { get; private set; }
+    public float LatestFzMiddle { get; private set; }
+
     private TcpClient client;
     private Thread thread;
     private volatile bool running;
@@ -66,8 +70,14 @@ public class PaxiniValue : MonoBehaviour
 
             var payload = JsonUtility.FromJson<Payload>(latestLine);
 
-            Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
-                      $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
+            LatestFzThumb = payload.Fz_thumb;
+            LatestFzIndex = payload.Fz_index;
+            LatestFzMiddle = payload.Fz_middle;
+
+            // Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
+            //           $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
+
+            Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}");
 
             if (payload.Fz_thumb == 0)
             {
@@ -87,7 +97,7 @@ public class PaxiniValue : MonoBehaviour
                 isMiddleTouchSnapped = false;
             }
 
-            if (payload.Fz_thumb > 0.4f && isThumbPaxiniZero)
+            if (payload.Fz_thumb > 10f && isThumbPaxiniZero)
             {
                 if (!isThumbTouchSnapped)
                 {
@@ -118,7 +128,7 @@ public class PaxiniValue : MonoBehaviour
                 }
             }
 
-            if (payload.Fz_index > 0.4f && isIndexPaxiniZero)
+            if (payload.Fz_index > 10f && isIndexPaxiniZero)
             {
                 if (!isIndexTouchSnapped)
                 {
@@ -149,7 +159,7 @@ public class PaxiniValue : MonoBehaviour
                 }
             }
 
-            if (payload.Fz_middle > 0.4f && isMiddlePaxiniZero)
+            if (payload.Fz_middle > 10f && isMiddlePaxiniZero)
             {
                 if (!isMiddleTouchSnapped)
                 {
@@ -214,7 +224,7 @@ public class PaxiniValue : MonoBehaviour
         }
     }
 
-    bool cancleTouchSnap(string joint0Name, string joint1Name, float initial0Angle, float initial1Angle, 
+    bool cancleTouchSnap(string joint0Name, string joint1Name, float initial0Angle, float initial1Angle,
                          string joint2Name = null, float initial2Angle = 0f)
     {
         if (jointAngle == null)
@@ -224,12 +234,12 @@ public class PaxiniValue : MonoBehaviour
 
         Transform joint0 = jointAngle.GetJoint(joint0Name);
         Transform joint1 = jointAngle.GetJoint(joint1Name);
-        
+
         if (joint0 == null || joint1 == null)
             return false;
 
         Debug.Log("22222222222222222222222222222222222222222");
-        
+
 
         float accumulatedJoint0 = 0f;
         float accumulatedJoint1 = 0f;
@@ -252,8 +262,8 @@ public class PaxiniValue : MonoBehaviour
                 return false;
 
             Debug.Log("33333333333333333333333333333333333333333333");
-            
-                
+
+
             float current2 = joint2.localEulerAngles.z;
             current2 = current2 < 100f ? current2 + 360f : current2;
             accumulatedJoint2 = initial2Angle - current2;
@@ -264,7 +274,7 @@ public class PaxiniValue : MonoBehaviour
         {
             Debug.Log("accumulatedJoint0, accumulatedJoint1, accumulatedJoint2: " + accumulatedJoint0 + ", " + accumulatedJoint1 + ", " + accumulatedJoint2);
 
-            return (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 > threshold) || 
+            return (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 > threshold) ||
             (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 < -threshold);
         }
         else

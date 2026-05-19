@@ -31,3 +31,8 @@ Using this script to enable retargeting.
 #### Clockwise/counterclockwise red line
 
 ![alt text](image-2.png)
+
+
+#### PaXini Single Snapping
+
+![alt text](image-3.png)

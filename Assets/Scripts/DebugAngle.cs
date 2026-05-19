@@ -32,14 +32,14 @@ public class DebugAngle : MonoBehaviour
         {
             angleText.text = "" +
                 // r_wrist 世界坐標和旋轉
-                (r_wrist != null ? 
-                    "r_wrist Position: X=" + r_wrist.transform.position.x.ToString("F2") + 
-                    ", Y=" + r_wrist.transform.position.y.ToString("F2") + 
-                    ", Z=" + r_wrist.transform.position.z.ToString("F2") + "\n" +
-                    "r_wrist Rotation: X=" + r_wrist.transform.eulerAngles.x.ToString("F2") + 
-                    ", Y=" + r_wrist.transform.eulerAngles.y.ToString("F2") + 
-                    ", Z=" + r_wrist.transform.eulerAngles.z.ToString("F2") + "\n" 
-                    : "r_wrist not assigned\n") +
+                // (r_wrist != null ? 
+                //     "r_wrist Position: X=" + r_wrist.transform.position.x.ToString("F2") + 
+                //     ", Y=" + r_wrist.transform.position.y.ToString("F2") + 
+                //     ", Z=" + r_wrist.transform.position.z.ToString("F2") + "\n" +
+                //     "r_wrist Rotation: X=" + r_wrist.transform.eulerAngles.x.ToString("F2") + 
+                //     ", Y=" + r_wrist.transform.eulerAngles.y.ToString("F2") + 
+                //     ", Z=" + r_wrist.transform.eulerAngles.z.ToString("F2") + "\n" 
+                //     : "r_wrist not assigned\n") +
                 // + ((int)jointAngle.thumbAngle0).ToString() + " "
                 // + ((int)jointAngle.thumbAngle1).ToString() + "\n"
                 // + ((int)jointAngle.indexAngle0).ToString() + " "
@@ -55,6 +55,11 @@ public class DebugAngle : MonoBehaviour
                 //     (clawModuleController.accumulatedJointChanges.ContainsKey("Index2_max") ? clawModuleController.accumulatedJointChanges["Index2_max"].ToString("F2") : "N/A") + ")\n" +
                 // "totalAngleChange: " + clawModuleController.totalAngleChange.ToString("F4") + "°\n" +
                 // "currentRedMotorID: " + modeSwitching.currentRedMotorID.ToString() + "\n" +
+                                (paxiniValue != null
+                                        ? "Fz_thumb: " + paxiniValue.LatestFzThumb.ToString("F3") + "\n" +
+                                            "Fz_index: " + paxiniValue.LatestFzIndex.ToString("F3") + "\n" +
+                                            "Fz_middle: " + paxiniValue.LatestFzMiddle.ToString("F3") + "\n"
+                                        : "PaxiniValue not assigned\n") +
                 "modeSelect: " + modeSwitching.modeSelect.ToString() + "\n" +
                 "motorSelected: " + modeSwitching.motorSelected.ToString() + "\n" +
                 "modeManipulate: " + modeSwitching.modeManipulate.ToString() + "\n";
