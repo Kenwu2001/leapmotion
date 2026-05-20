@@ -49,6 +49,10 @@ public class DebugAngle : MonoBehaviour
                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                 // "index Middle distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                 "indexMiddleAngleOnPalm: " + jointAngle.indexMiddleAngleOnPalm.ToString("F2") + "°\n" +
+                "thumb delta<=0 debug: " + clawModuleController.thumbAbductionDeltaNegativeDebug + "\n" +
+                "thumb delta>0 debug: " + clawModuleController.thumbAbductionDeltaPositiveDebug + "\n" +
+                "thumb 360 zone debug: " + clawModuleController.thumbPronation360ZoneDebug + "\n" +
+                "thumb non-360 zone debug: " + clawModuleController.thumbPronationNon360ZoneDebug + "\n" +
                 // "thumbPalmAngle: " + jointAngle.thumbPalmAngle.ToString("F2") + "\n" +
                 // "(Index2_min, Index2_max): (" + 
                 //     (clawModuleController.accumulatedJointChanges.ContainsKey("Index2_min") ? clawModuleController.accumulatedJointChanges["Index2_min"].ToString("F2") : "N/A") + ", " + 
@@ -72,10 +76,10 @@ public class DebugAngle : MonoBehaviour
                 // "Middle0 angle" +  jointAngle.joints["Middle0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Middle1 angle" + jointAngle.joints["Middle1"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "Middle2 angle" + jointAngle.joints["Middle2"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
-                "maxIndexYAxisAngle: " + clawModuleController.maxIndexYAxisAngle.ToString("F4") + "°\n" +
-                "targetY: " + (float.IsNaN(clawModuleController.indexTargetYDebug)
-                    ? "N/A"
-                    : clawModuleController.indexTargetYDebug.ToString("F4") + "°") + "\n";
+                // "maxIndexYAxisAngle: " + clawModuleController.maxIndexYAxisAngle.ToString("F4") + "°\n" +
+                // "targetY: " + (float.IsNaN(clawModuleController.indexTargetYDebug)
+                //     ? "N/A"
+                //     : clawModuleController.indexTargetYDebug.ToString("F4") + "°") + "\n" +
                 // "jointAngleValueDebug: " + clawModuleController.jointAngleValueDebug.ToString("F4") + "°\n" +
                 // "currentTipRotationDebug: " + clawModuleController.currentTipRotationDebug.ToString("F4") + "°\n" +
                 // "jointAngleValue + currentTipRotation: " +
@@ -145,7 +149,7 @@ public class DebugAngle : MonoBehaviour
                 // "isRightIndexTipTouched: " + rightIndexTip.isRightIndexTipTouched.ToString() + "\n" +
                 // "Index0 angle" +  jointAngle.joints["Index0"].localRotation.eulerAngles.z.ToString("F4") + "°\n" +
                 // "isRightMiddleTipTouched: " + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
-                // "ThumbAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.ThumbAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
+                "ThumbAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.ThumbAngle1Center.localEulerAngles.y.ToString("F4") + "°\n";
                 // "ThumbAngle2Center.localRotation.eulerAngles.z: " + clawModuleController.ThumbAngle2Center.localEulerAngles.z.ToString("F4") + "°\n" +
                 // "IndexAngle1Center.localRotation.eulerAngles.y: " + clawModuleController.IndexAngle1Center.localEulerAngles.y.ToString("F4") + "°\n" +
                 

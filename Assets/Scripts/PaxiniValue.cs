@@ -97,26 +97,26 @@ public class PaxiniValue : MonoBehaviour
                 isMiddleTouchSnapped = false;
             }
 
-            if (payload.Fz_thumb > 10f && isThumbPaxiniZero)
-            {
-                if (!isThumbTouchSnapped)
-                {
-                    isThumbTouchSnapped = true;
-                    isThumbPaxiniZero = false;
-                    // Record initial joint angle values
-                    Transform thumb0 = jointAngle.GetJoint("Thumb0");
-                    Transform thumb1 = jointAngle.GetJoint("Thumb1");
-                    if (thumb0 != null && thumb1 != null)
-                    {
-                        initialThumb0Angle = thumb0.localEulerAngles.z;
-                        initialThumb1Angle = thumb1.localEulerAngles.z;
-                        initialThumb0Angle = initialThumb0Angle < 100f ? initialThumb0Angle + 360f : initialThumb0Angle;
-                        initialThumb1Angle = initialThumb1Angle < 100f ? initialThumb1Angle + 360f : initialThumb1Angle;
-                    }
-                    // lock every thumb gripper motor
-                    // ...
-                }
-            }
+            // if (payload.Fz_thumb > 10f && isThumbPaxiniZero)
+            // {
+            //     if (!isThumbTouchSnapped)
+            //     {
+            //         isThumbTouchSnapped = true;
+            //         isThumbPaxiniZero = false;
+            //         // Record initial joint angle values
+            //         Transform thumb0 = jointAngle.GetJoint("Thumb0");
+            //         Transform thumb1 = jointAngle.GetJoint("Thumb1");
+            //         if (thumb0 != null && thumb1 != null)
+            //         {
+            //             initialThumb0Angle = thumb0.localEulerAngles.z;
+            //             initialThumb1Angle = thumb1.localEulerAngles.z;
+            //             initialThumb0Angle = initialThumb0Angle < 100f ? initialThumb0Angle + 360f : initialThumb0Angle;
+            //             initialThumb1Angle = initialThumb1Angle < 100f ? initialThumb1Angle + 360f : initialThumb1Angle;
+            //         }
+            //         // lock every thumb gripper motor
+            //         // ...
+            //     }
+            // }
 
             // if thumb is snapped, continuously check if it should be cancelled
             if (isThumbTouchSnapped)
@@ -128,27 +128,27 @@ public class PaxiniValue : MonoBehaviour
                 }
             }
 
-            if (payload.Fz_index > 10f && isIndexPaxiniZero)
-            {
-                if (!isIndexTouchSnapped)
-                {
-                    isIndexTouchSnapped = true;
-                    isIndexPaxiniZero = false;
-                    // Record initial joint angle values
-                    Transform index0 = jointAngle.GetJoint("Index0");
-                    Transform index1 = jointAngle.GetJoint("Index1");
-                    Transform index2 = jointAngle.GetJoint("Index2");
-                    if (index0 != null && index1 != null && index2 != null)
-                    {
-                        initialIndex0Angle = index0.localEulerAngles.z;
-                        initialIndex1Angle = index1.localEulerAngles.z;
-                        initialIndex2Angle = index2.localEulerAngles.z;
-                        initialIndex0Angle = initialIndex0Angle < 100f ? initialIndex0Angle + 360f : initialIndex0Angle;
-                        initialIndex1Angle = initialIndex1Angle < 100f ? initialIndex1Angle + 360f : initialIndex1Angle;
-                        initialIndex2Angle = initialIndex2Angle < 100f ? initialIndex2Angle + 360f : initialIndex2Angle;
-                    }
-                }
-            }
+            // if (payload.Fz_index > 10f && isIndexPaxiniZero)
+            // {
+            //     if (!isIndexTouchSnapped)
+            //     {
+            //         isIndexTouchSnapped = true;
+            //         isIndexPaxiniZero = false;
+            //         // Record initial joint angle values
+            //         Transform index0 = jointAngle.GetJoint("Index0");
+            //         Transform index1 = jointAngle.GetJoint("Index1");
+            //         Transform index2 = jointAngle.GetJoint("Index2");
+            //         if (index0 != null && index1 != null && index2 != null)
+            //         {
+            //             initialIndex0Angle = index0.localEulerAngles.z;
+            //             initialIndex1Angle = index1.localEulerAngles.z;
+            //             initialIndex2Angle = index2.localEulerAngles.z;
+            //             initialIndex0Angle = initialIndex0Angle < 100f ? initialIndex0Angle + 360f : initialIndex0Angle;
+            //             initialIndex1Angle = initialIndex1Angle < 100f ? initialIndex1Angle + 360f : initialIndex1Angle;
+            //             initialIndex2Angle = initialIndex2Angle < 100f ? initialIndex2Angle + 360f : initialIndex2Angle;
+            //         }
+            //     }
+            // }
 
             // if index is snapped, continuously check if it should be cancelled
             if (isIndexTouchSnapped)
@@ -159,27 +159,27 @@ public class PaxiniValue : MonoBehaviour
                 }
             }
 
-            if (payload.Fz_middle > 10f && isMiddlePaxiniZero)
-            {
-                if (!isMiddleTouchSnapped)
-                {
-                    isMiddleTouchSnapped = true;
-                    isMiddlePaxiniZero = false;
-                    // Record initial joint angle values
-                    Transform middle0 = jointAngle.GetJoint("Middle0");
-                    Transform middle1 = jointAngle.GetJoint("Middle1");
-                    Transform middle2 = jointAngle.GetJoint("Middle2");
-                    if (middle0 != null && middle1 != null && middle2 != null)
-                    {
-                        initialMiddle0Angle = middle0.localEulerAngles.z;
-                        initialMiddle1Angle = middle1.localEulerAngles.z;
-                        initialMiddle2Angle = middle2.localEulerAngles.z;
-                        initialMiddle0Angle = initialMiddle0Angle < 100f ? initialMiddle0Angle + 360f : initialMiddle0Angle;
-                        initialMiddle1Angle = initialMiddle1Angle < 100f ? initialMiddle1Angle + 360f : initialMiddle1Angle;
-                        initialMiddle2Angle = initialMiddle2Angle < 100f ? initialMiddle2Angle + 360f : initialMiddle2Angle;
-                    }
-                }
-            }
+            // if (payload.Fz_middle > 10f && isMiddlePaxiniZero)
+            // {
+            //     if (!isMiddleTouchSnapped)
+            //     {
+            //         isMiddleTouchSnapped = true;
+            //         isMiddlePaxiniZero = false;
+            //         // Record initial joint angle values
+            //         Transform middle0 = jointAngle.GetJoint("Middle0");
+            //         Transform middle1 = jointAngle.GetJoint("Middle1");
+            //         Transform middle2 = jointAngle.GetJoint("Middle2");
+            //         if (middle0 != null && middle1 != null && middle2 != null)
+            //         {
+            //             initialMiddle0Angle = middle0.localEulerAngles.z;
+            //             initialMiddle1Angle = middle1.localEulerAngles.z;
+            //             initialMiddle2Angle = middle2.localEulerAngles.z;
+            //             initialMiddle0Angle = initialMiddle0Angle < 100f ? initialMiddle0Angle + 360f : initialMiddle0Angle;
+            //             initialMiddle1Angle = initialMiddle1Angle < 100f ? initialMiddle1Angle + 360f : initialMiddle1Angle;
+            //             initialMiddle2Angle = initialMiddle2Angle < 100f ? initialMiddle2Angle + 360f : initialMiddle2Angle;
+            //         }
+            //     }
+            // }
 
             // if middle is snapped, continuously check if it should be cancelled
             if (isMiddleTouchSnapped)

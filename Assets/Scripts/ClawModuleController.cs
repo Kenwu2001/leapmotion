@@ -207,6 +207,10 @@ public class ClawModuleController : MonoBehaviour
     public float finalAngleDebug = 0f;
     public Vector3 targetRotationEulerDebug = Vector3.zero;
     public float indexTargetYDebug = float.NaN;
+    public string thumbAbductionDeltaNegativeDebug = "N/A";
+    public string thumbAbductionDeltaPositiveDebug = "N/A";
+    public string thumbPronation360ZoneDebug = "N/A";
+    public string thumbPronationNon360ZoneDebug = "N/A";
 
     // Track thumbPalmAngle changes for direction switching
     private float previousThumbPalmAngle = 0f;
@@ -555,9 +559,9 @@ public class ClawModuleController : MonoBehaviour
             paxiniValue.isThumbTouchSnapped
         );
 
-        UpdateThumbAbduction();
+        UpdateThumbPronation();
 
-        UpdateThumbFingerPronation();
+        UpdateThumAbduction();
 
         // ==============================
         // 🔹 Index Finger
@@ -734,100 +738,154 @@ public class ClawModuleController : MonoBehaviour
         }
     }
 
-    #region @ThumbAbdV2
-    void UpdateThumbAbduction()
+    #region @ThumbAbduction
+    void UpdateThumAbduction()
     {
-        Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
-        maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
+        Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
+        maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
 
-        // Initialize touch duration for thumb abduction
-        if (!fingerTipTouchDurations.ContainsKey("ThumbAbduction"))
+        // Initialize touch duration for thumb twist
+        if (!fingerTipTouchDurations.ContainsKey("ThumbTwist"))
         {
-            fingerTipTouchDurations["ThumbAbduction"] = 0f;
+            fingerTipTouchDurations["ThumbTwist"] = 0f;
         }
 
-        if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched
-             && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1
-             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 1)
+        if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive
+            && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 2) //  && jointAngle.thumbPalmAngle > 10f && jointAngle.thumbPalmAngle < 55f
         {
-            fingerTipTouchDurations["ThumbAbduction"] += Time.deltaTime;
-            // thumbJoint1Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"] / 0.7f, 1f));
-            isThumb1Triggered = true;
+            fingerTipTouchDurations["ThumbTwist"] += Time.deltaTime;
+            isThumb2Triggered = true;
 
-            if (fingerTipTouchDurations["ThumbAbduction"] > 0.2f)
+            // Only apply rotation after 0.3 seconds
+            if (fingerTipTouchDurations["ThumbTwist"] > 0.2f)
             {
-                currentThumbRotationY -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
-                currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 60f);
+                // Initialize tracking on first frame after 0.2 seconds
+                if (fingerTipTouchDurations["ThumbTwist"] <= 0.2f + Time.deltaTime)
+                {
+                    thumbAngleHistory.Clear();
+                    isThumbRotatingNegative = true;
+                }
 
-                thumbFingerJoint1MaxRotationVector =
-                    (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
+                float currentTime = Time.time;
+                thumbAngleHistory.Enqueue((currentTime, jointAngle.thumbPalmAngle));
 
-                // thumbJoint1Renderer.material.color = greenColor;
+                if (thumbAngleHistory.Count > 0)
+                {
+                    float oldestTime = thumbAngleHistory.Peek().time;
+                    float timeDiff = currentTime - oldestTime;
+
+                    if (timeDiff > DETECTION_WINDOW + 0.1f)
+                    {
+                        while (thumbAngleHistory.Count > 1 &&
+                               currentTime - thumbAngleHistory.Peek().time > DETECTION_WINDOW)
+                        {
+                            thumbAngleHistory.Dequeue();
+                        }
+                    }
+
+
+                    if (timeDiff >= DETECTION_WINDOW)
+                    {
+                        float oldestAngle = thumbAngleHistory.Peek().angle;
+                        float currentAngle = jointAngle.thumbPalmAngle;
+                        float angleChange = currentAngle - oldestAngle;
+
+                        bool previousDirection = isThumbRotatingNegative;
+
+                        if (isThumbRotatingNegative && angleChange >= DIRECTION_THRESHOLD)
+                        {
+                            isThumbRotatingNegative = false;
+                        }
+                        else if (!isThumbRotatingNegative && angleChange <= -DIRECTION_THRESHOLD)
+                        {
+                            isThumbRotatingNegative = true;
+                        }
+                        else
+                        {
+                            // Debug.Log("aaaaaaaaaaaaaaaaaaa");
+                        }
+                    }
+                    else
+                    {
+                        // Debug.Log("nnnnnnnnnnnnnnnnnnnnn");
+                    }
+                }
+
+                if (isThumbRotatingNegative)
+                {
+                    currentThumbRotationZ += twistRotationSpeed * Time.deltaTime;
+                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
+                }
+                else
+                {
+                    currentThumbRotationZ -= twistRotationSpeed * Time.deltaTime;
+                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
+                }
+
+                thumbFingerJoint2MaxRotationVector =
+                    (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
             }
         }
         else
         {
-            fingerTipTouchDurations["ThumbAbduction"] = 0f;
-            // thumbJoint1Renderer.material.color = originalColor;
-            isThumb1Triggered = false;
+            fingerTipTouchDurations["ThumbTwist"] = 0f;
+            isThumb2Triggered = false;
+            thumbAngleHistory.Clear();
+            isThumbRotatingNegative = true;
         }
 
-        // Base angle from thumb-palm angle
-        float baseAngle = 45f - jointAngle.thumbPalmAngle;
+        // Base angle from wrist-thumb angle - always apply this
+        float baseAngle = 45f - jointAngle.wristThumbAngle;                  // float baseAngle = 30f - jointAngle.wristThumbAngle;
 
-        targetRotation *= Quaternion.Euler(0f, baseAngle + currentThumbRotationY, 0f);
+        targetRotation = ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, baseAngle + currentThumbRotationZ);
 
-        // mapping using thumb palm angle
-        float thumbPalmAngleDiff = 45f - jointAngle.thumbPalmAngle;
-        if (isFullRangeMapping && Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
+        // mapping using wrist thumb angle
+        float wristThumbAngleDiff = 45f - jointAngle.wristThumbAngle;           // float wristThumbAngleDiff = 30f - jointAngle.wristThumbAngle;
+
+        if (isFullRangeMapping && Mathf.Abs(currentThumbRotationZ) > 0.1f && Mathf.Abs(wristThumbAngleDiff) > 0.1f)
         {
-            float delta = maxThumbYAxisAngle;
-
-            if (thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f)
+            float delta = maxThumbZAxisAngle;
+            if (delta <= 0)
             {
-                float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y + 360f + delta * (thumbPalmAngleDiff / 45f);
-                // Debug.Log($"targetY in 360 zone: {targetY}");
-                if (targetY >= 420f) targetY = 420f;
+                float targetZ = baseAngle + thumbFingerJoint2MaxRotationVector.z - delta * (wristThumbAngleDiff / 45f);
+                thumbAbductionDeltaNegativeDebug = $"delta<=0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
+                if (targetZ <= 300f && targetZ >= 200f) targetZ = 300f;
+                if (targetZ >= 60f && targetZ <= 150f) targetZ = 60f;
                 Vector3 euler = targetRotation.eulerAngles;
-                targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
             }
             else
             {
-                float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y - delta * (thumbPalmAngleDiff / 45f);
-                // Debug.Log($"targetY in non-360 zone: {targetY}");
-                if (targetY <= 300f) targetY = 300f;
+                float targetZ = baseAngle + thumbFingerJoint2MaxRotationVector.z + delta * (wristThumbAngleDiff / 45f);
+                thumbAbductionDeltaPositiveDebug = $"delta>0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
+                if (targetZ <= 300f && targetZ >= 200f) targetZ = 300f;
+                if (targetZ >= 60f && targetZ <= 150f) targetZ = 60f;
                 Vector3 euler = targetRotation.eulerAngles;
-                targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
             }
         }
 
-        //TODO: thumb snapping logic
 
-        thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
-        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
-
-        //FIXME: snapping
+        // snapping
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
-            // Touch snapping is active - lock the current rotation
-            if (!_thumbMotor1Locked && ThumbAngle1Center != null)
+            if (!_thumbMotor2Locked && ThumbAngle2Center != null)
             {
-                _thumbMotor1Locked = true;
-                _thumbMotor1LockedRot = ThumbAngle1Center.localRotation;
+                _thumbMotor2Locked = true;
+                _thumbMotor2LockedRot = ThumbAngle2Center.localRotation;
             }
 
-            if (ThumbAngle1Center != null)
-                ThumbAngle1Center.localRotation = _thumbMotor1LockedRot;
+            if (ThumbAngle2Center != null)
+                ThumbAngle2Center.localRotation = _thumbMotor2LockedRot;
         }
         else
         {
-            // No touch snapping - apply angle-based snapping or normal rotation
-            _thumbMotor1Locked = false;
+            _thumbMotor2Locked = false;
 
-            if (ThumbAngle1Center != null)
-            {
-                ThumbAngle1Center.localRotation = targetRotation;
-            }
+            if (ThumbAngle2Center != null)
+                ThumbAngle2Center.localRotation = targetRotation;
+
+            // Debug.Log("ThumbAngle2Center.localRotation.eulerAngles.z : " + ThumbAngle2Center.localRotation.eulerAngles.z);
         }
     }
     #endregion
@@ -938,7 +996,7 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
-        //FIXME: snapping
+        // snapping
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
             if (!_indexMotor2Locked && IndexAngle2Center != null)
@@ -1067,7 +1125,7 @@ public class ClawModuleController : MonoBehaviour
             targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
         }
 
-        //FIXME: snapping
+        // snapping
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
             if (!_middleMotor2Locked && MiddleAngle2Center != null)
@@ -1089,159 +1147,164 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-
-    // ==============================
-    // 🔹 Twist
-    // ==============================
-
     #region @ThumbPronation
-    void UpdateThumbFingerPronation()
+    void UpdateThumbPronation()
     {
-        Quaternion targetRotation = ThumbAngle2CenterInitialRotation;
-        maxThumbZAxisAngle = NormalizeAngle(thumbFingerJoint2MaxRotationVector.z);
+        Quaternion targetRotation = ThumbAngle1CenterInitialRotation;
+        maxThumbYAxisAngle = NormalizeAngle(thumbFingerJoint1MaxRotationVector.y);
 
-        // Initialize touch duration for thumb twist
-        if (!fingerTipTouchDurations.ContainsKey("ThumbTwist"))
+        // Initialize touch duration for thumb abduction
+        if (!fingerTipTouchDurations.ContainsKey("ThumbAbduction"))
         {
-            fingerTipTouchDurations["ThumbTwist"] = 0f;
+            fingerTipTouchDurations["ThumbAbduction"] = 0f;
         }
 
-        if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive
-            && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 2) //  && jointAngle.thumbPalmAngle > 10f && jointAngle.thumbPalmAngle < 55f
+        if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched
+             && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1
+             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 1)
         {
-            fingerTipTouchDurations["ThumbTwist"] += Time.deltaTime;
-            isThumb2Triggered = true;
+            fingerTipTouchDurations["ThumbAbduction"] += Time.deltaTime;
+            // thumbJoint1Renderer.material.color = Color.Lerp(originalColor, greenColor, Mathf.Min(fingerTipTouchDurations["ThumbAbduction"] / 0.7f, 1f));
+            isThumb1Triggered = true;
 
-            // Only apply rotation after 0.3 seconds
-            if (fingerTipTouchDurations["ThumbTwist"] > 0.2f)
+            if (fingerTipTouchDurations["ThumbAbduction"] > 0.2f)
             {
-                // Initialize tracking on first frame after 0.2 seconds
-                if (fingerTipTouchDurations["ThumbTwist"] <= 0.2f + Time.deltaTime)
+                currentThumbRotationY -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
+                currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 60f);
+
+                thumbFingerJoint1MaxRotationVector =
+                    (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
+
+                // thumbJoint1Renderer.material.color = greenColor;
+            }
+        }
+        else
+        {
+            fingerTipTouchDurations["ThumbAbduction"] = 0f;
+            // thumbJoint1Renderer.material.color = originalColor;
+            isThumb1Triggered = false;
+        }
+
+        // Base angle from thumb-palm angle
+        float baseAngle = 45f - jointAngle.thumbPalmAngle;
+
+        targetRotation *= Quaternion.Euler(0f, baseAngle + currentThumbRotationY, 0f);
+
+        // mapping using thumb palm angle
+        float thumbPalmAngleDiff = 45f - jointAngle.thumbPalmAngle;
+        thumbPronation360ZoneDebug = $"mapping skipped, towardIndex pending, isFullRangeMapping: {isFullRangeMapping}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}";
+        thumbPronationNon360ZoneDebug = $"mapping skipped, towardIndex pending, isFullRangeMapping: {isFullRangeMapping}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}";
+        if (Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
+        {
+            // float delta = maxThumbYAxisAngle;
+            // float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, -5f, 15f);
+
+            // if (thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f) // toward index finger direction
+            // {
+            //     // Old formula:
+            //     // float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y + 360f + delta * (thumbPalmAngleDiff / 45f);
+
+            //     float targetYAtMinDiff = -5f + thumbFingerJoint1MaxRotationVector.y + 360f + delta * (-5f / 45f);
+            //     float targetYAtMaxDiff = 15f + thumbFingerJoint1MaxRotationVector.y + 360f + delta * (15f / 45f);
+            //     float targetY = Remap(-5f, 15f, targetYAtMinDiff, targetYAtMaxDiff, clampedThumbPalmAngleDiff);
+            //     thumbPronation360ZoneDebug = $"/////360 zone targetY: {targetY:F4}, minY: {targetYAtMinDiff:F4}, maxY: {targetYAtMaxDiff:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint1MaxRotationVector.y: {thumbFingerJoint1MaxRotationVector.y:F4}, delta: {delta:F4}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}, clampedDiff: {clampedThumbPalmAngleDiff:F4}";
+            //     if (targetY >= 420f) targetY = 420f;
+            //     Vector3 euler = targetRotation.eulerAngles;
+            //     targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+            // }
+            // else
+            // {
+            //     // Old formula:
+            //     // float targetY = baseAngle + thumbFingerJoint1MaxRotationVector.y - delta * (thumbPalmAngleDiff / 45f);
+
+            //     float targetYAtMinDiff = -5f + thumbFingerJoint1MaxRotationVector.y - delta * (-5f / 45f);
+            //     float targetYAtMaxDiff = 15f + thumbFingerJoint1MaxRotationVector.y - delta * (15f / 45f);
+            //     float targetY = Remap(-5f, 15f, targetYAtMinDiff, targetYAtMaxDiff, clampedThumbPalmAngleDiff);
+            //     thumbPronationNon360ZoneDebug = $"/////non-360 zone targetY: {targetY:F4}, minY: {targetYAtMinDiff:F4}, maxY: {targetYAtMaxDiff:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint1MaxRotationVector.y: {thumbFingerJoint1MaxRotationVector.y:F4}, delta: {delta:F4}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}, clampedDiff: {clampedThumbPalmAngleDiff:F4}";
+            //     if (targetY <= 300f) targetY = 300f;
+            //     Vector3 euler = targetRotation.eulerAngles;
+            //     targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+            // }
+
+            if (isFullRangeMapping)
+            {
+                float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, 0f, 15f);
+                bool towardIndexFinger = thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f;
+                float startYUnwrapped = towardIndexFinger
+                    ? thumbFingerJoint1MaxRotationVector.y + 360f
+                    : thumbFingerJoint1MaxRotationVector.y;
+
+                if (towardIndexFinger) // toward index finger direction
                 {
-                    thumbAngleHistory.Clear();
-                    isThumbRotatingNegative = true;
-                }
-
-                float currentTime = Time.time;
-                thumbAngleHistory.Enqueue((currentTime, jointAngle.thumbPalmAngle));
-
-                if (thumbAngleHistory.Count > 0)
-                {
-                    float oldestTime = thumbAngleHistory.Peek().time;
-                    float timeDiff = currentTime - oldestTime;
-
-                    if (timeDiff > DETECTION_WINDOW + 0.1f)
-                    {
-                        while (thumbAngleHistory.Count > 1 &&
-                               currentTime - thumbAngleHistory.Peek().time > DETECTION_WINDOW)
-                        {
-                            thumbAngleHistory.Dequeue();
-                        }
-                    }
-
-
-                    if (timeDiff >= DETECTION_WINDOW)
-                    {
-                        float oldestAngle = thumbAngleHistory.Peek().angle;
-                        float currentAngle = jointAngle.thumbPalmAngle;
-                        float angleChange = currentAngle - oldestAngle;
-
-                        bool previousDirection = isThumbRotatingNegative;
-
-                        if (isThumbRotatingNegative && angleChange >= DIRECTION_THRESHOLD)
-                        {
-                            isThumbRotatingNegative = false;
-                        }
-                        else if (!isThumbRotatingNegative && angleChange <= -DIRECTION_THRESHOLD)
-                        {
-                            isThumbRotatingNegative = true;
-                        }
-                        else
-                        {
-                            // Debug.Log("aaaaaaaaaaaaaaaaaaa");
-                        }
-                    }
-                    else
-                    {
-                        // Debug.Log("nnnnnnnnnnnnnnnnnnnnn");
-                    }
-                }
-
-                if (isThumbRotatingNegative)
-                {
-                    currentThumbRotationZ += twistRotationSpeed * Time.deltaTime;
-                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
+                    float targetYUnwrapped = Remap(0f, 15f, startYUnwrapped, 420f, clampedThumbPalmAngleDiff);
+                    float targetY = Mathf.Repeat(targetYUnwrapped, 360f);
+                    thumbPronation360ZoneDebug = $"!!!!!360 zone rawY: {targetYUnwrapped:F4}, wrappedY: {targetY:F4}, startYUnwrapped: {startYUnwrapped:F4}, thumbFingerJoint1MaxRotationVector.y: {thumbFingerJoint1MaxRotationVector.y:F4}, currentThumbRotationY: {currentThumbRotationY:F4}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}, clampedDiff: {clampedThumbPalmAngleDiff:F4}";
+                    Vector3 euler = targetRotation.eulerAngles;
+                    targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
                 }
                 else
                 {
-                    currentThumbRotationZ -= twistRotationSpeed * Time.deltaTime;
-                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
+                    float targetYUnwrapped = Remap(0f, 15f, startYUnwrapped, 420f, clampedThumbPalmAngleDiff);
+                    float targetY = Mathf.Repeat(targetYUnwrapped, 360f);
+                    thumbPronationNon360ZoneDebug = $"!!!!!non-360 zone rawY: {targetYUnwrapped:F4}, wrappedY: {targetY:F4}, startYUnwrapped: {startYUnwrapped:F4}, thumbFingerJoint1MaxRotationVector.y: {thumbFingerJoint1MaxRotationVector.y:F4}, currentThumbRotationY: {currentThumbRotationY:F4}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}, clampedDiff: {clampedThumbPalmAngleDiff:F4}";
+                    Vector3 euler = targetRotation.eulerAngles;
+                    targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
                 }
-
-                thumbFingerJoint2MaxRotationVector =
-                    (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
-            }
-        }
-        else
-        {
-            fingerTipTouchDurations["ThumbTwist"] = 0f;
-            isThumb2Triggered = false;
-            thumbAngleHistory.Clear();
-            isThumbRotatingNegative = true;
-        }
-
-        // Base angle from wrist-thumb angle - always apply this
-        float baseAngle = 45f - jointAngle.wristThumbAngle;                  // float baseAngle = 30f - jointAngle.wristThumbAngle;
-
-        targetRotation = ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, baseAngle + currentThumbRotationZ);
-
-        // mapping using wrist thumb angle
-        float wristThumbAngleDiff = 45f - jointAngle.wristThumbAngle;           // float wristThumbAngleDiff = 30f - jointAngle.wristThumbAngle;
-
-        if (isFullRangeMapping && Mathf.Abs(currentThumbRotationZ) > 0.1f && Mathf.Abs(wristThumbAngleDiff) > 0.1f)
-        {
-            float delta = maxThumbZAxisAngle;
-            if (delta <= 0)
-            {
-                float targetZ = baseAngle + thumbFingerJoint2MaxRotationVector.z - delta * (wristThumbAngleDiff / 45f);
-                // Debug.Log($"<<<<<<<<<<<<<<<< targetZ is : {targetZ}, baseAngle: {baseAngle}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z}, delta: {delta}, wristThumbAngleDiff: {wristThumbAngleDiff}");
-                if (targetZ <= 300f && targetZ >= 200f) targetZ = 300f;
-                if (targetZ >= 60f && targetZ <= 150f) targetZ = 60f;
-                Vector3 euler = targetRotation.eulerAngles;
-                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
             }
             else
             {
-                float targetZ = baseAngle + thumbFingerJoint2MaxRotationVector.z + delta * (wristThumbAngleDiff / 45f);
-                // Debug.Log($">>>>>>>>>>>>>>>>>>>>> targetZ is : {targetZ}, baseAngle: {baseAngle}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z}, delta: {delta}, wristThumbAngleDiff: {wristThumbAngleDiff}");
-                if (targetZ <= 300f && targetZ >= 200f) targetZ = 300f;
-                if (targetZ >= 60f && targetZ <= 150f) targetZ = 60f;
-                Vector3 euler = targetRotation.eulerAngles;
-                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+                float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, 0f, 15f);
+                bool towardIndexFinger = thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f;
+                float startYUnwrapped = towardIndexFinger
+                    ? thumbFingerJoint1MaxRotationVector.y + 360f
+                    : thumbFingerJoint1MaxRotationVector.y;
+
+                if (towardIndexFinger) // toward index finger direction
+                {
+                    float targetYUnwrapped = Remap(0f, 15f, startYUnwrapped, 420f, clampedThumbPalmAngleDiff);
+                    float targetY = Mathf.Repeat(targetYUnwrapped, 360f);
+                    thumbPronation360ZoneDebug = $"*****360 zone rawY: {targetYUnwrapped:F4}, wrappedY: {targetY:F4}, startYUnwrapped: {startYUnwrapped:F4}, thumbFingerJoint1MaxRotationVector.y: {thumbFingerJoint1MaxRotationVector.y:F4}, currentThumbRotationY: {currentThumbRotationY:F4}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}, clampedDiff: {clampedThumbPalmAngleDiff:F4}";
+                    Vector3 euler = targetRotation.eulerAngles;
+                    targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+                }
+                else
+                {
+                    float targetYUnwrapped = Remap(0f, 15f, startYUnwrapped, startYUnwrapped + 60f, clampedThumbPalmAngleDiff);
+                    float targetY = Mathf.Repeat(targetYUnwrapped, 360f);
+                    thumbPronationNon360ZoneDebug = $"*****non-360 zone rawY: {targetYUnwrapped:F4}, wrappedY: {targetY:F4}, startYUnwrapped: {startYUnwrapped:F4}, thumbFingerJoint1MaxRotationVector.y: {thumbFingerJoint1MaxRotationVector.y:F4}, currentThumbRotationY: {currentThumbRotationY:F4}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}, clampedDiff: {clampedThumbPalmAngleDiff:F4}";
+                    Vector3 euler = targetRotation.eulerAngles;
+                    targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+                }
             }
         }
 
+        // thumb snapping logic
 
-        //FIXME: snapping
+        thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
+        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
+
+        // snapping
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
-            if (!_thumbMotor2Locked && ThumbAngle2Center != null)
+            // Touch snapping is active - lock the current rotation
+            if (!_thumbMotor1Locked && ThumbAngle1Center != null)
             {
-                _thumbMotor2Locked = true;
-                _thumbMotor2LockedRot = ThumbAngle2Center.localRotation;
+                _thumbMotor1Locked = true;
+                _thumbMotor1LockedRot = ThumbAngle1Center.localRotation;
             }
 
-            if (ThumbAngle2Center != null)
-                ThumbAngle2Center.localRotation = _thumbMotor2LockedRot;
+            if (ThumbAngle1Center != null)
+                ThumbAngle1Center.localRotation = _thumbMotor1LockedRot;
         }
         else
         {
-            _thumbMotor2Locked = false;
+            // No touch snapping - apply angle-based snapping or normal rotation
+            _thumbMotor1Locked = false;
 
-            if (ThumbAngle2Center != null)
-                ThumbAngle2Center.localRotation = targetRotation;
-
-            // Debug.Log("ThumbAngle2Center.localRotation.eulerAngles.z : " + ThumbAngle2Center.localRotation.eulerAngles.z);
+            if (ThumbAngle1Center != null)
+            {
+                ThumbAngle1Center.localRotation = targetRotation;
+            }
         }
     }
     #endregion
@@ -1327,7 +1390,7 @@ public class ClawModuleController : MonoBehaviour
         indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 295f, 335f);
         thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
-        //FIXME: snapping
+        // snapping
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
             if (!_indexMotor1Locked && IndexAngle1Center != null)
@@ -1434,7 +1497,7 @@ public class ClawModuleController : MonoBehaviour
         indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
         thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
 
-        //FIXME: snapping
+        // snapping
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
             if (!_middleMotor1Locked && MiddleAngle1Center != null)
@@ -1874,7 +1937,7 @@ public class ClawModuleController : MonoBehaviour
         // finalAngleDebug = finalAngle;
         // targetRotationEulerDebug = targetRotation.eulerAngles;
 
-        //FIXME: Apply motor locking logic for extension
+        // motor locking logic for extension
         if (modeSwitching.modeSelect && paxiniTouchSnapped)
         {
             if (!motorLocked && jointTransform != null)
