@@ -10,6 +10,19 @@ public class TriggerRightWrist : MonoBehaviour
     public bool isRightWristTouched = false;
     public GameObject indicatorQuad; // The quad to show/hide
 
+    public bool IsEngaged
+    {
+        get
+        {
+            if (indicatorQuad != null)
+            {
+                return indicatorQuad.activeSelf;
+            }
+
+            return tcpSender != null && tcpSender.isSending;
+        }
+    }
+
     private void Start()
     {
         if (indicatorQuad != null)
