@@ -553,7 +553,7 @@ public class ClawModuleController : MonoBehaviour
             3,  // Expected motor ID for thumb
             5.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
-            innerExtensionFullRangeMapping,
+            isFullRangeMapping, //innerExtensionFullRangeMapping,
             paxiniValue.isThumbTouchSnapped
         );
 
@@ -578,7 +578,7 @@ public class ClawModuleController : MonoBehaviour
             4,  // Expected motor ID for thumb
             5.0f,  // Thumb requires 20 degree change
             jointAngle.thumbPalmAngle,  // Track thumbPalmAngle changes
-            tipExtensionFullRangeMapping,
+            isFullRangeMapping, //tipExtensionFullRangeMapping,
             paxiniValue.isThumbTouchSnapped
         );
 
@@ -617,7 +617,7 @@ public class ClawModuleController : MonoBehaviour
             7,
             5.0f,
             null,
-            innerExtensionFullRangeMapping,
+            isFullRangeMapping, //innerExtensionFullRangeMapping,
             paxiniValue.isIndexTouchSnapped
         );
 
@@ -642,7 +642,7 @@ public class ClawModuleController : MonoBehaviour
             8,
             5.0f,
             null,
-            tipExtensionFullRangeMapping,
+            isFullRangeMapping, //tipExtensionFullRangeMapping,
             paxiniValue.isIndexTouchSnapped
         );
 
@@ -674,7 +674,7 @@ public class ClawModuleController : MonoBehaviour
             11,
             5.0f,
             null,
-            innerExtensionFullRangeMapping,
+            isFullRangeMapping, //innerExtensionFullRangeMapping,
             paxiniValue.isMiddleTouchSnapped
         );
 
@@ -699,7 +699,7 @@ public class ClawModuleController : MonoBehaviour
             12,
             5.0f,
             null,
-            tipExtensionFullRangeMapping,
+            isFullRangeMapping, //tipExtensionFullRangeMapping,
             paxiniValue.isMiddleTouchSnapped
         );
         #endregion
