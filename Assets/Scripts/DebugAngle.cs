@@ -20,7 +20,7 @@ public class DebugAngle : MonoBehaviour
     public PaxiniValue paxiniValue;
     public TcpSender tcpSender;
     public TriggerRightWrist triggerRightWrist;
-    public ControllerLocatorLeft controllerLocatorLeft;
+    // public ControllerLocatorLeft controllerLocatorLeft;
 
     public GameObject r_wrist;
 
@@ -50,12 +50,12 @@ public class DebugAngle : MonoBehaviour
                                 // "isRightMiddleTipTouched" + rightMiddleTip.isRightMiddleTipTouched.ToString() + "\n" +
                                 // "index Middle distance: " + jointAngle.indexMiddleDistance.ToString("F2") + "\n" +
                                 "indexMiddleAngleOnPalm: " + jointAngle.indexMiddleAngleOnPalm.ToString("F2") + "°\n" +
-                                (controllerLocatorLeft != null
-                                        ? "Left Controller Position: (" +
-                                            controllerLocatorLeft.currentControllerPosition.x.ToString("F3") + ", " +
-                                            controllerLocatorLeft.currentControllerPosition.y.ToString("F3") + ", " +
-                                            controllerLocatorLeft.currentControllerPosition.z.ToString("F3") + ")\n"
-                                        : "Left Controller Position: not assigned\n") +
+                                // (controllerLocatorLeft != null
+                                //         ? "Left Controller Position: (" +
+                                //             controllerLocatorLeft.currentControllerPosition.x.ToString("F3") + ", " +
+                                //             controllerLocatorLeft.currentControllerPosition.y.ToString("F3") + ", " +
+                                //             controllerLocatorLeft.currentControllerPosition.z.ToString("F3") + ")\n"
+                                //         : "Left Controller Position: not assigned\n") +
                 // "thumb delta<=0 debug: " + clawModuleController.thumbAbductionDeltaNegativeDebug + "\n" +
                 // "thumb delta>0 debug: " + clawModuleController.thumbAbductionDeltaPositiveDebug + "\n" +
                 // "thumbAbductionDeltaNegativeDebug: " + clawModuleController.thumbAbductionDeltaNegativeDebug + "\n" +
