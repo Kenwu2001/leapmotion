@@ -1309,7 +1309,7 @@ public class ClawModuleController : MonoBehaviour
             if (fingerTipTouchDurations["ThumbAbduction"] > 0.2f)
             {
                 currentThumbRotationY -= (-jointAngle.isClockWise) * rotationSpeed * Time.deltaTime;
-                currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 60f);
+                currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -90f, 90f);
 
                 thumbFingerJoint1MaxRotationVector =
                     (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
@@ -1331,9 +1331,19 @@ public class ClawModuleController : MonoBehaviour
 
         // mapping using thumb palm angle
         float thumbPalmAngleDiff = 45f - jointAngle.thumbPalmAngle;
+        bool towardIndexFinger = thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f;
         thumbPronation360ZoneDebug = $"mapping skipped, towardIndex pending, isFullRangeMapping: {isFullRangeMapping}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}";
         thumbPronationNon360ZoneDebug = $"mapping skipped, towardIndex pending, isFullRangeMapping: {isFullRangeMapping}, thumbPalmAngleDiff: {thumbPalmAngleDiff:F4}";
-        if (Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
+        // Always apply remap (no outer gate) when currentThumbRotationY >= 60f to prevent twitch at diff≈0
+        if (towardIndexFinger && currentThumbRotationY >= 60f)
+        {
+            float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, 0f, 15f);
+            float targetY = Remap(0f, 15f, 60f, currentThumbRotationY, clampedThumbPalmAngleDiff);
+            Debug.Log($"currentThumbRotationY: {currentThumbRotationY:F4}, targetY: {targetY:F4}, clampedThumbPalmAngleDiff: {clampedThumbPalmAngleDiff:F4}");
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+        }
+        else if (Mathf.Abs(thumbPalmAngleDiff) > 0.1f)
         {
             // float delta = maxThumbYAxisAngle;
             // float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, -5f, 15f);
@@ -1368,12 +1378,11 @@ public class ClawModuleController : MonoBehaviour
             if (isFullRangeMapping)
             {
                 float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, 0f, 15f);
-                bool towardIndexFinger = thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f;
                 float startYUnwrapped = towardIndexFinger
                     ? thumbFingerJoint1MaxRotationVector.y + 360f
                     : thumbFingerJoint1MaxRotationVector.y;
 
-                if (towardIndexFinger) // toward index finger direction
+                if (towardIndexFinger) // toward index finger direction (currentThumbRotationY < 60f here)
                 {
                     float targetYUnwrapped = Remap(0f, 15f, startYUnwrapped, 420f, clampedThumbPalmAngleDiff);
                     float targetY = Mathf.Repeat(targetYUnwrapped, 360f);
@@ -1393,7 +1402,6 @@ public class ClawModuleController : MonoBehaviour
             else
             {
                 float clampedThumbPalmAngleDiff = Mathf.Clamp(thumbPalmAngleDiff, 0f, 15f);
-                bool towardIndexFinger = thumbFingerJoint1MaxRotationVector.y < 100f && thumbFingerJoint1MaxRotationVector.y > 0f;
                 float startYUnwrapped = towardIndexFinger
                     ? thumbFingerJoint1MaxRotationVector.y + 360f
                     : thumbFingerJoint1MaxRotationVector.y;

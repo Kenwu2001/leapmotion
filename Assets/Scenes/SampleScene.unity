@@ -11304,7 +11304,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &282863896
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -16048,7 +16048,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 721031720}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.4071576, y: -0.6616282, z: 0.6271951, w: 0.055651743}
+  m_LocalRotation: {x: 0.4134895, y: 0.11992554, z: 0.007421501, w: -0.90254605}
   m_LocalPosition: {x: 0.019, y: -0.072, z: 0.166}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 1
@@ -16056,7 +16056,7 @@ Transform:
   - {fileID: 1129377014}
   - {fileID: 359970680}
   m_Father: {fileID: 274459469}
-  m_LocalEulerAnglesHint: {x: 61.076, y: -244.65201, z: -104.158}
+  m_LocalEulerAnglesHint: {x: -48.432, y: -378.482, z: 7.428}
 --- !u!64 &721031722
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -37196,6 +37196,8 @@ MonoBehaviour:
   finalAngleDebug: 0
   targetRotationEulerDebug: {x: 0, y: 0, z: 0}
   indexTargetYDebug: NaN
+  indexAbductionDeltaDebug: NaN
+  indexAbductionTargetZDebug: NaN
   thumbAbductionDeltaNegativeDebug: N/A
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
@@ -45102,6 +45104,8 @@ MonoBehaviour:
   finalAngleDebug: 0
   targetRotationEulerDebug: {x: 0, y: 0, z: 0}
   indexTargetYDebug: NaN
+  indexAbductionDeltaDebug: NaN
+  indexAbductionTargetZDebug: NaN
   thumbAbductionDeltaNegativeDebug: N/A
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
@@ -56524,6 +56528,8 @@ MonoBehaviour:
   finalAngleDebug: 0
   targetRotationEulerDebug: {x: 0, y: 0, z: 0}
   indexTargetYDebug: NaN
+  indexAbductionDeltaDebug: NaN
+  indexAbductionTargetZDebug: NaN
   thumbAbductionDeltaNegativeDebug: N/A
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
@@ -62239,6 +62245,8 @@ MonoBehaviour:
   finalAngleDebug: 0
   targetRotationEulerDebug: {x: 0, y: 0, z: 0}
   indexTargetYDebug: NaN
+  indexAbductionDeltaDebug: NaN
+  indexAbductionTargetZDebug: NaN
   thumbAbductionDeltaNegativeDebug: N/A
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
