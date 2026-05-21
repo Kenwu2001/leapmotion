@@ -1588,12 +1588,12 @@ public class ClawModuleController : MonoBehaviour
 
             if (fingerTipTouchDurations["MiddleTwistY"] > 0.2f)
             {
-                if (currentMiddleRotationY <= 60f && currentMiddleRotationY >= -60)
+                if (currentMiddleRotationY <= 90f && currentMiddleRotationY >= -90)
                 {
                     currentMiddleRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
                 }
 
-                currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, -60f, 60f);
+                currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, -90f, 90f);
 
                 middleFingerJoint1MaxRotationVector =
                     (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
@@ -1607,7 +1607,7 @@ public class ClawModuleController : MonoBehaviour
 
         targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
 
-        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle1Center != null)
+        if (MiddleAngle1Center != null)
         {
             // float delta = maxMiddleYAxisAngle;
             // float targetY = isFullRangeMapping
@@ -1621,15 +1621,18 @@ public class ClawModuleController : MonoBehaviour
 
             if (isFullRangeMapping)
             {
-                float targetY = Remap(20, 57, -60, maxMiddleYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                float targetY;
+                if(currentMiddleRotationY < -60f) targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                else targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
             }
             else
             {
                 float targetY;
-                if (maxMiddleYAxisAngle > 0) targetY = Remap(20, 57, -60 + maxMiddleYAxisAngle, maxMiddleYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else targetY = Remap(20, 57, -60, maxMiddleYAxisAngle, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                if (currentMiddleRotationY > 0) targetY = Remap(20, 57, -60 + currentMiddleRotationY, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                else if(currentMiddleRotationY <= 0 && currentMiddleRotationY >= -60) targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                else targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
             }
