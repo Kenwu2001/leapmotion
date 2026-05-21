@@ -208,6 +208,8 @@ public class ClawModuleController : MonoBehaviour
     public float finalAngleDebug = 0f;
     public Vector3 targetRotationEulerDebug = Vector3.zero;
     public float indexTargetYDebug = float.NaN;
+    public float indexAbductionDeltaDebug = float.NaN;
+    public float indexAbductionTargetZDebug = float.NaN;
     public string thumbAbductionDeltaNegativeDebug = "N/A";
     public string thumbAbductionDeltaPositiveDebug = "N/A";
     public string thumbPronation360ZoneDebug = "N/A";
@@ -1046,12 +1048,14 @@ public class ClawModuleController : MonoBehaviour
                 if (isIndexRotatingNegative)
                 {
                     currentIndexRotationZ -= rotationSpeed * Time.deltaTime;
-                    currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+                    // currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+                    currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 58f);
                 }
                 else
                 {
                     currentIndexRotationZ += rotationSpeed * Time.deltaTime;
-                    currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+                    // currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 0f);
+                    currentIndexRotationZ = Mathf.Clamp(currentIndexRotationZ, -58f, 58f);
                 }
 
                 indexFingerJoint2MaxRotationVector =
@@ -1067,15 +1071,50 @@ public class ClawModuleController : MonoBehaviour
         }
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentIndexRotationZ);
+        indexAbductionDeltaDebug = float.NaN;
+        indexAbductionTargetZDebug = float.NaN;
 
-        if (jointAngle.indexMiddleAngleOnPalm < 57f && IndexAngle2Center != null)
+        //FIXME: abduction remapping
+        if (IndexAngle2Center != null)
         {
-            float delta = maxIndexZAxisAngle;
-            float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
-            if (targetZ >= 360f) targetZ = 0.1f;
+            // float delta = maxIndexZAxisAngle;
+            // float targetZ = indexFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            // if (targetZ >= 360f) targetZ = 0.1f;
 
-            Vector3 euler = targetRotation.eulerAngles;
-            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+            // indexAbductionDeltaDebug = delta;
+            // indexAbductionTargetZDebug = targetZ;
+
+            // Vector3 euler = targetRotation.eulerAngles;
+            // targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+
+            if (isFullRangeMapping)
+            {
+                float delta = maxIndexZAxisAngle;
+                float targetZ = 0f;
+
+                if (delta <= 0) targetZ = Remap(20, 57, 360, 360 + delta, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57)); // 360 + delta
+                else targetZ = Remap(20, 57, delta, 0, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+
+                indexAbductionDeltaDebug = delta;
+                indexAbductionTargetZDebug = targetZ;
+
+                Vector3 euler = targetRotation.eulerAngles;
+                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+            }
+            else
+            {
+                float delta = maxIndexZAxisAngle;
+                float targetZ = 0f;
+
+                if (delta <= 0) targetZ = Remap(20, 57, 360, 360 + delta, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57)); // 360 + delta
+                else targetZ = Remap(20, 57, delta, 0, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+
+                indexAbductionDeltaDebug = delta;
+                indexAbductionTargetZDebug = targetZ;
+
+                Vector3 euler = targetRotation.eulerAngles;
+                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+            }
         }
 
         // snapping
@@ -1174,12 +1213,14 @@ public class ClawModuleController : MonoBehaviour
                 if (isMiddleRotatingPositive)
                 {
                     currentMiddleRotationZ += rotationSpeed * Time.deltaTime;
-                    currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                    // currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                    currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, -58f, 58f);
                 }
                 else
                 {
                     currentMiddleRotationZ -= rotationSpeed * Time.deltaTime;
-                    currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                    // currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
+                    currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, -58f, 58f);
                 }
 
                 middleFingerJoint2MaxRotationVector =
@@ -1196,15 +1237,31 @@ public class ClawModuleController : MonoBehaviour
 
         targetRotation *= Quaternion.Euler(0f, 0f, currentMiddleRotationZ);
 
-        if (jointAngle.indexMiddleAngleOnPalm < 57f && MiddleAngle2Center != null)
+        //FIXME: abduction remapping
+        if (MiddleAngle2Center != null)
         {
-            float delta = maxMiddleZAxisAngle;
+            // float delta = maxMiddleZAxisAngle;
 
-            float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
-            if (targetZ <= 0f) targetZ = 0f;
+            // float targetZ = middleFingerJoint2MaxRotationVector.z - delta * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+            // if (targetZ <= 0f) targetZ = 0f;
 
-            Vector3 euler = targetRotation.eulerAngles;
-            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+            // Vector3 euler = targetRotation.eulerAngles;
+            // targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+
+            if (isFullRangeMapping)
+            {
+                float delta = maxMiddleZAxisAngle;
+                float targetZ = 0f;
+
+                if (delta >= 0) targetZ = Remap(20, 57, 360, 360 + delta, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57)); // 360 + delta
+                else targetZ = Remap(20, 57, delta, 0, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+
+                // indexAbductionDeltaDebug = delta;
+                // indexAbductionTargetZDebug = targetZ;
+
+                Vector3 euler = targetRotation.eulerAngles;
+                targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+            }
         }
 
         // snapping
