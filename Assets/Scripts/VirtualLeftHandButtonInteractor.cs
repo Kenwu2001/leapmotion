@@ -31,12 +31,6 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             }
         }
 
-        public void ToggleState()
-        {
-            isOn = !isOn;
-            ApplyCurrentColor();
-        }
-
         public void ApplyCurrentColor()
         {
             if (buttonRenderer == null)
@@ -48,10 +42,12 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         }
     }
 
-    [Header("Three Button Setup")]
+    [Header("Button Setup")]
     public ButtonBinding button1 = new ButtonBinding { buttonName = "Button 1" };
     public ButtonBinding button2 = new ButtonBinding { buttonName = "Button 2" };
-    public ButtonBinding button3 = new ButtonBinding { buttonName = "Button 3" };
+
+    [Header("State Sources")]
+    public ClawModuleController clawModuleController;
 
     [Header("Debug")]
     public string currentTouchedButton = "None";
@@ -59,9 +55,14 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
 
     private void Awake()
     {
+        ApplyDefaultNames();
         InitializeButton(button1);
         InitializeButton(button2);
-        InitializeButton(button3);
+    }
+
+    private void Update()
+    {
+        SyncButtonStates();
     }
 
     private void Reset()
@@ -76,15 +77,13 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (TryHandleEnter(button1, other)) return;
-        if (TryHandleEnter(button2, other)) return;
-        TryHandleEnter(button3, other);
+        TryHandleEnter(button2, other);
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (TryHandleExit(button1, other)) return;
-        if (TryHandleExit(button2, other)) return;
-        TryHandleExit(button3, other);
+        TryHandleExit(button2, other);
     }
 
     private bool TryHandleEnter(ButtonBinding button, Collider other)
@@ -97,9 +96,8 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (!button.isTouched)
         {
             button.isTouched = true;
-            button.ToggleState();
+            HandleButtonPress(button);
             currentTouchedButton = button.buttonName;
-            interactionDebug = "Touch enter: " + button.buttonName + " -> " + (button.isOn ? "ON" : "OFF");
             button.onEnter?.Invoke();
         }
 
@@ -140,13 +138,6 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
-        if (button3.isTouched)
-        {
-            currentTouchedButton = button3.buttonName;
-            interactionDebug = "Touch stay: " + button3.buttonName;
-            return;
-        }
-
         currentTouchedButton = "None";
         interactionDebug = "No button touched";
     }
@@ -159,5 +150,68 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         }
 
         button.Initialize();
+    }
+
+    private void SyncButtonStates()
+    {
+        if (clawModuleController != null)
+        {
+            SetButtonState(button1, clawModuleController.isFullRangeMapping);
+            SetButtonState(button2, clawModuleController.IsResetState);
+        }
+    }
+
+    private void SetButtonState(ButtonBinding button, bool isOn)
+    {
+        if (button == null || button.isOn == isOn)
+        {
+            return;
+        }
+
+        button.isOn = isOn;
+        button.ApplyCurrentColor();
+    }
+
+    private void ApplyDefaultNames()
+    {
+        if (button1.buttonName == "Button 1")
+        {
+            button1.buttonName = "FullRangeMapping";
+        }
+
+        if (button2.buttonName == "Button 2")
+        {
+            button2.buttonName = "Reset";
+        }
+    }
+
+    private void HandleButtonPress(ButtonBinding button)
+    {
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        if (button == button1)
+        {
+            clawModuleController.isFullRangeMapping = !clawModuleController.isFullRangeMapping;
+            SetButtonState(button1, clawModuleController.isFullRangeMapping);
+            interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.isFullRangeMapping;
+            return;
+        }
+
+        if (button == button2)
+        {
+            if (!clawModuleController.IsResetState)
+            {
+                clawModuleController.ResetFingerRotations();
+                SetButtonState(button2, clawModuleController.IsResetState);
+                interactionDebug = "Touch enter: " + button.buttonName + " -> true";
+            }
+            else
+            {
+                interactionDebug = "Touch enter: " + button.buttonName + " ignored";
+            }
+        }
     }
 }

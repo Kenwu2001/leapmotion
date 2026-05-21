@@ -14,10 +14,21 @@ public class HUDText : MonoBehaviour
 
     void Update()
     {
+        if (textMesh == null || clawModuleController == null)
+        {
+            return;
+        }
+
+        bool isReset = clawModuleController.IsResetState;
+        bool isFullRangeMapping = clawModuleController.isFullRangeMapping;
         bool isEngaged = triggerRightWrist != null && triggerRightWrist.IsEngaged;
+        string fullRangeColor = isFullRangeMapping ? "green" : "red";
+        string resetColor = isReset ? "green" : "red";
+        string engagementColor = isEngaged ? "green" : "red";
 
         textMesh.text =
-            $"FullRangeMapping: {clawModuleController.isFullRangeMapping}\n" +
-            $"Engagement: {isEngaged}";
+            $"FullRangeMapping: <color={fullRangeColor}>{isFullRangeMapping}</color>\n" +
+            $"Reset: <color={resetColor}>{isReset}</color>\n" +
+            $"Engagement: <color={engagementColor}>{isEngaged}</color>";
     }
 }

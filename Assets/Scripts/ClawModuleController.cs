@@ -213,6 +213,28 @@ public class ClawModuleController : MonoBehaviour
     public string thumbPronation360ZoneDebug = "N/A";
     public string thumbPronationNon360ZoneDebug = "N/A";
 
+    public bool IsResetState
+    {
+        get
+        {
+            const float epsilon = 0.0001f;
+
+            return Mathf.Abs(currentThumbRotationY) <= epsilon &&
+                   Mathf.Abs(currentThumbRotationZ) <= epsilon &&
+                   Mathf.Abs(currentIndexRotationY) <= epsilon &&
+                   Mathf.Abs(currentIndexRotationZ) <= epsilon &&
+                   Mathf.Abs(currentMiddleRotationY) <= epsilon &&
+                   Mathf.Abs(currentMiddleRotationZ) <= epsilon &&
+                   Mathf.Abs(currentThumbTipRotationZ) <= epsilon &&
+                   Mathf.Abs(currentIndexTipRotationZ) <= epsilon &&
+                   Mathf.Abs(currentMiddleTipRotationZ) <= epsilon &&
+                   Mathf.Abs(currentThumbInnerExtensionRotationZ) <= epsilon &&
+                   Mathf.Abs(currentIndexInnerExtensionRotationZ) <= epsilon &&
+                   Mathf.Abs(currentMiddleInnerExtensionRotationZ) <= epsilon &&
+                   !hasThumbAbductionAdjustment;
+        }
+    }
+
     // Track thumbPalmAngle changes for direction switching
     private float previousThumbPalmAngle = 0f;
     private float thumbPalmAngleChangeTimer = 0f;

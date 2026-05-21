@@ -13,6 +13,7 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject canvasPlane;
     public bool alwaysShowCanvasPlane = false;
     public bool previewCanvasPlaneOffset = false;
+    public float canvasShowDelaySeconds = 1f;
 
     private Transform canvasOriginalParent;
     private Vector3 canvasInitialLocalPosition;
@@ -21,6 +22,7 @@ public class ControllerLocatorLeft : MonoBehaviour
     private bool isCanvasFrozenInWorld;
     private bool wasPreviewCanvasPlaneOffset;
     private bool wasAlwaysShowCanvasPlane;
+    private float leftHandHiddenTimer;
 
     void Awake()
     {
@@ -147,6 +149,15 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         if (isLeftHandVisible)
         {
+            leftHandHiddenTimer = 0f;
+            HideCanvasPlane();
+            return;
+        }
+
+        leftHandHiddenTimer += Time.deltaTime;
+
+        if (leftHandHiddenTimer < canvasShowDelaySeconds)
+        {
             HideCanvasPlane();
             return;
         }
@@ -176,6 +187,7 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         canvasPlane.SetActive(true);
         isCanvasFrozenInWorld = false;
+        leftHandHiddenTimer = 0f;
     }
 
     private void ShowCanvasPlaneAttached(bool restoreInitialTransform)
@@ -200,6 +212,7 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         canvasPlane.SetActive(true);
         isCanvasFrozenInWorld = false;
+        leftHandHiddenTimer = 0f;
     }
 
     private bool IsLeftHandModelVisible()
@@ -268,5 +281,10 @@ public class ControllerLocatorLeft : MonoBehaviour
         canvasTransform.localRotation = canvasInitialLocalRotation;
         canvasTransform.localScale = canvasInitialLocalScale;
         isCanvasFrozenInWorld = false;
+
+        if (alwaysShowCanvasPlane || previewCanvasPlaneOffset)
+        {
+            leftHandHiddenTimer = 0f;
+        }
     }
 }
