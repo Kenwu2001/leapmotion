@@ -839,12 +839,12 @@ public class ClawModuleController : MonoBehaviour
                 if (isThumbRotatingNegative)
                 {
                     currentThumbRotationZ += twistRotationSpeed * Time.deltaTime;
-                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
+                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -90f, 90f);
                 }
                 else
                 {
                     currentThumbRotationZ -= twistRotationSpeed * Time.deltaTime;
-                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
+                    currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -90f, 90f);
                 }
 
                 hasThumbAbductionAdjustment = true;
@@ -872,7 +872,15 @@ public class ClawModuleController : MonoBehaviour
         // mapping using wrist thumb angle
         float wristThumbAngleDiff = 45f - jointAngle.wristThumbAngle;           // float wristThumbAngleDiff = 30f - jointAngle.wristThumbAngle;
 
-        if (hasThumbAbductionAdjustment && Mathf.Abs(wristThumbAngleDiff) > 0.1f) // only apply abduction adjustment after the user has actually engaged thumb twist
+        if (currentThumbRotationZ >= 60)
+        {
+            float clampedwristThumbAngleDiff = Mathf.Clamp(wristThumbAngleDiff, 0f, 15f);
+            float targetZ = Remap(0f, 15f, 60f, currentThumbRotationZ, clampedwristThumbAngleDiff);
+            Debug.Log($"currentThumbRotationY: {currentThumbRotationZ:F4}, targetZ: {targetZ:F4}, clampedwristThumbAngleDiff: {clampedwristThumbAngleDiff:F4}");
+            Vector3 euler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
+        }
+        else if (hasThumbAbductionAdjustment && Mathf.Abs(wristThumbAngleDiff) > 0.1f)
         {
             // if(isFullRangeMapping)
             // {
@@ -906,20 +914,20 @@ public class ClawModuleController : MonoBehaviour
                 //     : thumbFingerJoint1MaxRotationVector.y;
                 float delta = maxThumbZAxisAngle;
 
-                if (delta <= 0)
+                if (currentThumbRotationZ <= 0)
                 {
-                    float targetZUnwrapped = Remap(0f, 15f, delta, 60f, clampedwristThumbAngleDiff);
+                    float targetZUnwrapped = Remap(0f, 15f, currentThumbRotationZ, 60f, clampedwristThumbAngleDiff);
                     float targetZ = Mathf.Repeat(targetZUnwrapped, 360f);
 
-                    thumbAbductionDeltaNegativeDebug = $"delta<=0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
+                    // thumbAbductionDeltaNegativeDebug = $"delta<=0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
                     Vector3 euler = targetRotation.eulerAngles;
                     targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
                 }
                 else // toward index finger direction
                 {
-                    float targetZUnwrapped = Remap(0f, 15f, delta, 60f, clampedwristThumbAngleDiff);
+                    float targetZUnwrapped = Remap(0f, 15f, currentThumbRotationZ, 60f, clampedwristThumbAngleDiff);
                     float targetZ = Mathf.Repeat(targetZUnwrapped, 360f);
-                    thumbAbductionDeltaPositiveDebug = $"delta>0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
+                    // thumbAbductionDeltaPositiveDebug = $"delta>0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
                     Vector3 euler = targetRotation.eulerAngles;
                     targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
                 }
@@ -929,20 +937,20 @@ public class ClawModuleController : MonoBehaviour
                 float clampedwristThumbAngleDiff = Mathf.Clamp(wristThumbAngleDiff, 0f, 15f);
                 float delta = maxThumbZAxisAngle;
 
-                if (delta <= 0)
+                if (currentThumbRotationZ <= 0)
                 {
-                    float targetZUnwrapped = Remap(0f, 15f, delta, 60f + delta, clampedwristThumbAngleDiff);
+                    float targetZUnwrapped = Remap(0f, 15f, currentThumbRotationZ, 60f + currentThumbRotationZ, clampedwristThumbAngleDiff);
                     float targetZ = Mathf.Repeat(targetZUnwrapped, 360f);
 
-                    thumbAbductionDeltaNegativeDebug = $"delta<=0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
+                    // thumbAbductionDeltaNegativeDebug = $"delta<=0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
                     Vector3 euler = targetRotation.eulerAngles;
                     targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
                 }
                 else // toward index finger direction
                 {
-                    float targetZUnwrapped = Remap(0f, 15f, delta, 60f, clampedwristThumbAngleDiff);
+                    float targetZUnwrapped = Remap(0f, 15f, currentThumbRotationZ, 60f, clampedwristThumbAngleDiff);
                     float targetZ = Mathf.Repeat(targetZUnwrapped, 360f);
-                    thumbAbductionDeltaPositiveDebug = $"delta>0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
+                    // thumbAbductionDeltaPositiveDebug = $"delta>0 targetZ: {targetZ:F4}, baseAngle: {baseAngle:F4}, thumbFingerJoint2MaxRotationVector.z: {thumbFingerJoint2MaxRotationVector.z:F4}, delta: {delta:F4}, wristThumbAngleDiff: {wristThumbAngleDiff:F4}";
                     Vector3 euler = targetRotation.eulerAngles;
                     targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
                 }
@@ -1520,7 +1528,7 @@ public class ClawModuleController : MonoBehaviour
             if (isFullRangeMapping)
             {
                 float targetY;
-                if(currentIndexRotationY > 60f) targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                if (currentIndexRotationY > 60f) targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 else targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
@@ -1529,7 +1537,7 @@ public class ClawModuleController : MonoBehaviour
             {
                 float targetY;
                 if (currentIndexRotationY <= 0) targetY = Remap(20, 57, 60 + currentIndexRotationY, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else if(currentIndexRotationY > 0 && currentIndexRotationY <= 60f) targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                else if (currentIndexRotationY > 0 && currentIndexRotationY <= 60f) targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 else targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
@@ -1630,7 +1638,7 @@ public class ClawModuleController : MonoBehaviour
             if (isFullRangeMapping)
             {
                 float targetY;
-                if(currentMiddleRotationY < -60f) targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                if (currentMiddleRotationY < -60f) targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 else targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
@@ -1639,7 +1647,7 @@ public class ClawModuleController : MonoBehaviour
             {
                 float targetY;
                 if (currentMiddleRotationY > 0) targetY = Remap(20, 57, -60 + currentMiddleRotationY, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else if(currentMiddleRotationY <= 0 && currentMiddleRotationY >= -60) targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                else if (currentMiddleRotationY <= 0 && currentMiddleRotationY >= -60) targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 else targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
