@@ -31,7 +31,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
     private bool wasColliding = false;
     private bool originalMappingState;
     private float storedThumbRotationY, storedThumbRotationZ;
-    private float storedIndexRotationY, storedIndexRotationZ;
+    private float storedIndexRotationY, storedIndexRotationZMax, storedIndexRotationZMin;
     private float storedMiddleRotationY, storedMiddleRotationZ;
 
     void Start()
@@ -184,7 +184,8 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         storedThumbRotationY = clawController.currentThumbRotationY;
         storedThumbRotationZ = clawController.currentThumbRotationZ;
         storedIndexRotationY = clawController.currentIndexRotationY;
-        storedIndexRotationZ = clawController.currentIndexRotationZ;
+        storedIndexRotationZMax = clawController.currentIndexRotationZMax;
+        storedIndexRotationZMin = clawController.currentIndexRotationZMin;
         storedMiddleRotationY = clawController.currentMiddleRotationY;
         storedMiddleRotationZ = clawController.currentMiddleRotationZ;
 
@@ -197,7 +198,8 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         clawController.currentThumbRotationY = storedThumbRotationY;
         clawController.currentThumbRotationZ = storedThumbRotationZ;
         clawController.currentIndexRotationY = storedIndexRotationY;
-        clawController.currentIndexRotationZ = storedIndexRotationZ;
+        clawController.currentIndexRotationZMax = storedIndexRotationZMax;
+        clawController.currentIndexRotationZMin = storedIndexRotationZMin;
         clawController.currentMiddleRotationY = storedMiddleRotationY;
         clawController.currentMiddleRotationZ = storedMiddleRotationZ;
     }

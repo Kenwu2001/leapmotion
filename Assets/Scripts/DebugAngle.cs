@@ -186,7 +186,10 @@ public class DebugAngle : MonoBehaviour
                                         // "Thumb3(x): " + ((int)clawModuleController.ThumbAngle3Center.localRotation.eulerAngles.x).ToString() + "\n" +
                                         // "Thumb4(x): " + ((int)clawModuleController.ThumbAngle4Center.localRotation.eulerAngles.x).ToString() + "\n" +
                                         // "Index1(y): " + ((int)clawModuleController.IndexAngle1Center.localRotation.eulerAngles.y).ToString() + "\n" +
-                                        "Index2(z): " + ((int)clawModuleController.IndexAngle2Center.localRotation.eulerAngles.z).ToString() + "\n"
+                                        "Index2(z): " + ((int)clawModuleController.IndexAngle2Center.localRotation.eulerAngles.z).ToString() + "\n" +
+                                        "maxIndexZAxisAngle: " + clawModuleController.maxIndexZAxisAngle.ToString("F4") + "\n" +
+                                        "indexGripperJoint2MaxRotationVector.z: " + clawModuleController.indexGripperJoint2MaxRotationVector.z.ToString("F4") + "\n" +
+                                        "indexGripperJoint2MinRotationVector.z: " + clawModuleController.indexGripperJoint2MinRotationVector.z.ToString("F4") + "\n"
                                         // "Index3(x): " + ((int)clawModuleController.IndexAngle3Center.localRotation.eulerAngles.x).ToString() + "\n" +
                                         // "Index4(x): " + ((int)clawModuleController.IndexAngle4Center.localRotation.eulerAngles.x).ToString() + "\n" +
                                         // "Middle1(y): " + ((int)clawModuleController.MiddleAngle1Center.localRotation.eulerAngles.y).ToString() + "\n" +
