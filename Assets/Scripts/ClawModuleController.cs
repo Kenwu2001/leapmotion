@@ -122,14 +122,17 @@ public class ClawModuleController : MonoBehaviour
     private Quaternion IndexAngle2CenterInitialRotation;
 
     public Vector3 indexGripperJoint1MaxRotationVector;
+    public Vector3 indexGripperJoint1MinRotationVector;
     public Vector3 indexGripperJoint2MaxRotationVector;
     public Vector3 indexGripperJoint2MinRotationVector;
 
-    public float currentIndexRotationY = 0f;
+    public float currentIndexRotationYMax = 0f;
+    public float currentIndexRotationYMin = 0f;
     public float currentIndexRotationZMax = 0f;
     public float currentIndexRotationZMin = 0f;
 
     public float maxIndexYAxisAngle;
+    public float minIndexYAxisAngle;
     public float maxIndexZAxisAngle;
     public float minIndexZAxisAngle;
 
@@ -226,7 +229,8 @@ public class ClawModuleController : MonoBehaviour
 
             return Mathf.Abs(currentThumbRotationY) <= epsilon &&
                    Mathf.Abs(currentThumbRotationZ) <= epsilon &&
-                   Mathf.Abs(currentIndexRotationY) <= epsilon &&
+                     Mathf.Abs(currentIndexRotationYMax) <= epsilon &&
+                     Mathf.Abs(currentIndexRotationYMin) <= epsilon &&
                    Mathf.Abs(currentIndexRotationZMax) <= epsilon &&
                    Mathf.Abs(currentIndexRotationZMin) <= epsilon &&
                    Mathf.Abs(currentMiddleRotationY) <= epsilon &&
@@ -259,6 +263,9 @@ public class ClawModuleController : MonoBehaviour
     private bool hasIndexAbductionFirstDirection = false;
     private bool canRotateIndexAbductionThisTouch = false;
     private bool isIndexAbductionUsingMaxRangeThisTouch = true;
+    private bool hasIndexPronationFirstDirection = false;
+    private bool canRotateIndexPronationThisTouch = false;
+    private bool isIndexPronationUsingMaxRangeThisTouch = true;
 
     // Sliding window detection for middle finger indexMiddleAngleOnPalm changes
     private Queue<(float time, float angle)> middleAngleHistory = new Queue<(float, float)>();
@@ -393,12 +400,15 @@ public class ClawModuleController : MonoBehaviour
         // --- Initialize Index ---
         IndexAngle1CenterInitialRotation = IndexAngle1Center.localRotation;
         IndexAngle2CenterInitialRotation = IndexAngle2Center.localRotation;
-        indexGripperJoint1MaxRotationVector = IndexAngle1Center.localRotation.eulerAngles;
+        indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
+        indexGripperJoint1MinRotationVector =
+            (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
         indexGripperJoint2MaxRotationVector = IndexAngle2Center.localRotation.eulerAngles;
         indexGripperJoint2MinRotationVector = IndexAngle2Center.localRotation.eulerAngles;
         maxIndexYAxisAngle = IndexAngle1CenterInitialRotation.eulerAngles.y;
+        minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
         maxIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
-        minIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z; // Add 60 degrees to get the min angle on the other side
+        minIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
 
         // --- Initialize Middle ---
         MiddleAngle1CenterInitialRotation = MiddleAngle1Center.localRotation;
@@ -607,7 +617,8 @@ public class ClawModuleController : MonoBehaviour
 
         // UpdateIndexFingerAbductionByAngleByZ();
         UpdateIndexFingerAbductionMaxMinMode();
-        UpdateIndexFingerPronationByAngleByY();
+        // UpdateIndexFingerPronationByAngleByY();
+        UpdateIndexFingerPronationMaxMinMode();
 
         UpdateFingertipExtension( // inner part
             triggerRightIndexTip.isRightIndexTipTouched,
@@ -1683,14 +1694,132 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region @IndexPronation
+    // #region @IndexPronation
+    // /// <summary>
+    // /// Controls Index finger Y-axis twist (swapped from Z-axis), motorID == 5
+    // /// </summary>
+    // private void UpdateIndexFingerPronationByAngleByY()
+    // {
+    //     Quaternion targetRotation = IndexAngle1CenterInitialRotation;
+    //     maxIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MaxRotationVector.y);
+    //     indexTargetYDebug = float.NaN;
+
+    //     if (!fingerTipTouchDurations.ContainsKey("IndexTwistY"))
+    //     {
+    //         fingerTipTouchDurations["IndexTwistY"] = 0f;
+    //     }
+
+    //     if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
+    //             && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlIndex1 && !isMiddle1Triggered
+    //             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 5)
+    //     {
+    //         fingerTipTouchDurations["IndexTwistY"] += Time.deltaTime;
+    //         isIndex1Triggered = true;
+
+    //         if (fingerTipTouchDurations["IndexTwistY"] > 0.2f)
+    //         {
+    //             if (currentIndexRotationY >= -90f && currentIndexRotationY <= 90f && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
+    //             {
+    //                 currentIndexRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
+    //             }
+
+    //             // currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -90f, 0f);
+    //             currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -90f, 90f);
+
+    //             indexGripperJoint1MaxRotationVector =
+    //                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations["IndexTwistY"] = 0f;
+    //         isIndex1Triggered = false;
+    //     }
+
+    //     targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
+
+
+
+    //     if (IndexAngle1Center != null)
+    //     {
+    //         // float delta = maxIndexYAxisAngle;
+    //         // float targetY = isFullRangeMapping
+    //         //     ? maxIndexYAxisAngle + (30 - delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+    //         //     : indexGripperJoint1MaxRotationVector.y + 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+
+    //         // if (targetY >= 70) targetY = 70f;
+    //         // indexTargetYDebug = targetY;
+
+    //         // Vector3 euler = targetRotation.eulerAngles;
+    //         // targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+
+
+    //         // 往左轉 maxIndexYAxisAngle 最多會是 0 往 -60, targetY 往右是 0 往 60
+    //         if (isFullRangeMapping)
+    //         {
+    //             float targetY;
+    //             if (currentIndexRotationY > 60f) targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             else targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             Vector3 euler = targetRotation.eulerAngles;
+    //             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+    //         }
+    //         else
+    //         {
+    //             float targetY;
+    //             if (currentIndexRotationY <= 0) targetY = Remap(20, 57, 60 + currentIndexRotationY, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             else if (currentIndexRotationY > 0 && currentIndexRotationY <= 60f) targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             else targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             Vector3 euler = targetRotation.eulerAngles;
+    //             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+    //         }
+    //     }
+
+    //     // Snap range check for Y-axis
+    //     indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 295f, 335f);
+    //     thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
+
+    //     // snapping
+    //     if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+    //     {
+    //         if (!_indexMotor1Locked && IndexAngle1Center != null)
+    //         {
+    //             _indexMotor1Locked = true;
+    //             _indexMotor1LockedRot = IndexAngle1Center.localRotation;
+    //         }
+
+    //         if (IndexAngle1Center != null)
+    //             IndexAngle1Center.localRotation = _indexMotor1LockedRot;
+    //     }
+    //     else
+    //     {
+    //         _indexMotor1Locked = false;
+
+    //         if (IndexAngle1Center != null)
+    //         {
+    //             if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
+    //             {
+    //                 Vector3 snapEuler = targetRotation.eulerAngles;
+    //                 snapEuler.y = 330f; // adjust snap angle if needed
+    //                 IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+    //             }
+    //             else
+    //             {
+    //                 IndexAngle1Center.localRotation = targetRotation;
+    //             }
+    //         }
+    //     }
+    // }
+    // #endregion
+
+    #region @IndexPronationMaxMin
     /// <summary>
     /// Controls Index finger Y-axis twist (swapped from Z-axis), motorID == 5
     /// </summary>
-    private void UpdateIndexFingerPronationByAngleByY()
+    private void UpdateIndexFingerPronationMaxMinMode()
     {
         Quaternion targetRotation = IndexAngle1CenterInitialRotation;
         maxIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MaxRotationVector.y);
+        minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
         indexTargetYDebug = float.NaN;
 
         if (!fingerTipTouchDurations.ContainsKey("IndexTwistY"))
@@ -1707,57 +1836,92 @@ public class ClawModuleController : MonoBehaviour
 
             if (fingerTipTouchDurations["IndexTwistY"] > 0.2f)
             {
-                if (currentIndexRotationY >= -90f && currentIndexRotationY <= 90f && Mathf.Abs(jointAngle.isClockWise) > 0.1f)
+                if (fingerTipTouchDurations["IndexTwistY"] <= 0.2f + Time.deltaTime)
                 {
-                    currentIndexRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
+                    hasIndexPronationFirstDirection = false;
+                    canRotateIndexPronationThisTouch = false;
+                    isIndexPronationUsingMaxRangeThisTouch = true;
                 }
 
-                // currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -90f, 0f);
-                currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -90f, 90f);
+                if (Mathf.Abs(jointAngle.isClockWise) > 0.1f)
+                {
+                    float rotationDelta = -jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
+                    Debug.Log("jointAngle.isClockWise: " + jointAngle.isClockWise + ", rotationDelta: " + rotationDelta);
 
-                indexGripperJoint1MaxRotationVector =
-                    (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+                    if (!hasIndexPronationFirstDirection)
+                    {
+                        hasIndexPronationFirstDirection = true;
+                        canRotateIndexPronationThisTouch = true;
+                        isIndexPronationUsingMaxRangeThisTouch = rotationDelta < 0f;
+
+                        if (isIndexPronationUsingMaxRangeThisTouch)
+                        {
+                            currentIndexRotationYMax = Mathf.Clamp(currentIndexRotationYMax, -90f, 0f);
+                        }
+                        else
+                        {
+                            currentIndexRotationYMin = currentIndexRotationYMin > 0f
+                                ? Mathf.Clamp(currentIndexRotationYMin, 0f, 90f)
+                                : 60f;
+                            indexGripperJoint1MinRotationVector =
+                                (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationYMin, 0f)).eulerAngles;
+                            minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
+                        }
+                    }
+
+                    if (canRotateIndexPronationThisTouch && isIndexPronationUsingMaxRangeThisTouch)
+                    {
+                        currentIndexRotationYMax += rotationDelta;
+                        currentIndexRotationYMax = Mathf.Clamp(currentIndexRotationYMax, -90f, 0f);
+
+                        indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
+                        maxIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MaxRotationVector.y);
+                    }
+                    else if (canRotateIndexPronationThisTouch)
+                    {
+                        currentIndexRotationYMin += rotationDelta;
+                        currentIndexRotationYMin = Mathf.Clamp(currentIndexRotationYMin, 0f, 90f);
+
+                        indexGripperJoint1MinRotationVector =
+                            (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationYMin, 0f)).eulerAngles;
+                        minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
+                    }
+                }
             }
         }
         else
         {
             fingerTipTouchDurations["IndexTwistY"] = 0f;
             isIndex1Triggered = false;
+            hasIndexPronationFirstDirection = false;
+            canRotateIndexPronationThisTouch = false;
+            isIndexPronationUsingMaxRangeThisTouch = true;
         }
 
-        targetRotation *= Quaternion.Euler(0f, currentIndexRotationY, 0f);
+        float currentIndexRotationYForTarget = currentIndexRotationYMin > 0f
+            ? currentIndexRotationYMin
+            : currentIndexRotationYMax;
+        targetRotation *= Quaternion.Euler(0f, currentIndexRotationYForTarget, 0f);
 
 
 
         if (IndexAngle1Center != null)
         {
-            // float delta = maxIndexYAxisAngle;
-            // float targetY = isFullRangeMapping
-            //     ? maxIndexYAxisAngle + (30 - delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
-            //     : indexGripperJoint1MaxRotationVector.y + 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
-
-            // if (targetY >= 70) targetY = 70f;
-            // indexTargetYDebug = targetY;
-
-            // Vector3 euler = targetRotation.eulerAngles;
-            // targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
-
-
             // 往左轉 maxIndexYAxisAngle 最多會是 0 往 -60, targetY 往右是 0 往 60
             if (isFullRangeMapping)
             {
                 float targetY;
-                if (currentIndexRotationY > 60f) targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(20, 57, 360 + indexGripperJoint1MinRotationVector.y, indexGripperJoint1MaxRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                // repeat 360
+                targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
             }
             else
             {
                 float targetY;
-                if (currentIndexRotationY <= 0) targetY = Remap(20, 57, 60 + currentIndexRotationY, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else if (currentIndexRotationY > 0 && currentIndexRotationY <= 60f) targetY = Remap(20, 57, 60, currentIndexRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else targetY = Remap(20, 57, currentIndexRotationY, 60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(20, 57, indexGripperJoint1MaxRotationVector.y + 60f, indexGripperJoint1MaxRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
             }
@@ -1913,6 +2077,17 @@ public class ClawModuleController : MonoBehaviour
     private float NormalizeAngle(float angle)
     {
         return angle >= 300 ? angle - 360 : angle;
+    }
+
+    private Vector3 GetIndexJoint1MaxRotationVector()
+    {
+        Vector3 rotationVector =
+            (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationYMax, 0f)).eulerAngles;
+
+        if (Mathf.Abs(currentIndexRotationYMax) <= 0.0001f)
+            rotationVector.y = 360f;
+
+        return rotationVector;
     }
 
     private bool IsAngleInRange(float angle, float min, float max)
@@ -2360,7 +2535,8 @@ public class ClawModuleController : MonoBehaviour
 
         currentThumbRotationY = currentThumbRotationZ = 0f;
         hasThumbAbductionAdjustment = false;
-        currentIndexRotationY = currentIndexRotationZMax = 0f;
+        currentIndexRotationYMax = currentIndexRotationYMin = 0f;
+        currentIndexRotationZMax = 0f;
         currentIndexRotationZMin = 0f;
         currentMiddleRotationY = currentMiddleRotationZ = 0f;
 
@@ -2374,7 +2550,9 @@ public class ClawModuleController : MonoBehaviour
 
         thumbGripperJoint1MaxRotationVector = ThumbAngle1CenterInitialRotation.eulerAngles;
         thumbGripperJoint2MaxRotationVector = ThumbAngle2CenterInitialRotation.eulerAngles;
-        indexGripperJoint1MaxRotationVector = IndexAngle1CenterInitialRotation.eulerAngles;
+        indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
+        indexGripperJoint1MinRotationVector =
+            (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
         indexGripperJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
         indexGripperJoint2MinRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
         middleGripperJoint1MaxRotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
@@ -2383,6 +2561,7 @@ public class ClawModuleController : MonoBehaviour
         maxThumbYAxisAngle = ThumbAngle1CenterInitialRotation.eulerAngles.y;
         maxThumbZAxisAngle = ThumbAngle2CenterInitialRotation.eulerAngles.z;
         maxIndexYAxisAngle = IndexAngle1CenterInitialRotation.eulerAngles.y;
+        minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
         maxIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
         minIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
         maxMiddleYAxisAngle = MiddleAngle1CenterInitialRotation.eulerAngles.y;
@@ -2407,6 +2586,9 @@ public class ClawModuleController : MonoBehaviour
         hasIndexAbductionFirstDirection = false;
         canRotateIndexAbductionThisTouch = false;
         isIndexAbductionUsingMaxRangeThisTouch = true;
+        hasIndexPronationFirstDirection = false;
+        canRotateIndexPronationThisTouch = false;
+        isIndexPronationUsingMaxRangeThisTouch = true;
 
         ApplyResetRotations();
         tt = 0f;
@@ -2621,7 +2803,8 @@ public class ClawModuleController : MonoBehaviour
             hasThumbAbductionAdjustment = false;
             currentThumbInnerExtensionRotationZ = 0f;
             currentThumbTipRotationZ = 0f;
-            currentIndexRotationY = 0f;
+            currentIndexRotationYMax = 0f;
+            currentIndexRotationYMin = 0f;
             currentIndexRotationZMax = 0f;
             currentIndexRotationZMin = 0f;
             currentIndexInnerExtensionRotationZ = 0f;
@@ -2633,8 +2816,11 @@ public class ClawModuleController : MonoBehaviour
 
             thumbGripperJoint1MaxRotationVector = ThumbAngle1CenterInitialRotation.eulerAngles;
             thumbGripperJoint2MaxRotationVector = ThumbAngle2CenterInitialRotation.eulerAngles;
-            indexGripperJoint1MaxRotationVector = IndexAngle1CenterInitialRotation.eulerAngles;
+            indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
+            indexGripperJoint1MinRotationVector =
+                (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
             indexGripperJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
+            indexGripperJoint2MinRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
             middleGripperJoint1MaxRotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
             middleGripperJoint2MaxRotationVector = MiddleAngle2CenterInitialRotation.eulerAngles;
         }
@@ -2661,10 +2847,22 @@ public class ClawModuleController : MonoBehaviour
                             (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
                         break;
                     case 1:
-                        currentIndexRotationY += delta;
-                        currentIndexRotationY = Mathf.Clamp(currentIndexRotationY, -60f, 0f);
-                        indexGripperJoint1MaxRotationVector =
-                            (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationY, 0f)).eulerAngles;
+                        if (delta < 0f)
+                        {
+                            currentIndexRotationYMax += delta;
+                            currentIndexRotationYMax = Mathf.Clamp(currentIndexRotationYMax, -90f, 0f);
+                            indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
+                        }
+                        else if (delta > 0f)
+                        {
+                            if (currentIndexRotationYMin <= 0f)
+                                currentIndexRotationYMin = 60f;
+
+                            currentIndexRotationYMin += delta;
+                            currentIndexRotationYMin = Mathf.Clamp(currentIndexRotationYMin, 0f, 90f);
+                            indexGripperJoint1MinRotationVector =
+                                (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationYMin, 0f)).eulerAngles;
+                        }
                         break;
                     case 2:
                         currentMiddleRotationY += delta;

@@ -185,7 +185,9 @@ public class DebugAngle : MonoBehaviour
                                         // "Thumb2(z): " + ((int)clawModuleController.ThumbAngle2Center.localRotation.eulerAngles.z).ToString() + "\n" +
                                         // "Thumb3(x): " + ((int)clawModuleController.ThumbAngle3Center.localRotation.eulerAngles.x).ToString() + "\n" +
                                         // "Thumb4(x): " + ((int)clawModuleController.ThumbAngle4Center.localRotation.eulerAngles.x).ToString() + "\n" +
-                                        // "Index1(y): " + ((int)clawModuleController.IndexAngle1Center.localRotation.eulerAngles.y).ToString() + "\n" +
+                                        "Index1(y): " + ((int)clawModuleController.IndexAngle1Center.localRotation.eulerAngles.y).ToString() + "\n" +
+                                        "indexGripperJoint1MaxRotationVector.y: " + clawModuleController.indexGripperJoint1MaxRotationVector.y.ToString("F4") + "\n" +
+                                        "indexGripperJoint1MinRotationVector.y: " + clawModuleController.indexGripperJoint1MinRotationVector.y.ToString("F4") + "\n" +
                                         "Index2(z): " + ((int)clawModuleController.IndexAngle2Center.localRotation.eulerAngles.z).ToString() + "\n" +
                                         "maxIndexZAxisAngle: " + clawModuleController.maxIndexZAxisAngle.ToString("F4") + "\n" +
                                         "indexGripperJoint2MaxRotationVector.z: " + clawModuleController.indexGripperJoint2MaxRotationVector.z.ToString("F4") + "\n" +
