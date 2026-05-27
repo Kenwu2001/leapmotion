@@ -147,12 +147,44 @@ public class ClawModuleController : MonoBehaviour
     private Quaternion MiddleAngle2CenterInitialRotation;
 
     public Vector3 middleGripperJoint1MaxRotationVector;
+    public Vector3 middleGripperJoint1MinRotationVector;
     public Vector3 middleGripperJoint2MaxRotationVector;
 
-    public float currentMiddleRotationY = 0f;
+    public float currentMiddleRotationYMax = -60f;
+    public float currentMiddleRotationYMin = 0f;
     public float currentMiddleRotationZ = 0f;
 
+    public float currentMiddleRotationY
+    {
+        get
+        {
+            return currentMiddleRotationYMin > 0f
+                ? currentMiddleRotationYMin
+                : currentMiddleRotationYMax;
+        }
+        set
+        {
+            if (value > 0f)
+            {
+                currentMiddleRotationYMin = Mathf.Clamp(value, 0f, 90f);
+                currentMiddleRotationYMax = -60f;
+                middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
+            }
+            else
+            {
+                currentMiddleRotationYMax = Mathf.Clamp(value, -90f, 0f);
+                currentMiddleRotationYMin = 0f;
+                middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+            }
+
+            maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+            minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
+            RefreshMiddleJoint1YDebug(value > 0f ? "currentMiddleRotationY:set:min" : "currentMiddleRotationY:set:max");
+        }
+    }
+
     public float maxMiddleYAxisAngle;
+    public float minMiddleYAxisAngle;
     public float maxMiddleZAxisAngle;
 
     public float currentMiddleTipRotationZ = 0f;
@@ -220,6 +252,12 @@ public class ClawModuleController : MonoBehaviour
     public string thumbAbductionDeltaPositiveDebug = "N/A";
     public string thumbPronation360ZoneDebug = "N/A";
     public string thumbPronationNon360ZoneDebug = "N/A";
+    public string middleJoint1YDebugSource = "N/A";
+    public float middleJoint1MaxRawYDebug = float.NaN;
+    public float middleJoint1MinRawYDebug = float.NaN;
+    public float middleJoint1MaxNormalizedYDebug = float.NaN;
+    public float middleJoint1MinNormalizedYDebug = float.NaN;
+    public float middleJoint1LocalEulerYDebug = float.NaN;
 
     public bool IsResetState
     {
@@ -233,7 +271,8 @@ public class ClawModuleController : MonoBehaviour
                      Mathf.Abs(currentIndexRotationYMin) <= epsilon &&
                    Mathf.Abs(currentIndexRotationZMax) <= epsilon &&
                    Mathf.Abs(currentIndexRotationZMin) <= epsilon &&
-                   Mathf.Abs(currentMiddleRotationY) <= epsilon &&
+                                     Mathf.Abs(currentMiddleRotationYMax + 60f) <= epsilon &&
+                                     Mathf.Abs(currentMiddleRotationYMin) <= epsilon &&
                    Mathf.Abs(currentMiddleRotationZ) <= epsilon &&
                    Mathf.Abs(currentThumbTipRotationZ) <= epsilon &&
                    Mathf.Abs(currentIndexTipRotationZ) <= epsilon &&
@@ -266,6 +305,9 @@ public class ClawModuleController : MonoBehaviour
     private bool hasIndexPronationFirstDirection = false;
     private bool canRotateIndexPronationThisTouch = false;
     private bool isIndexPronationUsingMaxRangeThisTouch = true;
+    private bool hasMiddlePronationFirstDirection = false;
+    private bool canRotateMiddlePronationThisTouch = false;
+    private bool isMiddlePronationUsingMaxRangeThisTouch = true;
 
     // Sliding window detection for middle finger indexMiddleAngleOnPalm changes
     private Queue<(float time, float angle)> middleAngleHistory = new Queue<(float, float)>();
@@ -413,10 +455,15 @@ public class ClawModuleController : MonoBehaviour
         // --- Initialize Middle ---
         MiddleAngle1CenterInitialRotation = MiddleAngle1Center.localRotation;
         MiddleAngle2CenterInitialRotation = MiddleAngle2Center.localRotation;
-        middleGripperJoint1MaxRotationVector = MiddleAngle1Center.localRotation.eulerAngles;
+        currentMiddleRotationYMax = -60f;
+        currentMiddleRotationYMin = 0f;
+        middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+        middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
         middleGripperJoint2MaxRotationVector = MiddleAngle2Center.localRotation.eulerAngles;
-        maxMiddleYAxisAngle = MiddleAngle1CenterInitialRotation.eulerAngles.y;
+        maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+        minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
         maxMiddleZAxisAngle = MiddleAngle2CenterInitialRotation.eulerAngles.z;
+        RefreshMiddleJoint1YDebug("Start");
 
         // --- Initialize Keyboard Control arrays (always, so runtime toggle works) ---
         kbMotorArray = new Transform[KB_ROWS, KB_COLS] {
@@ -675,7 +722,8 @@ public class ClawModuleController : MonoBehaviour
         // ==============================
 
         // UpdateMiddleFingerAbductionByAngleByZ();
-        UpdateMiddleFingerPronationByAngleByY();
+        // UpdateMiddleFingerPronationByAngleByY();
+        UpdateMiddleFingerPronationMaxMinMode();
 
         UpdateFingertipExtension(
             triggerRightMiddleTip.isRightMiddleTipTouched,
@@ -1964,14 +2012,123 @@ public class ClawModuleController : MonoBehaviour
     }
     #endregion
 
-    #region @MiddlePronation
+    // #region @MiddlePronation
+    // /// <summary>
+    // /// Controls Middle finger Y-axis pronation (swapped from Z-axis), motorID == 9
+    // /// </summary>
+    // private void UpdateMiddleFingerPronationByAngleByY()
+    // {
+    //     Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
+    //     maxMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MaxRotationVector.y);
+
+    //     if (!fingerTipTouchDurations.ContainsKey("MiddleTwistY"))
+    //     {
+    //         fingerTipTouchDurations["MiddleTwistY"] = 0f;
+    //     }
+
+    //     if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
+    //          && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlMiddle1 && !isIndex1Triggered
+    //         && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
+    //     {
+    //         fingerTipTouchDurations["MiddleTwistY"] += Time.deltaTime;
+    //         isMiddle1Triggered = true;
+
+    //         if (fingerTipTouchDurations["MiddleTwistY"] > 0.2f)
+    //         {
+    //             if (currentMiddleRotationY <= 90f && currentMiddleRotationY >= -90)
+    //             {
+    //                 currentMiddleRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
+    //             }
+
+    //             currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, -90f, 90f);
+
+    //             middleGripperJoint1MaxRotationVector =
+    //                 (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         fingerTipTouchDurations["MiddleTwistY"] = 0f;
+    //         isMiddle1Triggered = false;
+    //     }
+
+    //     targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
+
+    //     if (MiddleAngle1Center != null)
+    //     {
+    //         // float delta = maxMiddleYAxisAngle;
+    //         // float targetY = isFullRangeMapping
+    //         //     ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
+    //         //     : middleGripperJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
+
+    //         // if (targetY <= -70f) targetY = -70f;
+
+    //         // Vector3 euler = targetRotation.eulerAngles;
+    //         // targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+
+    //         if (isFullRangeMapping)
+    //         {
+    //             float targetY;
+    //             if (currentMiddleRotationY < -60f) targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             else targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             Vector3 euler = targetRotation.eulerAngles;
+    //             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+    //         }
+    //         else
+    //         {
+    //             float targetY;
+    //             if (currentMiddleRotationY > 0) targetY = Remap(20, 57, -60 + currentMiddleRotationY, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             else if (currentMiddleRotationY <= 0 && currentMiddleRotationY >= -60) targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             else targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+    //             Vector3 euler = targetRotation.eulerAngles;
+    //             targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
+    //         }
+    //     }
+
+    //     // Snap range check for Y-axis
+    //     indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
+    //     thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
+
+    //     // snapping
+    //     if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+    //     {
+    //         if (!_middleMotor1Locked && MiddleAngle1Center != null)
+    //         {
+    //             _middleMotor1Locked = true;
+    //             _middleMotor1LockedRot = MiddleAngle1Center.localRotation;
+    //         }
+
+    //         if (MiddleAngle1Center != null)
+    //             MiddleAngle1Center.localRotation = _middleMotor1LockedRot;
+    //     }
+    //     else
+    //     {
+    //         _middleMotor1Locked = false;
+
+    //         if (MiddleAngle1Center != null)
+    //         {
+    //             if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
+    //             {
+    //                 Vector3 snapEuler = targetRotation.eulerAngles;
+    //                 snapEuler.y = 30f; // adjust snap angle if needed
+    //                 MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+    //             }
+    //             else
+    //             {
+    //                 MiddleAngle1Center.localRotation = targetRotation;
+    //             }
+    //         }
+    //     }
+    // }
+    // #endregion
+
+    #region @MiddlePronationMaxMin
     /// <summary>
     /// Controls Middle finger Y-axis pronation (swapped from Z-axis), motorID == 9
     /// </summary>
-    private void UpdateMiddleFingerPronationByAngleByY()
+    private void UpdateMiddleFingerPronationMaxMinMode()
     {
         Quaternion targetRotation = MiddleAngle1CenterInitialRotation;
-        maxMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MaxRotationVector.y);
 
         if (!fingerTipTouchDurations.ContainsKey("MiddleTwistY"))
         {
@@ -1987,51 +2144,91 @@ public class ClawModuleController : MonoBehaviour
 
             if (fingerTipTouchDurations["MiddleTwistY"] > 0.2f)
             {
-                if (currentMiddleRotationY <= 90f && currentMiddleRotationY >= -90)
+                if (fingerTipTouchDurations["MiddleTwistY"] <= 0.2f + Time.deltaTime)
                 {
-                    currentMiddleRotationY -= jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
+                    hasMiddlePronationFirstDirection = false;
+                    canRotateMiddlePronationThisTouch = false;
+                    isMiddlePronationUsingMaxRangeThisTouch = true;
                 }
 
-                currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, -90f, 90f);
+                if (Mathf.Abs(jointAngle.isClockWise) > 0.1f)
+                {
+                    float rotationDelta = -jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
 
-                middleGripperJoint1MaxRotationVector =
-                    (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+                    if (!hasMiddlePronationFirstDirection)
+                    {
+                        hasMiddlePronationFirstDirection = true;
+                        canRotateMiddlePronationThisTouch = true;
+                        isMiddlePronationUsingMaxRangeThisTouch = rotationDelta < 0f;
+
+                        if (isMiddlePronationUsingMaxRangeThisTouch)
+                        {
+                            currentMiddleRotationYMax = Mathf.Clamp(currentMiddleRotationYMax, -90f, 0f);
+                            middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+                            maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+                            RefreshMiddleJoint1YDebug("MiddlePronation:first:max");
+                        }
+                        else
+                        {
+                            currentMiddleRotationYMin = Mathf.Clamp(currentMiddleRotationYMin, 0f, 90f);
+                            middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
+                            minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
+                            RefreshMiddleJoint1YDebug("MiddlePronation:first:min");
+                        }
+                    }
+
+                    if (canRotateMiddlePronationThisTouch && isMiddlePronationUsingMaxRangeThisTouch)
+                    {
+                        currentMiddleRotationYMax += rotationDelta;
+                        currentMiddleRotationYMax = Mathf.Clamp(currentMiddleRotationYMax, -90f, 0f);
+
+                        middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+                        maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+                        RefreshMiddleJoint1YDebug("MiddlePronation:update:max");
+                    }
+                    else if (canRotateMiddlePronationThisTouch)
+                    {
+                        currentMiddleRotationYMin += rotationDelta;
+                        currentMiddleRotationYMin = Mathf.Clamp(currentMiddleRotationYMin, 0f, 90f);
+
+                        middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
+                        minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
+                        RefreshMiddleJoint1YDebug("MiddlePronation:update:min");
+                    }
+                }
             }
         }
         else
         {
             fingerTipTouchDurations["MiddleTwistY"] = 0f;
             isMiddle1Triggered = false;
+            hasMiddlePronationFirstDirection = false;
+            canRotateMiddlePronationThisTouch = false;
+            isMiddlePronationUsingMaxRangeThisTouch = true;
         }
 
-        targetRotation *= Quaternion.Euler(0f, currentMiddleRotationY, 0f);
+        float currentMiddleRotationYForTarget = currentMiddleRotationYMin > 0f
+            ? currentMiddleRotationYMin
+            : currentMiddleRotationYMax + 60f;
+        targetRotation *= Quaternion.Euler(0f, currentMiddleRotationYForTarget, 0f);
 
         if (MiddleAngle1Center != null)
         {
-            // float delta = maxMiddleYAxisAngle;
-            // float targetY = isFullRangeMapping
-            //     ? maxMiddleYAxisAngle - (30 + delta) * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f)
-            //     : middleGripperJoint1MaxRotationVector.y - 30 * ((57f - jointAngle.indexMiddleAngleOnPalm) / 24f);
-
-            // if (targetY <= -70f) targetY = -70f;
-
-            // Vector3 euler = targetRotation.eulerAngles;
-            // targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
-
             if (isFullRangeMapping)
             {
                 float targetY;
-                if (currentMiddleRotationY < -60f) targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(20, 57, middleGripperJoint1MaxRotationVector.y, 360 + middleGripperJoint1MinRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+
+                targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
             }
             else
             {
                 float targetY;
-                if (currentMiddleRotationY > 0) targetY = Remap(20, 57, -60 + currentMiddleRotationY, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else if (currentMiddleRotationY <= 0 && currentMiddleRotationY >= -60) targetY = Remap(20, 57, -60, currentMiddleRotationY, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
-                else targetY = Remap(20, 57, currentMiddleRotationY, -60, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(20, 57, 360 + middleGripperJoint1MinRotationVector.y - 60f, 360 + middleGripperJoint1MinRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+
+                targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
             }
@@ -2088,6 +2285,26 @@ public class ClawModuleController : MonoBehaviour
             rotationVector.y = 360f;
 
         return rotationVector;
+    }
+
+    private Vector3 GetMiddleJoint1MaxRotationVector()
+    {
+        Vector3 rotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
+
+        rotationVector.y = Mathf.Clamp(360f + currentMiddleRotationYMax, 270f, 360f);
+        return rotationVector;
+    }
+
+    private Vector3 GetMiddleJoint1MinRotationVector()
+    {
+        Vector3 rotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
+        rotationVector.y = Mathf.Clamp(currentMiddleRotationYMin, 0f, 90f);
+        return rotationVector;
+    }
+
+    private float NormalizeMiddleJoint1MaxAngle(float angle)
+    {
+        return angle - 360f;
     }
 
     private bool IsAngleInRange(float angle, float min, float max)
@@ -2538,7 +2755,9 @@ public class ClawModuleController : MonoBehaviour
         currentIndexRotationYMax = currentIndexRotationYMin = 0f;
         currentIndexRotationZMax = 0f;
         currentIndexRotationZMin = 0f;
-        currentMiddleRotationY = currentMiddleRotationZ = 0f;
+        currentMiddleRotationYMax = -60f;
+        currentMiddleRotationYMin = 0f;
+        currentMiddleRotationZ = 0f;
 
         currentThumbTipRotationZ = 0f;
         currentIndexTipRotationZ = 0f;
@@ -2555,7 +2774,8 @@ public class ClawModuleController : MonoBehaviour
             (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
         indexGripperJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
         indexGripperJoint2MinRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
-        middleGripperJoint1MaxRotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
+        middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+        middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
         middleGripperJoint2MaxRotationVector = MiddleAngle2CenterInitialRotation.eulerAngles;
 
         maxThumbYAxisAngle = ThumbAngle1CenterInitialRotation.eulerAngles.y;
@@ -2564,8 +2784,10 @@ public class ClawModuleController : MonoBehaviour
         minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
         maxIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
         minIndexZAxisAngle = IndexAngle2CenterInitialRotation.eulerAngles.z;
-        maxMiddleYAxisAngle = MiddleAngle1CenterInitialRotation.eulerAngles.y;
+        maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+        minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
         maxMiddleZAxisAngle = MiddleAngle2CenterInitialRotation.eulerAngles.z;
+        RefreshMiddleJoint1YDebug("ResetFingerRotations");
 
         // Clear touch durations and activation states
         fingerTipTouchDurations.Clear();
@@ -2589,6 +2811,9 @@ public class ClawModuleController : MonoBehaviour
         hasIndexPronationFirstDirection = false;
         canRotateIndexPronationThisTouch = false;
         isIndexPronationUsingMaxRangeThisTouch = true;
+        hasMiddlePronationFirstDirection = false;
+        canRotateMiddlePronationThisTouch = false;
+        isMiddlePronationUsingMaxRangeThisTouch = true;
 
         ApplyResetRotations();
         tt = 0f;
@@ -2809,7 +3034,8 @@ public class ClawModuleController : MonoBehaviour
             currentIndexRotationZMin = 0f;
             currentIndexInnerExtensionRotationZ = 0f;
             currentIndexTipRotationZ = 0f;
-            currentMiddleRotationY = 0f;
+            currentMiddleRotationYMax = -60f;
+            currentMiddleRotationYMin = 0f;
             currentMiddleRotationZ = 0f;
             currentMiddleInnerExtensionRotationZ = 0f;
             currentMiddleTipRotationZ = 0f;
@@ -2821,7 +3047,8 @@ public class ClawModuleController : MonoBehaviour
                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
             indexGripperJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
             indexGripperJoint2MinRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
-            middleGripperJoint1MaxRotationVector = MiddleAngle1CenterInitialRotation.eulerAngles;
+            middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+            middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
             middleGripperJoint2MaxRotationVector = MiddleAngle2CenterInitialRotation.eulerAngles;
         }
     }
@@ -2865,10 +3092,22 @@ public class ClawModuleController : MonoBehaviour
                         }
                         break;
                     case 2:
-                        currentMiddleRotationY += delta;
-                        currentMiddleRotationY = Mathf.Clamp(currentMiddleRotationY, 0f, 60f);
-                        middleGripperJoint1MaxRotationVector =
-                            (MiddleAngle1CenterInitialRotation * Quaternion.Euler(0f, currentMiddleRotationY, 0f)).eulerAngles;
+                        if (delta < 0f)
+                        {
+                            currentMiddleRotationYMax += delta;
+                            currentMiddleRotationYMax = Mathf.Clamp(currentMiddleRotationYMax, -90f, 0f);
+                            middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
+                            maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+                            RefreshMiddleJoint1YDebug("KbApplyRotation:max");
+                        }
+                        else if (delta > 0f)
+                        {
+                            currentMiddleRotationYMin += delta;
+                            currentMiddleRotationYMin = Mathf.Clamp(currentMiddleRotationYMin, 0f, 90f);
+                            middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
+                            minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
+                            RefreshMiddleJoint1YDebug("KbApplyRotation:min");
+                        }
                         break;
                 }
                 break;
@@ -2934,6 +3173,16 @@ public class ClawModuleController : MonoBehaviour
                 }
                 break;
         }
+    }
+
+    private void RefreshMiddleJoint1YDebug(string source)
+    {
+        middleJoint1YDebugSource = source;
+        middleJoint1MaxRawYDebug = middleGripperJoint1MaxRotationVector.y;
+        middleJoint1MinRawYDebug = middleGripperJoint1MinRotationVector.y;
+        middleJoint1MaxNormalizedYDebug = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
+        middleJoint1MinNormalizedYDebug = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
+        middleJoint1LocalEulerYDebug = MiddleAngle1Center != null ? MiddleAngle1Center.localEulerAngles.y : float.NaN;
     }
     #endregion
 }
