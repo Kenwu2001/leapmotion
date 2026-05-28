@@ -317,6 +317,7 @@ public class ClawModuleController : MonoBehaviour
     private bool hasIndexPronationFirstDirection = false;
     private bool canRotateIndexPronationThisTouch = false;
     private bool isIndexPronationUsingMaxRangeThisTouch = true;
+    private bool hasIndexMinInitialized = false;
     private bool hasMiddlePronationFirstDirection = false;
     private bool canRotateMiddlePronationThisTouch = false;
     private bool isMiddlePronationUsingMaxRangeThisTouch = true;
@@ -333,6 +334,7 @@ public class ClawModuleController : MonoBehaviour
     private bool hasThumbPronationFirstDirection = false;
     private bool canRotateThumbPronationThisTouch = false;
     private bool isThumbPronationUsingMaxRangeThisTouch = true;
+    private bool hasThumbMinInitialized = false;
 
     // Sliding window detection for middle finger indexMiddleAngleOnPalm changes
     private Queue<(float time, float angle)> middleAngleHistory = new Queue<(float, float)>();
@@ -2200,9 +2202,15 @@ public class ClawModuleController : MonoBehaviour
                         }
                         else
                         {
-                            currentThumbRotationYMin = currentThumbRotationYMin > 0f
-                                ? Mathf.Clamp(currentThumbRotationYMin, 0f, 90f)
-                                : 60f;
+                            if (!hasThumbMinInitialized)
+                            {
+                                currentThumbRotationYMin = 60f;
+                                hasThumbMinInitialized = true;
+                            }
+                            else
+                            {
+                                currentThumbRotationYMin = Mathf.Clamp(currentThumbRotationYMin, 0f, 90f);
+                            }
                             thumbGripperJoint1MinRotationVector =
                                 (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationYMin, 0f)).eulerAngles;
                             minThumbYAxisAngle = NormalizeAngle(thumbGripperJoint1MinRotationVector.y);
@@ -2468,9 +2476,15 @@ public class ClawModuleController : MonoBehaviour
                         }
                         else
                         {
-                            currentIndexRotationYMin = currentIndexRotationYMin > 0f
-                                ? Mathf.Clamp(currentIndexRotationYMin, 0f, 90f)
-                                : 60f;
+                            if (!hasIndexMinInitialized)
+                            {
+                                currentIndexRotationYMin = 60f;
+                                hasIndexMinInitialized = true;
+                            }
+                            else
+                            {
+                                currentIndexRotationYMin = Mathf.Clamp(currentIndexRotationYMin, 0f, 90f);
+                            }
                             indexGripperJoint1MinRotationVector =
                                 (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationYMin, 0f)).eulerAngles;
                             minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
@@ -3402,9 +3416,11 @@ public class ClawModuleController : MonoBehaviour
         hasIndexPronationFirstDirection = false;
         canRotateIndexPronationThisTouch = false;
         isIndexPronationUsingMaxRangeThisTouch = true;
+        hasIndexMinInitialized = false;
         hasThumbPronationFirstDirection = false;
         canRotateThumbPronationThisTouch = false;
         isThumbPronationUsingMaxRangeThisTouch = true;
+        hasThumbMinInitialized = false;
         hasMiddlePronationFirstDirection = false;
         canRotateMiddlePronationThisTouch = false;
         isMiddlePronationUsingMaxRangeThisTouch = true;
