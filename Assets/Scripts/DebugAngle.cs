@@ -33,9 +33,9 @@ public class DebugAngle : MonoBehaviour
             return;
 
         angleText.text = clawModuleController == null
-            ? "thumbGripperJoint2MaxRotationVector.z: N/A\n" +
-              "thumbGripperJoint2MinRotationVector.z: N/A"
-            : "thumbGripperJoint2MaxRotationVector.z: " + clawModuleController.thumbGripperJoint2MaxRotationVector.z.ToString("F4") + "\n" +
-              "thumbGripperJoint2MinRotationVector.z: " + clawModuleController.thumbGripperJoint2MinRotationVector.z.ToString("F4");
+            ? "thumbGripperJoint1MaxRotationVector.y: N/A\n" +
+              "thumbGripperJoint1MinRotationVector.y: N/A"
+            : "thumbGripperJoint1MaxRotationVector.y: " + clawModuleController.thumbGripperJoint1MaxRotationVector.y.ToString("F4") + "\n" +
+              "thumbGripperJoint1MinRotationVector.y: " + clawModuleController.thumbGripperJoint1MinRotationVector.y.ToString("F4");
     }
 }
