@@ -37143,29 +37143,50 @@ MonoBehaviour:
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
   greenColor: {r: 0, g: 1, b: 0, a: 1}
-  thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
   currentThumbRotationY: 0
+  currentThumbRotationYMax: 0
+  currentThumbRotationYMin: 0
   currentThumbRotationZ: 0
+  currentThumbRotationZMax: 0
+  currentThumbRotationZMin: 0
   hasThumbAbductionAdjustment: 0
   maxThumbYAxisAngle: 0
+  minThumbYAxisAngle: 0
   maxThumbZAxisAngle: 0
+  minThumbZAxisAngle: 0
   currentThumbTipRotationZ: 0
   currentThumbInnerExtensionRotationZ: 0
-  indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentIndexRotationY: 0
-  currentIndexRotationZ: 0
+  indexGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentIndexRotationYMax: 0
+  currentIndexRotationYMin: 0
+  currentIndexRotationZMax: 0
+  currentIndexRotationZMin: 0
   maxIndexYAxisAngle: 0
+  minIndexYAxisAngle: 0
   maxIndexZAxisAngle: 0
+  minIndexZAxisAngle: 0
   currentIndexTipRotationZ: 0
   currentIndexInnerExtensionRotationZ: 0
-  middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  middleFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentMiddleRotationY: 0
+  middleGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentMiddleRotationYMax: -60
+  currentMiddleRotationYMin: 0
   currentMiddleRotationZ: 0
+  currentMiddleRotationZMax: 0
+  currentMiddleRotationZMin: 0
   maxMiddleYAxisAngle: 0
+  minMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
+  minMiddleZAxisAngle: 0
   currentMiddleTipRotationZ: 0
   currentMiddleInnerExtensionRotationZ: 0
   isThumb1Triggered: 0
@@ -37202,6 +37223,12 @@ MonoBehaviour:
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
   thumbPronationNon360ZoneDebug: N/A
+  middleJoint1YDebugSource: N/A
+  middleJoint1MaxRawYDebug: NaN
+  middleJoint1MinRawYDebug: NaN
+  middleJoint1MaxNormalizedYDebug: NaN
+  middleJoint1MinNormalizedYDebug: NaN
+  middleJoint1LocalEulerYDebug: NaN
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
@@ -40815,7 +40842,7 @@ MonoBehaviour:
   thumbTipPos: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
-  showDebugVisuals: 0
+  showDebugVisuals: 1
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -45051,29 +45078,50 @@ MonoBehaviour:
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
   greenColor: {r: 0, g: 1, b: 0, a: 1}
-  thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
   currentThumbRotationY: 0
+  currentThumbRotationYMax: 0
+  currentThumbRotationYMin: 0
   currentThumbRotationZ: 0
+  currentThumbRotationZMax: 0
+  currentThumbRotationZMin: 0
   hasThumbAbductionAdjustment: 0
   maxThumbYAxisAngle: 0
+  minThumbYAxisAngle: 0
   maxThumbZAxisAngle: 0
+  minThumbZAxisAngle: 0
   currentThumbTipRotationZ: 0
   currentThumbInnerExtensionRotationZ: 0
-  indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentIndexRotationY: 0
-  currentIndexRotationZ: 0
+  indexGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentIndexRotationYMax: 0
+  currentIndexRotationYMin: 0
+  currentIndexRotationZMax: 0
+  currentIndexRotationZMin: 0
   maxIndexYAxisAngle: 0
+  minIndexYAxisAngle: 0
   maxIndexZAxisAngle: 0
+  minIndexZAxisAngle: 0
   currentIndexTipRotationZ: 0
   currentIndexInnerExtensionRotationZ: 0
-  middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  middleFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentMiddleRotationY: 0
+  middleGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentMiddleRotationYMax: -60
+  currentMiddleRotationYMin: 0
   currentMiddleRotationZ: 0
+  currentMiddleRotationZMax: 0
+  currentMiddleRotationZMin: 0
   maxMiddleYAxisAngle: 0
+  minMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
+  minMiddleZAxisAngle: 0
   currentMiddleTipRotationZ: 0
   currentMiddleInnerExtensionRotationZ: 0
   isThumb1Triggered: 0
@@ -45110,6 +45158,12 @@ MonoBehaviour:
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
   thumbPronationNon360ZoneDebug: N/A
+  middleJoint1YDebugSource: N/A
+  middleJoint1MaxRawYDebug: NaN
+  middleJoint1MinRawYDebug: NaN
+  middleJoint1MaxNormalizedYDebug: NaN
+  middleJoint1MinNormalizedYDebug: NaN
+  middleJoint1LocalEulerYDebug: NaN
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
@@ -56475,29 +56529,50 @@ MonoBehaviour:
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
   greenColor: {r: 0, g: 1, b: 0, a: 1}
-  thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
   currentThumbRotationY: 0
+  currentThumbRotationYMax: 0
+  currentThumbRotationYMin: 0
   currentThumbRotationZ: 0
+  currentThumbRotationZMax: 0
+  currentThumbRotationZMin: 0
   hasThumbAbductionAdjustment: 0
   maxThumbYAxisAngle: 0
+  minThumbYAxisAngle: 0
   maxThumbZAxisAngle: 0
+  minThumbZAxisAngle: 0
   currentThumbTipRotationZ: 0
   currentThumbInnerExtensionRotationZ: 0
-  indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentIndexRotationY: 0
-  currentIndexRotationZ: 0
+  indexGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentIndexRotationYMax: 0
+  currentIndexRotationYMin: 0
+  currentIndexRotationZMax: 0
+  currentIndexRotationZMin: 0
   maxIndexYAxisAngle: 0
+  minIndexYAxisAngle: 0
   maxIndexZAxisAngle: 0
+  minIndexZAxisAngle: 0
   currentIndexTipRotationZ: 0
   currentIndexInnerExtensionRotationZ: 0
-  middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  middleFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentMiddleRotationY: 0
+  middleGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentMiddleRotationYMax: -60
+  currentMiddleRotationYMin: 0
   currentMiddleRotationZ: 0
+  currentMiddleRotationZMax: 0
+  currentMiddleRotationZMin: 0
   maxMiddleYAxisAngle: 0
+  minMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
+  minMiddleZAxisAngle: 0
   currentMiddleTipRotationZ: 0
   currentMiddleInnerExtensionRotationZ: 0
   isThumb1Triggered: 0
@@ -56534,6 +56609,12 @@ MonoBehaviour:
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
   thumbPronationNon360ZoneDebug: N/A
+  middleJoint1YDebugSource: N/A
+  middleJoint1MaxRawYDebug: NaN
+  middleJoint1MinRawYDebug: NaN
+  middleJoint1MaxNormalizedYDebug: NaN
+  middleJoint1MinNormalizedYDebug: NaN
+  middleJoint1LocalEulerYDebug: NaN
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
@@ -62192,29 +62273,50 @@ MonoBehaviour:
   yellowColor: {r: 1, g: 0.9647, b: 0, a: 1}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
   greenColor: {r: 0, g: 1, b: 0, a: 1}
-  thumbFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  thumbFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  thumbGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
   currentThumbRotationY: 0
+  currentThumbRotationYMax: 0
+  currentThumbRotationYMin: 0
   currentThumbRotationZ: 0
+  currentThumbRotationZMax: 0
+  currentThumbRotationZMin: 0
   hasThumbAbductionAdjustment: 0
   maxThumbYAxisAngle: 0
+  minThumbYAxisAngle: 0
   maxThumbZAxisAngle: 0
+  minThumbZAxisAngle: 0
   currentThumbTipRotationZ: 0
   currentThumbInnerExtensionRotationZ: 0
-  indexFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  indexFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentIndexRotationY: 0
-  currentIndexRotationZ: 0
+  indexGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  indexGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentIndexRotationYMax: 0
+  currentIndexRotationYMin: 0
+  currentIndexRotationZMax: 0
+  currentIndexRotationZMin: 0
   maxIndexYAxisAngle: 0
+  minIndexYAxisAngle: 0
   maxIndexZAxisAngle: 0
+  minIndexZAxisAngle: 0
   currentIndexTipRotationZ: 0
   currentIndexInnerExtensionRotationZ: 0
-  middleFingerJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
-  middleFingerJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
-  currentMiddleRotationY: 0
+  middleGripperJoint1MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint1MinRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MaxRotationVector: {x: 0, y: 0, z: 0}
+  middleGripperJoint2MinRotationVector: {x: 0, y: 0, z: 0}
+  currentMiddleRotationYMax: -60
+  currentMiddleRotationYMin: 0
   currentMiddleRotationZ: 0
+  currentMiddleRotationZMax: 0
+  currentMiddleRotationZMin: 0
   maxMiddleYAxisAngle: 0
+  minMiddleYAxisAngle: 0
   maxMiddleZAxisAngle: 0
+  minMiddleZAxisAngle: 0
   currentMiddleTipRotationZ: 0
   currentMiddleInnerExtensionRotationZ: 0
   isThumb1Triggered: 0
@@ -62251,6 +62353,12 @@ MonoBehaviour:
   thumbAbductionDeltaPositiveDebug: N/A
   thumbPronation360ZoneDebug: N/A
   thumbPronationNon360ZoneDebug: N/A
+  middleJoint1YDebugSource: N/A
+  middleJoint1MaxRawYDebug: NaN
+  middleJoint1MinRawYDebug: NaN
+  middleJoint1MaxNormalizedYDebug: NaN
+  middleJoint1MinNormalizedYDebug: NaN
+  middleJoint1LocalEulerYDebug: NaN
   isThumbRotatingNegative: 1
   isIndexRotatingNegative: 1
   isMiddleRotatingPositive: 1
