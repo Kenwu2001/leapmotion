@@ -4,10 +4,15 @@ using UnityEngine;
 
 public class TriggerRightMiddleTip : MonoBehaviour
 {
+    private const int MiddlePaxiniMotorID = 15;
+
     public ModeSwitching modeSwitching;
     
     public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
-    public bool isRightMiddleTipTouched => touchedColliders.Count > 0;
+    // During modeSelect: only the left index tip (L_IndexTip) counts — left thumb tip must not trigger motor selection
+    public bool isRightMiddleTipTouched => modeSwitching != null && modeSwitching.modeSelect
+        ? touchedPoints.ContainsKey("L_IndexTip")
+        : touchedColliders.Count > 0;
 
     // Store actual colliders that are touching (prevents duplicate counting)
     private HashSet<Collider> touchedColliders = new HashSet<Collider>();
@@ -16,14 +21,21 @@ public class TriggerRightMiddleTip : MonoBehaviour
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
     public Renderer middlePaxiniRenderer;
-    private Color originalColor;
+    public bool showFreezeColor = false;
+    public Color freezeDisplayColor = Color.yellow;
+    public Color originalColor;
     private bool isInitialized = false;
+
+    private void Awake()
+    {
+        if (middlePaxiniRenderer != null)
+            originalColor = middlePaxiniRenderer.material.color;
+    }
 
     private void Start()
     {
         if (middlePaxiniRenderer != null)
         {
-            originalColor = middlePaxiniRenderer.material.color;
             isInitialized = true;
         }
     }
@@ -46,9 +58,13 @@ public class TriggerRightMiddleTip : MonoBehaviour
         {
             middlePaxiniRenderer.material.color = Color.green;
         }
+        else if (showFreezeColor)
+        {
+            middlePaxiniRenderer.material.color = freezeDisplayColor;
+        }
         else
         {
-            middlePaxiniRenderer.material.color = originalColor;
+            middlePaxiniRenderer.material.color = modeSwitching.GetPaxiniDisplayColor(MiddlePaxiniMotorID, originalColor);
         }
     }
 
@@ -57,6 +73,8 @@ public class TriggerRightMiddleTip : MonoBehaviour
     {
         touchedColliders.Clear();
         touchedPoints.Clear();
+        if (modeSwitching != null && modeSwitching.SelectMotorCollider != null)
+            modeSwitching.SelectMotorCollider.OnPseudoMotorReleased(MiddlePaxiniMotorID);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -69,6 +87,8 @@ public class TriggerRightMiddleTip : MonoBehaviour
                 touchedColliders.Add(other);
                 // Add or update the touched point position (use world position)
                 touchedPoints[tag] = other.transform.position;
+                if (modeSwitching != null && modeSwitching.modeSelect && modeSwitching.SelectMotorCollider != null)
+                    modeSwitching.SelectMotorCollider.OnPseudoMotorTouched(MiddlePaxiniMotorID, other.transform.position);
                 break;
             }
         }
@@ -84,6 +104,8 @@ public class TriggerRightMiddleTip : MonoBehaviour
                 touchedColliders.Remove(other);
                 // Remove the touched point
                 touchedPoints.Remove(tag);
+                if (touchedColliders.Count == 0 && modeSwitching != null && modeSwitching.SelectMotorCollider != null)
+                    modeSwitching.SelectMotorCollider.OnPseudoMotorReleased(MiddlePaxiniMotorID);
                 break;
             }
         }
@@ -97,6 +119,8 @@ public class TriggerRightMiddleTip : MonoBehaviour
             if (other.CompareTag(tag))
             {
                 touchedPoints[tag] = other.transform.position;
+                if (modeSwitching != null && modeSwitching.modeSelect && modeSwitching.SelectMotorCollider != null)
+                    modeSwitching.SelectMotorCollider.OnPseudoMotorTouched(MiddlePaxiniMotorID, other.transform.position);
                 break;
             }
         }

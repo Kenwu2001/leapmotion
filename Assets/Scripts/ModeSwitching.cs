@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class ModeSwitching : MonoBehaviour
 {
+    private const int ThumbPaxiniMotorID = 13;
+    private const int IndexPaxiniMotorID = 14;
+    private const int MiddlePaxiniMotorID = 15;
+
     public JointAngle jointAngle;
     public SelectMotorCollider SelectMotorCollider;
 
@@ -22,9 +26,16 @@ public class ModeSwitching : MonoBehaviour
     public Renderer middleJoint3Renderer;
     public Renderer middleJoint4Renderer;
 
+    public Renderer thumbPaxiniRenderer;
+    public Renderer indexPaxiniRenderer;
+    public Renderer middlePaxiniRenderer;
+
     public Renderer baseRenderer;
 
     private Color originalColor;
+    private Color thumbPaxiniOriginalColor;
+    private Color indexPaxiniOriginalColor;
+    private Color middlePaxiniOriginalColor;
     public Color lightRedColor = new Color(1f, 0.5f, 0.5f, 1f); // Light red (temporary touch)
     public Color darkRedColor = Color.red; // Dark red (confirmed selection)
     
@@ -72,7 +83,20 @@ public class ModeSwitching : MonoBehaviour
     
     void Start()
     {
+        if (SelectMotorCollider != null)
+        {
+            if (thumbPaxiniRenderer == null && SelectMotorCollider.triggerRightThumbTip != null)
+                thumbPaxiniRenderer = SelectMotorCollider.triggerRightThumbTip.thumbPaxiniRenderer;
+            if (indexPaxiniRenderer == null && SelectMotorCollider.triggerRightIndexTip != null)
+                indexPaxiniRenderer = SelectMotorCollider.triggerRightIndexTip.indexPaxiniRenderer;
+            if (middlePaxiniRenderer == null && SelectMotorCollider.triggerRightMiddleTip != null)
+                middlePaxiniRenderer = SelectMotorCollider.triggerRightMiddleTip.middlePaxiniRenderer;
+        }
+
         originalColor = thumbJoint1Renderer.material.color;
+        thumbPaxiniOriginalColor = thumbPaxiniRenderer != null ? thumbPaxiniRenderer.material.color : originalColor;
+        indexPaxiniOriginalColor = indexPaxiniRenderer != null ? indexPaxiniRenderer.material.color : originalColor;
+        middlePaxiniOriginalColor = middlePaxiniRenderer != null ? middlePaxiniRenderer.material.color : originalColor;
         modeSelect = true;
         motorSelected = false;
         modeManipulate = false;
@@ -156,6 +180,10 @@ public class ModeSwitching : MonoBehaviour
         if (useFingertipFirst)
         {
             canEnterManipulate = canEnterManipulate && currentPhase == SelectionPhase.MotorConfirmed;
+        }
+        if (SelectMotorCollider != null && SelectMotorCollider.suppressManipulateTransition)
+        {
+            canEnterManipulate = false;
         }
 
         if (canEnterManipulate)
@@ -275,6 +303,30 @@ public class ModeSwitching : MonoBehaviour
                     middleJoint2Renderer.material = yellowMaterial;
                     middleJoint3Renderer.material = yellowMaterial;
                 }
+                else if (confirmedMotorID == ThumbPaxiniMotorID)
+                {
+                    if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = Color.red;
+                    thumbJoint1Renderer.material = yellowMaterial;
+                    thumbJoint2Renderer.material = yellowMaterial;
+                    thumbJoint3Renderer.material = yellowMaterial;
+                    thumbJoint4Renderer.material = yellowMaterial;
+                }
+                else if (confirmedMotorID == IndexPaxiniMotorID)
+                {
+                    if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = Color.red;
+                    indexJoint1Renderer.material = yellowMaterial;
+                    indexJoint2Renderer.material = yellowMaterial;
+                    indexJoint3Renderer.material = yellowMaterial;
+                    indexJoint4Renderer.material = yellowMaterial;
+                }
+                else if (confirmedMotorID == MiddlePaxiniMotorID)
+                {
+                    if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = Color.red;
+                    middleJoint1Renderer.material = yellowMaterial;
+                    middleJoint2Renderer.material = yellowMaterial;
+                    middleJoint3Renderer.material = yellowMaterial;
+                    middleJoint4Renderer.material = yellowMaterial;
+                }
                 hasSetManipulateColors = true;
             }
 
@@ -359,7 +411,25 @@ public class ModeSwitching : MonoBehaviour
             }
         }
     }
-    
+
+    /// <summary>
+    /// Clears the confirmed motor selection for a given finger (identified by motor range)
+    /// and refreshes motor colors. Called by SelectMotorCollider when entering the freeze zone,
+    /// so the previously dark-red motor reverts to its original color (Problem 2 fix).
+    /// </summary>
+    public void ClearConfirmedMotorForFinger(int minMotor, int maxMotor)
+    {
+        if (!modeSelect) return;
+        if (confirmedMotorID >= minMotor && confirmedMotorID <= maxMotor)
+        {
+            confirmedMotorID = 0;
+            motorSelected = false;
+            currentRedMotorID = 0;
+            isConfirmed = false;
+            UpdateMotorColors();
+        }
+    }
+
     /// <summary>
     /// Set a single motor's color directly (do not reset other colors)
     /// </summary>
@@ -379,6 +449,9 @@ public class ModeSwitching : MonoBehaviour
             case 10: middleJoint2Renderer.material.color = color; break;
             case 11: middleJoint3Renderer.material.color = color; break;
             case 12: middleJoint4Renderer.material.color = color; break;
+            case ThumbPaxiniMotorID: if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = color; break;
+            case IndexPaxiniMotorID: if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = color; break;
+            case MiddlePaxiniMotorID: if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = color; break;
         }
     }
     
@@ -426,6 +499,15 @@ public class ModeSwitching : MonoBehaviour
             case 12:
                 middleJoint4Renderer.material.color = color;
                 break;
+            case ThumbPaxiniMotorID:
+                if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = color;
+                break;
+            case IndexPaxiniMotorID:
+                if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = color;
+                break;
+            case MiddlePaxiniMotorID:
+                if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = color;
+                break;
             default:
                 break;
         }
@@ -447,6 +529,63 @@ public class ModeSwitching : MonoBehaviour
         middleJoint2Renderer.material.color = originalColor;
         middleJoint3Renderer.material.color = originalColor;
         middleJoint4Renderer.material.color = originalColor;
+
+        if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = thumbPaxiniOriginalColor;
+        if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = indexPaxiniOriginalColor;
+        if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = middlePaxiniOriginalColor;
+    }
+
+    public Color GetPaxiniDisplayColor(int motorID, Color fallbackOriginalColor)
+    {
+        // Paxini renderers (13/14/15): always return original color.
+        // Yellow is handled by the showFreezeColor path in TriggerRight*Tip (bypasses this function).
+        // Gray/red must never affect Paxini — they are not part of the 1-12 motor selection system.
+        switch (motorID)
+        {
+            case ThumbPaxiniMotorID:
+                return thumbPaxiniRenderer != null ? thumbPaxiniOriginalColor : fallbackOriginalColor;
+            case IndexPaxiniMotorID:
+                return indexPaxiniRenderer != null ? indexPaxiniOriginalColor : fallbackOriginalColor;
+            case MiddlePaxiniMotorID:
+                return middlePaxiniRenderer != null ? middlePaxiniOriginalColor : fallbackOriginalColor;
+        }
+
+        // Motors 1-12: apply gray/red logic as normal
+        Color baseColor = fallbackOriginalColor;
+
+        if (useFingertipFirst)
+        {
+            if (currentPhase == SelectionPhase.SelectingFingertip)
+            {
+                baseColor = grayColor;
+            }
+            else
+            {
+                switch (confirmedFingertipID)
+                {
+                    case 4:
+                        baseColor = (motorID >= 1 && motorID <= 4) ? fallbackOriginalColor : grayColor;
+                        break;
+                    case 8:
+                        baseColor = (motorID >= 5 && motorID <= 8) ? fallbackOriginalColor : grayColor;
+                        break;
+                    case 12:
+                        baseColor = (motorID >= 9 && motorID <= 12) ? fallbackOriginalColor : grayColor;
+                        break;
+                    default:
+                        baseColor = grayColor;
+                        break;
+                }
+            }
+        }
+
+        if (confirmedMotorID == motorID)
+            return darkRedColor;
+
+        if (currentRedMotorID == motorID && currentRedMotorID != confirmedMotorID)
+            return isConfirmed ? darkRedColor : lightRedColor;
+
+        return baseColor;
     }
     
     /// <summary>
@@ -554,6 +693,10 @@ public class ModeSwitching : MonoBehaviour
             middleJoint2Renderer.material.color = grayColor;
             middleJoint3Renderer.material.color = grayColor;
             middleJoint4Renderer.material.color = originalColor; // Motor 12 - fingertip selectable
+
+            if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = grayColor;
+            if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = grayColor;
+            if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = grayColor;
         }
         else if (currentPhase == SelectionPhase.SelectingMotor || currentPhase == SelectionPhase.MotorConfirmed)
         {
@@ -575,6 +718,9 @@ public class ModeSwitching : MonoBehaviour
                     middleJoint2Renderer.material.color = grayColor;
                     middleJoint3Renderer.material.color = grayColor;
                     middleJoint4Renderer.material.color = originalColor; // Middle fingertip remains selectable
+                    if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = thumbPaxiniOriginalColor;
+                    if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = grayColor;
+                    if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = grayColor;
                     break;
                     
                 case 8: // Index finger
@@ -592,6 +738,9 @@ public class ModeSwitching : MonoBehaviour
                     middleJoint2Renderer.material.color = grayColor;
                     middleJoint3Renderer.material.color = grayColor;
                     middleJoint4Renderer.material.color = originalColor; // Middle fingertip remains selectable
+                    if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = grayColor;
+                    if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = indexPaxiniOriginalColor;
+                    if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = grayColor;
                     break;
                     
                 case 12: // Middle finger
@@ -609,6 +758,9 @@ public class ModeSwitching : MonoBehaviour
                     middleJoint2Renderer.material.color = originalColor;
                     middleJoint3Renderer.material.color = originalColor;
                     middleJoint4Renderer.material.color = originalColor;
+                    if (thumbPaxiniRenderer != null) thumbPaxiniRenderer.material.color = grayColor;
+                    if (indexPaxiniRenderer != null) indexPaxiniRenderer.material.color = grayColor;
+                    if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = middlePaxiniOriginalColor;
                     break;
             }
         }

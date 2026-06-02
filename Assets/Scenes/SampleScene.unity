@@ -681,6 +681,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   middlePaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &113849443
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10491,6 +10494,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 1088540452}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &188813408
 GameObject:
   m_ObjectHideFlags: 0
@@ -11617,6 +11623,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &323629982
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -12386,6 +12395,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   indexPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &366528767
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -12943,6 +12955,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   indexPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &426000432
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -15089,7 +15104,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 975cde2c1f9e35b4895cc1f08f7e13e6, type: 2}
+  - {fileID: 2100000, guid: 355b154cb6646644097109f5ff1d6c88, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -25377,6 +25392,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &774128492
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26073,6 +26091,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.047425777, y: 0.07102468, z: 0.047319405}
   m_Center: {x: 0.02428745, y: 0.008537057, z: -0.0048474995}
+--- !u!1 &846256494
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 846256495}
+  m_Layer: 0
+  m_Name: Index0Position (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &846256495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846256494}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.034, y: 0, z: 0.002}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1629205924}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &849782421 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1504069834252912078, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
@@ -26237,45 +26286,23 @@ MonoBehaviour:
   - {fileID: 193597867}
   targetTag: L_IndexTipSmall
   switchCooldown: 0
-  showDebugSpheres: 0
-  debugToggleKey: 100
-  showDebugLines: 0
-  debugLineToggleKey: 108
-  fingerRendererManager: {fileID: 370831957}
   useThumbProjection: 1
   rightThumbPath: {fileID: 342900468}
   clawThumbPath: {fileID: 1171298832504171240}
   triggerRightThumbTip: {fileID: 187972396}
-  thumbRightFingerProjectionSphere: {fileID: 2121579920}
-  thumbClawProjectionSphere: {fileID: 1070747226}
   leftHandPoint: {fileID: 2101188477}
   rightIndexPath: {fileID: 1770763351}
   clawIndexPath: {fileID: 7989475972956683515}
   triggerRightIndexTip: {fileID: 1201296085}
-  indexRightFingerProjectionSphere: {fileID: 1874164097}
-  indexClawProjectionSphere: {fileID: 643301640}
   rightMiddlePath: {fileID: 1100719236}
   clawMiddlePath: {fileID: 5903652984707887455}
   triggerRightMiddleTip: {fileID: 1307753529}
-  middleRightFingerProjectionSphere: {fileID: 642066764}
-  middleClawProjectionSphere: {fileID: 1858448098}
-  currentTouchedMotorID: 0
-  touchPosition: {x: 0, y: 0, z: 0}
-  isAnyMotorTouched: 0
-  indexSegmentIndex: -1
-  indexClawProjectionPosition: {x: 0, y: 0, z: 0}
-  thumbSegmentIndex: -1
-  thumbClawProjectionPosition: {x: 0, y: 0, z: 0}
-  middleSegmentIndex: -1
-  middleClawProjectionPosition: {x: 0, y: 0, z: 0}
+  modeSwitching: {fileID: 0}
   useFingertipFirst: 1
   confirmedFingertipMotorID: 0
   isFingertipConfirmed: 0
   selectableMotorRange: All (1-12)
   projectionMode: 1
-  indexProjectionPercent: 0
-  middleProjectionPercent: 0
-  thumbProjectionPercent: 0
   rWristTransform: {fileID: 2468996038092723760}
   frozenThumbLineRenderer: {fileID: 0}
   frozenIndexLineRenderer: {fileID: 0}
@@ -26290,8 +26317,39 @@ MonoBehaviour:
   frozenLineWidth: 0.003
   frozenSphereRadius: 0.005
   frozenSphereColor: {r: 0, g: 1, b: 1, a: 1}
+  showDebugSpheres: 1
+  debugToggleKey: 100
+  showDebugLines: 1
+  debugLineToggleKey: 108
+  fingerRendererManager: {fileID: 370831957}
+  thumbRightFingerProjectionSphere: {fileID: 2121579920}
+  thumbClawProjectionSphere: {fileID: 1070747226}
+  indexRightFingerProjectionSphere: {fileID: 1874164097}
+  indexClawProjectionSphere: {fileID: 643301640}
+  middleRightFingerProjectionSphere: {fileID: 642066764}
+  middleClawProjectionSphere: {fileID: 1858448098}
+  currentTouchedMotorID: 0
+  touchPosition: {x: 0, y: 0, z: 0}
+  isAnyMotorTouched: 0
+  thumbSegmentIndex: -1
+  thumbClawProjectionPosition: {x: 0, y: 0, z: 0}
+  indexSegmentIndex: -1
+  indexClawProjectionPosition: {x: 0, y: 0, z: 0}
+  middleSegmentIndex: -1
+  middleClawProjectionPosition: {x: 0, y: 0, z: 0}
+  thumbProjectionPercent: 0
+  indexProjectionPercent: 0
+  middleProjectionPercent: 0
   isFrozenLineActive: 0
   frozenFingerID: 0
+  enableFreezeMotorFeature: 1
+  thumbFreezeEnabled: 0
+  indexFreezeEnabled: 0
+  middleFreezeEnabled: 0
+  thumbInFreezeZone: 0
+  indexInFreezeZone: 0
+  middleInFreezeZone: 0
+  suppressManipulateTransition: 0
 --- !u!1 &863607861
 GameObject:
   m_ObjectHideFlags: 0
@@ -26444,6 +26502,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &878015755
 GameObject:
   m_ObjectHideFlags: 0
@@ -27152,6 +27213,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
       propertyPath: m_Name
       value: fingertip
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -36286,6 +36351,9 @@ MonoBehaviour:
   middleJoint2Renderer: {fileID: 2671083350001540983}
   middleJoint3Renderer: {fileID: 3100906007860502076}
   middleJoint4Renderer: {fileID: 7769744222350259651}
+  thumbPaxiniRenderer: {fileID: 1088540452}
+  indexPaxiniRenderer: {fileID: 341002518}
+  middlePaxiniRenderer: {fileID: 472596292}
   baseRenderer: {fileID: 6337283073714088674}
   lightRedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
   darkRedColor: {r: 1, g: 0, b: 0, a: 1}
@@ -38858,6 +38926,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &1197134101
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -38950,6 +39021,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   indexPaxiniRenderer: {fileID: 341002518}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1203819791
 GameObject:
   m_ObjectHideFlags: 0
@@ -39669,6 +39743,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   middlePaxiniRenderer: {fileID: 472596292}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1311415077
 GameObject:
   m_ObjectHideFlags: 0
@@ -45884,6 +45961,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1557507935
 GameObject:
   m_ObjectHideFlags: 0
@@ -46104,6 +46184,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   middlePaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &1628439440
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -46155,6 +46238,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2079912869}
+  - {fileID: 846256495}
   m_Father: {fileID: 49333592}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1637405509
@@ -55770,7 +55854,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8880001930163941418, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -57239,6 +57323,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &1854144943
 GameObject:
   m_ObjectHideFlags: 0
@@ -57472,7 +57559,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 975cde2c1f9e35b4895cc1f08f7e13e6, type: 2}
+  - {fileID: 2100000, guid: 355b154cb6646644097109f5ff1d6c88, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -57633,6 +57720,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   middlePaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &1892804446
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -57773,6 +57863,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   indexPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &1907101963
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -59812,6 +59905,9 @@ MonoBehaviour:
   - L_IndexTip
   - L_ThumbTip
   thumbPaxiniRenderer: {fileID: 0}
+  showFreezeColor: 0
+  freezeDisplayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  originalColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &2121518866
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -59893,7 +59989,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 975cde2c1f9e35b4895cc1f08f7e13e6, type: 2}
+  - {fileID: 2100000, guid: 355b154cb6646644097109f5ff1d6c88, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

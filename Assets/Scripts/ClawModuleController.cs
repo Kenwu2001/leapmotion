@@ -436,6 +436,17 @@ public class ClawModuleController : MonoBehaviour
     private float kbRotationSpeed = 18f;
     private bool _prevUseKeyboardControl = false;
 
+    // ==============================
+    // 🔹 SMC Freeze Motor Feature State
+    // ==============================
+    private bool _smcThumbFreezeWasEnabled  = false;
+    private bool _smcIndexFreezeWasEnabled  = false;
+    private bool _smcMiddleFreezeWasEnabled = false;
+
+    private Quaternion _smcFrozenThumbM1,  _smcFrozenThumbM2,  _smcFrozenThumbM3,  _smcFrozenThumbM4;
+    private Quaternion _smcFrozenIndexM1,  _smcFrozenIndexM2,  _smcFrozenIndexM3,  _smcFrozenIndexM4;
+    private Quaternion _smcFrozenMiddleM1, _smcFrozenMiddleM2, _smcFrozenMiddleM3, _smcFrozenMiddleM4;
+
     /// <summary>
     /// Awake runs before ALL Start() calls.
     /// Save originalColor here (before any Start() can change material colors).
@@ -853,6 +864,11 @@ public class ClawModuleController : MonoBehaviour
             if (targetMotorID != 12 && MiddleAngle4Center != null)
                 MiddleAngle4Center.localRotation = _freezeMiddleMotor4Rot;
         }
+
+        // ==============================
+        // 🔹 Apply SMC Finger Freeze
+        // ==============================
+        ApplySMCFreezeMotors();
     }
 
     // ==============================
@@ -868,6 +884,80 @@ public class ClawModuleController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             ResetFingerRotations();
+        }
+    }
+
+    // ==============================
+    // 🔹 SMC Freeze Motor
+    // ==============================
+    /// <summary>
+    /// Locks all 4 motors of a finger whose freeze flag is enabled in SelectMotorCollider.
+    /// Captures the rotation on the rising edge and overrides it every frame while frozen.
+    /// </summary>
+    private void ApplySMCFreezeMotors()
+    {
+        if (modeSwitching == null || modeSwitching.SelectMotorCollider == null) return;
+        SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
+        if (!smc.enableFreezeMotorFeature)
+        {
+            _smcThumbFreezeWasEnabled  = false;
+            _smcIndexFreezeWasEnabled  = false;
+            _smcMiddleFreezeWasEnabled = false;
+            return;
+        }
+
+        // ── Thumb ──────────────────────────────────────────────────────────────────
+        bool thumbFreeze = smc.thumbFreezeEnabled;
+        if (thumbFreeze && !_smcThumbFreezeWasEnabled)
+        {
+            if (ThumbAngle1Center != null) _smcFrozenThumbM1 = ThumbAngle1Center.localRotation;
+            if (ThumbAngle2Center != null) _smcFrozenThumbM2 = ThumbAngle2Center.localRotation;
+            if (ThumbAngle3Center != null) _smcFrozenThumbM3 = ThumbAngle3Center.localRotation;
+            if (ThumbAngle4Center != null) _smcFrozenThumbM4 = ThumbAngle4Center.localRotation;
+        }
+        _smcThumbFreezeWasEnabled = thumbFreeze;
+        if (thumbFreeze)
+        {
+            if (ThumbAngle1Center != null) ThumbAngle1Center.localRotation = _smcFrozenThumbM1;
+            if (ThumbAngle2Center != null) ThumbAngle2Center.localRotation = _smcFrozenThumbM2;
+            if (ThumbAngle3Center != null) ThumbAngle3Center.localRotation = _smcFrozenThumbM3;
+            if (ThumbAngle4Center != null) ThumbAngle4Center.localRotation = _smcFrozenThumbM4;
+        }
+
+        // ── Index ──────────────────────────────────────────────────────────────────
+        bool indexFreeze = smc.indexFreezeEnabled;
+        if (indexFreeze && !_smcIndexFreezeWasEnabled)
+        {
+            if (IndexAngle1Center != null) _smcFrozenIndexM1 = IndexAngle1Center.localRotation;
+            if (IndexAngle2Center != null) _smcFrozenIndexM2 = IndexAngle2Center.localRotation;
+            if (IndexAngle3Center != null) _smcFrozenIndexM3 = IndexAngle3Center.localRotation;
+            if (IndexAngle4Center != null) _smcFrozenIndexM4 = IndexAngle4Center.localRotation;
+        }
+        _smcIndexFreezeWasEnabled = indexFreeze;
+        if (indexFreeze)
+        {
+            if (IndexAngle1Center != null) IndexAngle1Center.localRotation = _smcFrozenIndexM1;
+            if (IndexAngle2Center != null) IndexAngle2Center.localRotation = _smcFrozenIndexM2;
+            if (IndexAngle3Center != null) IndexAngle3Center.localRotation = _smcFrozenIndexM3;
+            if (IndexAngle4Center != null) IndexAngle4Center.localRotation = _smcFrozenIndexM4;
+        }
+
+        // ── Middle ─────────────────────────────────────────────────────────────────
+        bool middleFreeze = smc.middleFreezeEnabled;
+        if (middleFreeze && !_smcMiddleFreezeWasEnabled)
+        {
+            if (MiddleAngle1Center != null) _smcFrozenMiddleM1 = MiddleAngle1Center.localRotation;
+            if (MiddleAngle2Center != null) _smcFrozenMiddleM2 = MiddleAngle2Center.localRotation;
+            if (MiddleAngle3Center != null) _smcFrozenMiddleM3 = MiddleAngle3Center.localRotation;
+            if (MiddleAngle4Center != null) _smcFrozenMiddleM4 = MiddleAngle4Center.localRotation;
+        }
+        _smcMiddleFreezeWasEnabled = middleFreeze;
+        if (middleFreeze)
+        {
+            if (MiddleAngle1Center != null) MiddleAngle1Center.localRotation = _smcFrozenMiddleM1;
+            if (MiddleAngle2Center != null) MiddleAngle2Center.localRotation = _smcFrozenMiddleM2;
+            if (MiddleAngle3Center != null) MiddleAngle3Center.localRotation = _smcFrozenMiddleM3;
+            if (MiddleAngle4Center != null) MiddleAngle4Center.localRotation = _smcFrozenMiddleM4;
         }
     }
 

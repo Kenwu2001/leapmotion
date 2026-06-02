@@ -11,6 +11,10 @@ public enum ProjectionMode
 
 public class SelectMotorCollider : MonoBehaviour
 {
+    private const int ThumbPaxiniMotorID = 13;
+    private const int IndexPaxiniMotorID = 14;
+    private const int MiddlePaxiniMotorID = 15;
+
     [Header("12 Motor Colliders (for Thumb only - motors 1-4)")]
     [Tooltip("Drag and drop 12 collider GameObjects here (index 0-11 = motor ID 1-12)")]
     public GameObject[] motorColliders = new GameObject[12];
@@ -21,23 +25,7 @@ public class SelectMotorCollider : MonoBehaviour
     [Header("Switch Settings")]
     [Tooltip("Minimum time (seconds) between motor switches to prevent rapid switching")]
     public float switchCooldown = 0f;
-    
-    [Header("Debug Settings")]
-    [Tooltip("Toggle to show/hide debug spheres")]
-    public bool showDebugSpheres = true;
-    
-    [Tooltip("Key to toggle debug spheres on/off")]
-    public KeyCode debugToggleKey = KeyCode.D;
-    
-    [Tooltip("Toggle to show/hide debug LineRenderers (5-point, 2-point, frozen)")]
-    public bool showDebugLines = true;
-    
-    [Tooltip("Key to toggle debug LineRenderers on/off")]
-    public KeyCode debugLineToggleKey = KeyCode.L;
-    
-    [Tooltip("Reference to FingerRendererManager (for toggling 5-point/2-point line renderers)")]
-    public FingerRendererManager fingerRendererManager;
-    
+
     [Header("=== Thumb Projection Settings ===")]
     [Tooltip("Use projection-based detection for thumb instead of colliders (motors 1-4)")]
     public bool useThumbProjection = false;
@@ -50,13 +38,7 @@ public class SelectMotorCollider : MonoBehaviour
     
     [Tooltip("TriggerRightThumbTip to detect when thumb is being touched")]
     public TriggerRightThumbTip triggerRightThumbTip;
-    
-    [Header("Thumb Debug Spheres")]
-    [Tooltip("Sphere to show projection on right hand thumb")]
-    public Transform thumbRightFingerProjectionSphere;
-    [Tooltip("Sphere to show projection on claw thumb")]
-    public Transform thumbClawProjectionSphere;
-    
+
     [Header("Index Finger Projection Settings")]
     [Tooltip("Left hand point for projection (L_IndexTipSmall transform)")]
     public Transform leftHandPoint;
@@ -69,13 +51,7 @@ public class SelectMotorCollider : MonoBehaviour
     
     [Tooltip("TriggerRightIndexTip to detect when index finger is being touched")]
     public TriggerRightIndexTip triggerRightIndexTip;
-    
-    [Header("Index Finger Debug Spheres")]
-    [Tooltip("Sphere to show projection on right hand index finger")]
-    public Transform indexRightFingerProjectionSphere;
-    [Tooltip("Sphere to show projection on claw index finger")]
-    public Transform indexClawProjectionSphere;
-    
+
     [Header("Middle Finger Projection Settings")]
     [Tooltip("Right hand middle FingerPath with 5 joints (4 segments = motors 9-12)")]
     public FingerPath rightMiddlePath;
@@ -85,43 +61,9 @@ public class SelectMotorCollider : MonoBehaviour
     
     [Tooltip("TriggerRightMiddleTip to detect when middle finger is being touched")]
     public TriggerRightMiddleTip triggerRightMiddleTip;
-    
-    [Header("Middle Finger Debug Spheres")]
-    [Tooltip("Sphere to show projection on right hand middle finger")]
-    public Transform middleRightFingerProjectionSphere;
-    [Tooltip("Sphere to show projection on claw middle finger")]
-    public Transform middleClawProjectionSphere;
-    
-    [Header("Debug Info")]
-    [Tooltip("Currently touched motor ID (0 = none)")]
-    public int currentTouchedMotorID = 0;
-    
-    [Tooltip("Touch position on the active motor")]
-    public Vector3 touchPosition = Vector3.zero;
-    
-    [Tooltip("Is any motor currently being touched?")]
-    public bool isAnyMotorTouched = false;
-    
-    [Header("Index Finger Projection Debug")]
-    [Tooltip("Current segment index on index finger (0-3)")]
-    public int indexSegmentIndex = -1;
-    
-    [Tooltip("Projection position on claw index finger")]
-    public Vector3 indexClawProjectionPosition = Vector3.zero;
-    
-    [Header("Thumb Projection Debug")]
-    [Tooltip("Current segment index on thumb (0-3)")]
-    public int thumbSegmentIndex = -1;
-    
-    [Tooltip("Projection position on claw thumb")]
-    public Vector3 thumbClawProjectionPosition = Vector3.zero;
-    
-    [Header("Middle Finger Projection Debug")]
-    [Tooltip("Current segment index on middle finger (0-3)")]
-    public int middleSegmentIndex = -1;
-    
-    [Tooltip("Projection position on claw middle finger")]
-    public Vector3 middleClawProjectionPosition = Vector3.zero;
+
+    [Tooltip("Reference to ModeSwitching — required for freeze gate (Problem 1), confirmed-motor color clear (Problem 2), and mutual exclusion (Problem 3)")]
+    public ModeSwitching modeSwitching;
 
     [Header("=== New Feature: Fingertip Priority Selection ===")]
     [Tooltip("Enable fingertip-first mode: Fingertip motors (4, 8, 12) must be confirmed before other motors can be selected")]
@@ -139,16 +81,6 @@ public class SelectMotorCollider : MonoBehaviour
     [Header("=== Projection Mode ===")]
     [Tooltip("Select projection method: FivePoint (5 joints), TwoPoint (tip+base), FrozenLine (locked to wrist)")]
     public ProjectionMode projectionMode = ProjectionMode.FivePoint;
-    
-    [Header("Two-Point Projection Debug")]
-    [Tooltip("Index finger projection percentage (0=tip, 100=base)")]
-    public float indexProjectionPercent = 0f;
-    
-    [Tooltip("Middle finger projection percentage (0=tip, 100=base)")]
-    public float middleProjectionPercent = 0f;
-    
-    [Tooltip("Thumb projection percentage (0=tip, 100=base)")]
-    public float thumbProjectionPercent = 0f;
 
     // Convenience properties for backward compatibility
     public bool useTwoPointProjection => projectionMode == ProjectionMode.TwoPoint;
@@ -177,8 +109,85 @@ public class SelectMotorCollider : MonoBehaviour
     public float frozenSphereRadius = 0.005f;
     [Tooltip("Color of the frozen endpoint spheres")]
     public Color frozenSphereColor = Color.cyan;
+
+    // ─── Debug ────────────────────────────────────────────────────────────────
+
+    [Header("=== Debug Settings ===")]
+    [Tooltip("Toggle to show/hide debug spheres")]
+    public bool showDebugSpheres = true;
     
-    [Header("Frozen Projection Debug")]
+    [Tooltip("Key to toggle debug spheres on/off")]
+    public KeyCode debugToggleKey = KeyCode.D;
+    
+    [Tooltip("Toggle to show/hide debug LineRenderers (5-point, 2-point, frozen)")]
+    public bool showDebugLines = true;
+    
+    [Tooltip("Key to toggle debug LineRenderers on/off")]
+    public KeyCode debugLineToggleKey = KeyCode.L;
+    
+    [Tooltip("Reference to FingerRendererManager (for toggling 5-point/2-point line renderers)")]
+    public FingerRendererManager fingerRendererManager;
+
+    [Header("Debug Spheres - Thumb")]
+    [Tooltip("Sphere to show projection on right hand thumb")]
+    public Transform thumbRightFingerProjectionSphere;
+    [Tooltip("Sphere to show projection on claw thumb")]
+    public Transform thumbClawProjectionSphere;
+
+    [Header("Debug Spheres - Index")]
+    [Tooltip("Sphere to show projection on right hand index finger")]
+    public Transform indexRightFingerProjectionSphere;
+    [Tooltip("Sphere to show projection on claw index finger")]
+    public Transform indexClawProjectionSphere;
+
+    [Header("Debug Spheres - Middle")]
+    [Tooltip("Sphere to show projection on right hand middle finger")]
+    public Transform middleRightFingerProjectionSphere;
+    [Tooltip("Sphere to show projection on claw middle finger")]
+    public Transform middleClawProjectionSphere;
+
+    [Header("Debug Info")]
+    [Tooltip("Currently touched motor ID (0 = none)")]
+    public int currentTouchedMotorID = 0;
+    
+    [Tooltip("Touch position on the active motor")]
+    public Vector3 touchPosition = Vector3.zero;
+    
+    [Tooltip("Is any motor currently being touched?")]
+    public bool isAnyMotorTouched = false;
+
+    [Header("Debug - Thumb Projection")]
+    [Tooltip("Current segment index on thumb (0-3)")]
+    public int thumbSegmentIndex = -1;
+    
+    [Tooltip("Projection position on claw thumb")]
+    public Vector3 thumbClawProjectionPosition = Vector3.zero;
+
+    [Header("Debug - Index Projection")]
+    [Tooltip("Current segment index on index finger (0-3)")]
+    public int indexSegmentIndex = -1;
+    
+    [Tooltip("Projection position on claw index finger")]
+    public Vector3 indexClawProjectionPosition = Vector3.zero;
+
+    [Header("Debug - Middle Projection")]
+    [Tooltip("Current segment index on middle finger (0-3)")]
+    public int middleSegmentIndex = -1;
+    
+    [Tooltip("Projection position on claw middle finger")]
+    public Vector3 middleClawProjectionPosition = Vector3.zero;
+
+    [Header("Debug - Two-Point Projection")]
+    [Tooltip("Thumb projection percentage (0=tip, 100=base)")]
+    public float thumbProjectionPercent = 0f;
+    
+    [Tooltip("Index finger projection percentage (0=tip, 100=base)")]
+    public float indexProjectionPercent = 0f;
+    
+    [Tooltip("Middle finger projection percentage (0=tip, 100=base)")]
+    public float middleProjectionPercent = 0f;
+
+    [Header("Debug - Frozen Projection")]
     [Tooltip("Whether a frozen line is currently active")]
     public bool isFrozenLineActive = false;
     [Tooltip("Which finger is frozen (0=none, 4=thumb, 8=index, 12=middle)")]
@@ -218,6 +227,59 @@ public class SelectMotorCollider : MonoBehaviour
     // When true, all visuals are force-hidden (e.g. during modeManipulate)
     private bool _visualsForceHidden = false;
     public bool isVisualsForceHidden => _visualsForceHidden;
+
+    // ─── New Feature: Freeze Motor ────────────────────────────────────────────
+
+    [Header("=== New Feature: Freeze Motor ===")]
+    [Tooltip("Enable freeze motor feature: 0-20% zone toggles freeze ON/OFF for the selected finger's 4 motors")]
+    public bool enableFreezeMotorFeature = false;
+
+    [Tooltip("[Debug] Thumb motors freeze enabled")]
+    public bool thumbFreezeEnabled = false;
+    [Tooltip("[Debug] Index motors freeze enabled")]
+    public bool indexFreezeEnabled = false;
+    [Tooltip("[Debug] Middle motors freeze enabled")]
+    public bool middleFreezeEnabled = false;
+
+    [Tooltip("[Debug] Thumb currently in freeze zone (0-20%)")]
+    public bool thumbInFreezeZone = false;
+    [Tooltip("[Debug] Index currently in freeze zone (0-20%)")]
+    public bool indexInFreezeZone = false;
+    [Tooltip("[Debug] Middle currently in freeze zone (0-20%)")]
+    public bool middleInFreezeZone = false;
+
+    [Tooltip("Suppresses Select→Manipulate transition when freeze zone was last action")]
+    public bool suppressManipulateTransition = false;
+
+    // Freeze feature — edge trigger state
+    private bool _thumbFreezeCanTrigger = true;
+    private bool _indexFreezeCanTrigger = true;
+    private bool _middleFreezeCanTrigger = true;
+
+    // Freeze feature — per-finger suppress tracking
+    private bool _suppressFromThumbFreeze = false;
+    private bool _suppressFromIndexFreeze = false;
+    private bool _suppressFromMiddleFreeze = false;
+
+    // Freeze feature — color lerp state
+    private Color _thumbFreezeLerpStart  = Color.black;
+    private Color _thumbFreezeLerpTarget = Color.black;
+    private float _thumbFreezeColorLerpT = 1f;
+
+    private Color _indexFreezeLerpStart  = Color.black;
+    private Color _indexFreezeLerpTarget = Color.black;
+    private float _indexFreezeColorLerpT = 1f;
+
+    private Color _middleFreezeLerpStart   = Color.black;
+    private Color _middleFreezeLerpTarget  = Color.black;
+    private float _middleFreezeLerpColorT  = 1f;
+
+    // Freeze feature — gate: unlocks once finger's fingertip motor (4/8/12) is actively selected,
+    // resets when the finger leaves its trigger zone entirely.
+    // Gate must be unlocked before the 0-20% freeze zone can trigger a toggle (Problem 1).
+    private bool _thumbFreezeGateUnlocked  = false;
+    private bool _indexFreezeGateUnlocked  = false;
+    private bool _middleFreezeGateUnlocked = false;
 
     private void Start()
     {
@@ -281,6 +343,17 @@ public class SelectMotorCollider : MonoBehaviour
             isFingertipConfirmed = false;
             UpdateSelectableMotorRangeText();
         }
+
+        // Initialize freeze feature color lerp state (OFF = black, fully arrived)
+        _thumbFreezeLerpStart  = Color.black;
+        _thumbFreezeLerpTarget = Color.black;
+        _thumbFreezeColorLerpT = 1f;
+        _indexFreezeLerpStart  = Color.black;
+        _indexFreezeLerpTarget = Color.black;
+        _indexFreezeColorLerpT = 1f;
+        _middleFreezeLerpStart  = Color.black;
+        _middleFreezeLerpTarget = Color.black;
+        _middleFreezeLerpColorT = 1f;
     }
 
     private void Update()
@@ -322,55 +395,73 @@ public class SelectMotorCollider : MonoBehaviour
         // Handle Thumb projection-based selection (motors 1-4) if enabled
         if (useThumbProjection)
         {
-            switch (projectionMode)
+            // Problem 3: block thumb if another finger is confirmed AND still physically touched
+            if (enableFreezeMotorFeature && IsBlockedByOtherFinger(1, 4))
+                ClearFingerProjectionState(1);
+            else
             {
-                case ProjectionMode.FrozenLine:
-                    if (frozenCaptured && frozenFingertipID == 4)
-                        UpdateFrozenProjection(1, 4, clawThumbPath);
-                    else
-                        UpdateThumbProjection_TwoPoint(); // fallback before frozen capture
-                    break;
-                case ProjectionMode.TwoPoint:
-                    UpdateThumbProjection_TwoPoint();
-                    break;
-                default: // FivePoint
-                    UpdateThumbProjection();
-                    break;
+                switch (projectionMode)
+                {
+                    case ProjectionMode.FrozenLine:
+                        if (frozenCaptured && frozenFingertipID == 4)
+                            UpdateFrozenProjection(1, 4, clawThumbPath);
+                        else
+                            UpdateThumbProjection_TwoPoint(); // fallback before frozen capture
+                        break;
+                    case ProjectionMode.TwoPoint:
+                        UpdateThumbProjection_TwoPoint();
+                        break;
+                    default: // FivePoint
+                        UpdateThumbProjection();
+                        break;
+                }
             }
         }
         
         // Handle Index finger projection-based selection (motors 5-8)
-        switch (projectionMode)
+        // Problem 3: block index if another finger is confirmed AND still physically touched
+        if (enableFreezeMotorFeature && IsBlockedByOtherFinger(5, 8))
+            ClearFingerProjectionState(5);
+        else
         {
-            case ProjectionMode.FrozenLine:
-                if (frozenCaptured && frozenFingertipID == 8)
-                    UpdateFrozenProjection(5, 8, clawIndexPath);
-                else
-                    UpdateIndexFingerProjection_TwoPoint(); // fallback before frozen capture
-                break;
-            case ProjectionMode.TwoPoint:
-                UpdateIndexFingerProjection_TwoPoint();
-                break;
-            default: // FivePoint
-                UpdateIndexFingerProjection();
-                break;
+            switch (projectionMode)
+            {
+                case ProjectionMode.FrozenLine:
+                    if (frozenCaptured && frozenFingertipID == 8)
+                        UpdateFrozenProjection(5, 8, clawIndexPath);
+                    else
+                        UpdateIndexFingerProjection_TwoPoint(); // fallback before frozen capture
+                    break;
+                case ProjectionMode.TwoPoint:
+                    UpdateIndexFingerProjection_TwoPoint();
+                    break;
+                default: // FivePoint
+                    UpdateIndexFingerProjection();
+                    break;
+            }
         }
         
         // Handle Middle finger projection-based selection (motors 9-12)
-        switch (projectionMode)
+        // Problem 3: block middle if another finger is confirmed AND still physically touched
+        if (enableFreezeMotorFeature && IsBlockedByOtherFinger(9, 12))
+            ClearFingerProjectionState(9);
+        else
         {
-            case ProjectionMode.FrozenLine:
-                if (frozenCaptured && frozenFingertipID == 12)
-                    UpdateFrozenProjection(9, 12, clawMiddlePath);
-                else
-                    UpdateMiddleFingerProjection_TwoPoint(); // fallback before frozen capture
-                break;
-            case ProjectionMode.TwoPoint:
-                UpdateMiddleFingerProjection_TwoPoint();
-                break;
-            default: // FivePoint
-                UpdateMiddleFingerProjection();
-                break;
+            switch (projectionMode)
+            {
+                case ProjectionMode.FrozenLine:
+                    if (frozenCaptured && frozenFingertipID == 12)
+                        UpdateFrozenProjection(9, 12, clawMiddlePath);
+                    else
+                        UpdateMiddleFingerProjection_TwoPoint(); // fallback before frozen capture
+                    break;
+                case ProjectionMode.TwoPoint:
+                    UpdateMiddleFingerProjection_TwoPoint();
+                    break;
+                default: // FivePoint
+                    UpdateMiddleFingerProjection();
+                    break;
+            }
         }
         
         // Update frozen line visuals (skip if force-hidden during manipulate mode)
@@ -383,6 +474,9 @@ public class SelectMotorCollider : MonoBehaviour
         currentTouchedMotorID = activeTouchedMotorID;
         touchPosition = activeTouchPosition;
         isAnyMotorTouched = activeTouchedMotorID != 0;
+
+        // Update freeze feature color animations
+        UpdateFreezeColors();
     }
     
     /// <summary>
@@ -475,13 +569,13 @@ public class SelectMotorCollider : MonoBehaviour
             switch (confirmedFingertipMotorID)
             {
                 case 4:
-                    selectableMotorRange = "Thumb (1-4)";
+                    selectableMotorRange = "Thumb (1-4, 13)";
                     break;
                 case 8:
-                    selectableMotorRange = "Index (5-8)";
+                    selectableMotorRange = "Index (5-8, 14)";
                     break;
                 case 12:
-                    selectableMotorRange = "Middle (9-12)";
+                    selectableMotorRange = "Middle (9-12, 15)";
                     break;
                 default:
                     selectableMotorRange = "Fingertips only (4, 8, 12)";
@@ -519,11 +613,11 @@ public class SelectMotorCollider : MonoBehaviour
         switch (confirmedFingertipMotorID)
         {
             case 4: // Thumb confirmed → motors 1-4 selectable
-                return motorID >= 1 && motorID <= 4;
+                return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID;
             case 8: // Index confirmed → motors 5-8 selectable
-                return motorID >= 5 && motorID <= 8;
+                return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID;
             case 12: // Middle confirmed → motors 9-12 selectable
-                return motorID >= 9 && motorID <= 12;
+                return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID;
             default:
                 return false;
         }
@@ -579,7 +673,11 @@ public class SelectMotorCollider : MonoBehaviour
                 thumbProjectionMotorID = 0;
                 thumbSegmentIndex = -1;
             }
-            
+            thumbInFreezeZone = false;
+            _thumbFreezeCanTrigger = true;
+            _suppressFromThumbFreeze = false;
+            _thumbFreezeGateUnlocked = false;
+
             if (thumbRightFingerProjectionSphere != null)
                 thumbRightFingerProjectionSphere.gameObject.SetActive(false);
             if (thumbClawProjectionSphere != null)
@@ -601,6 +699,31 @@ public class SelectMotorCollider : MonoBehaviour
         );
         
         segmentT = Mathf.Clamp01(segmentT);
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float overallPct = (segmentIndex + segmentT) / 4f * 100f;
+            float remappedPct;
+            bool inFreeze = HandleFreezeZone(overallPct,
+                _thumbFreezeGateUnlocked,
+                ref thumbFreezeEnabled, ref _thumbFreezeCanTrigger, ref _suppressFromThumbFreeze,
+                ref thumbInFreezeZone,
+                ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT,
+                triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white,
+                out remappedPct);
+            if (inFreeze)
+            {
+                if (thumbProjectionMotorID != 0 && activeTouchedMotorID == thumbProjectionMotorID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                thumbProjectionMotorID = 0;
+                if (thumbRightFingerProjectionSphere != null) thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+                if (thumbClawProjectionSphere != null) thumbClawProjectionSphere.gameObject.SetActive(false);
+                return;
+            }
+            segmentIndex = Mathf.Clamp((int)(remappedPct / 25f), 0, 3);
+            segmentT = Mathf.Clamp01((remappedPct - segmentIndex * 25f) / 25f);
+        }
         
         Vector3 clawPos = Vector3.zero;
         if (clawThumbPath != null)
@@ -718,6 +841,10 @@ public class SelectMotorCollider : MonoBehaviour
                 thumbSegmentIndex = -1;
             }
             thumbProjectionPercent = 0f;
+            thumbInFreezeZone = false;
+            _thumbFreezeCanTrigger = true;
+            _suppressFromThumbFreeze = false;
+            _thumbFreezeGateUnlocked = false;
             
             if (thumbRightFingerProjectionSphere != null)
                 thumbRightFingerProjectionSphere.gameObject.SetActive(false);
@@ -737,6 +864,29 @@ public class SelectMotorCollider : MonoBehaviour
         
         float percentage = t * 100f;
         thumbProjectionPercent = percentage;
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float remappedPct;
+            bool inFreeze = HandleFreezeZone(percentage,
+                _thumbFreezeGateUnlocked,
+                ref thumbFreezeEnabled, ref _thumbFreezeCanTrigger, ref _suppressFromThumbFreeze,
+                ref thumbInFreezeZone,
+                ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT,
+                triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white,
+                out remappedPct);
+            if (inFreeze)
+            {
+                if (thumbProjectionMotorID != 0 && activeTouchedMotorID == thumbProjectionMotorID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                thumbProjectionMotorID = 0;
+                if (thumbRightFingerProjectionSphere != null) thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+                if (thumbClawProjectionSphere != null) thumbClawProjectionSphere.gameObject.SetActive(false);
+                return;
+            }
+            percentage = remappedPct;
+        }
         
         int clawSegIndex;
         float localT;
@@ -867,7 +1017,11 @@ public class SelectMotorCollider : MonoBehaviour
                 indexProjectionMotorID = 0;
                 indexSegmentIndex = -1;
             }
-            
+            indexInFreezeZone = false;
+            _indexFreezeCanTrigger = true;
+            _suppressFromIndexFreeze = false;
+            _indexFreezeGateUnlocked = false;
+
             // Hide debug spheres
             if (indexRightFingerProjectionSphere != null)
                 indexRightFingerProjectionSphere.gameObject.SetActive(false);
@@ -892,6 +1046,31 @@ public class SelectMotorCollider : MonoBehaviour
         
         // Clamp values
         segmentT = Mathf.Clamp01(segmentT);
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float overallPct = (segmentIndex + segmentT) / 4f * 100f;
+            float remappedPct;
+            bool inFreeze = HandleFreezeZone(overallPct,
+                _indexFreezeGateUnlocked,
+                ref indexFreezeEnabled, ref _indexFreezeCanTrigger, ref _suppressFromIndexFreeze,
+                ref indexInFreezeZone,
+                ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT,
+                triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white,
+                out remappedPct);
+            if (inFreeze)
+            {
+                if (indexProjectionMotorID != 0 && activeTouchedMotorID == indexProjectionMotorID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                indexProjectionMotorID = 0;
+                if (indexRightFingerProjectionSphere != null) indexRightFingerProjectionSphere.gameObject.SetActive(false);
+                if (indexClawProjectionSphere != null) indexClawProjectionSphere.gameObject.SetActive(false);
+                return;
+            }
+            segmentIndex = Mathf.Clamp((int)(remappedPct / 25f), 0, 3);
+            segmentT = Mathf.Clamp01((remappedPct - segmentIndex * 25f) / 25f);
+        }
         
         // Calculate corresponding point on claw finger if available
         Vector3 clawPos = Vector3.zero;
@@ -1028,7 +1207,11 @@ public class SelectMotorCollider : MonoBehaviour
                 middleProjectionMotorID = 0;
                 middleSegmentIndex = -1;
             }
-            
+            middleInFreezeZone = false;
+            _middleFreezeCanTrigger = true;
+            _suppressFromMiddleFreeze = false;
+            _middleFreezeGateUnlocked = false;
+
             // Hide debug spheres
             if (middleRightFingerProjectionSphere != null)
                 middleRightFingerProjectionSphere.gameObject.SetActive(false);
@@ -1053,6 +1236,31 @@ public class SelectMotorCollider : MonoBehaviour
         
         // Clamp values
         segmentT = Mathf.Clamp01(segmentT);
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float overallPct = (segmentIndex + segmentT) / 4f * 100f;
+            float remappedPct;
+            bool inFreeze = HandleFreezeZone(overallPct,
+                _middleFreezeGateUnlocked,
+                ref middleFreezeEnabled, ref _middleFreezeCanTrigger, ref _suppressFromMiddleFreeze,
+                ref middleInFreezeZone,
+                ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT,
+                triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white,
+                out remappedPct);
+            if (inFreeze)
+            {
+                if (middleProjectionMotorID != 0 && activeTouchedMotorID == middleProjectionMotorID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                middleProjectionMotorID = 0;
+                if (middleRightFingerProjectionSphere != null) middleRightFingerProjectionSphere.gameObject.SetActive(false);
+                if (middleClawProjectionSphere != null) middleClawProjectionSphere.gameObject.SetActive(false);
+                return;
+            }
+            segmentIndex = Mathf.Clamp((int)(remappedPct / 25f), 0, 3);
+            segmentT = Mathf.Clamp01((remappedPct - segmentIndex * 25f) / 25f);
+        }
         
         // Calculate corresponding point on claw finger if available
         Vector3 clawPos = Vector3.zero;
@@ -1189,6 +1397,10 @@ public class SelectMotorCollider : MonoBehaviour
                 indexSegmentIndex = -1;
             }
             indexProjectionPercent = 0f;
+            indexInFreezeZone = false;
+            _indexFreezeCanTrigger = true;
+            _suppressFromIndexFreeze = false;
+            _indexFreezeGateUnlocked = false;
             
             if (indexRightFingerProjectionSphere != null)
                 indexRightFingerProjectionSphere.gameObject.SetActive(false);
@@ -1211,6 +1423,29 @@ public class SelectMotorCollider : MonoBehaviour
         // t: 0 = tip, 1 = base → percentage 0-100
         float percentage = t * 100f;
         indexProjectionPercent = percentage;
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float remappedPct;
+            bool inFreeze = HandleFreezeZone(percentage,
+                _indexFreezeGateUnlocked,
+                ref indexFreezeEnabled, ref _indexFreezeCanTrigger, ref _suppressFromIndexFreeze,
+                ref indexInFreezeZone,
+                ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT,
+                triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white,
+                out remappedPct);
+            if (inFreeze)
+            {
+                if (indexProjectionMotorID != 0 && activeTouchedMotorID == indexProjectionMotorID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                indexProjectionMotorID = 0;
+                if (indexRightFingerProjectionSphere != null) indexRightFingerProjectionSphere.gameObject.SetActive(false);
+                if (indexClawProjectionSphere != null) indexClawProjectionSphere.gameObject.SetActive(false);
+                return;
+            }
+            percentage = remappedPct;
+        }
         
         // Map percentage to 4 equal zones on the claw (0-25, 25-50, 50-75, 75-100)
         int clawSegIndex;
@@ -1354,6 +1589,10 @@ public class SelectMotorCollider : MonoBehaviour
                 middleSegmentIndex = -1;
             }
             middleProjectionPercent = 0f;
+            middleInFreezeZone = false;
+            _middleFreezeCanTrigger = true;
+            _suppressFromMiddleFreeze = false;
+            _middleFreezeGateUnlocked = false;
             
             if (middleRightFingerProjectionSphere != null)
                 middleRightFingerProjectionSphere.gameObject.SetActive(false);
@@ -1376,6 +1615,29 @@ public class SelectMotorCollider : MonoBehaviour
         // t: 0 = tip, 1 = base → percentage 0-100
         float percentage = t * 100f;
         middleProjectionPercent = percentage;
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float remappedPct;
+            bool inFreeze = HandleFreezeZone(percentage,
+                _middleFreezeGateUnlocked,
+                ref middleFreezeEnabled, ref _middleFreezeCanTrigger, ref _suppressFromMiddleFreeze,
+                ref middleInFreezeZone,
+                ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT,
+                triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white,
+                out remappedPct);
+            if (inFreeze)
+            {
+                if (middleProjectionMotorID != 0 && activeTouchedMotorID == middleProjectionMotorID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                middleProjectionMotorID = 0;
+                if (middleRightFingerProjectionSphere != null) middleRightFingerProjectionSphere.gameObject.SetActive(false);
+                if (middleClawProjectionSphere != null) middleClawProjectionSphere.gameObject.SetActive(false);
+                return;
+            }
+            percentage = remappedPct;
+        }
         
         // Map percentage to 4 equal zones on the claw (0-25, 25-50, 50-75, 75-100)
         int clawSegIndex;
@@ -1568,6 +1830,80 @@ public class SelectMotorCollider : MonoBehaviour
         }
     }
 
+    internal void OnPseudoMotorTouched(int motorID, Vector3 position)
+    {
+        if (motorID < ThumbPaxiniMotorID || motorID > MiddlePaxiniMotorID)
+            return;
+
+        if (useFingertipFirst && isFingertipConfirmed && !IsPseudoMotorOwnedByConfirmedFingertip(motorID))
+            return;
+
+        if (!IsMotorSelectable(motorID))
+            return;
+
+        if (activeTouchedMotorID != motorID)
+        {
+            float timeSinceLastSwitch = Time.time - lastSwitchTime;
+            if (activeTouchedMotorID != 0 && timeSinceLastSwitch < switchCooldown)
+            {
+                return;
+            }
+
+            if (activeTouchedMotorID >= 1 && activeTouchedMotorID <= 4)
+            {
+                thumbProjectionMotorID = 0;
+
+                int prevIndex = activeTouchedMotorID - 1;
+                if (prevIndex >= 0 && prevIndex < triggerDetectors.Length && triggerDetectors[prevIndex] != null)
+                {
+                    triggerDetectors[prevIndex].ForceRelease();
+                }
+            }
+
+            if (activeTouchedMotorID >= 5 && activeTouchedMotorID <= 8)
+            {
+                indexProjectionMotorID = 0;
+            }
+
+            if (activeTouchedMotorID >= 9 && activeTouchedMotorID <= 12)
+            {
+                middleProjectionMotorID = 0;
+            }
+
+            activeTouchedMotorID = motorID;
+            activeTouchPosition = position;
+            lastSwitchTime = Time.time;
+        }
+        else
+        {
+            activeTouchPosition = position;
+        }
+    }
+
+    internal void OnPseudoMotorReleased(int motorID)
+    {
+        if (activeTouchedMotorID == motorID && motorID >= ThumbPaxiniMotorID && motorID <= MiddlePaxiniMotorID)
+        {
+            activeTouchedMotorID = 0;
+            activeTouchPosition = Vector3.zero;
+        }
+    }
+
+    private bool IsPseudoMotorOwnedByConfirmedFingertip(int motorID)
+    {
+        switch (confirmedFingertipMotorID)
+        {
+            case 4:
+                return motorID == ThumbPaxiniMotorID;
+            case 8:
+                return motorID == IndexPaxiniMotorID;
+            case 12:
+                return motorID == MiddlePaxiniMotorID;
+            default:
+                return false;
+        }
+    }
+
     // Public methods to query motor state
     public int GetTouchedMotorID()
     {
@@ -1737,9 +2073,9 @@ public class SelectMotorCollider : MonoBehaviour
                 activeTouchedMotorID = 0;
                 activeTouchPosition = Vector3.zero;
             }
-            if (motorMin == 1) { thumbProjectionMotorID = 0; thumbSegmentIndex = -1; }
-            else if (motorMin == 5) { indexProjectionMotorID = 0; indexSegmentIndex = -1; }
-            else if (motorMin == 9) { middleProjectionMotorID = 0; middleSegmentIndex = -1; }
+            if (motorMin == 1) { thumbProjectionMotorID = 0; thumbSegmentIndex = -1; thumbInFreezeZone = false; _thumbFreezeCanTrigger = true; _suppressFromThumbFreeze = false; _thumbFreezeGateUnlocked = false; }
+            else if (motorMin == 5) { indexProjectionMotorID = 0; indexSegmentIndex = -1; indexInFreezeZone = false; _indexFreezeCanTrigger = true; _suppressFromIndexFreeze = false; _indexFreezeGateUnlocked = false; }
+            else if (motorMin == 9) { middleProjectionMotorID = 0; middleSegmentIndex = -1; middleInFreezeZone = false; _middleFreezeCanTrigger = true; _suppressFromMiddleFreeze = false; _middleFreezeGateUnlocked = false; }
             return;
         }
         
@@ -1758,6 +2094,36 @@ public class SelectMotorCollider : MonoBehaviour
         if (motorMin == 1) thumbProjectionPercent = percentage;
         else if (motorMin == 5) indexProjectionPercent = percentage;
         else if (motorMin == 9) middleProjectionPercent = percentage;
+
+        // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
+        if (enableFreezeMotorFeature)
+        {
+            float remappedPct;
+            bool inFreeze;
+            if (motorMin == 1)
+                inFreeze = HandleFreezeZone(percentage, _thumbFreezeGateUnlocked, ref thumbFreezeEnabled, ref _thumbFreezeCanTrigger, ref _suppressFromThumbFreeze, ref thumbInFreezeZone, ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT, triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white, out remappedPct);
+            else if (motorMin == 5)
+                inFreeze = HandleFreezeZone(percentage, _indexFreezeGateUnlocked, ref indexFreezeEnabled, ref _indexFreezeCanTrigger, ref _suppressFromIndexFreeze, ref indexInFreezeZone, ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT, triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white, out remappedPct);
+            else
+                inFreeze = HandleFreezeZone(percentage, _middleFreezeGateUnlocked, ref middleFreezeEnabled, ref _middleFreezeCanTrigger, ref _suppressFromMiddleFreeze, ref middleInFreezeZone, ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT, triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white, out remappedPct);
+
+            if (inFreeze)
+            {
+                int clearID = (motorMin == 1) ? thumbProjectionMotorID : (motorMin == 5) ? indexProjectionMotorID : middleProjectionMotorID;
+                if (clearID != 0 && activeTouchedMotorID == clearID)
+                { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+                if (motorMin == 1) thumbProjectionMotorID = 0;
+                else if (motorMin == 5) indexProjectionMotorID = 0;
+                else if (motorMin == 9) middleProjectionMotorID = 0;
+
+                Transform rs = (motorMin == 1) ? thumbRightFingerProjectionSphere : (motorMin == 5) ? indexRightFingerProjectionSphere : middleRightFingerProjectionSphere;
+                Transform cs = (motorMin == 1) ? thumbClawProjectionSphere : (motorMin == 5) ? indexClawProjectionSphere : middleClawProjectionSphere;
+                if (rs != null) rs.gameObject.SetActive(false);
+                if (cs != null) cs.gameObject.SetActive(false);
+                return;
+            }
+            percentage = remappedPct;
+        }
         
         // Map to 4 claw segments
         int clawSegIndex;
@@ -2009,6 +2375,226 @@ public class SelectMotorCollider : MonoBehaviour
         if (frozenIndexBaseSphere != null) frozenIndexBaseSphere.gameObject.SetActive(false);
         if (frozenMiddleTipSphere != null) frozenMiddleTipSphere.gameObject.SetActive(false);
         if (frozenMiddleBaseSphere != null) frozenMiddleBaseSphere.gameObject.SetActive(false);
+    }
+
+    // ─── Freeze Motor Feature Methods ─────────────────────────────────────────
+
+    /// <summary>
+    /// Evaluates the freeze zone for a finger. Returns true if the touch is in the 0-20% freeze zone
+    /// and motor selection should be skipped. Handles the edge-trigger toggle and starts the color lerp.
+    /// If in the motor zone (>=20%), remaps the percentage so 20-100% maps to 0-100%.
+    /// </summary>
+    /// <summary>
+    /// Returns true if a *different* finger currently owns a confirmed motor in ModeSwitching
+    /// AND that finger's tip collider is still physically being touched.
+    /// When true, this finger's projection should be skipped to enforce single-finger exclusivity
+    /// (Problem 3 fix).
+    /// </summary>
+    private bool IsBlockedByOtherFinger(int thisMinMotor, int thisMaxMotor)
+    {
+        if (!enableFreezeMotorFeature || modeSwitching == null) return false;
+        int cm = modeSwitching.confirmedMotorID;
+        if (cm == 0) return false;
+        if (cm >= thisMinMotor && cm <= thisMaxMotor) return false; // confirmed motor belongs to THIS finger
+        // Another finger owns the confirmed motor — always block regardless of physical touch.
+        // The block releases only when confirmedMotorID is cleared (freeze toggled off, or ClearConfirmedMotorForFinger called).
+        return true;
+    }
+
+    /// <summary>
+    /// Clears projection state for the finger identified by minMotor (1=thumb,5=index,9=middle).
+    /// Called when mutual exclusion blocks the finger from processing.
+    /// </summary>
+    private void ClearFingerProjectionState(int minMotor)
+    {
+        if (minMotor == 1) // Thumb
+        {
+            if (thumbProjectionMotorID != 0 && activeTouchedMotorID == thumbProjectionMotorID)
+            { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+            thumbProjectionMotorID = 0;
+            thumbSegmentIndex = -1;
+            thumbInFreezeZone = false;
+            _thumbFreezeGateUnlocked = false;
+            if (thumbRightFingerProjectionSphere != null) thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (thumbClawProjectionSphere != null) thumbClawProjectionSphere.gameObject.SetActive(false);
+        }
+        else if (minMotor == 5) // Index
+        {
+            if (indexProjectionMotorID != 0 && activeTouchedMotorID == indexProjectionMotorID)
+            { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+            indexProjectionMotorID = 0;
+            indexSegmentIndex = -1;
+            indexInFreezeZone = false;
+            _indexFreezeGateUnlocked = false;
+            if (indexRightFingerProjectionSphere != null) indexRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (indexClawProjectionSphere != null) indexClawProjectionSphere.gameObject.SetActive(false);
+        }
+        else if (minMotor == 9) // Middle
+        {
+            if (middleProjectionMotorID != 0 && activeTouchedMotorID == middleProjectionMotorID)
+            { activeTouchedMotorID = 0; activeTouchPosition = Vector3.zero; }
+            middleProjectionMotorID = 0;
+            middleSegmentIndex = -1;
+            middleInFreezeZone = false;
+            _middleFreezeGateUnlocked = false;
+            if (middleRightFingerProjectionSphere != null) middleRightFingerProjectionSphere.gameObject.SetActive(false);
+            if (middleClawProjectionSphere != null) middleClawProjectionSphere.gameObject.SetActive(false);
+        }
+    }
+
+    private bool HandleFreezeZone(
+        float percentage,
+        bool gateUnlocked,        // Problem 1: gate must be true (fingertip was confirmed) before toggle can fire
+        ref bool freezeEnabled,
+        ref bool freezeCanTrigger,
+        ref bool suppressFlag,
+        ref bool inFreezeZoneDebug,
+        ref Color lerpStart,
+        ref Color lerpTarget,
+        ref float lerpT,
+        Color offColor,
+        out float remappedPercentage)
+    {
+        remappedPercentage = percentage;
+
+        bool inFreezeZone = percentage < 20f;
+        inFreezeZoneDebug = inFreezeZone;
+
+        if (inFreezeZone)
+        {
+            // Edge trigger: fire only when gate is unlocked AND canTrigger is true
+            // Gate = finger's fingertip motor (4/8/12) was previously actively selected (Problem 1)
+            if (gateUnlocked && freezeCanTrigger)
+            {
+                freezeEnabled = !freezeEnabled;
+                freezeCanTrigger = false;
+                suppressFlag = true;
+
+                // Start color lerp: light → full target color
+                if (freezeEnabled)
+                {
+                    lerpStart  = new Color(1f, 1f, 0.5f, 1f); // light yellow
+                    lerpTarget = Color.yellow;
+                }
+                else
+                {
+                    lerpStart  = Color.yellow; // transitioning back from yellow to original
+                    lerpTarget = offColor;
+                }
+                lerpT = 0f;
+            }
+            // In freeze zone — do not select any motor
+            return true;
+        }
+        else
+        {
+            // In motor zone — allow re-trigger on next freeze-zone entry
+            freezeCanTrigger = true;
+            suppressFlag = false;
+            // Remap 20-100% → 0-100% so existing motor selection logic is unchanged
+            remappedPercentage = Mathf.Clamp((percentage - 20f) / 80f * 100f, 0f, 100f);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Advances freeze color lerp animations and pushes colors to TriggerRight*Tip renderers.
+    /// Also updates the suppressManipulateTransition flag.
+    /// </summary>
+    private void UpdateFreezeColors()
+    {
+        if (!enableFreezeMotorFeature)
+        {
+            if (triggerRightThumbTip  != null) triggerRightThumbTip.showFreezeColor  = false;
+            if (triggerRightIndexTip  != null) triggerRightIndexTip.showFreezeColor  = false;
+            if (triggerRightMiddleTip != null) triggerRightMiddleTip.showFreezeColor = false;
+            suppressManipulateTransition = false;
+            return;
+        }
+
+        const float lerpSpeed = 4f; // ~0.25 s to fully transition
+
+        // When useFingertipFirst is active and a fingertip is confirmed, only the confirmed finger
+        // may unlock its freeze gate, enter freeze zone, or show the freeze color animation.
+        // Other fingers are fully excluded — their Paxini must stay at original color.
+        bool thumbFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 4;
+        bool indexFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 8;
+        bool middleFreezeAllowed = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 12;
+
+        // Problem 1: Set freeze gate when fingertip motors (4/8/12) are actively selected
+        if (thumbFreezeAllowed  && thumbProjectionMotorID == 4)   _thumbFreezeGateUnlocked  = true;
+        if (indexFreezeAllowed  && indexProjectionMotorID == 8)   _indexFreezeGateUnlocked  = true;
+        if (middleFreezeAllowed && middleProjectionMotorID == 12) _middleFreezeGateUnlocked = true;
+
+        // Reset gate for non-allowed fingers so stale state doesn't persist
+        if (!thumbFreezeAllowed)  _thumbFreezeGateUnlocked  = false;
+        if (!indexFreezeAllowed)  _indexFreezeGateUnlocked  = false;
+        if (!middleFreezeAllowed) _middleFreezeGateUnlocked = false;
+
+        // Problem 2: While in the freeze zone with gate unlocked, clear the confirmed motor
+        // so the dark-red color disappears (mirrors the behaviour of switching between other zones)
+        if (modeSwitching != null)
+        {
+            if (thumbInFreezeZone  && _thumbFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(1, 4);
+            if (indexInFreezeZone  && _indexFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(5, 8);
+            if (middleInFreezeZone && _middleFreezeGateUnlocked) modeSwitching.ClearConfirmedMotorForFinger(9, 12);
+        }
+
+        if (triggerRightThumbTip != null)
+        {
+            if (thumbFreezeAllowed)
+            {
+                _thumbFreezeColorLerpT = Mathf.MoveTowards(_thumbFreezeColorLerpT, 1f, lerpSpeed * Time.deltaTime);
+                triggerRightThumbTip.showFreezeColor = true;
+                if (_thumbFreezeColorLerpT >= 1f && !thumbFreezeEnabled)
+                    triggerRightThumbTip.freezeDisplayColor = triggerRightThumbTip.originalColor;
+                else
+                    triggerRightThumbTip.freezeDisplayColor = Color.Lerp(_thumbFreezeLerpStart, _thumbFreezeLerpTarget, _thumbFreezeColorLerpT);
+            }
+            else
+            {
+                triggerRightThumbTip.showFreezeColor = false;
+                thumbFreezeEnabled = false;
+            }
+        }
+
+        if (triggerRightIndexTip != null)
+        {
+            if (indexFreezeAllowed)
+            {
+                _indexFreezeColorLerpT = Mathf.MoveTowards(_indexFreezeColorLerpT, 1f, lerpSpeed * Time.deltaTime);
+                triggerRightIndexTip.showFreezeColor = true;
+                if (_indexFreezeColorLerpT >= 1f && !indexFreezeEnabled)
+                    triggerRightIndexTip.freezeDisplayColor = triggerRightIndexTip.originalColor;
+                else
+                    triggerRightIndexTip.freezeDisplayColor = Color.Lerp(_indexFreezeLerpStart, _indexFreezeLerpTarget, _indexFreezeColorLerpT);
+            }
+            else
+            {
+                triggerRightIndexTip.showFreezeColor = false;
+                indexFreezeEnabled = false;
+            }
+        }
+
+        if (triggerRightMiddleTip != null)
+        {
+            if (middleFreezeAllowed)
+            {
+                _middleFreezeLerpColorT = Mathf.MoveTowards(_middleFreezeLerpColorT, 1f, lerpSpeed * Time.deltaTime);
+                triggerRightMiddleTip.showFreezeColor = true;
+                if (_middleFreezeLerpColorT >= 1f && !middleFreezeEnabled)
+                    triggerRightMiddleTip.freezeDisplayColor = triggerRightMiddleTip.originalColor;
+                else
+                    triggerRightMiddleTip.freezeDisplayColor = Color.Lerp(_middleFreezeLerpStart, _middleFreezeLerpTarget, _middleFreezeLerpColorT);
+            }
+            else
+            {
+                triggerRightMiddleTip.showFreezeColor = false;
+                middleFreezeEnabled = false;
+            }
+        }
+
+        suppressManipulateTransition = _suppressFromThumbFreeze || _suppressFromIndexFreeze || _suppressFromMiddleFreeze;
     }
 }
 

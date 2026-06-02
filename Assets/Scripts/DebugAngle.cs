@@ -50,6 +50,10 @@ public class DebugAngle : MonoBehaviour
               "indexGripperJoint2Max.z: " + clawModuleController.indexGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
               "indexGripperJoint2Min.z: " + clawModuleController.indexGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
               "middleGripperJoint2Max.z: " + clawModuleController.middleGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-              "middleGripperJoint2Min.z: " + clawModuleController.middleGripperJoint2MinRotationVector.z.ToString("F2");
+              "middleGripperJoint2Min.z: " + clawModuleController.middleGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
+              "\n" +
+              "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
+              "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
+              "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A");
     }
 }

@@ -4,10 +4,15 @@ using UnityEngine;
 
 public class TriggerRightIndexTip : MonoBehaviour
 {
+    private const int IndexPaxiniMotorID = 14;
+
     public ModeSwitching modeSwitching;
     
     public string[] targetTags = { "L_IndexTip", "L_ThumbTip" };
-    public bool isRightIndexTipTouched => touchedColliders.Count > 0;
+    // During modeSelect: only the left index tip (L_IndexTip) counts — left thumb tip must not trigger motor selection
+    public bool isRightIndexTipTouched => modeSwitching != null && modeSwitching.modeSelect
+        ? touchedPoints.ContainsKey("L_IndexTip")
+        : touchedColliders.Count > 0;
 
     // Store actual colliders that are touching (prevents duplicate counting)
     private HashSet<Collider> touchedColliders = new HashSet<Collider>();
@@ -16,14 +21,21 @@ public class TriggerRightIndexTip : MonoBehaviour
     private Dictionary<string, Vector3> touchedPoints = new Dictionary<string, Vector3>();
 
     public Renderer indexPaxiniRenderer;
-    private Color originalColor;
+    public bool showFreezeColor = false;
+    public Color freezeDisplayColor = Color.yellow;
+    public Color originalColor;
     private bool isInitialized = false;
+
+    private void Awake()
+    {
+        if (indexPaxiniRenderer != null)
+            originalColor = indexPaxiniRenderer.material.color;
+    }
 
     private void Start()
     {
         if (indexPaxiniRenderer != null)
         {
-            originalColor = indexPaxiniRenderer.material.color;
             isInitialized = true;
         }
     }
@@ -46,9 +58,13 @@ public class TriggerRightIndexTip : MonoBehaviour
         {
             indexPaxiniRenderer.material.color = Color.green;
         }
+        else if (showFreezeColor)
+        {
+            indexPaxiniRenderer.material.color = freezeDisplayColor;
+        }
         else
         {
-            indexPaxiniRenderer.material.color = originalColor;
+            indexPaxiniRenderer.material.color = modeSwitching.GetPaxiniDisplayColor(IndexPaxiniMotorID, originalColor);
         }
     }
 
@@ -57,6 +73,8 @@ public class TriggerRightIndexTip : MonoBehaviour
     {
         touchedColliders.Clear();
         touchedPoints.Clear();
+        if (modeSwitching != null && modeSwitching.SelectMotorCollider != null)
+            modeSwitching.SelectMotorCollider.OnPseudoMotorReleased(IndexPaxiniMotorID);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -69,6 +87,8 @@ public class TriggerRightIndexTip : MonoBehaviour
                 touchedColliders.Add(other);
                 // Add or update the touched point position
                 touchedPoints[tag] = other.transform.position;
+                if (modeSwitching != null && modeSwitching.modeSelect && modeSwitching.SelectMotorCollider != null)
+                    modeSwitching.SelectMotorCollider.OnPseudoMotorTouched(IndexPaxiniMotorID, other.transform.position);
                 break;
             }
         }
@@ -84,6 +104,8 @@ public class TriggerRightIndexTip : MonoBehaviour
                 touchedColliders.Remove(other);
                 // Remove the touched point
                 touchedPoints.Remove(tag);
+                if (touchedColliders.Count == 0 && modeSwitching != null && modeSwitching.SelectMotorCollider != null)
+                    modeSwitching.SelectMotorCollider.OnPseudoMotorReleased(IndexPaxiniMotorID);
                 break;
             }
         }
@@ -97,6 +119,8 @@ public class TriggerRightIndexTip : MonoBehaviour
             if (other.CompareTag(tag))
             {
                 touchedPoints[tag] = other.transform.position;
+                if (modeSwitching != null && modeSwitching.modeSelect && modeSwitching.SelectMotorCollider != null)
+                    modeSwitching.SelectMotorCollider.OnPseudoMotorTouched(IndexPaxiniMotorID, other.transform.position);
                 break;
             }
         }
