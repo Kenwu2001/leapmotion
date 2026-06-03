@@ -294,6 +294,11 @@ public class SelectMotorCollider : MonoBehaviour
     private bool _indexFreezeGateUnlocked  = false;
     private bool _middleFreezeGateUnlocked = false;
 
+    // Freeze feature — pending: lerp has started but toggle is not committed until lerp completes
+    private bool _thumbFreezePending  = false;
+    private bool _indexFreezePending  = false;
+    private bool _middleFreezePending = false;
+
     private void Start()
     {
         // Setup trigger detectors for motor colliders 1-4 (Thumb only) - skip if using projection mode
@@ -738,6 +743,7 @@ public class SelectMotorCollider : MonoBehaviour
                 ref thumbInFreezeZone,
                 ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT,
                 triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white,
+                ref _thumbFreezePending,
                 out remappedPct);
             if (inFreeze)
             {
@@ -902,6 +908,7 @@ public class SelectMotorCollider : MonoBehaviour
                 ref thumbInFreezeZone,
                 ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT,
                 triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white,
+                ref _thumbFreezePending,
                 out remappedPct);
             if (inFreeze)
             {
@@ -1087,6 +1094,7 @@ public class SelectMotorCollider : MonoBehaviour
                 ref indexInFreezeZone,
                 ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT,
                 triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white,
+                ref _indexFreezePending,
                 out remappedPct);
             if (inFreeze)
             {
@@ -1279,6 +1287,7 @@ public class SelectMotorCollider : MonoBehaviour
                 ref middleInFreezeZone,
                 ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT,
                 triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white,
+                ref _middleFreezePending,
                 out remappedPct);
             if (inFreeze)
             {
@@ -1467,6 +1476,7 @@ public class SelectMotorCollider : MonoBehaviour
                 ref indexInFreezeZone,
                 ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT,
                 triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white,
+                ref _indexFreezePending,
                 out remappedPct);
             if (inFreeze)
             {
@@ -1661,6 +1671,7 @@ public class SelectMotorCollider : MonoBehaviour
                 ref middleInFreezeZone,
                 ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT,
                 triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white,
+                ref _middleFreezePending,
                 out remappedPct);
             if (inFreeze)
             {
@@ -2136,11 +2147,11 @@ public class SelectMotorCollider : MonoBehaviour
             float remappedPct;
             bool inFreeze;
             if (motorMin == 1)
-                inFreeze = HandleFreezeZone(percentage, _thumbFreezeGateUnlocked, ref thumbFreezeEnabled, ref _thumbFreezeCanTrigger, ref _suppressFromThumbFreeze, ref thumbInFreezeZone, ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT, triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white, out remappedPct);
+                inFreeze = HandleFreezeZone(percentage, _thumbFreezeGateUnlocked, ref thumbFreezeEnabled, ref _thumbFreezeCanTrigger, ref _suppressFromThumbFreeze, ref thumbInFreezeZone, ref _thumbFreezeLerpStart, ref _thumbFreezeLerpTarget, ref _thumbFreezeColorLerpT, triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white, ref _thumbFreezePending, out remappedPct);
             else if (motorMin == 5)
-                inFreeze = HandleFreezeZone(percentage, _indexFreezeGateUnlocked, ref indexFreezeEnabled, ref _indexFreezeCanTrigger, ref _suppressFromIndexFreeze, ref indexInFreezeZone, ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT, triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white, out remappedPct);
+                inFreeze = HandleFreezeZone(percentage, _indexFreezeGateUnlocked, ref indexFreezeEnabled, ref _indexFreezeCanTrigger, ref _suppressFromIndexFreeze, ref indexInFreezeZone, ref _indexFreezeLerpStart, ref _indexFreezeLerpTarget, ref _indexFreezeColorLerpT, triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white, ref _indexFreezePending, out remappedPct);
             else
-                inFreeze = HandleFreezeZone(percentage, _middleFreezeGateUnlocked, ref middleFreezeEnabled, ref _middleFreezeCanTrigger, ref _suppressFromMiddleFreeze, ref middleInFreezeZone, ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT, triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white, out remappedPct);
+                inFreeze = HandleFreezeZone(percentage, _middleFreezeGateUnlocked, ref middleFreezeEnabled, ref _middleFreezeCanTrigger, ref _suppressFromMiddleFreeze, ref middleInFreezeZone, ref _middleFreezeLerpStart, ref _middleFreezeLerpTarget, ref _middleFreezeLerpColorT, triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white, ref _middleFreezePending, out remappedPct);
 
             if (inFreeze)
             {
@@ -2488,6 +2499,7 @@ public class SelectMotorCollider : MonoBehaviour
         ref Color lerpTarget,
         ref float lerpT,
         Color offColor,
+        ref bool pendingFlag,     // Hold-to-trigger: toggle commits only when lerp completes
         out float remappedPercentage)
     {
         remappedPercentage = percentage;
@@ -2497,35 +2509,49 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (inFreezeZone)
         {
-            // Edge trigger: fire only when gate is unlocked AND canTrigger is true
-            // Gate = finger's fingertip motor (4/8/12) was previously actively selected (Problem 1)
+            // Rising edge: begin lerp toward target but do NOT commit toggle yet
             if (gateUnlocked && freezeCanTrigger)
             {
-                freezeEnabled = !freezeEnabled;
+                pendingFlag      = true;
                 freezeCanTrigger = false;
-                suppressFlag = true;
 
-                // Start color lerp: light → full target color
-                if (freezeEnabled)
+                if (!freezeEnabled)
                 {
-                    lerpStart  = new Color(1f, 1f, 0.5f, 1f); // light yellow
+                    lerpStart  = offColor;     // OFF → ON: original color toward yellow
                     lerpTarget = Color.yellow;
                 }
                 else
                 {
-                    lerpStart  = Color.yellow; // transitioning back from yellow to original
+                    lerpStart  = Color.yellow; // ON → OFF: yellow toward original color
                     lerpTarget = offColor;
                 }
                 lerpT = 0f;
             }
+
+            // Commit toggle only when lerp finishes (finger held long enough)
+            if (pendingFlag && lerpT >= 1f)
+            {
+                freezeEnabled = !freezeEnabled;
+                pendingFlag   = false;
+                suppressFlag  = true;
+            }
+
             // In freeze zone — do not select any motor
             return true;
         }
         else
         {
-            // In motor zone — allow re-trigger on next freeze-zone entry
+            // Left freeze zone: if lerp not yet complete, cancel and reverse back
+            if (pendingFlag)
+            {
+                Color current  = Color.Lerp(lerpStart, lerpTarget, lerpT);
+                lerpStart  = current;
+                lerpTarget = freezeEnabled ? Color.yellow : offColor; // revert toward where we came from
+                lerpT      = 0f;
+                pendingFlag  = false;
+            }
             freezeCanTrigger = true;
-            suppressFlag = false;
+            suppressFlag     = false;
             // Remap 20-100% → 0-100% so existing motor selection logic is unchanged
             remappedPercentage = Mathf.Clamp((percentage - 20f) / 80f * 100f, 0f, 100f);
             return false;
@@ -2573,6 +2599,36 @@ public class SelectMotorCollider : MonoBehaviour
             if (thumbInFreezeZone  && _thumbFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(1, 4);
             if (indexInFreezeZone  && _indexFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(5, 8);
             if (middleInFreezeZone && _middleFreezeGateUnlocked) modeSwitching.ClearConfirmedMotorForFinger(9, 12);
+        }
+
+        // Cancel any pending transition if the finger lifted off entirely while in the freeze zone
+        // (HandleFreezeZone's else branch handles normal exit; this covers the abrupt-lift case)
+        if (!thumbInFreezeZone && _thumbFreezePending)
+        {
+            Color cur = Color.Lerp(_thumbFreezeLerpStart, _thumbFreezeLerpTarget, _thumbFreezeColorLerpT);
+            _thumbFreezeLerpStart  = cur;
+            _thumbFreezeLerpTarget = thumbFreezeEnabled ? Color.yellow : (triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white);
+            _thumbFreezeColorLerpT = 0f;
+            _thumbFreezePending    = false;
+            _thumbFreezeCanTrigger = true;
+        }
+        if (!indexInFreezeZone && _indexFreezePending)
+        {
+            Color cur = Color.Lerp(_indexFreezeLerpStart, _indexFreezeLerpTarget, _indexFreezeColorLerpT);
+            _indexFreezeLerpStart  = cur;
+            _indexFreezeLerpTarget = indexFreezeEnabled ? Color.yellow : (triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white);
+            _indexFreezeColorLerpT = 0f;
+            _indexFreezePending    = false;
+            _indexFreezeCanTrigger = true;
+        }
+        if (!middleInFreezeZone && _middleFreezePending)
+        {
+            Color cur = Color.Lerp(_middleFreezeLerpStart, _middleFreezeLerpTarget, _middleFreezeLerpColorT);
+            _middleFreezeLerpStart  = cur;
+            _middleFreezeLerpTarget = middleFreezeEnabled ? Color.yellow : (triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white);
+            _middleFreezeLerpColorT = 0f;
+            _middleFreezePending    = false;
+            _middleFreezeCanTrigger = true;
         }
 
         if (triggerRightThumbTip != null)
