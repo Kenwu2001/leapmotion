@@ -54,6 +54,7 @@ public class DebugAngle : MonoBehaviour
               "\n" +
               "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
               "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
-              "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A");
+              "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A") + "\n" +
+              "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A");
     }
 }
