@@ -38,7 +38,9 @@ public class DebugAngle : MonoBehaviour
               "middleGripperJoint1Max.y: N/A\nmiddleGripperJoint1Min.y: N/A\n" +
               "thumbGripperJoint2Max.z: N/A\nthumbGripperJoint2Min.z: N/A\n" +
               "indexGripperJoint2Max.z: N/A\nindexGripperJoint2Min.z: N/A\n" +
-              "middleGripperJoint2Max.z: N/A\nmiddleGripperJoint2Min.z: N/A"
+              "middleGripperJoint2Max.z: N/A\nmiddleGripperJoint2Min.z: N/A\n" +
+              "Index->Baseline Angle: N/A\n" +
+              "Middle->Baseline Angle: N/A"
             : "thumbGripperJoint1Max.y: " + clawModuleController.thumbGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
               "thumbGripperJoint1Min.y: " + clawModuleController.thumbGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
               "indexGripperJoint1Max.y: " + clawModuleController.indexGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
@@ -55,6 +57,8 @@ public class DebugAngle : MonoBehaviour
               "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
               "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
               "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A") + "\n" +
-              "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A");
+                "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A") + "\n" +
+                "Index->Baseline Angle: " + (jointAngle != null ? jointAngle.indexToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
+                "Middle->Baseline Angle: " + (jointAngle != null ? jointAngle.middleToBaselineAngleOnPalm.ToString("F2") : "N/A");
     }
 }

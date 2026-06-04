@@ -424,6 +424,9 @@ public class ClawModuleController : MonoBehaviour
     [Header("=== Extension Offset ===")]
     [Tooltip("Positive value pushes extension joints further inward on X axis.")]
     public float extensionInwardOffsetDeg = 20f;
+    [Header("=== Index & Middle Individual Mode ===")]
+    [Tooltip("ON: Use indexToBaselineAngleOnPalm / middleToBaselineAngleOnPalm for index/middle abduction+pronation mapping.")]
+    public bool useIndexMiddleIndividualMode = false;
     public float tt = 0f;
 
     private int kbCurrentRow = 3;
@@ -1681,15 +1684,20 @@ public class ClawModuleController : MonoBehaviour
         //FIXME: abduction remapping
         if (IndexAngle2Center != null)
         {
+            float indexRemapMin = useIndexMiddleIndividualMode ? 15f : 20f;
+            float indexRemapMax = useIndexMiddleIndividualMode ? 30f : 57f;
+            float clampedIndexAngleOnPalm = useIndexMiddleIndividualMode
+                ? Mathf.Clamp(jointAngle.indexToBaselineAngleOnPalm, indexRemapMin, indexRemapMax)
+                : Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, indexRemapMin, indexRemapMax);
+
             if (isFullRangeMapping)
             {
                 float targetZ = 0f;
-                float clampedIndexMiddleAngleOnPalm = Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57);
 
                 if (indexGripperJoint2MaxRotationVector.z > 200f)
-                    targetZ = Remap(20, 57, 360 + indexGripperJoint2MinRotationVector.z, indexGripperJoint2MaxRotationVector.z, clampedIndexMiddleAngleOnPalm);
+                    targetZ = Remap(indexRemapMin, indexRemapMax, 360 + indexGripperJoint2MinRotationVector.z, indexGripperJoint2MaxRotationVector.z, clampedIndexAngleOnPalm);
                 else
-                    targetZ = Remap(20, 57, indexGripperJoint2MinRotationVector.z, 0, clampedIndexMiddleAngleOnPalm);
+                    targetZ = Remap(indexRemapMin, indexRemapMax, indexGripperJoint2MinRotationVector.z, 0, clampedIndexAngleOnPalm);
 
                 targetZ = Mathf.Repeat(targetZ, 360f);
 
@@ -1699,17 +1707,16 @@ public class ClawModuleController : MonoBehaviour
             else
             {
                 float targetZ = 0f;
-                float clampedIndexMiddleAngleOnPalm = Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57);
 
                 if (indexGripperJoint2MaxRotationVector.z > 200f)
                 {
                     float rightestPos = (indexGripperJoint2MaxRotationVector.z + 60) > 360f + indexGripperJoint2MinRotationVector.z
                         ? 360f + indexGripperJoint2MinRotationVector.z
                         : indexGripperJoint2MaxRotationVector.z + 60f;
-                    targetZ = Remap(20, 57, rightestPos, indexGripperJoint2MaxRotationVector.z, clampedIndexMiddleAngleOnPalm);
+                    targetZ = Remap(indexRemapMin, indexRemapMax, rightestPos, indexGripperJoint2MaxRotationVector.z, clampedIndexAngleOnPalm);
                 }
                 else
-                    targetZ = Remap(20, 57, indexGripperJoint2MinRotationVector.z, 0, clampedIndexMiddleAngleOnPalm);
+                    targetZ = Remap(indexRemapMin, indexRemapMax, indexGripperJoint2MinRotationVector.z, 0, clampedIndexAngleOnPalm);
 
                 targetZ = Mathf.Repeat(targetZ, 360f);
 
@@ -2031,13 +2038,17 @@ public class ClawModuleController : MonoBehaviour
 
         if (MiddleAngle2Center != null)
         {
-            float clampedIndexMiddleAngleOnPalm = Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57);
+            float middleRemapMin = useIndexMiddleIndividualMode ? 20f : 20f;
+            float middleRemapMax = useIndexMiddleIndividualMode ? 35f : 57f;
+            float clampedMiddleAngleOnPalm = useIndexMiddleIndividualMode
+                ? Mathf.Clamp(jointAngle.middleToBaselineAngleOnPalm, middleRemapMin, middleRemapMax)
+                : Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, middleRemapMin, middleRemapMax);
 
             if (isFullRangeMapping)
             {
                 // At angleOnPalm==57 → middleGripperJoint2MaxRotationVector.z
                 // At angleOnPalm==20 → 360 + middleGripperJoint2MinRotationVector.z
-                float targetZ = Remap(20, 57, middleGripperJoint2MaxRotationVector.z, 360 + middleGripperJoint2MinRotationVector.z, clampedIndexMiddleAngleOnPalm);
+                float targetZ = Remap(middleRemapMin, middleRemapMax, middleGripperJoint2MaxRotationVector.z, 360 + middleGripperJoint2MinRotationVector.z, clampedMiddleAngleOnPalm);
                 targetZ = Mathf.Repeat(targetZ, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
@@ -2047,7 +2058,7 @@ public class ClawModuleController : MonoBehaviour
                 float leftestPos = 360 + middleGripperJoint2MinRotationVector.z - 60f < middleGripperJoint2MaxRotationVector.z
                     ? middleGripperJoint2MaxRotationVector.z
                     : 360 + middleGripperJoint2MinRotationVector.z - 60f;
-                float targetZ = Remap(20, 57, leftestPos, 360 + middleGripperJoint2MinRotationVector.z, clampedIndexMiddleAngleOnPalm);
+                float targetZ = Remap(middleRemapMin, middleRemapMax, leftestPos, 360 + middleGripperJoint2MinRotationVector.z, clampedMiddleAngleOnPalm);
                 targetZ = Mathf.Repeat(targetZ, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, euler.y, targetZ);
@@ -2619,11 +2630,17 @@ public class ClawModuleController : MonoBehaviour
 
         if (IndexAngle1Center != null)
         {
+            float indexRemapMin = useIndexMiddleIndividualMode ? 15f : 20f;
+            float indexRemapMax = useIndexMiddleIndividualMode ? 30f : 57f;
+            float clampedIndexAngleOnPalm = useIndexMiddleIndividualMode
+                ? Mathf.Clamp(jointAngle.indexToBaselineAngleOnPalm, indexRemapMin, indexRemapMax)
+                : Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, indexRemapMin, indexRemapMax);
+
             // 往左轉 maxIndexYAxisAngle 最多會是 0 往 -60, targetY 往右是 0 往 60
             if (isFullRangeMapping)
             {
                 float targetY;
-                targetY = Remap(20, 57, 360 + indexGripperJoint1MinRotationVector.y, indexGripperJoint1MaxRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(indexRemapMin, indexRemapMax, 360 + indexGripperJoint1MinRotationVector.y, indexGripperJoint1MaxRotationVector.y, clampedIndexAngleOnPalm);
                 // repeat 360
                 targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
@@ -2632,7 +2649,7 @@ public class ClawModuleController : MonoBehaviour
             else
             {
                 float targetY;
-                targetY = Remap(20, 57, indexGripperJoint1MaxRotationVector.y + 60f, indexGripperJoint1MaxRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(indexRemapMin, indexRemapMax, indexGripperJoint1MaxRotationVector.y + 60f, indexGripperJoint1MaxRotationVector.y, clampedIndexAngleOnPalm);
                 targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
                 targetRotation = Quaternion.Euler(euler.x, targetY, euler.z);
@@ -2878,10 +2895,16 @@ public class ClawModuleController : MonoBehaviour
 
         if (MiddleAngle1Center != null)
         {
+            float middleRemapMin = useIndexMiddleIndividualMode ? 20f : 20f;
+            float middleRemapMax = useIndexMiddleIndividualMode ? 35f : 57f;
+            float clampedMiddleAngleOnPalm = useIndexMiddleIndividualMode
+                ? Mathf.Clamp(jointAngle.middleToBaselineAngleOnPalm, middleRemapMin, middleRemapMax)
+                : Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, middleRemapMin, middleRemapMax);
+
             if (isFullRangeMapping)
             {
                 float targetY;
-                targetY = Remap(20, 57, middleGripperJoint1MaxRotationVector.y, 360 + middleGripperJoint1MinRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(middleRemapMin, middleRemapMax, middleGripperJoint1MaxRotationVector.y, 360 + middleGripperJoint1MinRotationVector.y, clampedMiddleAngleOnPalm);
 
                 targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;
@@ -2890,7 +2913,7 @@ public class ClawModuleController : MonoBehaviour
             else
             {
                 float targetY;
-                targetY = Remap(20, 57, 360 + middleGripperJoint1MinRotationVector.y - 60f, 360 + middleGripperJoint1MinRotationVector.y, Mathf.Clamp(jointAngle.indexMiddleAngleOnPalm, 20, 57));
+                targetY = Remap(middleRemapMin, middleRemapMax, 360 + middleGripperJoint1MinRotationVector.y - 60f, 360 + middleGripperJoint1MinRotationVector.y, clampedMiddleAngleOnPalm);
 
                 targetY = Mathf.Repeat(targetY, 360f);
                 Vector3 euler = targetRotation.eulerAngles;

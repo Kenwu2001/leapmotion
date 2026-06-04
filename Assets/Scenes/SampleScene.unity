@@ -11749,6 +11749,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -11761,6 +11765,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -13297,6 +13310,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -13309,6 +13326,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -14511,6 +14537,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -14523,6 +14553,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -25582,6 +25621,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -25594,6 +25637,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -36349,6 +36401,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -36361,6 +36417,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -37368,6 +37433,7 @@ MonoBehaviour:
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 0
   extensionInwardOffsetDeg: 20
+  useIndexMiddleIndividualMode: 0
   tt: 0
 --- !u!114 &1033347338
 MonoBehaviour:
@@ -37406,6 +37472,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -37418,6 +37488,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -40964,6 +41043,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -40976,6 +41059,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 1
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -45312,6 +45404,7 @@ MonoBehaviour:
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 0
   extensionInwardOffsetDeg: 20
+  useIndexMiddleIndividualMode: 0
   tt: 0
 --- !u!114 &1487720136
 MonoBehaviour:
@@ -45616,6 +45709,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -45628,6 +45725,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -56829,6 +56935,7 @@ MonoBehaviour:
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 0
   extensionInwardOffsetDeg: 20
+  useIndexMiddleIndividualMode: 0
   tt: 0
 --- !u!114 &1776150497
 MonoBehaviour:
@@ -59408,6 +59515,10 @@ MonoBehaviour:
   middleLRAngle: 0
   indexMiddleDistance: 0
   indexMiddleAngleOnPalm: 0
+  indexToBaselineAngleOnPalm: 0
+  middleToBaselineAngleOnPalm: 0
+  useConstrainedBaselineAngleRange: 1
+  baselineOffsetTowardIndexCm: 0.5
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
@@ -59420,6 +59531,15 @@ MonoBehaviour:
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
   showDebugVisuals: 0
+  showIndexMiddleBaseline: 1
+  baselineLineLength: 0.1
+  baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
+  showIndexAngleVisualization: 0
+  showMiddleAngleVisualization: 0
+  indexProjectionLineColor: {r: 1, g: 0.6, b: 0, a: 1}
+  indexAngleVectorLineColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  middleProjectionLineColor: {r: 0.2, g: 0.7, b: 1, a: 1}
+  middleAngleVectorLineColor: {r: 0.2, g: 1, b: 0.4, a: 1}
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
@@ -62585,6 +62705,7 @@ MonoBehaviour:
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 1
   extensionInwardOffsetDeg: 20
+  useIndexMiddleIndividualMode: 0
   tt: 0
 --- !u!114 &4551987535763487161
 MonoBehaviour:

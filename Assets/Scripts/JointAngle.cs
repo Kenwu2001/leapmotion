@@ -19,6 +19,12 @@ public class JointAngle : MonoBehaviour
 
     public float indexMiddleDistance;
     public float indexMiddleAngleOnPalm;
+    public float indexToBaselineAngleOnPalm;
+    public float middleToBaselineAngleOnPalm;
+    [Header("Baseline Angle Mode")]
+    public bool useConstrainedBaselineAngleRange = true;
+    [Tooltip("Shift baseline parallel toward index finger in centimeters.")]
+    public float baselineOffsetTowardIndexCm = 0.5f;
 
     public float thumbPalmAngle;
     public float wristThumbAngle;
@@ -42,8 +48,23 @@ public class JointAngle : MonoBehaviour
 
     [Header("Debug Visuals")]
     public bool showDebugVisuals = false; // Set to false to hide the red line and green plane
+    public bool showIndexMiddleBaseline = true;
+    public float baselineLineLength = 0.1f;
+    public Color baselineLineColor = Color.cyan;
+    [Header("Angle Calculation Visuals")]
+    public bool showIndexAngleVisualization = false;
+    public bool showMiddleAngleVisualization = false;
+    public Color indexProjectionLineColor = new Color(1f, 0.6f, 0f, 1f);
+    public Color indexAngleVectorLineColor = new Color(1f, 0.2f, 0.2f, 1f);
+    public Color middleProjectionLineColor = new Color(0.2f, 0.7f, 1f, 1f);
+    public Color middleAngleVectorLineColor = new Color(0.2f, 1f, 0.4f, 1f);
 
     private LineRenderer lineRenderer;
+    private LineRenderer baselineLineRenderer;
+    private LineRenderer indexProjectionLineRenderer;
+    private LineRenderer indexAngleVectorLineRenderer;
+    private LineRenderer middleProjectionLineRenderer;
+    private LineRenderer middleAngleVectorLineRenderer;
     private GameObject debugPlane;
 
     private Vector3 previousIndexTip;
@@ -98,6 +119,8 @@ public class JointAngle : MonoBehaviour
         middleLRAngle = 0f;
 
         indexMiddleDistance = 0f;
+        indexToBaselineAngleOnPalm = 0f;
+        middleToBaselineAngleOnPalm = 0f;
 
         // Initialize wrist-thumb reference vectors
         if (joints.ContainsKey("Wrist") && joints.ContainsKey("Thumb0"))
@@ -126,6 +149,38 @@ public class JointAngle : MonoBehaviour
         lineRenderer.startColor = Color.red;
         lineRenderer.endColor = Color.red;
         lineRenderer.positionCount = 2;
+
+        // Create baseline LineRenderer used for index-middle independent angle reference
+        baselineLineRenderer = new GameObject("IndexMiddleBaselineLine").AddComponent<LineRenderer>();
+        baselineLineRenderer.transform.SetParent(transform, false);
+        baselineLineRenderer.startWidth = 0.003f;
+        baselineLineRenderer.endWidth = 0.003f;
+        baselineLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        baselineLineRenderer.startColor = baselineLineColor;
+        baselineLineRenderer.endColor = baselineLineColor;
+        baselineLineRenderer.positionCount = 2;
+        baselineLineRenderer.enabled = false;
+
+        indexProjectionLineRenderer = CreateDebugLineRenderer(
+            "IndexProjectionLine",
+            indexProjectionLineColor,
+            0.0025f
+        );
+        indexAngleVectorLineRenderer = CreateDebugLineRenderer(
+            "IndexAngleVectorLine",
+            indexAngleVectorLineColor,
+            0.003f
+        );
+        middleProjectionLineRenderer = CreateDebugLineRenderer(
+            "MiddleProjectionLine",
+            middleProjectionLineColor,
+            0.0025f
+        );
+        middleAngleVectorLineRenderer = CreateDebugLineRenderer(
+            "MiddleAngleVectorLine",
+            middleAngleVectorLineColor,
+            0.003f
+        );
 
         // Create debug plane
         debugPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -174,6 +229,7 @@ public class JointAngle : MonoBehaviour
 
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
         indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
+        UpdateIndexMiddleIndependentAnglesAndBaseline();
 
         // Determine which finger to use based on touch detection
         bool useIndexFinger = false;
@@ -382,6 +438,160 @@ public class JointAngle : MonoBehaviour
         }
 
         // Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
+    }
+
+    void UpdateIndexMiddleIndependentAnglesAndBaseline()
+    {
+        if (!joints.ContainsKey("Wrist") || !joints.ContainsKey("Index0") || !joints.ContainsKey("Middle0") ||
+            !joints.ContainsKey("Index1") || !joints.ContainsKey("Middle1"))
+        {
+            indexToBaselineAngleOnPalm = 0f;
+            middleToBaselineAngleOnPalm = 0f;
+            if (baselineLineRenderer != null)
+                baselineLineRenderer.enabled = false;
+            SetAngleVisualizationEnabled(false, false);
+            return;
+        }
+
+        Vector3 wrist = joints["Wrist"].position;
+        Vector3 indexMcp = joints["Index0"].position;
+        Vector3 middleMcp = joints["Middle0"].position;
+        Vector3 midpoint = (indexMcp + middleMcp) * 0.5f;
+
+        Vector3 planeNormal = Vector3.Cross(indexMcp - wrist, middleMcp - wrist);
+        if (planeNormal.sqrMagnitude < 1e-10f)
+        {
+            indexToBaselineAngleOnPalm = 0f;
+            middleToBaselineAngleOnPalm = 0f;
+            if (baselineLineRenderer != null)
+                baselineLineRenderer.enabled = false;
+            SetAngleVisualizationEnabled(false, false);
+            return;
+        }
+        planeNormal.Normalize();
+
+        Vector3 mcpLine = middleMcp - indexMcp;
+        if (mcpLine.sqrMagnitude < 1e-10f)
+        {
+            indexToBaselineAngleOnPalm = 0f;
+            middleToBaselineAngleOnPalm = 0f;
+            if (baselineLineRenderer != null)
+                baselineLineRenderer.enabled = false;
+            SetAngleVisualizationEnabled(false, false);
+            return;
+        }
+
+        // Baseline direction: in palm plane and perpendicular to MCP line.
+        Vector3 baselineDirection = Vector3.Cross(planeNormal, mcpLine).normalized;
+
+        // Keep baseline direction stable by aligning it with Wrist->Midpoint direction projected on the same plane.
+        Vector3 wristToMidpoint = Vector3.ProjectOnPlane(midpoint - wrist, planeNormal).normalized;
+        if (wristToMidpoint.sqrMagnitude > 1e-10f && Vector3.Dot(baselineDirection, wristToMidpoint) < 0f)
+            baselineDirection = -baselineDirection;
+
+        Vector3 towardIndexDirection = (indexMcp - middleMcp).normalized;
+        float baselineOffsetMeters = baselineOffsetTowardIndexCm * 0.01f;
+        Vector3 baselineOrigin = midpoint + towardIndexDirection * baselineOffsetMeters;
+
+        Vector3 indexPip = joints["Index1"].position;
+        Vector3 middlePip = joints["Middle1"].position;
+        Vector3 indexPipProjected = ProjectPointOnPlane(indexPip, baselineOrigin, planeNormal);
+        Vector3 middlePipProjected = ProjectPointOnPlane(middlePip, baselineOrigin, planeNormal);
+
+        Vector3 indexVector = indexPipProjected - baselineOrigin;
+        Vector3 middleVector = middlePipProjected - baselineOrigin;
+
+        float indexSignedAngle = indexVector.sqrMagnitude > 1e-10f
+            ? Vector3.SignedAngle(baselineDirection, indexVector.normalized, planeNormal)
+            : 0f;
+
+        float middleSignedAngle = middleVector.sqrMagnitude > 1e-10f
+            ? Vector3.SignedAngle(baselineDirection, middleVector.normalized, planeNormal)
+            : 0f;
+
+        if (useConstrainedBaselineAngleRange)
+        {
+            // Index constrained mode: keep original negative side, map to non-negative output.
+            indexToBaselineAngleOnPalm = Mathf.Max(0f, -indexSignedAngle);
+            // Middle constrained mode: keep magnitude only (no negative values).
+            middleToBaselineAngleOnPalm = Mathf.Abs(middleSignedAngle);
+        }
+        else
+        {
+            // Free mode: preserve original signed angles.
+            indexToBaselineAngleOnPalm = indexSignedAngle;
+            middleToBaselineAngleOnPalm = middleSignedAngle;
+        }
+
+        if (baselineLineRenderer == null)
+            return;
+
+        baselineLineRenderer.startColor = baselineLineColor;
+        baselineLineRenderer.endColor = baselineLineColor;
+        baselineLineRenderer.enabled = showDebugVisuals && showIndexMiddleBaseline;
+
+        if (baselineLineRenderer.enabled)
+        {
+            float halfLength = Mathf.Max(0.005f, baselineLineLength * 0.5f);
+            baselineLineRenderer.SetPosition(0, baselineOrigin - baselineDirection * halfLength);
+            baselineLineRenderer.SetPosition(1, baselineOrigin + baselineDirection * halfLength);
+        }
+
+        bool drawIndex = showIndexAngleVisualization;
+        bool drawMiddle = showMiddleAngleVisualization;
+        SetAngleVisualizationEnabled(drawIndex, drawMiddle);
+
+        if (drawIndex)
+        {
+            indexProjectionLineRenderer.startColor = indexProjectionLineColor;
+            indexProjectionLineRenderer.endColor = indexProjectionLineColor;
+            indexProjectionLineRenderer.SetPosition(0, indexPip);
+            indexProjectionLineRenderer.SetPosition(1, indexPipProjected);
+
+            indexAngleVectorLineRenderer.startColor = indexAngleVectorLineColor;
+            indexAngleVectorLineRenderer.endColor = indexAngleVectorLineColor;
+            indexAngleVectorLineRenderer.SetPosition(0, baselineOrigin);
+            indexAngleVectorLineRenderer.SetPosition(1, indexPipProjected);
+        }
+
+        if (drawMiddle)
+        {
+            middleProjectionLineRenderer.startColor = middleProjectionLineColor;
+            middleProjectionLineRenderer.endColor = middleProjectionLineColor;
+            middleProjectionLineRenderer.SetPosition(0, middlePip);
+            middleProjectionLineRenderer.SetPosition(1, middlePipProjected);
+
+            middleAngleVectorLineRenderer.startColor = middleAngleVectorLineColor;
+            middleAngleVectorLineRenderer.endColor = middleAngleVectorLineColor;
+            middleAngleVectorLineRenderer.SetPosition(0, baselineOrigin);
+            middleAngleVectorLineRenderer.SetPosition(1, middlePipProjected);
+        }
+    }
+
+    LineRenderer CreateDebugLineRenderer(string name, Color color, float width)
+    {
+        LineRenderer lr = new GameObject(name).AddComponent<LineRenderer>();
+        lr.transform.SetParent(transform, false);
+        lr.startWidth = width;
+        lr.endWidth = width;
+        lr.material = new Material(Shader.Find("Sprites/Default"));
+        lr.startColor = color;
+        lr.endColor = color;
+        lr.positionCount = 2;
+        lr.enabled = false;
+        return lr;
+    }
+
+    void SetAngleVisualizationEnabled(bool indexEnabled, bool middleEnabled)
+    {
+        if (indexProjectionLineRenderer != null)
+            indexProjectionLineRenderer.enabled = indexEnabled;
+        if (indexAngleVectorLineRenderer != null)
+            indexAngleVectorLineRenderer.enabled = indexEnabled;
+        if (middleProjectionLineRenderer != null)
+            middleProjectionLineRenderer.enabled = middleEnabled;
+        if (middleAngleVectorLineRenderer != null)
+            middleAngleVectorLineRenderer.enabled = middleEnabled;
     }
 
     public float GetIndexMiddleAngleOnPalm()
