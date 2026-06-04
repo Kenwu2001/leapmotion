@@ -464,6 +464,8 @@ public class ClawModuleController : MonoBehaviour
         if (thumbJoint1Renderer != null)
             originalColor = thumbJoint1Renderer.material.color;
 
+        useIndexMiddleIndividualMode = false;
+
         if (useKeyboardControl && modeSwitching != null)
         {
             modeSwitching.enabled = false;
@@ -3454,6 +3456,7 @@ public class ClawModuleController : MonoBehaviour
     public void ResetFingerRotations()
     {
         isFullRangeMapping = true;
+        useIndexMiddleIndividualMode = false;
 
         currentThumbRotationY = currentThumbRotationZ = 0f;
         currentThumbRotationYMax = 0f;
@@ -3539,7 +3542,31 @@ public class ClawModuleController : MonoBehaviour
         isMiddlePronationUsingMaxRangeThisTouch = true;
 
         ApplyResetRotations();
+        ResetAllFreezeStates();
         tt = 0f;
+    }
+
+    /// <summary>
+    /// Clears all freeze-related state so reset returns every finger to an unfrozen baseline.
+    /// </summary>
+    private void ResetAllFreezeStates()
+    {
+        _manipulationFreezeInitialized = false;
+
+        _smcThumbFreezeWasEnabled = false;
+        _smcIndexFreezeWasEnabled = false;
+        _smcMiddleFreezeWasEnabled = false;
+
+        if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
+        {
+            return;
+        }
+
+        SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
+        smc.enableFreezeMotorFeature = false;
+        smc.thumbFreezeEnabled = false;
+        smc.indexFreezeEnabled = false;
+        smc.middleFreezeEnabled = false;
     }
 
     private void ApplyResetRotations()

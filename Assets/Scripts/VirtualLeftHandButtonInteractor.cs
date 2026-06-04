@@ -7,6 +7,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     public class ButtonBinding
     {
         public string buttonName = "Button";
+        public GameObject buttonObject;
         public Collider buttonCollider;
         public Renderer buttonRenderer;
         public Color toggledColor = Color.green;
@@ -19,6 +20,19 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
 
         public void Initialize()
         {
+            if (buttonObject != null)
+            {
+                if (buttonCollider == null)
+                {
+                    buttonCollider = buttonObject.GetComponent<Collider>();
+                }
+
+                if (buttonRenderer == null)
+                {
+                    buttonRenderer = buttonObject.GetComponent<Renderer>();
+                }
+            }
+
             if (buttonRenderer == null && buttonCollider != null)
             {
                 buttonRenderer = buttonCollider.GetComponent<Renderer>();
@@ -28,6 +42,29 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             {
                 originalColor = buttonRenderer.material.color;
                 ApplyCurrentColor();
+            }
+        }
+
+        public void SetVisible(bool visible)
+        {
+            if (buttonObject != null)
+            {
+                buttonObject.SetActive(visible);
+            }
+
+            if (buttonCollider != null)
+            {
+                buttonCollider.enabled = visible;
+            }
+
+            if (buttonRenderer != null)
+            {
+                buttonRenderer.enabled = visible;
+            }
+
+            if (!visible)
+            {
+                isTouched = false;
             }
         }
 
@@ -45,6 +82,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     [Header("Button Setup")]
     public ButtonBinding button1 = new ButtonBinding { buttonName = "Button 1" };
     public ButtonBinding button2 = new ButtonBinding { buttonName = "Button 2" };
+    public ButtonBinding button3 = new ButtonBinding { buttonName = "Button 3" };
 
     [Header("State Sources")]
     public ClawModuleController clawModuleController;
@@ -58,6 +96,8 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         ApplyDefaultNames();
         InitializeButton(button1);
         InitializeButton(button2);
+        InitializeButton(button3);
+        SyncButtonStates();
     }
 
     private void Update()
@@ -77,13 +117,15 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (TryHandleEnter(button1, other)) return;
-        TryHandleEnter(button2, other);
+        if (TryHandleEnter(button2, other)) return;
+        TryHandleEnter(button3, other);
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (TryHandleExit(button1, other)) return;
-        TryHandleExit(button2, other);
+        if (TryHandleExit(button2, other)) return;
+        TryHandleExit(button3, other);
     }
 
     private bool TryHandleEnter(ButtonBinding button, Collider other)
@@ -138,6 +180,13 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
+        if (button3.isTouched)
+        {
+            currentTouchedButton = button3.buttonName;
+            interactionDebug = "Touch stay: " + button3.buttonName;
+            return;
+        }
+
         currentTouchedButton = "None";
         interactionDebug = "No button touched";
     }
@@ -157,7 +206,9 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (clawModuleController != null)
         {
             SetButtonState(button1, clawModuleController.isFullRangeMapping);
+            button2.SetVisible(!clawModuleController.IsResetState);
             SetButtonState(button2, clawModuleController.IsResetState);
+            SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
         }
     }
 
@@ -182,6 +233,11 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (button2.buttonName == "Button 2")
         {
             button2.buttonName = "Reset";
+        }
+
+        if (button3.buttonName == "Button 3")
+        {
+            button3.buttonName = "IndexMiddleIndividual";
         }
     }
 
@@ -212,6 +268,13 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             {
                 interactionDebug = "Touch enter: " + button.buttonName + " ignored";
             }
+        }
+
+        if (button == button3)
+        {
+            clawModuleController.useIndexMiddleIndividualMode = !clawModuleController.useIndexMiddleIndividualMode;
+            SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
+            interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.useIndexMiddleIndividualMode;
         }
     }
 }
