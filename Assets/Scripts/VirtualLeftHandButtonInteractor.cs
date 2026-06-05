@@ -205,7 +205,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     {
         if (clawModuleController != null)
         {
-            SetButtonState(button1, clawModuleController.isFullRangeMapping);
+            SetButtonState(button1, !clawModuleController.isFullRangeMapping);
             button2.SetVisible(!clawModuleController.IsResetState);
             SetButtonState(button2, clawModuleController.IsResetState);
             SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
@@ -251,7 +251,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (button == button1)
         {
             clawModuleController.isFullRangeMapping = !clawModuleController.isFullRangeMapping;
-            SetButtonState(button1, clawModuleController.isFullRangeMapping);
+            SetButtonState(button1, !clawModuleController.isFullRangeMapping);
             interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.isFullRangeMapping;
             return;
         }
