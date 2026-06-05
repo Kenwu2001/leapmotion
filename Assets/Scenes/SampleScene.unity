@@ -801,6 +801,9 @@ MonoBehaviour:
   jointAngle: {fileID: 1422305614}
   updateFrequency: 20
   clawModuleController: {fileID: 4551987535763487160}
+  gateByEngagement: 1
+  tcpSender: {fileID: 188813409}
+  triggerRightWrist: {fileID: 2468996038092723762}
   deltaUserStudy: {fileID: 4551987535763487161}
 --- !u!114 &118535348
 MonoBehaviour:
@@ -61742,6 +61745,7 @@ MonoBehaviour:
   leftIndexTipName: L_IndexTip
   isRightWristTouched: 0
   indicatorQuad: {fileID: 668308670}
+  toggleCooldownSeconds: 0.35
 --- !u!4 &2468996038922426834 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2468996038520119904, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}

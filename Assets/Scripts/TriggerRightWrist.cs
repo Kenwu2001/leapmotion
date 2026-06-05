@@ -9,50 +9,90 @@ public class TriggerRightWrist : MonoBehaviour
     public string leftIndexTipName = "L_IndexTip";
     public bool isRightWristTouched = false;
     public GameObject indicatorQuad; // The quad to show/hide
+    [Tooltip("Minimum interval between engagement toggles to resist tracking jitter.")]
+    public float toggleCooldownSeconds = 0.35f;
+
+    private readonly HashSet<Collider> touchingIndexColliders = new HashSet<Collider>();
+    private float lastToggleTime = -999f;
 
     public bool IsEngaged
     {
         get
         {
-            if (indicatorQuad != null)
-            {
-                return indicatorQuad.activeSelf;
-            }
-
             return tcpSender != null && tcpSender.isSending;
         }
     }
 
     private void Start()
     {
-        if (indicatorQuad != null)
-        {
-            indicatorQuad.SetActive(false); // Hide at start
-        }
+        SyncIndicatorWithSender();
+    }
+
+    private void Update()
+    {
+        SyncIndicatorWithSender();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag(leftIndexTipName))
+        if (!other.CompareTag(leftIndexTipName))
         {
-            isRightWristTouched = true;
-            if (tcpSender != null)
-            {
-                tcpSender.isSending = !tcpSender.isSending;
-                
-                if (indicatorQuad != null)
-                {
-                    indicatorQuad.SetActive(tcpSender.isSending);
-                }
-            }
+            return;
+        }
+
+        if (!touchingIndexColliders.Add(other))
+        {
+            return;
+        }
+
+        isRightWristTouched = touchingIndexColliders.Count > 0;
+
+        // Only toggle on the first collider entering, not every collider fragment.
+        if (touchingIndexColliders.Count == 1)
+        {
+            TryToggleEngagement();
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag(leftIndexTipName))
+        if (!other.CompareTag(leftIndexTipName))
         {
-            isRightWristTouched = false;
+            return;
+        }
+
+        touchingIndexColliders.Remove(other);
+        isRightWristTouched = touchingIndexColliders.Count > 0;
+    }
+
+    private void TryToggleEngagement()
+    {
+        if (tcpSender == null)
+        {
+            return;
+        }
+
+        if (Time.unscaledTime - lastToggleTime < toggleCooldownSeconds)
+        {
+            return;
+        }
+
+        lastToggleTime = Time.unscaledTime;
+        tcpSender.ToggleEngagement("wrist_touch");
+        SyncIndicatorWithSender();
+    }
+
+    private void SyncIndicatorWithSender()
+    {
+        if (indicatorQuad == null)
+        {
+            return;
+        }
+
+        bool engaged = tcpSender != null && tcpSender.isSending;
+        if (indicatorQuad.activeSelf != engaged)
+        {
+            indicatorQuad.SetActive(engaged);
         }
     }
 }

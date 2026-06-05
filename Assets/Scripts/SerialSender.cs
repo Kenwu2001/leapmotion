@@ -7,6 +7,11 @@ public class SerialSender : MonoBehaviour {
     private SerialManager serialmanager;
     public float updateFrequency = 20f; // 20 updates per second
     public ClawModuleController clawModuleController;
+    [Header("Engagement Gate")]
+    [Tooltip("When enabled, serial commands are sent only while engagement is ON.")]
+    public bool gateByEngagement = true;
+    public TcpSender tcpSender;
+    public TriggerRightWrist triggerRightWrist;
 
     public DeltaUserStudy deltaUserStudy;
     
@@ -23,6 +28,31 @@ public class SerialSender : MonoBehaviour {
     IEnumerator SendDataCoroutine() {
         while(true) {
             if (serialmanager != null && serialmanager.serialPort != null && serialmanager.serialPort.IsOpen) {
+                if (gateByEngagement)
+                {
+                    bool isEngaged = false;
+
+                    if (tcpSender != null)
+                    {
+                        isEngaged = tcpSender.isSending;
+                    }
+                    else if (triggerRightWrist != null)
+                    {
+                        isEngaged = triggerRightWrist.IsEngaged;
+                    }
+
+                    if (!isEngaged)
+                    {
+                        yield return new WaitForSeconds(1f/updateFrequency);
+                        continue;
+                    }
+                }
+
+                if (clawModuleController == null)
+                {
+                    yield return new WaitForSeconds(1f/updateFrequency);
+                    continue;
+                }
                 
                 // Format data with all angle variables including LR angles
 

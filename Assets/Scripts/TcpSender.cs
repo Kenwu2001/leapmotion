@@ -97,6 +97,31 @@ public class TcpSender : MonoBehaviour
     private int consecutiveAnomalyCount = 0;
     private bool hasPreviousFrame = false;
 
+    public bool SetEngagement(bool enabled, string reason = null)
+    {
+        if (isSending == enabled)
+        {
+            return false;
+        }
+
+        isSending = enabled;
+        if (string.IsNullOrEmpty(reason))
+        {
+            Debug.Log("Engagement changed: " + isSending);
+        }
+        else
+        {
+            Debug.Log("Engagement changed: " + isSending + " reason=" + reason);
+        }
+
+        return true;
+    }
+
+    public bool ToggleEngagement(string reason = null)
+    {
+        return SetEngagement(!isSending, reason);
+    }
+
     void Start()
     {
         ConnectToServer();
@@ -174,7 +199,7 @@ public class TcpSender : MonoBehaviour
                     // Auto-stop if too many consecutive anomalies
                     if (consecutiveAnomalyCount >= maxConsecutiveAnomalies)
                     {
-                        isSending = false;
+                        SetEngagement(false, "safety_anomaly_limit");
                         Debug.LogError("[SAFETY] Too many consecutive tracking anomalies! Auto-stopped sending to protect robot arm.");
                     }
 
