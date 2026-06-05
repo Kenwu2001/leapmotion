@@ -20,6 +20,7 @@ public class ClawModuleController : MonoBehaviour
     public TriggerMiddleInnerExtension triggerMiddleInnerExtension;
 
     public ModeSwitching modeSwitching;
+    public TcpSender tcpSender;
 
     public PaxiniValue paxiniValue;
 
@@ -3455,6 +3456,8 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     public void ResetFingerRotations()
     {
+        ForceDisengageOnReset();
+
         isFullRangeMapping = true;
         useIndexMiddleIndividualMode = false;
 
@@ -3544,6 +3547,14 @@ public class ClawModuleController : MonoBehaviour
         ApplyResetRotations();
         ResetAllFreezeStates();
         tt = 0f;
+    }
+
+    private void ForceDisengageOnReset()
+    {
+        if (tcpSender != null)
+        {
+            tcpSender.SetEngagement(false, "claw_reset");
+        }
     }
 
     /// <summary>
@@ -3773,6 +3784,8 @@ public class ClawModuleController : MonoBehaviour
         // P - reset all keyboard offsets
         if (Input.GetKeyDown(KeyCode.P))
         {
+            ForceDisengageOnReset();
+
             currentThumbRotationY = 0f;
             currentThumbRotationZ = 0f;
             hasThumbAbductionAdjustment = false;

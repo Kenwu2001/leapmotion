@@ -23,15 +23,17 @@ public class HUDText : MonoBehaviour
         bool isFullRangeMapping = clawModuleController.isFullRangeMapping;
         bool isIndexMiddleIndividual = clawModuleController.useIndexMiddleIndividualMode;
         bool isEngaged = triggerRightWrist != null && triggerRightWrist.IsEngaged;
+        string fullRangeText = isFullRangeMapping ? "Full Range Mapping" : "Small Range Mapping";
+        string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle coupled";
+        string engagementText = isEngaged ? "Engagement" : "Disengagement";
         string fullRangeColor = isFullRangeMapping ? "green" : "red";
         string resetColor = isReset ? "green" : "red";
         string individualColor = isIndexMiddleIndividual ? "green" : "red";
         string engagementColor = isEngaged ? "green" : "red";
 
         textMesh.text =
-            $"FullRangeMapping: <color={fullRangeColor}>{isFullRangeMapping}</color>\n" +
-            $"Reset: <color={resetColor}>{isReset}</color>\n" +
-            $"IndexMiddleIndividual: <color={individualColor}>{isIndexMiddleIndividual}</color>\n" +
-            $"Engagement: <color={engagementColor}>{isEngaged}</color>";
+            $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
+            $"<color={individualColor}>{indexMiddleText}</color>\n" +
+            $"<color={engagementColor}>{engagementText}</color>";
     }
 }

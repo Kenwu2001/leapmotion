@@ -37307,6 +37307,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 0}
   triggerMiddleInnerExtension: {fileID: 0}
   modeSwitching: {fileID: 0}
+  tcpSender: {fileID: 0}
   paxiniValue: {fileID: 0}
   ThumbAngle1Center: {fileID: 1173910316}
   ThumbAngle2Center: {fileID: 83926891}
@@ -45574,6 +45575,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 349889824}
   triggerMiddleInnerExtension: {fileID: 797724206}
   modeSwitching: {fileID: 0}
+  tcpSender: {fileID: 0}
   paxiniValue: {fileID: 0}
   ThumbAngle1Center: {fileID: 2014701384}
   ThumbAngle2Center: {fileID: 1772311579}
@@ -57105,6 +57107,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 827141708}
   triggerMiddleInnerExtension: {fileID: 1189440883}
   modeSwitching: {fileID: 0}
+  tcpSender: {fileID: 0}
   paxiniValue: {fileID: 0}
   ThumbAngle1Center: {fileID: 1091200612}
   ThumbAngle2Center: {fileID: 1676111424}
@@ -62876,6 +62879,7 @@ MonoBehaviour:
   triggerIndexInnerExtension: {fileID: 1893964448}
   triggerMiddleInnerExtension: {fileID: 1019242406}
   modeSwitching: {fileID: 951283614}
+  tcpSender: {fileID: 188813409}
   paxiniValue: {fileID: 1086361769}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
