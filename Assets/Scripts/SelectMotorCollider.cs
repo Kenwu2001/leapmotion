@@ -2582,6 +2582,12 @@ public class SelectMotorCollider : MonoBehaviour
         bool indexFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 8;
         bool middleFreezeAllowed = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 12;
 
+        // Single-ON rule per finger (5 motors): if another motor in the same finger group is active,
+        // Paxini (13/14/15) must be OFF and return to default color.
+        bool thumbPaxiniBlockedByOtherMotor  = IsPaxiniBlockedByOtherMotor(1, 4, ThumbPaxiniMotorID);
+        bool indexPaxiniBlockedByOtherMotor  = IsPaxiniBlockedByOtherMotor(5, 8, IndexPaxiniMotorID);
+        bool middlePaxiniBlockedByOtherMotor = IsPaxiniBlockedByOtherMotor(9, 12, MiddlePaxiniMotorID);
+
         // Problem 1: Set freeze gate when fingertip motors (4/8/12) are actively selected
         if (thumbFreezeAllowed  && thumbProjectionMotorID == 4)   _thumbFreezeGateUnlocked  = true;
         if (indexFreezeAllowed  && indexProjectionMotorID == 8)   _indexFreezeGateUnlocked  = true;
@@ -2633,7 +2639,7 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightThumbTip != null)
         {
-            if (thumbFreezeAllowed)
+            if (thumbFreezeAllowed && !thumbPaxiniBlockedByOtherMotor)
             {
                 _thumbFreezeColorLerpT = Mathf.MoveTowards(_thumbFreezeColorLerpT, 1f, lerpSpeed * Time.deltaTime);
                 triggerRightThumbTip.showFreezeColor = true;
@@ -2646,12 +2652,17 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 triggerRightThumbTip.showFreezeColor = false;
                 thumbFreezeEnabled = false;
+                _thumbFreezePending = false;
+                _thumbFreezeCanTrigger = true;
+                _thumbFreezeLerpStart = triggerRightThumbTip.originalColor;
+                _thumbFreezeLerpTarget = triggerRightThumbTip.originalColor;
+                _thumbFreezeColorLerpT = 1f;
             }
         }
 
         if (triggerRightIndexTip != null)
         {
-            if (indexFreezeAllowed)
+            if (indexFreezeAllowed && !indexPaxiniBlockedByOtherMotor)
             {
                 _indexFreezeColorLerpT = Mathf.MoveTowards(_indexFreezeColorLerpT, 1f, lerpSpeed * Time.deltaTime);
                 triggerRightIndexTip.showFreezeColor = true;
@@ -2664,12 +2675,17 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 triggerRightIndexTip.showFreezeColor = false;
                 indexFreezeEnabled = false;
+                _indexFreezePending = false;
+                _indexFreezeCanTrigger = true;
+                _indexFreezeLerpStart = triggerRightIndexTip.originalColor;
+                _indexFreezeLerpTarget = triggerRightIndexTip.originalColor;
+                _indexFreezeColorLerpT = 1f;
             }
         }
 
         if (triggerRightMiddleTip != null)
         {
-            if (middleFreezeAllowed)
+            if (middleFreezeAllowed && !middlePaxiniBlockedByOtherMotor)
             {
                 _middleFreezeLerpColorT = Mathf.MoveTowards(_middleFreezeLerpColorT, 1f, lerpSpeed * Time.deltaTime);
                 triggerRightMiddleTip.showFreezeColor = true;
@@ -2682,10 +2698,85 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 triggerRightMiddleTip.showFreezeColor = false;
                 middleFreezeEnabled = false;
+                _middleFreezePending = false;
+                _middleFreezeCanTrigger = true;
+                _middleFreezeLerpStart = triggerRightMiddleTip.originalColor;
+                _middleFreezeLerpTarget = triggerRightMiddleTip.originalColor;
+                _middleFreezeLerpColorT = 1f;
             }
         }
 
         suppressManipulateTransition = _suppressFromThumbFreeze || _suppressFromIndexFreeze || _suppressFromMiddleFreeze;
+    }
+
+    public void ForcePaxiniOffForMotor(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4)
+        {
+            thumbFreezeEnabled = false;
+            _thumbFreezePending = false;
+            _thumbFreezeCanTrigger = true;
+            _thumbFreezeLerpStart = triggerRightThumbTip != null ? triggerRightThumbTip.originalColor : Color.white;
+            _thumbFreezeLerpTarget = _thumbFreezeLerpStart;
+            _thumbFreezeColorLerpT = 1f;
+            if (triggerRightThumbTip != null)
+            {
+                triggerRightThumbTip.showFreezeColor = false;
+                triggerRightThumbTip.freezeDisplayColor = triggerRightThumbTip.originalColor;
+                if (triggerRightThumbTip.thumbPaxiniRenderer != null)
+                    triggerRightThumbTip.thumbPaxiniRenderer.material.color = triggerRightThumbTip.originalColor;
+            }
+        }
+        else if (motorID >= 5 && motorID <= 8)
+        {
+            indexFreezeEnabled = false;
+            _indexFreezePending = false;
+            _indexFreezeCanTrigger = true;
+            _indexFreezeLerpStart = triggerRightIndexTip != null ? triggerRightIndexTip.originalColor : Color.white;
+            _indexFreezeLerpTarget = _indexFreezeLerpStart;
+            _indexFreezeColorLerpT = 1f;
+            if (triggerRightIndexTip != null)
+            {
+                triggerRightIndexTip.showFreezeColor = false;
+                triggerRightIndexTip.freezeDisplayColor = triggerRightIndexTip.originalColor;
+                if (triggerRightIndexTip.indexPaxiniRenderer != null)
+                    triggerRightIndexTip.indexPaxiniRenderer.material.color = triggerRightIndexTip.originalColor;
+            }
+        }
+        else if (motorID >= 9 && motorID <= 12)
+        {
+            middleFreezeEnabled = false;
+            _middleFreezePending = false;
+            _middleFreezeCanTrigger = true;
+            _middleFreezeLerpStart = triggerRightMiddleTip != null ? triggerRightMiddleTip.originalColor : Color.white;
+            _middleFreezeLerpTarget = _middleFreezeLerpStart;
+            _middleFreezeLerpColorT = 1f;
+            if (triggerRightMiddleTip != null)
+            {
+                triggerRightMiddleTip.showFreezeColor = false;
+                triggerRightMiddleTip.freezeDisplayColor = triggerRightMiddleTip.originalColor;
+                if (triggerRightMiddleTip.middlePaxiniRenderer != null)
+                    triggerRightMiddleTip.middlePaxiniRenderer.material.color = triggerRightMiddleTip.originalColor;
+            }
+        }
+    }
+
+    private bool IsPaxiniBlockedByOtherMotor(int fingerMinMotor, int fingerMaxMotor, int paxiniMotorID)
+    {
+        if (modeSwitching == null) return false;
+
+        // If ANY non-Paxini motor in the same finger group is being touched (currentRedMotorID),
+        // Paxini must return to default — even if Paxini itself is still confirmed.
+        int current = modeSwitching.currentRedMotorID;
+        if (current != 0 && current != paxiniMotorID && current >= fingerMinMotor && current <= fingerMaxMotor)
+            return true;
+
+        // If a non-Paxini motor in the same finger group is the confirmed motor, also block.
+        int confirmed = modeSwitching.confirmedMotorID;
+        if (confirmed != 0 && confirmed != paxiniMotorID && confirmed >= fingerMinMotor && confirmed <= fingerMaxMotor)
+            return true;
+
+        return false;
     }
 
     // Called by PriorityColliderDetector when L_IndexTipSmall enters a priority collider
