@@ -116,9 +116,13 @@ public class RetargetTouchDetector : MonoBehaviour
 
         // Debug.Log($"[RetargetTouchDetector] Set rightFingerPoint to: {rightPos}");
 
-        // Ensure seg is within valid range for claw finger
+        // Align claw segment indexing with the 6-point strategy used by SelectMotorCollider.
+        // When claw has 6+ points, element0 is the newly inserted point and normal mapping starts at element1.
         int clawJointCount = zone.clawFinger.GetJointCount();
-        seg = Mathf.Clamp(seg, 0, clawJointCount - 2); // Max seg is jointCount - 2
+        if (clawJointCount >= 6)
+            seg = Mathf.Clamp(seg + 1, 0, clawJointCount - 2);
+        else
+            seg = Mathf.Clamp(seg, 0, clawJointCount - 2);
 
         Vector3 clawPos =
             Vector3.Lerp(
