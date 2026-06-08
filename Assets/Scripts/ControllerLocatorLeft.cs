@@ -12,6 +12,8 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject leftHandSkin;
     public GameObject leftQuad;
     public GameObject canvasPlane;
+    [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
+    public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
     public bool previewCanvasPlaneOffset = false;
     public float canvasShowDelaySeconds = 1f;
@@ -52,11 +54,11 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         if (previewCanvasPlaneOffset)
         {
-            canvasPlane.SetActive(true);
+            SetCanvasVisibility(true);
         }
         else
         {
-            canvasPlane.SetActive(false);
+            SetCanvasVisibility(false);
         }
     }
 
@@ -231,7 +233,7 @@ public class ControllerLocatorLeft : MonoBehaviour
             canvasTransform.localScale = canvasInitialLocalScale;
         }
 
-        canvasPlane.SetActive(true);
+        SetCanvasVisibility(true);
         isCanvasFrozenInWorld = false;
         leftHandHiddenTimer = 0f;
     }
@@ -256,7 +258,7 @@ public class ControllerLocatorLeft : MonoBehaviour
             canvasTransform.localScale = canvasInitialLocalScale;
         }
 
-        canvasPlane.SetActive(true);
+        SetCanvasVisibility(true);
         isCanvasFrozenInWorld = false;
         leftHandHiddenTimer = 0f;
     }
@@ -275,7 +277,7 @@ public class ControllerLocatorLeft : MonoBehaviour
         canvasTransform.SetParent(null, false);
         canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
         canvasTransform.localScale = canvasInitialLocalScale;
-        canvasPlane.SetActive(true);
+        SetCanvasVisibility(true);
         isCanvasFrozenInWorld = true;
     }
 
@@ -286,7 +288,7 @@ public class ControllerLocatorLeft : MonoBehaviour
             return;
         }
 
-        canvasPlane.SetActive(false);
+        SetCanvasVisibility(false);
 
         Transform canvasTransform = canvasPlane.transform;
         if (canvasOriginalParent != null)
@@ -302,6 +304,28 @@ public class ControllerLocatorLeft : MonoBehaviour
         if (alwaysShowCanvasPlane || previewCanvasPlaneOffset)
         {
             leftHandHiddenTimer = 0f;
+        }
+    }
+
+    private void SetCanvasVisibility(bool isVisible)
+    {
+        if (canvasPlane != null)
+        {
+            canvasPlane.SetActive(isVisible);
+        }
+
+        if (canvasLinkedObjects == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < canvasLinkedObjects.Length; i++)
+        {
+            GameObject linkedObject = canvasLinkedObjects[i];
+            if (linkedObject != null)
+            {
+                linkedObject.SetActive(isVisible);
+            }
         }
     }
 }

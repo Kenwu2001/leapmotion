@@ -11023,6 +11023,8 @@ MonoBehaviour:
   leftHandSkin: {fileID: 2145436053}
   leftQuad: {fileID: 1319513583}
   canvasPlane: {fileID: 721031720}
+  canvasLinkedObjects:
+  - {fileID: 1432658757}
   alwaysShowCanvasPlane: 0
   previewCanvasPlaneOffset: 0
   canvasShowDelaySeconds: 1
@@ -11311,7 +11313,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &282863896
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -16105,8 +16107,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 721031720}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.4134895, y: 0.11992554, z: 0.007421501, w: -0.90254605}
-  m_LocalPosition: {x: 0.019, y: -0.072, z: 0.166}
+  m_LocalRotation: {x: 0.40134403, y: 0.15581614, z: 0.08674681, w: -0.8983982}
+  m_LocalPosition: {x: -0.065, y: -0.079, z: 0.147}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.03}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -16114,7 +16116,7 @@ Transform:
   - {fileID: 359970680}
   - {fileID: 1157737554}
   m_Father: {fileID: 274459469}
-  m_LocalEulerAnglesHint: {x: -48.432, y: -378.482, z: 7.428}
+  m_LocalEulerAnglesHint: {x: -48.432, y: -378.482, z: -2.66}
 --- !u!64 &721031722
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -26460,9 +26462,9 @@ MonoBehaviour:
   frozenLineWidth: 0.003
   frozenSphereRadius: 0.005
   frozenSphereColor: {r: 0, g: 1, b: 1, a: 1}
-  showDebugSpheres: 1
+  showDebugSpheres: 0
   debugToggleKey: 100
-  showDebugLines: 1
+  showDebugLines: 0
   debugLineToggleKey: 108
   fingerRendererManager: {fileID: 370831957}
   thumbRightFingerProjectionSphere: {fileID: 2121579920}
@@ -47428,8 +47430,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.10030697, y: 0.070942126, z: 0.025382899}
-  m_Center: {x: -0.0021536886, y: -0.0071521327, z: 0.009606007}
+  m_Size: {x: 0.113816194, y: 0.10843361, z: 0.026464941}
+  m_Center: {x: -0.008908313, y: -0.025897656, z: 0.0090648765}
 --- !u!4 &1760585856 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3723644639497809696, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}

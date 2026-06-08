@@ -26,10 +26,10 @@ public class HUDText : MonoBehaviour
         string fullRangeText = isFullRangeMapping ? "Full Range Mapping" : "Small Range Mapping";
         string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle coupled";
         string engagementText = isEngaged ? "Engagement" : "Disengagement";
-        string fullRangeColor = isFullRangeMapping ? "green" : "red";
-        string resetColor = isReset ? "green" : "red";
-        string individualColor = isIndexMiddleIndividual ? "green" : "red";
-        string engagementColor = isEngaged ? "green" : "red";
+        string fullRangeColor = isFullRangeMapping ? "white" : "green";
+        string resetColor = isReset ? "green" : "white";
+        string individualColor = isIndexMiddleIndividual ? "green" : "white";
+        string engagementColor = isEngaged ? "green" : "white";
 
         textMesh.text =
             $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
