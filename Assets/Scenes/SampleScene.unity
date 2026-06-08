@@ -10910,11 +10910,6 @@ Transform:
   - {fileID: 2081632276}
   m_Father: {fileID: 1772311579}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &219896640 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2310492770666338009, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
-  m_PrefabInstance: {fileID: 1770763344}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &222711386
 GameObject:
   m_ObjectHideFlags: 0
@@ -11025,11 +11020,14 @@ MonoBehaviour:
   currentControllerPosition: {x: 0, y: 0, z: 0}
   currentControllerEulerAngles: {x: 0, y: 0, z: 0}
   controllerPoseDebug: LeftHand controller not tracked
-  leftHandModel: {fileID: 219896640}
+  leftHandSkin: {fileID: 2145436053}
+  leftQuad: {fileID: 1319513583}
   canvasPlane: {fileID: 721031720}
   alwaysShowCanvasPlane: 0
   previewCanvasPlaneOffset: 0
   canvasShowDelaySeconds: 1
+  modeSwitching: {fileID: 951283614}
+  handSeparationThreshold: 0.4
 --- !u!1 &276978594
 GameObject:
   m_ObjectHideFlags: 0
@@ -36522,6 +36520,7 @@ MonoBehaviour:
   modeSelect: 1
   motorSelected: 0
   modeManipulate: 0
+  currentHandSeparationDistance: 0
   lastTouchedMotorID: 0
   currentRedMotorID: 0
   confirmedMotorID: 0
@@ -56469,7 +56468,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8880001930163941418, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -60709,6 +60708,11 @@ Transform:
   - {fileID: 919728001}
   m_Father: {fileID: 197598631}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2145436053 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+  m_PrefabInstance: {fileID: 172019589}
+  m_PrefabAsset: {fileID: 0}
 --- !u!23 &13672772494116298
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -60789,7 +60793,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 105990339048264162, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
   m_PrefabInstance: {fileID: 1770763344}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 219896640}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5ea39e33ffd4f44cb67343be1aee061, type: 3}
@@ -63417,7 +63421,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4830515129415512761, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
   m_PrefabInstance: {fileID: 1770763344}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 219896640}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8bcd03e00992e084c8be61565d44b8bd, type: 3}

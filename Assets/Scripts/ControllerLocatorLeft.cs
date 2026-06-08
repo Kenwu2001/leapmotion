@@ -9,11 +9,19 @@ public class ControllerLocatorLeft : MonoBehaviour
     public string controllerPoseDebug = "LeftHand controller not tracked";
 
     [Header("Fallback Display")]
-    public GameObject leftHandModel;
+    public GameObject leftHandSkin;
+    public GameObject leftQuad;
     public GameObject canvasPlane;
     public bool alwaysShowCanvasPlane = false;
     public bool previewCanvasPlaneOffset = false;
     public float canvasShowDelaySeconds = 1f;
+
+    [Header("Mode Switching")]
+    public ModeSwitching modeSwitching;
+
+    [Header("Hand Separation")]
+    [Tooltip("When the two hands are farther apart than this distance (meters), switch to the cube + panel fallback")]
+    public float handSeparationThreshold = 0.4f;
 
     private Transform canvasOriginalParent;
     private Vector3 canvasInitialLocalPosition;
@@ -23,9 +31,15 @@ public class ControllerLocatorLeft : MonoBehaviour
     private bool wasPreviewCanvasPlaneOffset;
     private bool wasAlwaysShowCanvasPlane;
     private float leftHandHiddenTimer;
+    private bool isFallbackVisualsActive;
 
     void Awake()
     {
+        if (modeSwitching == null)
+        {
+            modeSwitching = FindObjectOfType<ModeSwitching>();
+        }
+
         if (canvasPlane == null)
         {
             return;
@@ -145,24 +159,56 @@ public class ControllerLocatorLeft : MonoBehaviour
             return;
         }
 
-        bool isLeftHandVisible = IsLeftHandModelVisible();
-
-        if (isLeftHandVisible)
+        bool shouldUseFallbackVisuals = AreHandsSeparatedBeyondThreshold();
+        if (shouldUseFallbackVisuals == isFallbackVisualsActive)
         {
-            leftHandHiddenTimer = 0f;
-            HideCanvasPlane();
             return;
         }
 
-        leftHandHiddenTimer += Time.deltaTime;
+        isFallbackVisualsActive = shouldUseFallbackVisuals;
 
-        if (leftHandHiddenTimer < canvasShowDelaySeconds)
+        if (isFallbackVisualsActive)
         {
+            ShowFallbackVisuals();
+            ShowCanvasPlaneAtFrozenWorldPose();
+        }
+        else
+        {
+            HideFallbackVisuals();
             HideCanvasPlane();
-            return;
+        }
+    }
+
+    private bool AreHandsSeparatedBeyondThreshold()
+    {
+        if (modeSwitching == null)
+        {
+            return false;
         }
 
-        ShowCanvasPlaneAtFrozenWorldPose();
+        return modeSwitching.currentHandSeparationDistance > handSeparationThreshold;
+    }
+
+    private void ShowFallbackVisuals()
+    {
+        if (leftHandSkin != null)
+        {
+            leftHandSkin.SetActive(false);
+            leftQuad.SetActive(false);
+        }
+
+        leftHandHiddenTimer = 0f;
+    }
+
+    private void HideFallbackVisuals()
+    {
+        if (leftHandSkin != null)
+        {
+            leftHandSkin.SetActive(true);
+            leftQuad.SetActive(true);
+        }
+
+        leftHandHiddenTimer = 0f;
     }
 
     private void KeepCanvasPlaneAttachedForPreview(bool restoreInitialTransform)
@@ -213,35 +259,6 @@ public class ControllerLocatorLeft : MonoBehaviour
         canvasPlane.SetActive(true);
         isCanvasFrozenInWorld = false;
         leftHandHiddenTimer = 0f;
-    }
-
-    private bool IsLeftHandModelVisible()
-    {
-        if (leftHandModel == null)
-        {
-            return false;
-        }
-
-        if (!leftHandModel.activeInHierarchy)
-        {
-            return false;
-        }
-
-        Renderer[] renderers = leftHandModel.GetComponentsInChildren<Renderer>(true);
-        if (renderers.Length == 0)
-        {
-            return leftHandModel.activeInHierarchy;
-        }
-
-        foreach (Renderer renderer in renderers)
-        {
-            if (renderer.enabled && renderer.isVisible)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void ShowCanvasPlaneAtFrozenWorldPose()

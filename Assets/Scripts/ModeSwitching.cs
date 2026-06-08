@@ -46,6 +46,7 @@ public class ModeSwitching : MonoBehaviour
     public bool modeSelect = true;
     public bool motorSelected = false;
     public bool modeManipulate = false;
+    public float currentHandSeparationDistance = 0f;
     
     public int lastTouchedMotorID = 0;
     public int currentRedMotorID = 0; // Currently touched motor (displayed in light/dark red)
@@ -119,6 +120,11 @@ public class ModeSwitching : MonoBehaviour
 
     void Update()
     {
+        if (jointAngle != null)
+        {
+            currentHandSeparationDistance = jointAngle.GetLIndexToIndex2Distance();
+        }
+
         if (modeSelect && SelectMotorCollider != null)
         {
             int currentMotorID = SelectMotorCollider.currentTouchedMotorID;
@@ -198,7 +204,7 @@ public class ModeSwitching : MonoBehaviour
         // When hands separate, return to base select state but keep freeze (yellow) handled by TriggerRight*Tip.
         if (modeSelect && motorSelected && isConfirmedPaxiniMotor)
         {
-            float distance = jointAngle.GetLIndexToIndex2Distance();
+            float distance = currentHandSeparationDistance;
             if (distance > 0.16f)
             {
                 ReturnToBaseSelectStateAfterPaxini();
@@ -224,7 +230,7 @@ public class ModeSwitching : MonoBehaviour
 
         if (canEnterManipulate)
         {
-            float distance = jointAngle.GetLIndexToIndex2Distance();
+            float distance = currentHandSeparationDistance;
 
             if (distance > 0.16f)
             {
@@ -247,7 +253,7 @@ public class ModeSwitching : MonoBehaviour
         {
             // baseRenderer.material.color = Color.green; // Indicate Manipulate mode
 
-            float distance = jointAngle.GetLIndexToIndex2Distance();
+            float distance = currentHandSeparationDistance;
 
             // Set colors only once when entering manipulate mode
             if (!hasSetManipulateColors)
