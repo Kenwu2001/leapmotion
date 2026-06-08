@@ -174,14 +174,14 @@ public class ModeSwitching : MonoBehaviour
                     if (useFingertipFirst)
                     {
                         // If a Paxini was confirmed (yellow), clear it now that a new motor is confirmed.
-                        if (confirmedMotorID == ThumbPaxiniMotorID || confirmedMotorID == IndexPaxiniMotorID || confirmedMotorID == MiddlePaxiniMotorID)
+                        if (ShouldClearConfirmedPaxiniForNewMotor(currentMotorID))
                             SelectMotorCollider.ForcePaxiniOffForMotor(confirmedMotorID);
                         HandleFingertipFirstConfirmation(currentMotorID);
                     }
                     else
                     {
                         // If a Paxini was confirmed (yellow), clear it now that a new motor is confirmed.
-                        if (confirmedMotorID == ThumbPaxiniMotorID || confirmedMotorID == IndexPaxiniMotorID || confirmedMotorID == MiddlePaxiniMotorID)
+                        if (ShouldClearConfirmedPaxiniForNewMotor(currentMotorID))
                             SelectMotorCollider.ForcePaxiniOffForMotor(confirmedMotorID);
                         confirmedMotorID = currentMotorID; // Original logic
                         SelectMotorCollider.ForcePaxiniOffForMotor(currentMotorID);
@@ -192,10 +192,27 @@ public class ModeSwitching : MonoBehaviour
             }
         }
 
+        bool isConfirmedPaxiniMotor = IsPaxiniMotor(confirmedMotorID);
+
+        // For Paxini pseudo motors (13/14/15): never enter manipulate mode.
+        // When hands separate, return to base select state but keep freeze (yellow) handled by TriggerRight*Tip.
+        if (modeSelect && motorSelected && isConfirmedPaxiniMotor)
+        {
+            float distance = jointAngle.GetLIndexToIndex2Distance();
+            if (distance > 0.16f)
+            {
+                ReturnToBaseSelectStateAfterPaxini();
+            }
+        }
+
         // Transition: Select → Manipulate (distance increases)
         // Only confirmed motor (dark red) can enter Manipulate mode
         // Fingertip priority mode: Must be in MotorConfirmed phase
         bool canEnterManipulate = modeSelect && motorSelected && confirmedMotorID != 0;
+        if (isConfirmedPaxiniMotor)
+        {
+            canEnterManipulate = false;
+        }
         if (useFingertipFirst)
         {
             canEnterManipulate = canEnterManipulate && currentPhase == SelectionPhase.MotorConfirmed;
@@ -434,6 +451,83 @@ public class ModeSwitching : MonoBehaviour
     private bool IsSameFingerGroup(int motorA, int motorB)
     {
         return GetFingerGroupIndex(motorA) == GetFingerGroupIndex(motorB);
+    }
+
+    private bool IsPaxiniMotor(int motorID)
+    {
+        return motorID == ThumbPaxiniMotorID ||
+               motorID == IndexPaxiniMotorID ||
+               motorID == MiddlePaxiniMotorID;
+    }
+
+    private bool ShouldClearConfirmedPaxiniForNewMotor(int newMotorID)
+    {
+        if (!IsPaxiniMotor(confirmedMotorID)) return false;
+        if (newMotorID == 0 || newMotorID == confirmedMotorID) return false;
+
+        // Keep Paxini ON across different fingers (13/14/15 can be yellow at the same time).
+        // Only clear when confirming another motor in the same finger group.
+        return IsSameFingerGroup(confirmedMotorID, newMotorID);
+    }
+
+    private void ReturnToBaseSelectStateAfterPaxini()
+    {
+        modeSelect = true;
+        modeManipulate = false;
+        motorSelected = false;
+        currentRedMotorID = 0;
+        confirmedMotorID = 0;
+        lastTouchedMotorID = 0;
+        isConfirmed = false;
+        touchStartTime = 0f;
+        hasEnteredCloseRange = false;
+        hasSetManipulateColors = false;
+
+        if (useFingertipFirst)
+        {
+            currentPhase = SelectionPhase.SelectingFingertip;
+            confirmedFingertipID = 0;
+
+            if (SelectMotorCollider != null)
+            {
+                SelectMotorCollider.ResetFingertipConfirmation();
+                SelectMotorCollider.ReleaseFrozenLine();
+            }
+
+            // Return only 1-12 motors to base selectable colors.
+            // Paxini color is managed by TriggerRight*Tip (freeze yellow can stay ON).
+            thumbJoint1Renderer.material.color = grayColor;
+            thumbJoint2Renderer.material.color = grayColor;
+            thumbJoint3Renderer.material.color = grayColor;
+            thumbJoint4Renderer.material.color = originalColor;
+
+            indexJoint1Renderer.material.color = grayColor;
+            indexJoint2Renderer.material.color = grayColor;
+            indexJoint3Renderer.material.color = grayColor;
+            indexJoint4Renderer.material.color = originalColor;
+
+            middleJoint1Renderer.material.color = grayColor;
+            middleJoint2Renderer.material.color = grayColor;
+            middleJoint3Renderer.material.color = grayColor;
+            middleJoint4Renderer.material.color = originalColor;
+        }
+        else
+        {
+            thumbJoint1Renderer.material.color = originalColor;
+            thumbJoint2Renderer.material.color = originalColor;
+            thumbJoint3Renderer.material.color = originalColor;
+            thumbJoint4Renderer.material.color = originalColor;
+
+            indexJoint1Renderer.material.color = originalColor;
+            indexJoint2Renderer.material.color = originalColor;
+            indexJoint3Renderer.material.color = originalColor;
+            indexJoint4Renderer.material.color = originalColor;
+
+            middleJoint1Renderer.material.color = originalColor;
+            middleJoint2Renderer.material.color = originalColor;
+            middleJoint3Renderer.material.color = originalColor;
+            middleJoint4Renderer.material.color = originalColor;
+        }
     }
 
     private int GetFingerGroupIndex(int motorID)

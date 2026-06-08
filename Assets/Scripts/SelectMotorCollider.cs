@@ -2718,9 +2718,10 @@ public class SelectMotorCollider : MonoBehaviour
         // When useFingertipFirst is active and a fingertip is confirmed, only the confirmed finger
         // may unlock its freeze gate, enter freeze zone, or show the freeze color animation.
         // Other fingers are fully excluded — their Paxini must stay at original color.
-        bool thumbFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 4;
-        bool indexFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 8;
-        bool middleFreezeAllowed = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 12;
+        // If a finger's freeze is already ON, always allow it — cross-finger confirmation must not clear it.
+        bool thumbFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 4  || thumbFreezeEnabled;
+        bool indexFreezeAllowed  = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 8  || indexFreezeEnabled;
+        bool middleFreezeAllowed = !useFingertipFirst || !isFingertipConfirmed || confirmedFingertipMotorID == 12 || middleFreezeEnabled;
 
         // Single-ON rule per finger (5 motors): if another motor in the same finger group is active,
         // Paxini (13/14/15) must be OFF and return to default color.
