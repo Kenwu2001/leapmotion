@@ -2905,13 +2905,9 @@ public class SelectMotorCollider : MonoBehaviour
     {
         if (modeSwitching == null) return false;
 
-        // If ANY non-Paxini motor in the same finger group is being touched (currentRedMotorID),
-        // Paxini must return to default — even if Paxini itself is still confirmed.
-        int current = modeSwitching.currentRedMotorID;
-        if (current != 0 && current != paxiniMotorID && current >= fingerMinMotor && current <= fingerMaxMotor)
-            return true;
-
-        // If a non-Paxini motor in the same finger group is the confirmed motor, also block.
+        // Only block Paxini yellow when a non-Paxini motor in the same finger group is the
+        // CONFIRMED motor (hold time fully elapsed). Do NOT block based on currentRedMotorID
+        // (merely hovered / lerp phase) so the yellow persists until confirmation.
         int confirmed = modeSwitching.confirmedMotorID;
         if (confirmed != 0 && confirmed != paxiniMotorID && confirmed >= fingerMinMotor && confirmed <= fingerMaxMotor)
             return true;

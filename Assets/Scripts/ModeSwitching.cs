@@ -128,12 +128,16 @@ public class ModeSwitching : MonoBehaviour
             {
                 if (currentMotorID != 0)
                 {
-                    SelectMotorCollider.ForcePaxiniOffForMotor(currentMotorID);
-
-                    if (confirmedMotorID != 0 && IsSameFingerGroup(currentMotorID, confirmedMotorID) && currentMotorID != confirmedMotorID)
+                    // Guard: if ANY Paxini (13/14/15) is confirmed (yellow), do NOT turn it off
+                    // yet — yellow must stay until the new motor is confirmed after hold time,
+                    // regardless of whether the hover is same-finger or cross-finger.
+                    bool confirmedIsPaxini =
+                        confirmedMotorID == ThumbPaxiniMotorID ||
+                        confirmedMotorID == IndexPaxiniMotorID ||
+                        confirmedMotorID == MiddlePaxiniMotorID;
+                    if (!confirmedIsPaxini)
                     {
-                        confirmedMotorID = 0;
-                        isConfirmed = false;
+                        SelectMotorCollider.ForcePaxiniOffForMotor(currentMotorID);
                     }
 
                     // New motor touched
@@ -169,10 +173,16 @@ public class ModeSwitching : MonoBehaviour
                     // Handle confirmation logic based on whether fingertip priority mode is enabled
                     if (useFingertipFirst)
                     {
+                        // If a Paxini was confirmed (yellow), clear it now that a new motor is confirmed.
+                        if (confirmedMotorID == ThumbPaxiniMotorID || confirmedMotorID == IndexPaxiniMotorID || confirmedMotorID == MiddlePaxiniMotorID)
+                            SelectMotorCollider.ForcePaxiniOffForMotor(confirmedMotorID);
                         HandleFingertipFirstConfirmation(currentMotorID);
                     }
                     else
                     {
+                        // If a Paxini was confirmed (yellow), clear it now that a new motor is confirmed.
+                        if (confirmedMotorID == ThumbPaxiniMotorID || confirmedMotorID == IndexPaxiniMotorID || confirmedMotorID == MiddlePaxiniMotorID)
+                            SelectMotorCollider.ForcePaxiniOffForMotor(confirmedMotorID);
                         confirmedMotorID = currentMotorID; // Original logic
                         SelectMotorCollider.ForcePaxiniOffForMotor(currentMotorID);
                     }
@@ -399,15 +409,6 @@ public class ModeSwitching : MonoBehaviour
             ResetAllColors();
         }
 
-        // Keep only one active motor per finger group.
-        // If the user switches to another motor in the same finger group,
-        // the previous confirmed motor should immediately return to default.
-        if (confirmedMotorID != 0 && currentRedMotorID != 0 && confirmedMotorID != currentRedMotorID && IsSameFingerGroup(confirmedMotorID, currentRedMotorID))
-        {
-            confirmedMotorID = 0;
-            isConfirmed = false;
-        }
-        
         // If there is a confirmed motor, show it in dark red
         if (confirmedMotorID != 0)
         {

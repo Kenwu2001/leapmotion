@@ -3574,7 +3574,6 @@ public class ClawModuleController : MonoBehaviour
         }
 
         SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
-        smc.enableFreezeMotorFeature = false;
         smc.thumbFreezeEnabled = false;
         smc.indexFreezeEnabled = false;
         smc.middleFreezeEnabled = false;
