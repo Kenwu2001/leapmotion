@@ -12915,7 +12915,7 @@ Transform:
   m_GameObject: {fileID: 415543494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0226, y: -0, z: 0.0011}
+  m_LocalPosition: {x: -0.0226, y: -0, z: 0.0072}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -26462,9 +26462,9 @@ MonoBehaviour:
   frozenLineWidth: 0.003
   frozenSphereRadius: 0.005
   frozenSphereColor: {r: 0, g: 1, b: 1, a: 1}
-  showDebugSpheres: 0
+  showDebugSpheres: 1
   debugToggleKey: 100
-  showDebugLines: 0
+  showDebugLines: 1
   debugLineToggleKey: 108
   fingerRendererManager: {fileID: 370831957}
   thumbRightFingerProjectionSphere: {fileID: 2121579920}
@@ -46906,7 +46906,7 @@ Transform:
   m_GameObject: {fileID: 1638557315}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0379, y: 0, z: -0.0073}
+  m_LocalPosition: {x: -0.0436, y: 0, z: -0.0011}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -47430,8 +47430,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.113816194, y: 0.10843361, z: 0.026464941}
-  m_Center: {x: -0.008908313, y: -0.025897656, z: 0.0090648765}
+  m_Size: {x: 0.113816194, y: 0.10843361, z: 0.030710595}
+  m_Center: {x: -0.008908316, y: -0.025897628, z: 0.006942036}
 --- !u!4 &1760585856 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3723644639497809696, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
@@ -56470,7 +56470,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8880001930163941418, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalRotation.w
