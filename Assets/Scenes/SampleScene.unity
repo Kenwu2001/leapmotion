@@ -10478,8 +10478,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.06408752, y: 0.08612137, z: 0.0745426}
-  m_Center: {x: -0.03063842, y: -0.020108053, z: 0.0033346296}
+  m_Size: {x: 0.06408752, y: 0.09958328, z: 0.0745426}
+  m_Center: {x: -0.03063842, y: -0.019183556, z: 0.0033345977}
 --- !u!114 &187972396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39316,8 +39316,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.08919655, y: 0.1554686, z: 0.09850774}
-  m_Center: {x: -0.018796982, y: -0.054781143, z: 0.013553018}
+  m_Size: {x: 0.09751853, y: 0.19120713, z: 0.09850775}
+  m_Center: {x: -0.022957759, y: -0.03691133, z: 0.013553018}
 --- !u!114 &1201296085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40211,8 +40211,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.10030697, y: 0.115863435, z: 0.086837575}
-  m_Center: {x: -0.002153592, y: -0.029613353, z: 0.01499646}
+  m_Size: {x: 0.13088033, y: 0.12692223, z: 0.092780955}
+  m_Center: {x: -0.017440349, y: -0.02408361, z: 0.012024529}
 --- !u!114 &1307753529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41402,9 +41402,9 @@ MonoBehaviour:
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
-  triggerRightIndexTip: {fileID: 0}
-  triggerRightMiddleTip: {fileID: 0}
-  triggerRightThumbTip: {fileID: 0}
+  triggerRightIndexTip: {fileID: 1201296085}
+  triggerRightMiddleTip: {fileID: 1307753529}
+  triggerRightThumbTip: {fileID: 187972396}
   L_index_c: {fileID: 3437638954850162703}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
