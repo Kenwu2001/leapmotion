@@ -423,6 +423,21 @@ public class SelectMotorCollider : MonoBehaviour
                 }
             }
         }
+
+        // Hard block: during manipulate mode, selection and pseudo-motor effects must be disabled.
+        if (IsManipulateModeActive())
+        {
+            ClearSelectionStateForManipulate();
+
+            // Keep debug fields coherent while blocked.
+            currentTouchedMotorID = 0;
+            touchPosition = Vector3.zero;
+            isAnyMotorTouched = false;
+
+            // Ensures Paxini freeze display is forced off while manipulating.
+            UpdateFreezeColors();
+            return;
+        }
         
         // Handle Thumb projection-based selection (motors 1-4) if enabled
         if (useThumbProjection)
@@ -509,6 +524,34 @@ public class SelectMotorCollider : MonoBehaviour
 
         // Update freeze feature color animations
         UpdateFreezeColors();
+    }
+
+    private bool IsManipulateModeActive()
+    {
+        // modeSwitching may be unassigned in this component; _visualsForceHidden is set by ModeSwitching
+        // when entering manipulate mode and provides a safe fallback signal.
+        return (modeSwitching != null && modeSwitching.modeManipulate) || _visualsForceHidden;
+    }
+
+    private void ClearSelectionStateForManipulate()
+    {
+        activeTouchedMotorID = 0;
+        activeTouchPosition = Vector3.zero;
+
+        thumbProjectionMotorID = 0;
+        indexProjectionMotorID = 0;
+        middleProjectionMotorID = 0;
+
+        thumbSegmentIndex = -1;
+        indexSegmentIndex = -1;
+        middleSegmentIndex = -1;
+
+        if (thumbRightFingerProjectionSphere != null) thumbRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (thumbClawProjectionSphere != null) thumbClawProjectionSphere.gameObject.SetActive(false);
+        if (indexRightFingerProjectionSphere != null) indexRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (indexClawProjectionSphere != null) indexClawProjectionSphere.gameObject.SetActive(false);
+        if (middleRightFingerProjectionSphere != null) middleRightFingerProjectionSphere.gameObject.SetActive(false);
+        if (middleClawProjectionSphere != null) middleClawProjectionSphere.gameObject.SetActive(false);
     }
     
     /// <summary>
@@ -1948,6 +1991,9 @@ public class SelectMotorCollider : MonoBehaviour
     // Called by MotorTriggerDetector when a motor is touched (only for motors 1-4 Thumb)
     internal void OnMotorTouched(int motorID, Vector3 position)
     {
+        if (IsManipulateModeActive())
+            return;
+
         // Only handle motors 1-4 via collider (Thumb only)
         if (motorID < 1 || motorID > 4)
             return;
@@ -2018,6 +2064,9 @@ public class SelectMotorCollider : MonoBehaviour
 
     internal void OnPseudoMotorTouched(int motorID, Vector3 position)
     {
+        if (IsManipulateModeActive())
+            return;
+
         if (motorID < ThumbPaxiniMotorID || motorID > MiddlePaxiniMotorID)
             return;
 
@@ -2578,7 +2627,12 @@ public class SelectMotorCollider : MonoBehaviour
     /// </summary>
     private bool IsBlockedByOtherFinger(int thisMinMotor, int thisMaxMotor)
     {
-        if (!enableFreezeMotorFeature || modeSwitching == null) return false;
+        if (!enableFreezeMotorFeature || modeSwitching == null)
+        {
+            Debug.Log("AAAA1111");
+            return false;  
+        } 
+        Debug.Log("AAAA2222");
         int cm = modeSwitching.confirmedMotorID;
         if (cm == 0) return false;
         if (cm >= thisMinMotor && cm <= thisMaxMotor) return false; // confirmed motor belongs to THIS finger
@@ -2704,7 +2758,7 @@ public class SelectMotorCollider : MonoBehaviour
     /// </summary>
     private void UpdateFreezeColors()
     {
-        if (!enableFreezeMotorFeature)
+        if (!enableFreezeMotorFeature || IsManipulateModeActive())
         {
             if (triggerRightThumbTip  != null) triggerRightThumbTip.showFreezeColor  = false;
             if (triggerRightIndexTip  != null) triggerRightIndexTip.showFreezeColor  = false;
@@ -2743,6 +2797,7 @@ public class SelectMotorCollider : MonoBehaviour
         // so the dark-red color disappears (mirrors the behaviour of switching between other zones)
         if (modeSwitching != null)
         {
+            Debug.Log("BBBB");
             if (thumbInFreezeZone  && _thumbFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(1, 4);
             if (indexInFreezeZone  && _indexFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(5, 8);
             if (middleInFreezeZone && _middleFreezeGateUnlocked) modeSwitching.ClearConfirmedMotorForFinger(9, 12);
@@ -2904,8 +2959,13 @@ public class SelectMotorCollider : MonoBehaviour
 
     private bool IsPaxiniBlockedByOtherMotor(int fingerMinMotor, int fingerMaxMotor, int paxiniMotorID)
     {
-        if (modeSwitching == null) return false;
+        if (modeSwitching == null)
+        {
+            Debug.Log("CCCC1111");
+            return false;  
+        } 
 
+        Debug.Log("CCCC2222");
         // Only block Paxini yellow when a non-Paxini motor in the same finger group is the
         // CONFIRMED motor (hold time fully elapsed). Do NOT block based on currentRedMotorID
         // (merely hovered / lerp phase) so the yellow persists until confirmation.
