@@ -733,7 +733,8 @@ public class SelectMotorCollider : MonoBehaviour
         segmentT = Mathf.Clamp01(segmentT);
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float overallPct = (segmentIndex + segmentT) / 4f * 100f;
             float remappedPct;
@@ -900,7 +901,8 @@ public class SelectMotorCollider : MonoBehaviour
         bool skipMotorSelection = false;
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float remappedPct;
             bool inFreeze = HandleFreezeZone(percentage,
@@ -1132,7 +1134,8 @@ public class SelectMotorCollider : MonoBehaviour
         segmentT = Mathf.Clamp01(segmentT);
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float overallPct = (segmentIndex + segmentT) / 4f * 100f;
             float remappedPct;
@@ -1325,7 +1328,8 @@ public class SelectMotorCollider : MonoBehaviour
         segmentT = Mathf.Clamp01(segmentT);
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float overallPct = (segmentIndex + segmentT) / 4f * 100f;
             float remappedPct;
@@ -1516,7 +1520,8 @@ public class SelectMotorCollider : MonoBehaviour
         bool skipMotorSelection = false;
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float remappedPct;
             bool inFreeze = HandleFreezeZone(percentage,
@@ -1757,7 +1762,8 @@ public class SelectMotorCollider : MonoBehaviour
         bool skipMotorSelection = false;
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float remappedPct;
             bool inFreeze = HandleFreezeZone(percentage,
@@ -2282,7 +2288,8 @@ public class SelectMotorCollider : MonoBehaviour
         else if (motorMin == 9) middleProjectionPercent = percentage;
 
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
-        if (enableFreezeMotorFeature)
+        // Only allow freeze toggle in modeSelect; in modeManipulate the zone is skipped entirely.
+        if (enableFreezeMotorFeature && modeSwitching != null && modeSwitching.modeSelect)
         {
             float remappedPct;
             bool inFreeze;

@@ -1,5 +1,6 @@
 using TMPro; // Import TextMeshPro namespace
 using UnityEngine;
+using System.Collections.Generic;
 
 public class DebugAngle : MonoBehaviour
 {
@@ -32,33 +33,104 @@ public class DebugAngle : MonoBehaviour
         if (angleText == null)
             return;
 
-        angleText.text = clawModuleController == null
-            ? "thumbGripperJoint1Max.y: N/A\nthumbGripperJoint1Min.y: N/A\n" +
-              "indexGripperJoint1Max.y: N/A\nindexGripperJoint1Min.y: N/A\n" +
-              "middleGripperJoint1Max.y: N/A\nmiddleGripperJoint1Min.y: N/A\n" +
-              "thumbGripperJoint2Max.z: N/A\nthumbGripperJoint2Min.z: N/A\n" +
-              "indexGripperJoint2Max.z: N/A\nindexGripperJoint2Min.z: N/A\n" +
-              "middleGripperJoint2Max.z: N/A\nmiddleGripperJoint2Min.z: N/A\n" +
-              "Index->Baseline Angle: N/A\n" +
-              "Middle->Baseline Angle: N/A"
-            : "thumbGripperJoint1Max.y: " + clawModuleController.thumbGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
-              "thumbGripperJoint1Min.y: " + clawModuleController.thumbGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
-              "indexGripperJoint1Max.y: " + clawModuleController.indexGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
-              "indexGripperJoint1Min.y: " + clawModuleController.indexGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
-              "middleGripperJoint1Max.y: " + clawModuleController.middleGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
-              "middleGripperJoint1Min.y: " + clawModuleController.middleGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
-              "thumbGripperJoint2Max.z: " + clawModuleController.thumbGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-              "thumbGripperJoint2Min.z: " + clawModuleController.thumbGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
-              "indexGripperJoint2Max.z: " + clawModuleController.indexGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-              "indexGripperJoint2Min.z: " + clawModuleController.indexGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
-              "middleGripperJoint2Max.z: " + clawModuleController.middleGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-              "middleGripperJoint2Min.z: " + clawModuleController.middleGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
-              "\n" +
+      string clockwiseRaw = jointAngle != null ? jointAngle.isClockWise.ToString("F3") : "N/A";
+      string rotationDirection = "N/A";
+      if (jointAngle != null)
+      {
+        if (jointAngle.isClockWise > 0.1f)
+          rotationDirection = "Clockwise";
+        else if (jointAngle.isClockWise < -0.1f)
+          rotationDirection = "Counterclockwise";
+        else
+          rotationDirection = "Neutral";
+      }
+
+      string planeActiveRaw = jointAngle != null ? jointAngle.isPlaneActive.ToString() : "N/A";
+      string activeFingerRaw = jointAngle != null ? jointAngle.activeFinger : "N/A";
+      string planeDebug = GetPlaneActivationDebug();
+
+      angleText.text = (
+            //   clawModuleController == null
+            // ? "thumbGripperJoint1Max.y: N/A\nthumbGripperJoint1Min.y: N/A\n" +
+            //   "indexGripperJoint1Max.y: N/A\nindexGripperJoint1Min.y: N/A\n" +
+            //   "middleGripperJoint1Max.y: N/A\nmiddleGripperJoint1Min.y: N/A\n" +
+            //   "thumbGripperJoint2Max.z: N/A\nthumbGripperJoint2Min.z: N/A\n" +
+            //   "indexGripperJoint2Max.z: N/A\nindexGripperJoint2Min.z: N/A\n" +
+            //   "middleGripperJoint2Max.z: N/A\nmiddleGripperJoint2Min.z: N/A\n" +
+            //   "Index->Baseline Angle: N/A\n" +
+            //   "Middle->Baseline Angle: N/A"
+            // : "thumbGripperJoint1Max.y: " + clawModuleController.thumbGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
+            //   "thumbGripperJoint1Min.y: " + clawModuleController.thumbGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
+            //   "indexGripperJoint1Max.y: " + clawModuleController.indexGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
+            //   "indexGripperJoint1Min.y: " + clawModuleController.indexGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
+            //   "middleGripperJoint1Max.y: " + clawModuleController.middleGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
+            //   "middleGripperJoint1Min.y: " + clawModuleController.middleGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
+            //   "thumbGripperJoint2Max.z: " + clawModuleController.thumbGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
+            //   "thumbGripperJoint2Min.z: " + clawModuleController.thumbGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
+            //   "indexGripperJoint2Max.z: " + clawModuleController.indexGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
+            //   "indexGripperJoint2Min.z: " + clawModuleController.indexGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
+            //   "middleGripperJoint2Max.z: " + clawModuleController.middleGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
+            //   "middleGripperJoint2Min.z: " + clawModuleController.middleGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
+            //   "\n" +
               "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
               "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
               "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A") + "\n" +
                 "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A") + "\n" +
                 "Index->Baseline Angle: " + (jointAngle != null ? jointAngle.indexToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
-                "Middle->Baseline Angle: " + (jointAngle != null ? jointAngle.middleToBaselineAngleOnPalm.ToString("F2") : "N/A");
+          "Middle->Baseline Angle: " + (jointAngle != null ? jointAngle.middleToBaselineAngleOnPalm.ToString("F2") : "N/A")) + "\n" +
+          "modeSelect: " + (modeSwitching != null ? modeSwitching.modeSelect.ToString() : "N/A") + "\n" +
+          "modeManipulate: " + (modeSwitching != null ? modeSwitching.modeManipulate.ToString() : "N/A") + "\n" +
+            "isPlaneActive: " + planeActiveRaw + "\n" +
+            "activeFinger: " + activeFingerRaw + "\n" +
+            planeDebug + "\n" +
+          "Clockwise Raw: " + clockwiseRaw + "\n" +
+          "Rotation Direction: " + rotationDirection;
     }
+
+        private string GetPlaneActivationDebug()
+        {
+          bool indexHasPair = HasIndexThumbPair(rightIndexTip);
+          bool middleHasPair = HasIndexThumbPair(rightMiddleTip);
+          bool thumbHasPair = HasIndexThumbPair(triggerRightThumbTip);
+
+          string chosenSource = "None";
+          if (indexHasPair)
+            chosenSource = "IndexTrigger";
+          else if (middleHasPair)
+            chosenSource = "MiddleTrigger";
+          else if (thumbHasPair)
+            chosenSource = "ThumbTrigger";
+
+          return "PlaneCheck IndexPair:" + indexHasPair +
+               " MiddlePair:" + middleHasPair +
+               " ThumbPair:" + thumbHasPair +
+               " Source:" + chosenSource;
+        }
+
+        private bool HasIndexThumbPair(TriggerRightIndexTip trigger)
+        {
+          if (trigger == null)
+            return false;
+
+          Dictionary<string, Vector3> points = trigger.GetAllTouchedPoints();
+          return points != null && points.ContainsKey("L_IndexTip") && points.ContainsKey("L_ThumbTip");
+        }
+
+        private bool HasIndexThumbPair(TriggerRightMiddleTip trigger)
+        {
+          if (trigger == null)
+            return false;
+
+          Dictionary<string, Vector3> points = trigger.GetAllTouchedPoints();
+          return points != null && points.ContainsKey("L_IndexTip") && points.ContainsKey("L_ThumbTip");
+        }
+
+        private bool HasIndexThumbPair(TriggerRightThumbTip trigger)
+        {
+          if (trigger == null)
+            return false;
+
+          Dictionary<string, Vector3> points = trigger.GetAllTouchedPoints();
+          return points != null && points.ContainsKey("L_IndexTip") && points.ContainsKey("L_ThumbTip");
+        }
 }

@@ -24,7 +24,7 @@ public class HUDText : MonoBehaviour
         bool isIndexMiddleIndividual = clawModuleController.useIndexMiddleIndividualMode;
         bool isEngaged = triggerRightWrist != null && triggerRightWrist.IsEngaged;
         string fullRangeText = isFullRangeMapping ? "Full Range Mapping" : "Small Range Mapping";
-        string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle coupled";
+        string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle Coupled";
         string engagementText = isEngaged ? "Engagement" : "Disengagement";
         string fullRangeColor = isFullRangeMapping ? "white" : "green";
         string resetColor = isReset ? "green" : "white";
