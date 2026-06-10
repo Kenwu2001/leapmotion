@@ -278,15 +278,21 @@ public class ClawModuleController : MonoBehaviour
         {
             const float epsilon = 0.0001f;
 
-            return Mathf.Abs(currentThumbRotationY) <= epsilon &&
-                   Mathf.Abs(currentThumbRotationZ) <= epsilon &&
+                 return Mathf.Abs(currentThumbRotationY) <= epsilon &&
+                     Mathf.Abs(currentThumbRotationYMax) <= epsilon &&
+                     Mathf.Abs(currentThumbRotationYMin) <= epsilon &&
+                     Mathf.Abs(currentThumbRotationZ) <= epsilon &&
+                     Mathf.Abs(currentThumbRotationZMax) <= epsilon &&
+                     Mathf.Abs(currentThumbRotationZMin) <= epsilon &&
                      Mathf.Abs(currentIndexRotationYMax) <= epsilon &&
                      Mathf.Abs(currentIndexRotationYMin) <= epsilon &&
-                   Mathf.Abs(currentIndexRotationZMax) <= epsilon &&
-                   Mathf.Abs(currentIndexRotationZMin) <= epsilon &&
-                                     Mathf.Abs(currentMiddleRotationYMax + 60f) <= epsilon &&
-                                     Mathf.Abs(currentMiddleRotationYMin) <= epsilon &&
-                   Mathf.Abs(currentMiddleRotationZ) <= epsilon &&
+                     Mathf.Abs(currentIndexRotationZMax) <= epsilon &&
+                     Mathf.Abs(currentIndexRotationZMin) <= epsilon &&
+                     Mathf.Abs(currentMiddleRotationYMax + 60f) <= epsilon &&
+                     Mathf.Abs(currentMiddleRotationYMin) <= epsilon &&
+                     Mathf.Abs(currentMiddleRotationZ) <= epsilon &&
+                     Mathf.Abs(currentMiddleRotationZMax) <= epsilon &&
+                     Mathf.Abs(currentMiddleRotationZMin) <= epsilon &&
                    Mathf.Abs(currentThumbTipRotationZ) <= epsilon &&
                    Mathf.Abs(currentIndexTipRotationZ) <= epsilon &&
                    Mathf.Abs(currentMiddleTipRotationZ) <= epsilon &&
