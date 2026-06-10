@@ -11467,9 +11467,17 @@ MonoBehaviour:
   thumbTipCollider: {fileID: 187972395}
   indexTipCollider: {fileID: 1201296084}
   middleTipCollider: {fileID: 1307753528}
+  thumbManipulateRetargetingCollider: {fileID: 4680002839260911678}
+  indexManipulateRetargetingCollider: {fileID: 4290315601710405861}
+  middleManipulateRetargetingCollider: {fileID: 3723644640160013170}
   isThumbColliderActive: 0
   isIndexColliderActive: 0
   isMiddleColliderActive: 0
+  isThumbRetargetingColliderActive: 0
+  isIndexRetargetingColliderActive: 0
+  isMiddleRetargetingColliderActive: 0
+  enableVerboseLogs: 1
+  verboseLogInterval: 0.2
 --- !u!4 &307052366
 Transform:
   m_ObjectHideFlags: 0
@@ -12019,6 +12027,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9927d2cff5978d34198cfcd570113733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  finger: 0
   rightFinger: {fileID: 342900468}
   clawFinger: {fileID: 1171298832504171240}
 --- !u!1 &347623782
@@ -38084,6 +38093,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9927d2cff5978d34198cfcd570113733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  finger: 2
   rightFinger: {fileID: 1100719236}
   clawFinger: {fileID: 5903652984707887455}
 --- !u!65 &1100719238
@@ -56470,7 +56480,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8880001930163941418, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -56924,6 +56934,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9927d2cff5978d34198cfcd570113733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  finger: 1
   rightFinger: {fileID: 1770763351}
   clawFinger: {fileID: 7989475972956683515}
 --- !u!4 &1770763349 stripped
@@ -62496,8 +62507,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.054785162, y: 0.08128626, z: 0.038259506}
-  m_Center: {x: -0.026317816, y: -0.020416358, z: 0.0045184824}
+  m_Size: {x: 0.05432851, y: 0.08128627, z: 0.060127944}
+  m_Center: {x: -0.026089504, y: -0.020416327, z: 0.00084103376}
 --- !u!114 &3723644640160013171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62541,6 +62552,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9927d2cff5978d34198cfcd570113733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  finger: 2
   rightFinger: {fileID: 3723644640160013172}
   clawFinger: {fileID: 7315649324720747014}
 --- !u!114 &3746513432775186486 stripped
@@ -62875,8 +62887,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.039753877, y: 0.062034763, z: 0.025407562}
-  m_Center: {x: -0.031093685, y: -0.012734927, z: -0.0021562413}
+  m_Size: {x: 0.058655847, y: 0.08378487, z: 0.068138964}
+  m_Center: {x: -0.031792153, y: -0.020250384, z: -0.0024126244}
 --- !u!114 &4290315601710405862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62920,6 +62932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9927d2cff5978d34198cfcd570113733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  finger: 1
   rightFinger: {fileID: 4290315601710405863}
   clawFinger: {fileID: 9165063046431338499}
 --- !u!4 &4290315602721859824 stripped
@@ -63356,8 +63369,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.05309992, y: 0.064284444, z: 0.065016665}
-  m_Center: {x: -0.02673868, y: -0.008642173, z: -0.0030997556}
+  m_Size: {x: 0.05606549, y: 0.064284444, z: 0.065016665}
+  m_Center: {x: -0.028221466, y: -0.008642173, z: -0.0030997742}
 --- !u!114 &4680002839260911679
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63401,6 +63414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9927d2cff5978d34198cfcd570113733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  finger: 0
   rightFinger: {fileID: 4680002839260911680}
   clawFinger: {fileID: 6441641261443209387}
 --- !u!4 &4825496069448657963

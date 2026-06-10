@@ -81,6 +81,13 @@ public class RetargetTouchDetector : MonoBehaviour
             // Debug.LogWarning($"[RetargetTouchDetector] No RightFingerTouchZone on: {other.gameObject.name}");
             return;
         }
+
+        // Only the finger that was selected (confirmedMotorID) is allowed to retarget.
+        // Without this gate every finger zone would drive retargeting in manipulate mode.
+        if (!zone.MatchesMotorID(modeSwitching.confirmedMotorID))
+        {
+            return;
+        }
         
         // Debug.Log($"[RetargetTouchDetector] Found zone! RightFinger={(zone.rightFinger != null ? zone.rightFinger.name : "null")}, ClawFinger={(zone.clawFinger != null ? zone.clawFinger.name : "null")}");
         

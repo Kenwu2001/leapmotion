@@ -35,7 +35,16 @@ public class FingerColliderManager : MonoBehaviour
             return;
         }
 
-        // When modeSelect=false, enable all colliders
+        // When modeManipulate=true, do not touch any colliders — ManipulationColliderManager owns them.
+        if (modeSwitching.modeManipulate)
+        {
+            currentActiveFinger = -1;
+            lastActiveFinger = -1;
+            debugInfo = "modeManipulate=true: colliders managed by ManipulationColliderManager";
+            return;
+        }
+
+        // When modeSelect=false (but not manipulate), enable all colliders
         if (!modeSwitching.modeSelect)
         {
             EnableAllColliders();

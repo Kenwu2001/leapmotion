@@ -2629,10 +2629,8 @@ public class SelectMotorCollider : MonoBehaviour
     {
         if (!enableFreezeMotorFeature || modeSwitching == null)
         {
-            Debug.Log("AAAA1111");
             return false;  
         } 
-        Debug.Log("AAAA2222");
         int cm = modeSwitching.confirmedMotorID;
         if (cm == 0) return false;
         if (cm >= thisMinMotor && cm <= thisMaxMotor) return false; // confirmed motor belongs to THIS finger
@@ -2797,7 +2795,6 @@ public class SelectMotorCollider : MonoBehaviour
         // so the dark-red color disappears (mirrors the behaviour of switching between other zones)
         if (modeSwitching != null)
         {
-            Debug.Log("BBBB");
             if (thumbInFreezeZone  && _thumbFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(1, 4);
             if (indexInFreezeZone  && _indexFreezeGateUnlocked)  modeSwitching.ClearConfirmedMotorForFinger(5, 8);
             if (middleInFreezeZone && _middleFreezeGateUnlocked) modeSwitching.ClearConfirmedMotorForFinger(9, 12);
@@ -2961,11 +2958,9 @@ public class SelectMotorCollider : MonoBehaviour
     {
         if (modeSwitching == null)
         {
-            Debug.Log("CCCC1111");
             return false;  
         } 
 
-        Debug.Log("CCCC2222");
         // Only block Paxini yellow when a non-Paxini motor in the same finger group is the
         // CONFIRMED motor (hold time fully elapsed). Do NOT block based on currentRedMotorID
         // (merely hovered / lerp phase) so the yellow persists until confirmation.
