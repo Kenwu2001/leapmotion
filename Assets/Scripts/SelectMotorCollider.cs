@@ -434,7 +434,7 @@ public class SelectMotorCollider : MonoBehaviour
             touchPosition = Vector3.zero;
             isAnyMotorTouched = false;
 
-            // Ensures Paxini freeze display is forced off while manipulating.
+            // Keep freeze display state updated while manipulating.
             UpdateFreezeColors();
             return;
         }
@@ -2756,7 +2756,7 @@ public class SelectMotorCollider : MonoBehaviour
     /// </summary>
     private void UpdateFreezeColors()
     {
-        if (!enableFreezeMotorFeature || IsManipulateModeActive())
+        if (!enableFreezeMotorFeature)
         {
             if (triggerRightThumbTip  != null) triggerRightThumbTip.showFreezeColor  = false;
             if (triggerRightIndexTip  != null) triggerRightIndexTip.showFreezeColor  = false;
