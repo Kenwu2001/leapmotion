@@ -3605,7 +3605,7 @@ public class ClawModuleController : MonoBehaviour
         ApplyResetRotations();
         ResetAllFreezeStates();
         ResetModeSwitchingState();
-        RestoreAllMotorColorsToOriginal();
+        SetEmbodimentInitialColors();
         ForceAllPaxiniOffAndRestoreColor();
         tt = 0f;
     }
