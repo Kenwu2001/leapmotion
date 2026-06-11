@@ -44,3 +44,6 @@ ClawModuleController
 
 #### Clockwise/Counterclockwise Plane
 ![alt text](image-6.png)
+
+#### Index&Middle Individual Line Visual
+![alt text](image-7.png)
