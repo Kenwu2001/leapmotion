@@ -278,29 +278,79 @@ public class ClawModuleController : MonoBehaviour
         {
             const float epsilon = 0.0001f;
 
-                 return Mathf.Abs(currentThumbRotationY) <= epsilon &&
-                     Mathf.Abs(currentThumbRotationYMax) <= epsilon &&
-                     Mathf.Abs(currentThumbRotationYMin) <= epsilon &&
-                     Mathf.Abs(currentThumbRotationZ) <= epsilon &&
-                     Mathf.Abs(currentThumbRotationZMax) <= epsilon &&
-                     Mathf.Abs(currentThumbRotationZMin) <= epsilon &&
-                     Mathf.Abs(currentIndexRotationYMax) <= epsilon &&
-                     Mathf.Abs(currentIndexRotationYMin) <= epsilon &&
-                     Mathf.Abs(currentIndexRotationZMax) <= epsilon &&
-                     Mathf.Abs(currentIndexRotationZMin) <= epsilon &&
-                     Mathf.Abs(currentMiddleRotationYMax + 60f) <= epsilon &&
-                     Mathf.Abs(currentMiddleRotationYMin) <= epsilon &&
-                     Mathf.Abs(currentMiddleRotationZ) <= epsilon &&
-                     Mathf.Abs(currentMiddleRotationZMax) <= epsilon &&
-                     Mathf.Abs(currentMiddleRotationZMin) <= epsilon &&
-                   Mathf.Abs(currentThumbTipRotationZ) <= epsilon &&
-                   Mathf.Abs(currentIndexTipRotationZ) <= epsilon &&
-                   Mathf.Abs(currentMiddleTipRotationZ) <= epsilon &&
-                   Mathf.Abs(currentThumbInnerExtensionRotationZ) <= epsilon &&
-                   Mathf.Abs(currentIndexInnerExtensionRotationZ) <= epsilon &&
-                   Mathf.Abs(currentMiddleInnerExtensionRotationZ) <= epsilon &&
-                   !hasThumbAbductionAdjustment;
+            bool allAnglesAtReset = Mathf.Abs(currentThumbRotationY) <= epsilon &&
+                Mathf.Abs(currentThumbRotationYMax) <= epsilon &&
+                Mathf.Abs(currentThumbRotationYMin) <= epsilon &&
+                Mathf.Abs(currentThumbRotationZ) <= epsilon &&
+                Mathf.Abs(currentThumbRotationZMax) <= epsilon &&
+                Mathf.Abs(currentThumbRotationZMin) <= epsilon &&
+                Mathf.Abs(currentIndexRotationYMax) <= epsilon &&
+                Mathf.Abs(currentIndexRotationYMin) <= epsilon &&
+                Mathf.Abs(currentIndexRotationZMax) <= epsilon &&
+                Mathf.Abs(currentIndexRotationZMin) <= epsilon &&
+                Mathf.Abs(currentMiddleRotationYMax + 60f) <= epsilon &&
+                Mathf.Abs(currentMiddleRotationYMin) <= epsilon &&
+                Mathf.Abs(currentMiddleRotationZ) <= epsilon &&
+                Mathf.Abs(currentMiddleRotationZMax) <= epsilon &&
+                Mathf.Abs(currentMiddleRotationZMin) <= epsilon &&
+                Mathf.Abs(currentThumbTipRotationZ) <= epsilon &&
+                Mathf.Abs(currentIndexTipRotationZ) <= epsilon &&
+                Mathf.Abs(currentMiddleTipRotationZ) <= epsilon &&
+                Mathf.Abs(currentThumbInnerExtensionRotationZ) <= epsilon &&
+                Mathf.Abs(currentIndexInnerExtensionRotationZ) <= epsilon &&
+                Mathf.Abs(currentMiddleInnerExtensionRotationZ) <= epsilon &&
+                !hasThumbAbductionAdjustment;
+
+            if (!allAnglesAtReset)
+            {
+                return false;
+            }
+
+            if (modeSwitching != null && modeSwitching.modeManipulate)
+            {
+                return false;
+            }
+
+            if (IsAnyPaxiniYellowActive())
+            {
+                return false;
+            }
+
+            return true;
         }
+    }
+
+    private bool IsAnyPaxiniYellowActive()
+    {
+        SelectMotorCollider smc = (modeSwitching != null) ? modeSwitching.SelectMotorCollider : null;
+        if (smc != null && (smc.thumbFreezeEnabled || smc.indexFreezeEnabled || smc.middleFreezeEnabled))
+        {
+            return true;
+        }
+
+        return IsTipShowingYellow(triggerRightThumbTip) ||
+               IsTipShowingYellow(triggerRightIndexTip) ||
+               IsTipShowingYellow(triggerRightMiddleTip);
+    }
+
+    private static bool IsTipShowingYellow(TriggerRightThumbTip tip)
+    {
+        return tip != null && tip.showFreezeColor && IsColorNearYellow(tip.freezeDisplayColor);
+    }
+
+    private static bool IsTipShowingYellow(TriggerRightIndexTip tip)
+    {
+        return tip != null && tip.showFreezeColor && IsColorNearYellow(tip.freezeDisplayColor);
+    }
+
+    private static bool IsTipShowingYellow(TriggerRightMiddleTip tip)
+    {
+        return tip != null && tip.showFreezeColor && IsColorNearYellow(tip.freezeDisplayColor);
+    }
+
+    private static bool IsColorNearYellow(Color color)
+    {
+        return color.r >= 0.95f && color.g >= 0.85f && color.b <= 0.2f;
     }
 
     // Track thumbPalmAngle changes for direction switching
@@ -3552,6 +3602,9 @@ public class ClawModuleController : MonoBehaviour
 
         ApplyResetRotations();
         ResetAllFreezeStates();
+        ResetModeSwitchingState();
+        RestoreAllMotorColorsToOriginal();
+        ForceAllPaxiniOffAndRestoreColor();
         tt = 0f;
     }
 
@@ -3692,11 +3745,72 @@ public class ClawModuleController : MonoBehaviour
             modeSwitching.currentRedMotorID = 0;
             modeSwitching.lastTouchedMotorID = 0;
 
+            if (modeSwitching.SelectMotorCollider != null)
+            {
+                modeSwitching.SelectMotorCollider.RestoreDebugVisuals();
+                modeSwitching.SelectMotorCollider.ReleaseFrozenLine();
+                modeSwitching.SelectMotorCollider.ResetFingertipConfirmation();
+            }
+
             if (modeSwitching.useFingertipFirst)
             {
                 modeSwitching.currentPhase = ModeSwitching.SelectionPhase.SelectingFingertip;
                 modeSwitching.confirmedFingertipID = 0;
             }
+        }
+    }
+
+    private void RestoreAllMotorColorsToOriginal()
+    {
+        if (thumbJoint1Renderer != null) thumbJoint1Renderer.material.color = originalColor;
+        if (thumbJoint2Renderer != null) thumbJoint2Renderer.material.color = originalColor;
+        if (thumbJoint3Renderer != null) thumbJoint3Renderer.material.color = originalColor;
+        if (thumbJoint4Renderer != null) thumbJoint4Renderer.material.color = originalColor;
+
+        if (indexJoint1Renderer != null) indexJoint1Renderer.material.color = originalColor;
+        if (indexJoint2Renderer != null) indexJoint2Renderer.material.color = originalColor;
+        if (indexJoint3Renderer != null) indexJoint3Renderer.material.color = originalColor;
+        if (indexJoint4Renderer != null) indexJoint4Renderer.material.color = originalColor;
+
+        if (middleJoint1Renderer != null) middleJoint1Renderer.material.color = originalColor;
+        if (middleJoint2Renderer != null) middleJoint2Renderer.material.color = originalColor;
+        if (middleJoint3Renderer != null) middleJoint3Renderer.material.color = originalColor;
+        if (middleJoint4Renderer != null) middleJoint4Renderer.material.color = originalColor;
+    }
+
+    private void ForceAllPaxiniOffAndRestoreColor()
+    {
+        SelectMotorCollider smc = (modeSwitching != null) ? modeSwitching.SelectMotorCollider : null;
+        if (smc != null)
+        {
+            smc.ForcePaxiniOffForMotor(1);
+            smc.ForcePaxiniOffForMotor(5);
+            smc.ForcePaxiniOffForMotor(9);
+            return;
+        }
+
+        if (triggerRightThumbTip != null)
+        {
+            triggerRightThumbTip.showFreezeColor = false;
+            triggerRightThumbTip.freezeDisplayColor = triggerRightThumbTip.originalColor;
+            if (triggerRightThumbTip.thumbPaxiniRenderer != null)
+                triggerRightThumbTip.thumbPaxiniRenderer.material.color = triggerRightThumbTip.originalColor;
+        }
+
+        if (triggerRightIndexTip != null)
+        {
+            triggerRightIndexTip.showFreezeColor = false;
+            triggerRightIndexTip.freezeDisplayColor = triggerRightIndexTip.originalColor;
+            if (triggerRightIndexTip.indexPaxiniRenderer != null)
+                triggerRightIndexTip.indexPaxiniRenderer.material.color = triggerRightIndexTip.originalColor;
+        }
+
+        if (triggerRightMiddleTip != null)
+        {
+            triggerRightMiddleTip.showFreezeColor = false;
+            triggerRightMiddleTip.freezeDisplayColor = triggerRightMiddleTip.originalColor;
+            if (triggerRightMiddleTip.middlePaxiniRenderer != null)
+                triggerRightMiddleTip.middlePaxiniRenderer.material.color = triggerRightMiddleTip.originalColor;
         }
     }
 
