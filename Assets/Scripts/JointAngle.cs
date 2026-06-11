@@ -404,7 +404,7 @@ public class JointAngle : MonoBehaviour
                     hasPreviousFrame = true;
 
                     // Show the plane
-                    debugPlane.SetActive(true); // TODO: turn off
+                    debugPlane.SetActive(false); // TODO: turn off
                     isPlaneActive = true;
                     activeFinger = useIndexFinger ? "Index" : (useMiddleFinger ? "Middle" : "Thumb");
                 }

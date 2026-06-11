@@ -36,3 +36,11 @@ Using this script to enable retargeting.
 #### PaXini Single Snapping
 
 ![alt text](image-3.png)
+
+#### PaXini 180 Degree Snapping
+ClawModuleController
+![alt text](image-4.png)
+![alt text](image-5.png)
+
+#### Clockwise/Counterclockwise Plane
+![alt text](image-6.png)

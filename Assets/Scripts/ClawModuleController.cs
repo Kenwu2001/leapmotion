@@ -2739,9 +2739,10 @@ public class ClawModuleController : MonoBehaviour
             {
                 if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
                 {
-                    Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 330f; // adjust snap angle if needed
-                    IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                    // Vector3 snapEuler = targetRotation.eulerAngles;
+                    // snapEuler.y = 330f; // adjust snap angle if needed
+                    // IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                    IndexAngle1Center.localRotation = targetRotation;
                 }
                 else
                 {
@@ -3004,9 +3005,10 @@ public class ClawModuleController : MonoBehaviour
             {
                 if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
                 {
-                    Vector3 snapEuler = targetRotation.eulerAngles;
-                    snapEuler.y = 30f; // adjust snap angle if needed
-                    MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                    // Vector3 snapEuler = targetRotation.eulerAngles;
+                    // snapEuler.y = 30f; // adjust snap angle if needed
+                    // MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+                    MiddleAngle1Center.localRotation = targetRotation;
                 }
                 else
                 {
