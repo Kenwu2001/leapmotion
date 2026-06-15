@@ -15486,8 +15486,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: -0.03, z: -0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 3.28, y: 3.28, z: 3.28}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 3964300246511981565}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
@@ -16249,8 +16249,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.08919655, y: 0.06754186, z: 0.024581363}
-  m_Center: {x: -0.018796591, y: -0.010817191, z: -0.0011357015}
+  m_Size: {x: 0.06328402, y: 0.06754186, z: 0.022332424}
+  m_Center: {x: -0.031752836, y: -0.010817067, z: -0.0022601706}
 --- !u!1 &752253704
 GameObject:
   m_ObjectHideFlags: 0
@@ -26471,9 +26471,9 @@ MonoBehaviour:
   frozenLineWidth: 0.003
   frozenSphereRadius: 0.005
   frozenSphereColor: {r: 0, g: 1, b: 1, a: 1}
-  showDebugSpheres: 0
+  showDebugSpheres: 1
   debugToggleKey: 100
-  showDebugLines: 0
+  showDebugLines: 1
   debugLineToggleKey: 108
   fingerRendererManager: {fileID: 370831957}
   thumbRightFingerProjectionSphere: {fileID: 2121579920}
@@ -27369,6 +27369,10 @@ PrefabInstance:
       value: fingertip
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1677675763075263951, guid: 93aaf7fbb2a8e624894430c6e51480a8, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -47440,8 +47444,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.113816194, y: 0.10843361, z: 0.026464941}
-  m_Center: {x: -0.008908313, y: -0.025897656, z: 0.0090648765}
+  m_Size: {x: 0.06066268, y: 0.10843361, z: 0.037529893}
+  m_Center: {x: -0.03548502, y: -0.025897201, z: 0.01550426}
 --- !u!4 &1760585856 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3723644639497809696, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}

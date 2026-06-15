@@ -73,7 +73,15 @@ public class DebugAngle : MonoBehaviour
       string planeActiveRaw = jointAngle != null ? jointAngle.isPlaneActive.ToString() : "N/A";
       string activeFingerRaw = jointAngle != null ? jointAngle.activeFinger : "N/A";
       string planeDebug = GetPlaneActivationDebug();
-        string syncLogState = BuildSelectMotorLogSyncState();
+      string syncLogState = BuildSelectMotorLogSyncState();
+      int fingerPriorityValue = SelectMotorCollider != null ? SelectMotorCollider.debugFingerPriority : -1;
+      string fingerPriorityText = fingerPriorityValue switch
+      {
+        0 => "0 (none)",
+        1 => "1 (index priority, middle blocked)",
+        2 => "2 (middle priority, index blocked)",
+        _ => "N/A"
+      };
 
       angleText.text =
         // "thumbGripperJoint1Max.y: " + clawModuleController.thumbGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
@@ -89,20 +97,21 @@ public class DebugAngle : MonoBehaviour
         //   "middleGripperJoint2Max.z: " + clawModuleController.middleGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
         //   "middleGripperJoint2Min.z: " + clawModuleController.middleGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
         //   "\n" +
-        "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
-        "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
-        "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A") + "\n" +
-        "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A") + "\n" +
-        "Index->Baseline Angle: " + (jointAngle != null ? jointAngle.indexToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
-        "Middle->Baseline Angle: " + (jointAngle != null ? jointAngle.middleToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
-        "modeSelect: " + (modeSwitching != null ? modeSwitching.modeSelect.ToString() : "N/A") + "\n" +
-        "modeManipulate: " + (modeSwitching != null ? modeSwitching.modeManipulate.ToString() : "N/A") + "\n" +
-        "isPlaneActive: " + planeActiveRaw + "\n" +
-        "activeFinger: " + activeFingerRaw + "\n" +
-        planeDebug + "\n" +
+        // "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
+        // "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
+        // "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A") + "\n" +
+        // "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A") + "\n" +
+        // "Index->Baseline Angle: " + (jointAngle != null ? jointAngle.indexToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
+        // "Middle->Baseline Angle: " + (jointAngle != null ? jointAngle.middleToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
+        // "modeSelect: " + (modeSwitching != null ? modeSwitching.modeSelect.ToString() : "N/A") + "\n" +
+        // "modeManipulate: " + (modeSwitching != null ? modeSwitching.modeManipulate.ToString() : "N/A") + "\n" +
+        // "isPlaneActive: " + planeActiveRaw + "\n" +
+        // "activeFinger: " + activeFingerRaw + "\n" +
+        // planeDebug + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
-        "Rotation Direction: " + rotationDirection +
-        syncLogState;
+        "Rotation Direction: " + rotationDirection + "\n" +
+        "Finger Priority: " + fingerPriorityText;
+        // syncLogState;
     }
 
     private string GetPlaneActivationDebug()
