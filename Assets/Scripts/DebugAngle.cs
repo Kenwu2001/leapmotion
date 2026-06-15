@@ -83,6 +83,26 @@ public class DebugAngle : MonoBehaviour
           : "Controller pose unavailable";
       }
 
+      // Thumb-Only Rotation Mode debug
+      string thumbOnlyModeText = "N/A";
+      if (jointAngle != null)
+      {
+        bool modeOn = jointAngle.useThumbOnlyRotationMode;
+        if (modeOn)
+        {
+          thumbOnlyModeText = "ENABLED" +
+            "\n  L_index0(L_index_a) pos: " + jointAngle.indexTipPos.ToString("F3") +
+            "\n  L_ThumbTip pos:          " + jointAngle.thumbTipPos.ToString("F3") +
+            "\n  Plane Active: " + jointAngle.isPlaneActive +
+            "\n  Direction: " + rotationDirection +
+            "\n  isClockWise: " + clockwiseRaw;
+        }
+        else
+        {
+          thumbOnlyModeText = "disabled";
+        }
+      }
+
       string fingerPriorityText = fingerPriorityValue switch
       {
         0 => "0 (none)",
@@ -92,34 +112,11 @@ public class DebugAngle : MonoBehaviour
       };
 
       angleText.text =
-        // "thumbGripperJoint1Max.y: " + clawModuleController.thumbGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
-        //   "thumbGripperJoint1Min.y: " + clawModuleController.thumbGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
-        //   "indexGripperJoint1Max.y: " + clawModuleController.indexGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
-        //   "indexGripperJoint1Min.y: " + clawModuleController.indexGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
-        //   "middleGripperJoint1Max.y: " + clawModuleController.middleGripperJoint1MaxRotationVector.y.ToString("F2") + "\n" +
-        //   "middleGripperJoint1Min.y: " + clawModuleController.middleGripperJoint1MinRotationVector.y.ToString("F2") + "\n" +
-        //   "thumbGripperJoint2Max.z: " + clawModuleController.thumbGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-        //   "thumbGripperJoint2Min.z: " + clawModuleController.thumbGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
-        //   "indexGripperJoint2Max.z: " + clawModuleController.indexGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-        //   "indexGripperJoint2Min.z: " + clawModuleController.indexGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
-        //   "middleGripperJoint2Max.z: " + clawModuleController.middleGripperJoint2MaxRotationVector.z.ToString("F2") + "\n" +
-        //   "middleGripperJoint2Min.z: " + clawModuleController.middleGripperJoint2MinRotationVector.z.ToString("F2") + "\n" +
-        //   "\n" +
-        // "ThumbTip Touched:  " + (triggerRightThumbTip  != null ? triggerRightThumbTip.isRightThumbTipTouched.ToString()  : "N/A") + "\n" +
-        // "IndexTip Touched:  " + (rightIndexTip          != null ? rightIndexTip.isRightIndexTipTouched.ToString()          : "N/A") + "\n" +
-        // "MiddleTip Touched: " + (rightMiddleTip         != null ? rightMiddleTip.isRightMiddleTipTouched.ToString()        : "N/A") + "\n" +
-        // "Priority Collider: " + (SelectMotorCollider    != null ? SelectMotorCollider.debugFingerPriority.ToString()       : "N/A") + "\n" +
-        // "Index->Baseline Angle: " + (jointAngle != null ? jointAngle.indexToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
-        // "Middle->Baseline Angle: " + (jointAngle != null ? jointAngle.middleToBaselineAngleOnPalm.ToString("F2") : "N/A") + "\n" +
-        // "modeSelect: " + (modeSwitching != null ? modeSwitching.modeSelect.ToString() : "N/A") + "\n" +
-        // "modeManipulate: " + (modeSwitching != null ? modeSwitching.modeManipulate.ToString() : "N/A") + "\n" +
-        // "isPlaneActive: " + planeActiveRaw + "\n" +
-        // "activeFinger: " + activeFingerRaw + "\n" +
-        // planeDebug + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
         "Finger Priority: " + fingerPriorityText + "\n" +
-        "L/R Controller Distance: " + controllerDistanceText;
+        "L/R Controller Distance: " + controllerDistanceText + "\n" +
+        "[ThumbOnly Mode]: " + thumbOnlyModeText;
         // syncLogState;
     }
 

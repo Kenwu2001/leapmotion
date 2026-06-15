@@ -11780,6 +11780,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -13344,6 +13345,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -14571,6 +14573,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -25656,6 +25659,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -36474,6 +36478,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -37547,6 +37552,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -41426,9 +41432,10 @@ MonoBehaviour:
   thumbPalmAngle: 0
   wristThumbAngle: 0
   isClockWise: 0
-  triggerRightIndexTip: {fileID: 0}
-  triggerRightMiddleTip: {fileID: 0}
-  triggerRightThumbTip: {fileID: 0}
+  triggerRightIndexTip: {fileID: 1201296085}
+  triggerRightMiddleTip: {fileID: 1307753529}
+  triggerRightThumbTip: {fileID: 187972396}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 3437638954850162703}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -46113,6 +46120,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}
@@ -59958,6 +59966,7 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  useThumbOnlyRotationMode: 0
   L_index_c: {fileID: 0}
   indexTipPos: {x: 0, y: 0, z: 0}
   thumbTipPos: {x: 0, y: 0, z: 0}

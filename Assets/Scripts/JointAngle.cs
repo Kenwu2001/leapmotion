@@ -39,6 +39,9 @@ public class JointAngle : MonoBehaviour
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
 
+    [Header("Thumb-Only Rotation Mode")]
+    public bool useThumbOnlyRotationMode = false;
+
     public Transform L_index_c;
 
     public Vector3 indexTipPos;
@@ -105,6 +108,7 @@ public class JointAngle : MonoBehaviour
         joints["Elbow"] = GameObject.Find("Elbow").transform;
         joints["PalmIndex"] = GameObject.Find("R_index_Proximal").transform;
         joints["PalmRing"] = GameObject.Find("R_ring_Proximal").transform;
+        joints["L_index0"] = GameObject.Find("L_index_Proximal").transform;
 
         thumbAngle0 = 0f;
         thumbAngle1 = 0f;
@@ -271,6 +275,60 @@ public class JointAngle : MonoBehaviour
                 useThumbFinger = true;
                 touchedPoints = thumbTouchPoints;
                 activeJoint = "Thumb1";
+            }
+        }
+
+        // Thumb-Only Rotation Mode: override detection — only L_ThumbTip needs to enter a collider.
+        // Plane is still chosen by the same priority (Index→Middle→Thumb).
+        // Rotation points: L_index_a (L_index0) position  +  L_ThumbTip position.
+        if (useThumbOnlyRotationMode && joints.ContainsKey("L_index0"))
+        {
+            useIndexFinger = false;
+            useMiddleFinger = false;
+            useThumbFinger = false;
+            touchedPoints = null;
+
+            if (triggerRightIndexTip != null)
+            {
+                Dictionary<string, Vector3> pts = triggerRightIndexTip.GetAllTouchedPoints();
+                if (pts.ContainsKey("L_ThumbTip"))
+                {
+                    useIndexFinger = true;
+                    activeJoint = "Index1";
+                    touchedPoints = new Dictionary<string, Vector3>
+                    {
+                        ["L_IndexTip"] = joints["L_index0"].position,
+                        ["L_ThumbTip"] = pts["L_ThumbTip"]
+                    };
+                }
+            }
+            if (!useIndexFinger && triggerRightMiddleTip != null)
+            {
+                Dictionary<string, Vector3> pts = triggerRightMiddleTip.GetAllTouchedPoints();
+                if (pts.ContainsKey("L_ThumbTip"))
+                {
+                    useMiddleFinger = true;
+                    activeJoint = "Middle1";
+                    touchedPoints = new Dictionary<string, Vector3>
+                    {
+                        ["L_IndexTip"] = joints["L_index0"].position,
+                        ["L_ThumbTip"] = pts["L_ThumbTip"]
+                    };
+                }
+            }
+            if (!useIndexFinger && !useMiddleFinger && triggerRightThumbTip != null)
+            {
+                Dictionary<string, Vector3> pts = triggerRightThumbTip.GetAllTouchedPoints();
+                if (pts.ContainsKey("L_ThumbTip"))
+                {
+                    useThumbFinger = true;
+                    activeJoint = "Thumb1";
+                    touchedPoints = new Dictionary<string, Vector3>
+                    {
+                        ["L_IndexTip"] = joints["L_index0"].position,
+                        ["L_ThumbTip"] = pts["L_ThumbTip"]
+                    };
+                }
             }
         }
 
