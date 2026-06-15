@@ -21,7 +21,7 @@ public class DebugAngle : MonoBehaviour
     public PaxiniValue paxiniValue;
     public TcpSender tcpSender;
     public TriggerRightWrist triggerRightWrist;
-    // public ControllerLocatorLeft controllerLocatorLeft;
+    public ControllerLocatorLeft controllerLocatorLeft;
 
     public GameObject r_wrist;
 
@@ -75,6 +75,14 @@ public class DebugAngle : MonoBehaviour
       string planeDebug = GetPlaneActivationDebug();
       string syncLogState = BuildSelectMotorLogSyncState();
       int fingerPriorityValue = SelectMotorCollider != null ? SelectMotorCollider.debugFingerPriority : -1;
+      string controllerDistanceText = "N/A";
+      if (controllerLocatorLeft != null)
+      {
+        controllerDistanceText = controllerLocatorLeft.isControllerSeparationValid
+          ? controllerLocatorLeft.currentControllerSeparationDistance.ToString("F3") + " m"
+          : "Controller pose unavailable";
+      }
+
       string fingerPriorityText = fingerPriorityValue switch
       {
         0 => "0 (none)",
@@ -110,7 +118,8 @@ public class DebugAngle : MonoBehaviour
         // planeDebug + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
-        "Finger Priority: " + fingerPriorityText;
+        "Finger Priority: " + fingerPriorityText + "\n" +
+        "L/R Controller Distance: " + controllerDistanceText;
         // syncLogState;
     }
 

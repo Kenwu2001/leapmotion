@@ -919,6 +919,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1106766932023694302, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
   m_PrefabInstance: {fileID: 172019589}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &135976839 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+  m_PrefabInstance: {fileID: 1770763344}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &139669339
 GameObject:
   m_ObjectHideFlags: 0
@@ -11020,7 +11025,10 @@ MonoBehaviour:
   currentControllerPosition: {x: 0, y: 0, z: 0}
   currentControllerEulerAngles: {x: 0, y: 0, z: 0}
   controllerPoseDebug: LeftHand controller not tracked
-  leftHandSkin: {fileID: 2145436053}
+  currentControllerSeparationDistance: 0
+  isControllerSeparationValid: 0
+  leftHandRetargetingSkin: {fileID: 2145436053}
+  leftHandOriginalSkin: {fileID: 135976839}
   leftQuad: {fileID: 1319513583}
   canvasPlane: {fileID: 721031720}
   canvasLinkedObjects:
@@ -11029,7 +11037,8 @@ MonoBehaviour:
   previewCanvasPlaneOffset: 0
   canvasShowDelaySeconds: 1
   modeSwitching: {fileID: 951283614}
-  handSeparationThreshold: 0.4
+  fallbackShowSeparationThreshold: 0.75
+  fallbackHideSeparationThreshold: 0.5
 --- !u!1 &276978594
 GameObject:
   m_ObjectHideFlags: 0
@@ -11294,6 +11303,7 @@ MonoBehaviour:
   paxiniValue: {fileID: 1086361769}
   tcpSender: {fileID: 188813409}
   triggerRightWrist: {fileID: 2468996038092723762}
+  controllerLocatorLeft: {fileID: 274459470}
   r_wrist: {fileID: 183310080}
 --- !u!1 &282863895
 GameObject:
@@ -16116,8 +16126,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 721031720}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40134403, y: 0.15581614, z: 0.08674681, w: -0.8983982}
-  m_LocalPosition: {x: -0.065, y: -0.079, z: 0.147}
+  m_LocalRotation: {x: 0.4135754, y: -0.44018814, z: 0.63024086, w: -0.48783836}
+  m_LocalPosition: {x: 0.047, y: -0.099, z: 0.183}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.03}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -16125,7 +16135,7 @@ Transform:
   - {fileID: 359970680}
   - {fileID: 1157737554}
   m_Father: {fileID: 274459469}
-  m_LocalEulerAnglesHint: {x: -48.432, y: -378.482, z: -2.66}
+  m_LocalEulerAnglesHint: {x: 8.704, y: -285.874, z: -97.937}
 --- !u!64 &721031722
 MeshCollider:
   m_ObjectHideFlags: 0

@@ -7,9 +7,12 @@ public class ControllerLocatorLeft : MonoBehaviour
     public Vector3 currentControllerPosition;
     public Vector3 currentControllerEulerAngles;
     public string controllerPoseDebug = "LeftHand controller not tracked";
+    public float currentControllerSeparationDistance;
+    public bool isControllerSeparationValid;
 
     [Header("Fallback Display")]
-    public GameObject leftHandSkin;
+    public GameObject leftHandRetargetingSkin;
+    public GameObject leftHandOriginalSkin;
     public GameObject leftQuad;
     public GameObject canvasPlane;
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
@@ -22,8 +25,10 @@ public class ControllerLocatorLeft : MonoBehaviour
     public ModeSwitching modeSwitching;
 
     [Header("Hand Separation")]
-    [Tooltip("When the two hands are farther apart than this distance (meters), switch to the cube + panel fallback")]
-    public float handSeparationThreshold = 0.4f;
+    [Tooltip("When L/R controllers are farther apart than this distance (meters), switch to the cube + panel fallback")]
+    public float fallbackShowSeparationThreshold = 0.75f;
+    [Tooltip("When fallback is active, hide it only after L/R controllers are closer than this distance (meters)")]
+    public float fallbackHideSeparationThreshold = 0.5f;
 
     private Transform canvasOriginalParent;
     private Vector3 canvasInitialLocalPosition;
@@ -161,7 +166,7 @@ public class ControllerLocatorLeft : MonoBehaviour
             return;
         }
 
-        bool shouldUseFallbackVisuals = AreHandsSeparatedBeyondThreshold();
+        bool shouldUseFallbackVisuals = ShouldUseFallbackVisuals();
         if (shouldUseFallbackVisuals == isFallbackVisualsActive)
         {
             return;
@@ -181,21 +186,54 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
     }
 
-    private bool AreHandsSeparatedBeyondThreshold()
+    private bool ShouldUseFallbackVisuals()
     {
-        if (modeSwitching == null)
+        if (!TryGetControllerSeparationDistance(out float controllerDistance))
+        {
+            isControllerSeparationValid = false;
+            return false;
+        }
+
+        isControllerSeparationValid = true;
+        currentControllerSeparationDistance = controllerDistance;
+
+        if (!isFallbackVisualsActive)
+        {
+            return controllerDistance > fallbackShowSeparationThreshold;
+        }
+
+        return controllerDistance >= fallbackHideSeparationThreshold;
+    }
+
+    private bool TryGetControllerSeparationDistance(out float controllerDistance)
+    {
+        controllerDistance = 0f;
+
+        InputDevice leftDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        InputDevice rightDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+
+        if (!leftDevice.isValid || !rightDevice.isValid)
         {
             return false;
         }
 
-        return modeSwitching.currentHandSeparationDistance > handSeparationThreshold;
+        bool hasLeftPos = leftDevice.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 leftPos);
+        bool hasRightPos = rightDevice.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 rightPos);
+        if (!hasLeftPos || !hasRightPos)
+        {
+            return false;
+        }
+
+        controllerDistance = Vector3.Distance(leftPos, rightPos);
+        return true;
     }
 
     private void ShowFallbackVisuals()
     {
-        if (leftHandSkin != null)
+        if (leftHandRetargetingSkin != null)
         {
-            leftHandSkin.SetActive(false);
+            leftHandRetargetingSkin.SetActive(false);
+            leftHandOriginalSkin.SetActive(false);
             leftQuad.SetActive(false);
         }
 
@@ -204,9 +242,10 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void HideFallbackVisuals()
     {
-        if (leftHandSkin != null)
+        if (leftHandRetargetingSkin != null)
         {
-            leftHandSkin.SetActive(true);
+            leftHandRetargetingSkin.SetActive(true);
+            leftHandOriginalSkin.SetActive(true);
             leftQuad.SetActive(true);
         }
 
