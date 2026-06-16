@@ -85,23 +85,23 @@ public class DebugAngle : MonoBehaviour
 
       // Thumb-Only Rotation Mode debug
       string thumbOnlyModeText = "N/A";
-      if (jointAngle != null)
-      {
-        bool modeOn = jointAngle.useThumbOnlyRotationMode;
-        if (modeOn)
-        {
-          thumbOnlyModeText = "ENABLED" +
-            "\n  L_index0(L_index_a) pos: " + jointAngle.indexTipPos.ToString("F3") +
-            "\n  L_ThumbTip pos:          " + jointAngle.thumbTipPos.ToString("F3") +
-            "\n  Plane Active: " + jointAngle.isPlaneActive +
-            "\n  Direction: " + rotationDirection +
-            "\n  isClockWise: " + clockwiseRaw;
-        }
-        else
-        {
-          thumbOnlyModeText = "disabled";
-        }
-      }
+      // if (jointAngle != null)
+      // {
+      //   bool modeOn = jointAngle.newRotationMode;
+      //   if (modeOn)
+      //   {
+      //     thumbOnlyModeText = "ENABLED" +
+      //       "\n  L_index0(L_index_a) pos: " + jointAngle.indexTipPos.ToString("F3") +
+      //       "\n  L_ThumbTip pos:          " + jointAngle.thumbTipPos.ToString("F3") +
+      //       "\n  Plane Active: " + jointAngle.isPlaneActive +
+      //       "\n  Direction: " + rotationDirection +
+      //       "\n  isClockWise: " + clockwiseRaw;
+      //   }
+      //   else
+      //   {
+      //     thumbOnlyModeText = "disabled";
+      //   }
+      // }
 
       string fingerPriorityText = fingerPriorityValue switch
       {
@@ -111,12 +111,25 @@ public class DebugAngle : MonoBehaviour
         _ => "N/A"
       };
 
+      string newTouchDebug = "";
+      if (jointAngle != null)
+      {
+        newTouchDebug = "\n[NEW TOUCH MODE]" +
+          "\n  indexNewTouch: " + jointAngle.indexNewTouch +
+          "\n  middleNewTouch: " + jointAngle.middleNewTouch +
+          "\n  thumbNewTouch: " + jointAngle.thumbNewTouch;
+      }
+
       angleText.text =
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
         "Finger Priority: " + fingerPriorityText + "\n" +
         "L/R Controller Distance: " + controllerDistanceText + "\n" +
-        "[ThumbOnly Mode]: " + thumbOnlyModeText;
+        "[ThumbOnly Mode]: " + thumbOnlyModeText +
+        // "\nThumb Legacy Touch: " + (jointAngle != null ? jointAngle.thumbLegacyTouch.ToString() : "N/A") +
+        // "\nIndex Legacy Touch: " + (jointAngle != null ? jointAngle.indexLegacyTouch.ToString() : "N/A") + "\n" +
+        // "Middle Legacy Touch: " + (jointAngle != null ? jointAngle.middleLegacyTouch.ToString() : "N/A") +
+        newTouchDebug;
         // syncLogState;
     }
 

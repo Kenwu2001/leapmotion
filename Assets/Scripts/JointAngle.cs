@@ -33,14 +33,19 @@ public class JointAngle : MonoBehaviour
     public bool isPlaneActive { get; private set; } = false;
     public string activeFinger { get; private set; } = "None"; // "Index", "Middle", "Thumb", or "None"
     public float isClockWise;
+    public bool indexNewTouch { get; private set; }
+    public bool middleNewTouch { get; private set; }
+    public bool thumbNewTouch { get; private set; }
 
     // Reference for twisting
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
 
-    [Header("Thumb-Only Rotation Mode")]
-    public bool useThumbOnlyRotationMode = false;
+    [Header("New Rotation Mode")] //FIXME: new rotation mode
+    public bool thumbNewRotationMode = false;
+    public bool indexNewRotationMode = false;
+    public bool middleNewRotationMode = false;
 
     public Transform L_index_c;
 
@@ -83,32 +88,91 @@ public class JointAngle : MonoBehaviour
     public float cumulativeRotation = 0f; // Track total rotation
     private const float MIN_ROTATION_THRESHOLD = 0.02f; // Minimum rotation to consider
     public float publiAaverageRotation = 0f;
+    private float nextDiagLogTime = 0f;
+    private const float DIAG_LOG_INTERVAL = 0.5f;
+
+    void AssignJointIfFound(string key, string objectName)
+    {
+        GameObject obj = GameObject.Find(objectName);
+        if (obj != null)
+        {
+            joints[key] = obj.transform;
+        }
+        else
+        {
+            Debug.LogWarning("[JointAngle][Init] Missing GameObject: " + objectName + " for joint key: " + key, this);
+        }
+    }
+
+    bool ValidateCriticalReferences(string stage)
+    {
+        List<string> issues = new List<string>();
+
+        if (lineRenderer == null)
+            issues.Add("lineRenderer is null");
+        if (debugPlane == null)
+            issues.Add("debugPlane is null");
+        if (!joints.ContainsKey("Thumb0") || joints["Thumb0"] == null)
+            issues.Add("joint Thumb0 missing/null");
+        if (!joints.ContainsKey("Thumb1") || joints["Thumb1"] == null)
+            issues.Add("joint Thumb1 missing/null");
+        if (!joints.ContainsKey("Index0") || joints["Index0"] == null)
+            issues.Add("joint Index0 missing/null");
+        if (!joints.ContainsKey("Index1") || joints["Index1"] == null)
+            issues.Add("joint Index1 missing/null");
+        if (!joints.ContainsKey("Index2") || joints["Index2"] == null)
+            issues.Add("joint Index2 missing/null");
+        if (!joints.ContainsKey("Middle0") || joints["Middle0"] == null)
+            issues.Add("joint Middle0 missing/null");
+        if (!joints.ContainsKey("Middle1") || joints["Middle1"] == null)
+            issues.Add("joint Middle1 missing/null");
+        if (!joints.ContainsKey("Middle2") || joints["Middle2"] == null)
+            issues.Add("joint Middle2 missing/null");
+        if (!joints.ContainsKey("Wrist") || joints["Wrist"] == null)
+            issues.Add("joint Wrist missing/null");
+        if (!joints.ContainsKey("PalmIndex") || joints["PalmIndex"] == null)
+            issues.Add("joint PalmIndex missing/null");
+        if (!joints.ContainsKey("PalmRing") || joints["PalmRing"] == null)
+            issues.Add("joint PalmRing missing/null");
+
+        if (issues.Count > 0)
+        {
+            if (Time.time >= nextDiagLogTime)
+            {
+                Debug.LogError("[JointAngle][Diag][" + stage + "] " + string.Join(" | ", issues), this);
+                nextDiagLogTime = Time.time + DIAG_LOG_INTERVAL;
+            }
+            return false;
+        }
+
+        return true;
+    }
 
     void Start()
     {
         // Thumb joints
-        joints["Thumb0"] = GameObject.Find("R_thumb_a").transform;
-        joints["Thumb1"] = GameObject.Find("R_thumb_b").transform;
+        AssignJointIfFound("Thumb0", "R_thumb_a");
+        AssignJointIfFound("Thumb1", "R_thumb_b");
         // joints["ThumbM"] = GameObject.Find("R_thumb_Proximal").transform;
 
         // Index joints
-        joints["Index0"] = GameObject.Find("R_index_Proximal").transform;
-        joints["Index1"] = GameObject.Find("R_index_b").transform;
-        joints["Index2"] = GameObject.Find("R_index_c").transform;
+        AssignJointIfFound("Index0", "R_index_Proximal");
+        AssignJointIfFound("Index1", "R_index_b");
+        AssignJointIfFound("Index2", "R_index_c");
         // joints["IndexM"] = GameObject.Find("R_index_meta").transform;
 
         // Middle joints
-        joints["Middle0"] = GameObject.Find("R_middle_Proximal").transform;
-        joints["Middle1"] = GameObject.Find("R_middle_b").transform;
-        joints["Middle2"] = GameObject.Find("R_middle_c").transform;
+        AssignJointIfFound("Middle0", "R_middle_Proximal");
+        AssignJointIfFound("Middle1", "R_middle_b");
+        AssignJointIfFound("Middle2", "R_middle_c");
         // joints["MiddleM"] = GameObject.Find("R_middle_meta").transform;
 
         // Points needed for forming the basic plane of the palm
-        joints["Wrist"] = GameObject.Find("R_Wrist").transform;
-        joints["Elbow"] = GameObject.Find("Elbow").transform;
-        joints["PalmIndex"] = GameObject.Find("R_index_Proximal").transform;
-        joints["PalmRing"] = GameObject.Find("R_ring_Proximal").transform;
-        joints["L_index0"] = GameObject.Find("L_index_Proximal").transform;
+        AssignJointIfFound("Wrist", "R_Wrist");
+        AssignJointIfFound("Elbow", "Elbow");
+        AssignJointIfFound("PalmIndex", "R_index_Proximal");
+        AssignJointIfFound("PalmRing", "R_ring_Proximal");
+        AssignJointIfFound("L_index0", "L_index_Proximal");
 
         thumbAngle0 = 0f;
         thumbAngle1 = 0f;
@@ -209,6 +273,9 @@ public class JointAngle : MonoBehaviour
 
     void Update()
     {
+        if (!ValidateCriticalReferences("UpdateStart"))
+            return;
+
         UpdatePalmNormal();
 
         UpdateThumbPlane(); // Uncomment this line
@@ -235,101 +302,116 @@ public class JointAngle : MonoBehaviour
         indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
         UpdateIndexMiddleIndependentAnglesAndBaseline();
 
-        // Determine which finger to use based on touch detection
+        // Determine which finger to use based on touch detection.
+        // Each finger can independently choose legacy mode (IndexTip+ThumbTip)
+        // or new mode (ThumbTip only + L_index0 anchor).
         bool useIndexFinger = false;
         bool useMiddleFinger = false;
         bool useThumbFinger = false;
         string activeJoint = "Index1";
         Dictionary<string, Vector3> touchedPoints = null;
 
-        // Check TriggerRightIndexTip first
+        Dictionary<string, Vector3> indexTouchPoints = null;
+        Dictionary<string, Vector3> middleTouchPoints = null;
+        Dictionary<string, Vector3> thumbTouchPoints = null;
+
         if (triggerRightIndexTip != null)
         {
-            Dictionary<string, Vector3> indexTouchPoints = triggerRightIndexTip.GetAllTouchedPoints();
-            if (indexTouchPoints.ContainsKey("L_IndexTip") && indexTouchPoints.ContainsKey("L_ThumbTip"))
+            indexTouchPoints = triggerRightIndexTip.GetAllTouchedPoints();
+            if (indexTouchPoints == null)
             {
-                useIndexFinger = true;
-                touchedPoints = indexTouchPoints;
-                activeJoint = "Index1";
+                if (Time.time >= nextDiagLogTime)
+                {
+                    Debug.LogWarning("[JointAngle][TouchDiag] triggerRightIndexTip.GetAllTouchedPoints() returned null", this);
+                    nextDiagLogTime = Time.time + DIAG_LOG_INTERVAL;
+                }
             }
         }
 
-        // Check TriggerRightMiddleTip if index isn't active
-        if (!useIndexFinger && triggerRightMiddleTip != null)
+        if (triggerRightMiddleTip != null)
         {
-            Dictionary<string, Vector3> middleTouchPoints = triggerRightMiddleTip.GetAllTouchedPoints();
-            if (middleTouchPoints.ContainsKey("L_IndexTip") && middleTouchPoints.ContainsKey("L_ThumbTip"))
+            middleTouchPoints = triggerRightMiddleTip.GetAllTouchedPoints();
+            if (middleTouchPoints == null)
             {
-                useMiddleFinger = true;
-                touchedPoints = middleTouchPoints;
-                activeJoint = "Middle1";
+                if (Time.time >= nextDiagLogTime)
+                {
+                    Debug.LogWarning("[JointAngle][TouchDiag] triggerRightMiddleTip.GetAllTouchedPoints() returned null", this);
+                    nextDiagLogTime = Time.time + DIAG_LOG_INTERVAL;
+                }
             }
         }
 
-        // Check TriggerRightThumbTip if index and middle aren't active
-        if (!useIndexFinger && !useMiddleFinger && triggerRightThumbTip != null)
+        if (triggerRightThumbTip != null)
         {
-            Dictionary<string, Vector3> thumbTouchPoints = triggerRightThumbTip.GetAllTouchedPoints();
-            if (thumbTouchPoints.ContainsKey("L_IndexTip") && thumbTouchPoints.ContainsKey("L_ThumbTip"))
+            thumbTouchPoints = triggerRightThumbTip.GetAllTouchedPoints();
+            if (thumbTouchPoints == null)
             {
-                useThumbFinger = true;
-                touchedPoints = thumbTouchPoints;
-                activeJoint = "Thumb1";
+                if (Time.time >= nextDiagLogTime)
+                {
+                    Debug.LogWarning("[JointAngle][TouchDiag] triggerRightThumbTip.GetAllTouchedPoints() returned null", this);
+                    nextDiagLogTime = Time.time + DIAG_LOG_INTERVAL;
+                }
             }
         }
 
-        // Thumb-Only Rotation Mode: override detection — only L_ThumbTip needs to enter a collider.
-        // Plane is still chosen by the same priority (Index→Middle→Thumb).
-        // Rotation points: L_index_a (L_index0) position  +  L_ThumbTip position.
-        if (useThumbOnlyRotationMode && joints.ContainsKey("L_index0"))
-        {
-            useIndexFinger = false;
-            useMiddleFinger = false;
-            useThumbFinger = false;
-            touchedPoints = null;
+        bool hasLIndex0 = joints.ContainsKey("L_index0");
 
-            if (triggerRightIndexTip != null)
-            {
-                Dictionary<string, Vector3> pts = triggerRightIndexTip.GetAllTouchedPoints();
-                if (pts.ContainsKey("L_ThumbTip"))
+        bool indexLegacyTouch = indexTouchPoints != null &&
+            indexTouchPoints.ContainsKey("L_IndexTip") &&
+            indexTouchPoints.ContainsKey("L_ThumbTip");
+        bool middleLegacyTouch = middleTouchPoints != null &&
+            middleTouchPoints.ContainsKey("L_IndexTip") &&
+            middleTouchPoints.ContainsKey("L_ThumbTip");
+        bool thumbLegacyTouch = thumbTouchPoints != null &&
+            thumbTouchPoints.ContainsKey("L_IndexTip") &&
+            thumbTouchPoints.ContainsKey("L_ThumbTip");
+
+        //FIXME: why
+        indexNewTouch = indexNewRotationMode && hasLIndex0 &&
+            indexTouchPoints != null &&
+            indexTouchPoints.ContainsKey("L_ThumbTip");
+        middleNewTouch = middleNewRotationMode && hasLIndex0 &&
+            middleTouchPoints != null &&
+            middleTouchPoints.ContainsKey("L_ThumbTip");
+        thumbNewTouch = thumbNewRotationMode && hasLIndex0 &&
+            thumbTouchPoints != null &&
+            thumbTouchPoints.ContainsKey("L_ThumbTip");
+
+        if (indexNewTouch || indexLegacyTouch)
+        {
+            useIndexFinger = true;
+            activeJoint = "Index1";
+            touchedPoints = indexNewTouch
+                ? new Dictionary<string, Vector3>
                 {
-                    useIndexFinger = true;
-                    activeJoint = "Index1";
-                    touchedPoints = new Dictionary<string, Vector3>
-                    {
-                        ["L_IndexTip"] = joints["L_index0"].position,
-                        ["L_ThumbTip"] = pts["L_ThumbTip"]
-                    };
+                    ["L_IndexTip"] = joints["L_index0"].position,
+                    ["L_ThumbTip"] = indexTouchPoints["L_ThumbTip"]
                 }
-            }
-            if (!useIndexFinger && triggerRightMiddleTip != null)
-            {
-                Dictionary<string, Vector3> pts = triggerRightMiddleTip.GetAllTouchedPoints();
-                if (pts.ContainsKey("L_ThumbTip"))
+                : indexTouchPoints;
+        }
+        else if (middleNewTouch || middleLegacyTouch)
+        {
+            useMiddleFinger = true;
+            activeJoint = "Middle1";
+            touchedPoints = middleNewTouch
+                ? new Dictionary<string, Vector3>
                 {
-                    useMiddleFinger = true;
-                    activeJoint = "Middle1";
-                    touchedPoints = new Dictionary<string, Vector3>
-                    {
-                        ["L_IndexTip"] = joints["L_index0"].position,
-                        ["L_ThumbTip"] = pts["L_ThumbTip"]
-                    };
+                    ["L_IndexTip"] = joints["L_index0"].position,
+                    ["L_ThumbTip"] = middleTouchPoints["L_ThumbTip"]
                 }
-            }
-            if (!useIndexFinger && !useMiddleFinger && triggerRightThumbTip != null)
-            {
-                Dictionary<string, Vector3> pts = triggerRightThumbTip.GetAllTouchedPoints();
-                if (pts.ContainsKey("L_ThumbTip"))
+                : middleTouchPoints;
+        }
+        else if (thumbNewTouch || thumbLegacyTouch)
+        {
+            useThumbFinger = true;
+            activeJoint = "Thumb1";
+            touchedPoints = thumbNewTouch
+                ? new Dictionary<string, Vector3>
                 {
-                    useThumbFinger = true;
-                    activeJoint = "Thumb1";
-                    touchedPoints = new Dictionary<string, Vector3>
-                    {
-                        ["L_IndexTip"] = joints["L_index0"].position,
-                        ["L_ThumbTip"] = pts["L_ThumbTip"]
-                    };
+                    ["L_IndexTip"] = joints["L_index0"].position,
+                    ["L_ThumbTip"] = thumbTouchPoints["L_ThumbTip"]
                 }
-            }
+                : thumbTouchPoints;
         }
 
         // Process touched points and update visualization
@@ -468,6 +550,16 @@ public class JointAngle : MonoBehaviour
                 }
                 else
                 {
+                    if (lineRenderer == null)
+                    {
+                        if (Time.time >= nextDiagLogTime)
+                        {
+                            Debug.LogError("[JointAngle][Diag] lineRenderer became null before drawing fallback line", this);
+                            nextDiagLogTime = Time.time + DIAG_LOG_INTERVAL;
+                        }
+                        return;
+                    }
+
                     lineRenderer.SetPosition(0, indexTipPos);
                     lineRenderer.SetPosition(1, thumbTipPos);
                 }

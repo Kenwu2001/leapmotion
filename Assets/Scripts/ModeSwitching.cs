@@ -783,7 +783,7 @@ public class ModeSwitching : MonoBehaviour
                         // Update gray display
                         UpdateGrayColors();
                         
-                        Debug.Log($"[ModeSwitching] Switched to new fingertip motor {motorID}. Ready for manipulation.");
+                        // Debug.Log($"[ModeSwitching] Switched to new fingertip motor {motorID}. Ready for manipulation.");
                     }
                     else
                     {
@@ -791,7 +791,7 @@ public class ModeSwitching : MonoBehaviour
                         confirmedMotorID = motorID;
                         SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
                         currentPhase = SelectionPhase.MotorConfirmed;
-                        Debug.Log($"[ModeSwitching] Maintaining fingertip motor {motorID}");
+                        // Debug.Log($"[ModeSwitching] Maintaining fingertip motor {motorID}");
                     }
                 }
                 else
@@ -800,7 +800,7 @@ public class ModeSwitching : MonoBehaviour
                     confirmedMotorID = motorID;
                     SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
                     currentPhase = SelectionPhase.MotorConfirmed;
-                    Debug.Log($"[ModeSwitching] Motor {motorID} confirmed. Can enter manipulate mode.");
+                    // Debug.Log($"[ModeSwitching] Motor {motorID} confirmed. Can enter manipulate mode.");
                 }
                 break;
         }

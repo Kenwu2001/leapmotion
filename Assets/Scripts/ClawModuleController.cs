@@ -2622,7 +2622,7 @@ public class ClawModuleController : MonoBehaviour
                 if (Mathf.Abs(jointAngle.isClockWise) > 0.1f)
                 {
                     float rotationDelta = -jointAngle.isClockWise * twistRotationSpeed * Time.deltaTime;
-                    Debug.Log("jointAngle.isClockWise: " + jointAngle.isClockWise + ", rotationDelta: " + rotationDelta);
+                    // Debug.Log("jointAngle.isClockWise: " + jointAngle.isClockWise + ", rotationDelta: " + rotationDelta);
 
                     if (!hasIndexPronationFirstDirection)
                     {

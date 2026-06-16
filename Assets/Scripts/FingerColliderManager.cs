@@ -169,7 +169,7 @@ public class FingerColliderManager : MonoBehaviour
     {
         if (motorColliders.Length != 12)
         {
-            Debug.LogWarning("[FingerColliderManager] The motorColliders array should have 12 elements!");
+            // Debug.LogWarning("[FingerColliderManager] The motorColliders array should have 12 elements!");
         }
     }
 }

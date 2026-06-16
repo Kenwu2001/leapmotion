@@ -92,8 +92,8 @@ public class FingerSnapManager : MonoBehaviour
                     
                     if (debugMode)
                     {
-                        Debug.Log($"[{config.configName}] Snap Applied: {config.transform1.name} -> {config.snapAngle1}°, " +
-                                  $"{config.transform2.name} -> {config.snapAngle2}°");
+                        // Debug.Log($"[{config.configName}] Snap Applied: {config.transform1.name} -> {config.snapAngle1}°, " +
+                                //   $"{config.transform2.name} -> {config.snapAngle2}°");
                     }
                 }
             }
@@ -104,16 +104,16 @@ public class FingerSnapManager : MonoBehaviour
                 
                 if (debugMode && snapApplied.ContainsKey(config) && snapApplied[config])
                 {
-                    Debug.Log($"[{config.configName}] Snap Released - Out of Range");
+                    // Debug.Log($"[{config.configName}] Snap Released - Out of Range");
                 }
             }
 
             if (debugMode && inRange)
             {
-                Debug.Log($"[{config.configName}] In Range: {config.transform1.name}={config.currentAngle1:F1}° " +
-                          $"({config.angleRange1.x}-{config.angleRange1.y}), " +
-                          $"{config.transform2.name}={config.currentAngle2:F1}° " +
-                          $"({config.angleRange2.x}-{config.angleRange2.y})");
+                // Debug.Log($"[{config.configName}] In Range: {config.transform1.name}={config.currentAngle1:F1}° " +
+                //           $"({config.angleRange1.x}-{config.angleRange1.y}), " +
+                //           $"{config.transform2.name}={config.currentAngle2:F1}° " +
+                //           $"({config.angleRange2.x}-{config.angleRange2.y})");
             }
         }
     }

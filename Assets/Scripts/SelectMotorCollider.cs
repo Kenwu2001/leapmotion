@@ -344,8 +344,8 @@ public class SelectMotorCollider : MonoBehaviour
         if (fingerRendererManager == null)
         {
             fingerRendererManager = FindObjectOfType<FingerRendererManager>();
-            if (fingerRendererManager != null)
-                Debug.Log("[SelectMotorCollider] Auto-found FingerRendererManager");
+            // if (fingerRendererManager != null)
+            //     Debug.Log("[SelectMotorCollider] Auto-found FingerRendererManager");
         }
         
         // Auto-create frozen line renderers and endpoint spheres
@@ -394,7 +394,7 @@ public class SelectMotorCollider : MonoBehaviour
         if (Input.GetKeyDown(debugToggleKey))
         {
             showDebugSpheres = !showDebugSpheres;
-            Debug.Log($"[SelectMotorCollider] Debug spheres: {(showDebugSpheres ? "ON" : "OFF")}");
+            // Debug.Log($"[SelectMotorCollider] Debug spheres: {(showDebugSpheres ? "ON" : "OFF")}");
             
             // If turning off, hide all spheres immediately
             if (!showDebugSpheres)
@@ -407,7 +407,7 @@ public class SelectMotorCollider : MonoBehaviour
         if (Input.GetKeyDown(debugLineToggleKey))
         {
             showDebugLines = !showDebugLines;
-            Debug.Log($"[SelectMotorCollider] Debug lines: {(showDebugLines ? "ON" : "OFF")}");
+            // Debug.Log($"[SelectMotorCollider] Debug lines: {(showDebugLines ? "ON" : "OFF")}");
             
             if (!showDebugLines)
             {
@@ -725,7 +725,7 @@ public class SelectMotorCollider : MonoBehaviour
         confirmedFingertipMotorID = 0;
         isFingertipConfirmed = false;
         UpdateSelectableMotorRangeText();
-        Debug.Log($"[SelectMotorCollider] Fingertip confirmation state reset");
+        // Debug.Log($"[SelectMotorCollider] Fingertip confirmation state reset");
     }
     
     /// <summary>
@@ -2247,7 +2247,7 @@ public class SelectMotorCollider : MonoBehaviour
         frozenFingerID = fingertipMotorID;
         isFrozenLineActive = true;
         
-        Debug.Log($"[SelectMotorCollider] Frozen line captured for finger {fingertipMotorID}: tip={tipWorld}, base={baseWorld}");
+        // Debug.Log($"[SelectMotorCollider] Frozen line captured for finger {fingertipMotorID}: tip={tipWorld}, base={baseWorld}");
     }
     
     /// <summary>
@@ -2262,7 +2262,7 @@ public class SelectMotorCollider : MonoBehaviour
         isFrozenLineActive = false;
         HideFrozenVisuals();
         
-        Debug.Log($"[SelectMotorCollider] Frozen line released");
+        // Debug.Log($"[SelectMotorCollider] Frozen line released");
     }
     
     /// <summary>

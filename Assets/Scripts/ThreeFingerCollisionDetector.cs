@@ -50,7 +50,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         {
             if (jointColliders[i] == null)
             {
-                Debug.LogError($"❌ Joint Collider {i} is not assigned!");
+                // Debug.LogError($"❌ Joint Collider {i} is not assigned!");
                 continue;
             }
 
@@ -94,7 +94,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
             }
         }
 
-        Debug.Log($"✅ Setup {jointColliders.Length} joint colliders with trigger detection");
+        // Debug.Log($"✅ Setup {jointColliders.Length} joint colliders with trigger detection");
     }
 
     void Update()
@@ -114,13 +114,13 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         {
             StopMotors();
             wasColliding = true;
-            Debug.Log("🛑 Collision START - Motors stopped");
+            // Debug.Log("🛑 Collision START - Motors stopped");
         }
         else if (!isColliding && wasColliding)
         {
             ResumeMotors();
             wasColliding = false;
-            Debug.Log("✅ Collision END - Motors resumed");
+            // Debug.Log("✅ Collision END - Motors resumed");
         }
         else if (isColliding)
         {
@@ -137,7 +137,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         string key = GetCollisionKey(index1, index2);
         currentCollisions.Add(key);
 
-        Debug.Log($"⚠️ Collision: Joint{index1} (Finger{fingerGroups[index1]}) <-> Joint{index2} (Finger{fingerGroups[index2]})");
+        // Debug.Log($"⚠️ Collision: Joint{index1} (Finger{fingerGroups[index1]}) <-> Joint{index2} (Finger{fingerGroups[index2]})");
     }
 
     public void OnJointCollisionExit(int index1, int index2)
@@ -145,7 +145,7 @@ public class ThreeFingerCollisionDetector : MonoBehaviour
         string key = GetCollisionKey(index1, index2);
         currentCollisions.Remove(key);
 
-        Debug.Log($"✅ Separation: Joint{index1} <-> Joint{index2}");
+        // Debug.Log($"✅ Separation: Joint{index1} <-> Joint{index2}");
     }
 
     string GetCollisionKey(int i, int j)

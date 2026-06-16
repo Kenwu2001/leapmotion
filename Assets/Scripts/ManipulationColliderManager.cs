@@ -84,7 +84,7 @@ public class ManipulationColliderManager : MonoBehaviour
             // Log AfterMotorSwitch only when motorID changes
             if (motorID != lastMotorID)
             {
-                Debug.Log($"Current motorID: {motorID}");
+                // Debug.Log($"Current motorID: {motorID}");
                 lastMotorID = motorID;
 
                 if (enableVerboseLogs)
@@ -98,7 +98,7 @@ public class ManipulationColliderManager : MonoBehaviour
             // Not in manipulate mode: selection colliders on, manipulation retargeting colliders off
             if (lastMotorID != -1) // Only log once when switching out of manipulate mode
             {
-                Debug.Log("Not in manipulate mode, enabling all colliders");
+                // Debug.Log("Not in manipulate mode, enabling all colliders");
                 lastMotorID = -1;
             }
             SetSelectionColliders(true, true, true);
@@ -196,13 +196,13 @@ public class ManipulationColliderManager : MonoBehaviour
         string mode = modeSwitching != null ? $"select={modeSwitching.modeSelect}, manipulate={modeSwitching.modeManipulate}" : "modeSwitching=null";
         int confirmed = modeSwitching != null ? modeSwitching.confirmedMotorID : -999;
 
-        Debug.Log(
-            "[ManipulationColliderManager] " + source +
-            " | " + mode +
-            $" | confirmedMotorID={confirmed}" +
-            " | Sel(T/I/M)=" + ColliderState(thumbTipCollider) + "/" + ColliderState(indexTipCollider) + "/" + ColliderState(middleTipCollider) +
-            " | Retarget(T/I/M)=" + ColliderState(thumbManipulateRetargetingCollider) + "/" + ColliderState(indexManipulateRetargetingCollider) + "/" + ColliderState(middleManipulateRetargetingCollider)
-        );
+        // Debug.Log(
+        //     "[ManipulationColliderManager] " + source +
+        //     " | " + mode +
+        //     $" | confirmedMotorID={confirmed}" +
+        //     " | Sel(T/I/M)=" + ColliderState(thumbTipCollider) + "/" + ColliderState(indexTipCollider) + "/" + ColliderState(middleTipCollider) +
+        //     " | Retarget(T/I/M)=" + ColliderState(thumbManipulateRetargetingCollider) + "/" + ColliderState(indexManipulateRetargetingCollider) + "/" + ColliderState(middleManipulateRetargetingCollider)
+        // );
     }
 
     private string ColliderState(Collider c)

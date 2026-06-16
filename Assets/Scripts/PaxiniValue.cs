@@ -77,7 +77,7 @@ public class PaxiniValue : MonoBehaviour
             // Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}, " +
             //           $"Ft_thumb={payload.Ft_thumb:F3}, Ft_index={payload.Ft_index:F3}, Ft_middle={payload.Ft_middle:F3}, t={payload.t}");
 
-            Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}");
+            // Debug.Log($"[Unity] Fz_thumb={payload.Fz_thumb:F3}, Fz_index={payload.Fz_index:F3}, Fz_middle={payload.Fz_middle:F3}");
 
             if (payload.Fz_thumb == 0)
             {
@@ -184,7 +184,7 @@ public class PaxiniValue : MonoBehaviour
             // if middle is snapped, continuously check if it should be cancelled
             if (isMiddleTouchSnapped)
             {
-                Debug.Log("Checking cancleMiddleTouchSnap...");
+                // Debug.Log("Checking cancleMiddleTouchSnap...");
                 if (cancleTouchSnap("Middle0", "Middle1", initialMiddle0Angle, initialMiddle1Angle, "Middle2", initialMiddle2Angle))
                 {
                     isMiddleTouchSnapped = false;
@@ -205,7 +205,7 @@ public class PaxiniValue : MonoBehaviour
                 using var stream = client.GetStream();
                 using var reader = new StreamReader(stream);
 
-                Debug.Log("[Unity] Connected!");
+                // Debug.Log("[Unity] Connected!");
 
                 while (running && client.Connected)
                 {
@@ -218,7 +218,7 @@ public class PaxiniValue : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[Unity] Connect failed, retrying... " + e.Message);
+                // Debug.LogWarning("[Unity] Connect failed, retrying... " + e.Message);
                 Thread.Sleep(1000);
             }
         }
@@ -230,7 +230,7 @@ public class PaxiniValue : MonoBehaviour
         if (jointAngle == null)
             return false;
 
-        Debug.Log("111111111111111111111111111111111111111");
+        // Debug.Log("111111111111111111111111111111111111111");
 
         Transform joint0 = jointAngle.GetJoint(joint0Name);
         Transform joint1 = jointAngle.GetJoint(joint1Name);
@@ -238,7 +238,7 @@ public class PaxiniValue : MonoBehaviour
         if (joint0 == null || joint1 == null)
             return false;
 
-        Debug.Log("22222222222222222222222222222222222222222");
+        // Debug.Log("22222222222222222222222222222222222222222");
 
 
         float accumulatedJoint0 = 0f;
@@ -261,7 +261,7 @@ public class PaxiniValue : MonoBehaviour
             if (joint2 == null)
                 return false;
 
-            Debug.Log("33333333333333333333333333333333333333333333");
+            // Debug.Log("33333333333333333333333333333333333333333333");
 
 
             float current2 = joint2.localEulerAngles.z;
@@ -272,7 +272,7 @@ public class PaxiniValue : MonoBehaviour
         float threshold = 15f;
         if (joint2Name != null)
         {
-            Debug.Log("accumulatedJoint0, accumulatedJoint1, accumulatedJoint2: " + accumulatedJoint0 + ", " + accumulatedJoint1 + ", " + accumulatedJoint2);
+            // Debug.Log("accumulatedJoint0, accumulatedJoint1, accumulatedJoint2: " + accumulatedJoint0 + ", " + accumulatedJoint1 + ", " + accumulatedJoint2);
 
             return (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 > threshold) ||
             (accumulatedJoint0 + accumulatedJoint1 + accumulatedJoint2 < -threshold);
