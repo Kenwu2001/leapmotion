@@ -53,6 +53,45 @@ public class DebugAngle : MonoBehaviour
            "\nCCCC2222: " + cccc2222;
     }
 
+    private string BuildNewTouchConditionDebug()
+    {
+      if (jointAngle == null)
+        return "\n[NEW TOUCH CONDITIONS]\nJointAngle: N/A";
+
+      Dictionary<string, Vector3> indexPoints = rightIndexTip != null ? rightIndexTip.GetAllTouchedPoints() : null;
+      Dictionary<string, Vector3> middlePoints = rightMiddleTip != null ? rightMiddleTip.GetAllTouchedPoints() : null;
+      Dictionary<string, Vector3> thumbPoints = triggerRightThumbTip != null ? triggerRightThumbTip.GetAllTouchedPoints() : null;
+
+      bool hasLIndex0 = jointAngle.joints != null && jointAngle.joints.ContainsKey("L_index0");
+
+      bool indexPointsNotNull = indexPoints != null;
+      bool middlePointsNotNull = middlePoints != null;
+      bool thumbPointsNotNull = thumbPoints != null;
+
+      bool indexHasLThumbTip = indexPointsNotNull && indexPoints.ContainsKey("L_ThumbTip");
+      bool middleHasLThumbTip = middlePointsNotNull && middlePoints.ContainsKey("L_ThumbTip");
+      bool thumbHasLThumbTip = thumbPointsNotNull && thumbPoints.ContainsKey("L_ThumbTip");
+
+      bool indexHasLIndexTip = indexPointsNotNull && indexPoints.ContainsKey("L_IndexTip");
+      bool middleHasLIndexTip = middlePointsNotNull && middlePoints.ContainsKey("L_IndexTip");
+      bool thumbHasLIndexTip = thumbPointsNotNull && thumbPoints.ContainsKey("L_IndexTip");
+
+      bool indexLegacyTouch = indexHasLIndexTip && indexHasLThumbTip;
+      bool middleLegacyTouch = middleHasLIndexTip && middleHasLThumbTip;
+      bool thumbLegacyTouch = thumbHasLIndexTip && thumbHasLThumbTip;
+
+      bool indexFormula = jointAngle.indexNewRotationMode && hasLIndex0 && indexPointsNotNull && indexHasLThumbTip;
+      bool middleFormula = jointAngle.middleNewRotationMode && hasLIndex0 && middlePointsNotNull && middleHasLThumbTip;
+      bool thumbFormula = jointAngle.thumbNewRotationMode && hasLIndex0 && thumbPointsNotNull && thumbHasLThumbTip;
+
+      return "\n!!!!!!!!!!!!!!!!!!!!![NEW TOUCH CONDITIONS]" +
+        "\nindexNewTouch: " + jointAngle.indexNewTouch +
+        "\nindexNewRotationMode: " + jointAngle.indexNewRotationMode +
+        "\nhasLIndex0: " + hasLIndex0 +
+        "\nindexTouchPoints != null: " + indexPointsNotNull +
+        "\nindexTouchPoints.ContainsKey(\"L_ThumbTip\"): "; 
+    }
+
     void Update()
     {
         if (angleText == null)
@@ -74,6 +113,7 @@ public class DebugAngle : MonoBehaviour
       string activeFingerRaw = jointAngle != null ? jointAngle.activeFinger : "N/A";
       string planeDebug = GetPlaneActivationDebug();
       string syncLogState = BuildSelectMotorLogSyncState();
+      string newTouchConditionDebug = BuildNewTouchConditionDebug();
       int fingerPriorityValue = SelectMotorCollider != null ? SelectMotorCollider.debugFingerPriority : -1;
       string controllerDistanceText = "N/A";
       if (controllerLocatorLeft != null)
@@ -111,25 +151,22 @@ public class DebugAngle : MonoBehaviour
         _ => "N/A"
       };
 
-      string newTouchDebug = "";
-      if (jointAngle != null)
-      {
-        newTouchDebug = "\n[NEW TOUCH MODE]" +
-          "\n  indexNewTouch: " + jointAngle.indexNewTouch +
-          "\n  middleNewTouch: " + jointAngle.middleNewTouch +
-          "\n  thumbNewTouch: " + jointAngle.thumbNewTouch;
-      }
-
+      //TODO: print here
       angleText.text =
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
         "Finger Priority: " + fingerPriorityText + "\n" +
         "L/R Controller Distance: " + controllerDistanceText + "\n" +
-        "[ThumbOnly Mode]: " + thumbOnlyModeText +
+        // "[ThumbOnly Mode]: " + thumbOnlyModeText +
         // "\nThumb Legacy Touch: " + (jointAngle != null ? jointAngle.thumbLegacyTouch.ToString() : "N/A") +
         // "\nIndex Legacy Touch: " + (jointAngle != null ? jointAngle.indexLegacyTouch.ToString() : "N/A") + "\n" +
         // "Middle Legacy Touch: " + (jointAngle != null ? jointAngle.middleLegacyTouch.ToString() : "N/A") +
-        newTouchDebug;
+        "Plane Active: " + planeActiveRaw + "\n" +
+        "Active Finger: " + activeFingerRaw + "\n" +
+        // planeDebug +
+        "\n***indexRotationDebug*** " + jointAngle.indexRotationDebug + "\n" +
+        "\n***middleRotationDebug*** " + jointAngle.middleRotationDebug + "\n" +
+        "\n***thumbRotationDebug*** " + jointAngle.thumbRotationDebug + "\n";
         // syncLogState;
     }
 

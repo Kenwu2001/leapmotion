@@ -6,6 +6,10 @@ using UnityEngine;
 
 public class JointAngle : MonoBehaviour
 {
+    public string thumbRotationDebug = "";
+    public string indexRotationDebug = "";
+    public string middleRotationDebug = "";
+    
     public Dictionary<string, Transform> joints = new Dictionary<string, Transform>();
     public float thumbAngle0, thumbAngle1, thumbLRAngle;
     public float indexAngle0, indexAngle1, indexAngle2, indexLRAngle;
@@ -102,6 +106,23 @@ public class JointAngle : MonoBehaviour
         {
             Debug.LogWarning("[JointAngle][Init] Missing GameObject: " + objectName + " for joint key: " + key, this);
         }
+    }
+
+    bool TryGetOrReacquireLIndex0(out Transform lIndex0Transform)
+    {
+        if (joints.TryGetValue("L_index0", out lIndex0Transform) && lIndex0Transform != null)
+            return true;
+
+        GameObject obj = GameObject.Find("L_index_Proximal");
+        if (obj != null)
+        {
+            lIndex0Transform = obj.transform;
+            joints["L_index0"] = lIndex0Transform;
+            return true;
+        }
+
+        lIndex0Transform = null;
+        return false;
     }
 
     bool ValidateCriticalReferences(string stage)
@@ -354,7 +375,7 @@ public class JointAngle : MonoBehaviour
             }
         }
 
-        bool hasLIndex0 = joints.ContainsKey("L_index0");
+        bool hasLIndex0 = TryGetOrReacquireLIndex0(out Transform lIndex0Transform);
 
         bool indexLegacyTouch = indexTouchPoints != null &&
             indexTouchPoints.ContainsKey("L_IndexTip") &&
@@ -370,12 +391,32 @@ public class JointAngle : MonoBehaviour
         indexNewTouch = indexNewRotationMode && hasLIndex0 &&
             indexTouchPoints != null &&
             indexTouchPoints.ContainsKey("L_ThumbTip");
+
+        indexRotationDebug = " " + indexNewTouch + 
+        "\nindexNewRotationMode: " + indexNewRotationMode +
+        "\nhasLIndex0: " + hasLIndex0 + 
+        "\nindexTouchPoints != null: " + (indexTouchPoints != null) + 
+        "\nindexTouchPoints.ContainsKey(\"L_ThumbTip\"): " + (indexTouchPoints != null && indexTouchPoints.ContainsKey("L_ThumbTip"));
+
         middleNewTouch = middleNewRotationMode && hasLIndex0 &&
             middleTouchPoints != null &&
             middleTouchPoints.ContainsKey("L_ThumbTip");
+
+        middleRotationDebug = " " + middleNewTouch +
+        "\nmiddleNewRotationMode: " + middleNewRotationMode +
+        "\nhasLIndex0: " + hasLIndex0 + 
+        "\nmiddleTouchPoints != null: " + (middleTouchPoints != null) + 
+        "\nmiddleTouchPoints.ContainsKey(\"L_ThumbTip\"): " + (middleTouchPoints != null && middleTouchPoints.ContainsKey("L_ThumbTip"));
+
         thumbNewTouch = thumbNewRotationMode && hasLIndex0 &&
             thumbTouchPoints != null &&
             thumbTouchPoints.ContainsKey("L_ThumbTip");
+
+        thumbRotationDebug = " " + thumbNewTouch +
+        "\nthumbNewRotationMode: " + thumbNewRotationMode +
+        "\nhasLIndex0: " + hasLIndex0 + 
+        "\nthumbTouchPoints != null: " + (thumbTouchPoints != null) + 
+        "\nthumbTouchPoints.ContainsKey(\"L_ThumbTip\"): " + (thumbTouchPoints != null && thumbTouchPoints.ContainsKey("L_ThumbTip"));
 
         if (indexNewTouch || indexLegacyTouch)
         {
@@ -384,7 +425,7 @@ public class JointAngle : MonoBehaviour
             touchedPoints = indexNewTouch
                 ? new Dictionary<string, Vector3>
                 {
-                    ["L_IndexTip"] = joints["L_index0"].position,
+                    ["L_IndexTip"] = lIndex0Transform.position,
                     ["L_ThumbTip"] = indexTouchPoints["L_ThumbTip"]
                 }
                 : indexTouchPoints;
@@ -396,7 +437,7 @@ public class JointAngle : MonoBehaviour
             touchedPoints = middleNewTouch
                 ? new Dictionary<string, Vector3>
                 {
-                    ["L_IndexTip"] = joints["L_index0"].position,
+                    ["L_IndexTip"] = lIndex0Transform.position,
                     ["L_ThumbTip"] = middleTouchPoints["L_ThumbTip"]
                 }
                 : middleTouchPoints;
@@ -408,7 +449,7 @@ public class JointAngle : MonoBehaviour
             touchedPoints = thumbNewTouch
                 ? new Dictionary<string, Vector3>
                 {
-                    ["L_IndexTip"] = joints["L_index0"].position,
+                    ["L_IndexTip"] = lIndex0Transform.position,
                     ["L_ThumbTip"] = thumbTouchPoints["L_ThumbTip"]
                 }
                 : thumbTouchPoints;
