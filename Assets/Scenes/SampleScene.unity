@@ -11758,6 +11758,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -11781,14 +11785,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -13325,6 +13348,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -13348,14 +13375,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -14555,6 +14601,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -14578,14 +14628,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -25643,6 +25712,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -25666,14 +25739,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -36464,6 +36556,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -36487,14 +36583,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -37732,6 +37847,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -37755,14 +37874,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -37776,6 +37914,37 @@ MonoBehaviour:
   rotationChangeTimer: 0
   cumulativeRotation: 0
   publiAaverageRotation: 0
+--- !u!1 &1041266350
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1041266351}
+  m_Layer: 0
+  m_Name: L_Thumb_Tip
+  m_TagString: L_ThumbTipRetarget
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1041266351
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041266350}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0286, y: 0, z: 0.0024}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8132771845878554709}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1046879700
 GameObject:
   m_ObjectHideFlags: 0
@@ -40048,6 +40217,11 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!4 &1240510157 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4524946693089895717, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+  m_PrefabInstance: {fileID: 1770763344}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1244267865
 GameObject:
   m_ObjectHideFlags: 0
@@ -41617,6 +41791,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -41640,14 +41818,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 1201296085}
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 1
   middleNewRotationMode: 1
   L_index_c: {fileID: 3437638954850162703}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 863607862}
+    point1: {fileID: 1892602410}
+  indexNewPoints:
+    point0: {fileID: 863607862}
+    point1: {fileID: 1240510157}
+  middleLegacyPoints:
+    point0: {fileID: 863607862}
+    point1: {fileID: 1892602410}
+  middleNewPoints:
+    point0: {fileID: 863607862}
+    point1: {fileID: 1240510157}
+  thumbLegacyPoints:
+    point0: {fileID: 863607862}
+    point1: {fileID: 1892602410}
+  thumbNewPoints:
+    point0: {fileID: 863607862}
+    point1: {fileID: 1240510157}
   showDebugVisuals: 1
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -46304,6 +46501,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -46327,14 +46528,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1
@@ -56904,6 +57124,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8132771847632065541, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 50064513}
+    - targetCorrespondingSourceObject: {fileID: 8132771847632065541, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1041266351}
     - targetCorrespondingSourceObject: {fileID: 2468996038520119904, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3964300246511981565}
@@ -60152,6 +60375,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c90af2fccd1cc42999850368c7a73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thumbRotationDebug: 
+  indexRotationDebug: 
+  middleRotationDebug: 
+  touchRoutingDebug: 
   thumbAngle0: 0
   thumbAngle1: 0
   thumbLRAngle: 0
@@ -60175,14 +60402,33 @@ MonoBehaviour:
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
+  modeSwitching: {fileID: 0}
   thumbNewRotationMode: 0
   indexNewRotationMode: 0
   middleNewRotationMode: 0
   L_index_c: {fileID: 0}
-  indexTipPos: {x: 0, y: 0, z: 0}
-  thumbTipPos: {x: 0, y: 0, z: 0}
+  rotationPoint0Position: {x: 0, y: 0, z: 0}
+  rotationPoint1Position: {x: 0, y: 0, z: 0}
   projectedIndexTip: {x: 0, y: 0, z: 0}
   projectedThumbTip: {x: 0, y: 0, z: 0}
+  indexLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  indexNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  middleNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbLegacyPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
+  thumbNewPoints:
+    point0: {fileID: 0}
+    point1: {fileID: 0}
   showDebugVisuals: 0
   showIndexMiddleBaseline: 1
   baselineLineLength: 0.1

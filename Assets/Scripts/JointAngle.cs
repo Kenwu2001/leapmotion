@@ -6,9 +6,17 @@ using UnityEngine;
 
 public class JointAngle : MonoBehaviour
 {
+    [System.Serializable]
+    public class RotationPointPair
+    {
+        public Transform point0;
+        public Transform point1;
+    }
+
     public string thumbRotationDebug = "";
     public string indexRotationDebug = "";
     public string middleRotationDebug = "";
+    public string touchRoutingDebug = "";
     
     public Dictionary<string, Transform> joints = new Dictionary<string, Transform>();
     public float thumbAngle0, thumbAngle1, thumbLRAngle;
@@ -45,6 +53,7 @@ public class JointAngle : MonoBehaviour
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
+    public ModeSwitching modeSwitching;
 
     [Header("New Rotation Mode")] //FIXME: new rotation mode
     public bool thumbNewRotationMode = false;
@@ -53,10 +62,25 @@ public class JointAngle : MonoBehaviour
 
     public Transform L_index_c;
 
-    public Vector3 indexTipPos;
-    public Vector3 thumbTipPos;
+    public Vector3 rotationPoint0Position;
+    public Vector3 rotationPoint1Position;
     public Vector3 projectedIndexTip;
     public Vector3 projectedThumbTip;
+
+    [Header("Index Rotation Points")]
+    public RotationPointPair indexLegacyPoints = new RotationPointPair();
+    public RotationPointPair indexNewPoints = new RotationPointPair();
+
+    [Header("Middle Rotation Points")]
+    public RotationPointPair middleLegacyPoints = new RotationPointPair();
+    public RotationPointPair middleNewPoints = new RotationPointPair();
+
+    [Header("Thumb Rotation Points")]
+    public RotationPointPair thumbLegacyPoints = new RotationPointPair();
+    public RotationPointPair thumbNewPoints = new RotationPointPair();
+
+    private const string RotationPoint0Key = "Rotation_Point_0";
+    private const string RotationPoint1Key = "Rotation_Point_1";
 
     [Header("Debug Visuals")]
     public bool showDebugVisuals = false; // Set to false to hide the red line and green plane
@@ -108,21 +132,35 @@ public class JointAngle : MonoBehaviour
         }
     }
 
-    bool TryGetOrReacquireLIndex0(out Transform lIndex0Transform)
+    bool TryGetRotationPointPair(RotationPointPair pair, out Vector3 point0, out Vector3 point1)
     {
-        if (joints.TryGetValue("L_index0", out lIndex0Transform) && lIndex0Transform != null)
-            return true;
+        point0 = Vector3.zero;
+        point1 = Vector3.zero;
 
-        GameObject obj = GameObject.Find("L_index_Proximal");
-        if (obj != null)
-        {
-            lIndex0Transform = obj.transform;
-            joints["L_index0"] = lIndex0Transform;
-            return true;
-        }
+        if (pair == null || pair.point0 == null || pair.point1 == null)
+            return false;
 
-        lIndex0Transform = null;
-        return false;
+        point0 = pair.point0.position;
+        point1 = pair.point1.position;
+        return true;
+    }
+
+    string GetFingerRouteFromMotorID(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4)
+            return "Thumb";
+        if (motorID >= 5 && motorID <= 8)
+            return "Index";
+        if (motorID >= 9 && motorID <= 12)
+            return "Middle";
+        return "None";
+    }
+
+    string GetPairDebugName(RotationPointPair pair)
+    {
+        string point0Name = pair != null && pair.point0 != null ? pair.point0.name : "null";
+        string point1Name = pair != null && pair.point1 != null ? pair.point1.name : "null";
+        return point0Name + " | " + point1Name;
     }
 
     bool ValidateCriticalReferences(string stage)
@@ -193,7 +231,9 @@ public class JointAngle : MonoBehaviour
         AssignJointIfFound("Elbow", "Elbow");
         AssignJointIfFound("PalmIndex", "R_index_Proximal");
         AssignJointIfFound("PalmRing", "R_ring_Proximal");
+
         AssignJointIfFound("L_index0", "L_index_Proximal");
+        AssignJointIfFound("L_Thumb_Tip", "L_Thumb_Tip");
 
         thumbAngle0 = 0f;
         thumbAngle1 = 0f;
@@ -229,6 +269,9 @@ public class JointAngle : MonoBehaviour
 
         if (triggerRightThumbTip == null)
             triggerRightThumbTip = FindObjectOfType<TriggerRightThumbTip>();
+
+        if (modeSwitching == null)
+            modeSwitching = FindObjectOfType<ModeSwitching>();
 
         // Create LineRenderer
         lineRenderer = gameObject.AddComponent<LineRenderer>();
@@ -294,8 +337,15 @@ public class JointAngle : MonoBehaviour
 
     void Update()
     {
-        if (!ValidateCriticalReferences("UpdateStart"))
+        bool isValidForUpdate = ValidateCriticalReferences("UpdateStart");
+        if (!isValidForUpdate)
+        {
+            touchRoutingDebug = "Update aborted: ValidateCriticalReferences(UpdateStart) returned false";
+            thumbRotationDebug = "Update aborted before thumb debug. Check Console for [JointAngle][Diag][UpdateStart].";
+            indexRotationDebug = "Update aborted before index debug. Check Console for [JointAngle][Diag][UpdateStart].";
+            middleRotationDebug = "Update aborted before middle debug. Check Console for [JointAngle][Diag][UpdateStart].";
             return;
+        }
 
         UpdatePalmNormal();
 
@@ -324,8 +374,8 @@ public class JointAngle : MonoBehaviour
         UpdateIndexMiddleIndependentAnglesAndBaseline();
 
         // Determine which finger to use based on touch detection.
-        // Each finger can independently choose legacy mode (IndexTip+ThumbTip)
-        // or new mode (ThumbTip only + L_index0 anchor).
+        // Each finger can independently choose legacy mode (2 source points)
+        // or new mode (Rotation_Point_0 source + L_index0 anchor).
         bool useIndexFinger = false;
         bool useMiddleFinger = false;
         bool useThumbFinger = false;
@@ -375,93 +425,136 @@ public class JointAngle : MonoBehaviour
             }
         }
 
-        bool hasLIndex0 = TryGetOrReacquireLIndex0(out Transform lIndex0Transform);
+        bool hasIndexLegacyPoints = TryGetRotationPointPair(indexLegacyPoints, out Vector3 indexLegacyPoint0, out Vector3 indexLegacyPoint1);
+        bool hasIndexNewPoints = TryGetRotationPointPair(indexNewPoints, out Vector3 indexNewPoint0, out Vector3 indexNewPoint1);
+        bool hasMiddleLegacyPoints = TryGetRotationPointPair(middleLegacyPoints, out Vector3 middleLegacyPoint0, out Vector3 middleLegacyPoint1);
+        bool hasMiddleNewPoints = TryGetRotationPointPair(middleNewPoints, out Vector3 middleNewPoint0, out Vector3 middleNewPoint1);
+        bool hasThumbLegacyPoints = TryGetRotationPointPair(thumbLegacyPoints, out Vector3 thumbLegacyPoint0, out Vector3 thumbLegacyPoint1);
+        bool hasThumbNewPoints = TryGetRotationPointPair(thumbNewPoints, out Vector3 thumbNewPoint0, out Vector3 thumbNewPoint1);
 
-        bool indexLegacyTouch = indexTouchPoints != null &&
-            indexTouchPoints.ContainsKey("L_IndexTip") &&
-            indexTouchPoints.ContainsKey("L_ThumbTip");
-        bool middleLegacyTouch = middleTouchPoints != null &&
-            middleTouchPoints.ContainsKey("L_IndexTip") &&
-            middleTouchPoints.ContainsKey("L_ThumbTip");
-        bool thumbLegacyTouch = thumbTouchPoints != null &&
-            thumbTouchPoints.ContainsKey("L_IndexTip") &&
-            thumbTouchPoints.ContainsKey("L_ThumbTip");
+        int confirmedMotorID = modeSwitching != null ? modeSwitching.confirmedMotorID : 0;
+        string routedFinger = GetFingerRouteFromMotorID(confirmedMotorID);
+
+        bool indexLegacyTouch = routedFinger == "Index" && indexTouchPoints != null &&
+            hasIndexLegacyPoints;
+        bool middleLegacyTouch = routedFinger == "Middle" && middleTouchPoints != null &&
+            hasMiddleLegacyPoints;
+        bool thumbLegacyTouch = routedFinger == "Thumb" && thumbTouchPoints != null &&
+            hasThumbLegacyPoints;
 
         //FIXME: why
-        indexNewTouch = indexNewRotationMode && hasLIndex0 &&
-            indexTouchPoints != null &&
-            indexTouchPoints.ContainsKey("L_ThumbTip");
+        indexNewTouch = routedFinger == "Index" && indexNewRotationMode && indexTouchPoints != null && hasIndexNewPoints;
 
         indexRotationDebug = " " + indexNewTouch + 
         "\nindexNewRotationMode: " + indexNewRotationMode +
-        "\nhasLIndex0: " + hasLIndex0 + 
         "\nindexTouchPoints != null: " + (indexTouchPoints != null) + 
-        "\nindexTouchPoints.ContainsKey(\"L_ThumbTip\"): " + (indexTouchPoints != null && indexTouchPoints.ContainsKey("L_ThumbTip"));
+        "\nindexLegacyPoints assigned: " + hasIndexLegacyPoints +
+        "\nindexNewPoints assigned: " + hasIndexNewPoints;
 
-        middleNewTouch = middleNewRotationMode && hasLIndex0 &&
-            middleTouchPoints != null &&
-            middleTouchPoints.ContainsKey("L_ThumbTip");
+        middleNewTouch = routedFinger == "Middle" && middleNewRotationMode && middleTouchPoints != null && hasMiddleNewPoints;
 
         middleRotationDebug = " " + middleNewTouch +
         "\nmiddleNewRotationMode: " + middleNewRotationMode +
-        "\nhasLIndex0: " + hasLIndex0 + 
         "\nmiddleTouchPoints != null: " + (middleTouchPoints != null) + 
-        "\nmiddleTouchPoints.ContainsKey(\"L_ThumbTip\"): " + (middleTouchPoints != null && middleTouchPoints.ContainsKey("L_ThumbTip"));
+        "\nmiddleLegacyPoints assigned: " + hasMiddleLegacyPoints +
+        "\nmiddleNewPoints assigned: " + hasMiddleNewPoints;
 
-        thumbNewTouch = thumbNewRotationMode && hasLIndex0 &&
-            thumbTouchPoints != null &&
-            thumbTouchPoints.ContainsKey("L_ThumbTip");
+        thumbNewTouch = routedFinger == "Thumb" && thumbNewRotationMode && thumbTouchPoints != null && hasThumbNewPoints;
 
         thumbRotationDebug = " " + thumbNewTouch +
         "\nthumbNewRotationMode: " + thumbNewRotationMode +
-        "\nhasLIndex0: " + hasLIndex0 + 
+        "\ntriggerRightThumbTip == null: " + (triggerRightThumbTip == null) +
         "\nthumbTouchPoints != null: " + (thumbTouchPoints != null) + 
-        "\nthumbTouchPoints.ContainsKey(\"L_ThumbTip\"): " + (thumbTouchPoints != null && thumbTouchPoints.ContainsKey("L_ThumbTip"));
+        "\nthumbLegacyPoints assigned: " + hasThumbLegacyPoints +
+        "\nthumbNewPoints assigned: " + hasThumbNewPoints;
+
+        string selectedMode = "None";
+        string selectedPair = "None";
 
         if (indexNewTouch || indexLegacyTouch)
         {
             useIndexFinger = true;
             activeJoint = "Index1";
+            selectedMode = indexNewTouch ? "Index-New" : "Index-Legacy";
+            selectedPair = indexNewTouch
+                ? GetPairDebugName(indexNewPoints)
+                : GetPairDebugName(indexLegacyPoints);
             touchedPoints = indexNewTouch
                 ? new Dictionary<string, Vector3>
                 {
-                    ["L_IndexTip"] = lIndex0Transform.position,
-                    ["L_ThumbTip"] = indexTouchPoints["L_ThumbTip"]
+                    [RotationPoint1Key] = indexNewPoint1,
+                    [RotationPoint0Key] = indexNewPoint0
                 }
-                : indexTouchPoints;
+                : new Dictionary<string, Vector3>
+                {
+                    [RotationPoint1Key] = indexLegacyPoint1,
+                    [RotationPoint0Key] = indexLegacyPoint0
+                };
         }
         else if (middleNewTouch || middleLegacyTouch)
         {
             useMiddleFinger = true;
             activeJoint = "Middle1";
+            selectedMode = middleNewTouch ? "Middle-New" : "Middle-Legacy";
+            selectedPair = middleNewTouch
+                ? GetPairDebugName(middleNewPoints)
+                : GetPairDebugName(middleLegacyPoints);
             touchedPoints = middleNewTouch
                 ? new Dictionary<string, Vector3>
                 {
-                    ["L_IndexTip"] = lIndex0Transform.position,
-                    ["L_ThumbTip"] = middleTouchPoints["L_ThumbTip"]
+                    [RotationPoint1Key] = middleNewPoint1,
+                    [RotationPoint0Key] = middleNewPoint0
                 }
-                : middleTouchPoints;
+                : new Dictionary<string, Vector3>
+                {
+                    [RotationPoint1Key] = middleLegacyPoint1,
+                    [RotationPoint0Key] = middleLegacyPoint0
+                };
         }
         else if (thumbNewTouch || thumbLegacyTouch)
         {
             useThumbFinger = true;
             activeJoint = "Thumb1";
+            selectedMode = thumbNewTouch ? "Thumb-New" : "Thumb-Legacy";
+            selectedPair = thumbNewTouch
+                ? GetPairDebugName(thumbNewPoints)
+                : GetPairDebugName(thumbLegacyPoints);
             touchedPoints = thumbNewTouch
                 ? new Dictionary<string, Vector3>
                 {
-                    ["L_IndexTip"] = lIndex0Transform.position,
-                    ["L_ThumbTip"] = thumbTouchPoints["L_ThumbTip"]
+                    [RotationPoint1Key] = thumbNewPoint1,
+                    [RotationPoint0Key] = thumbNewPoint0
                 }
-                : thumbTouchPoints;
+                : new Dictionary<string, Vector3>
+                {
+                    [RotationPoint1Key] = thumbLegacyPoint1,
+                    [RotationPoint0Key] = thumbLegacyPoint0
+                };
         }
+
+        touchRoutingDebug =
+            "confirmedMotorID: " + confirmedMotorID +
+            "\nroutedFinger: " + routedFinger +
+            "indexTouchPoints != null: " + (indexTouchPoints != null) +
+            "\nmiddleTouchPoints != null: " + (middleTouchPoints != null) +
+            "\nthumbTouchPoints != null: " + (thumbTouchPoints != null) +
+            "\nindexLegacyTouch: " + indexLegacyTouch +
+            "\nindexNewTouch: " + indexNewTouch +
+            "\nmiddleLegacyTouch: " + middleLegacyTouch +
+            "\nmiddleNewTouch: " + middleNewTouch +
+            "\nthumbLegacyTouch: " + thumbLegacyTouch +
+            "\nthumbNewTouch: " + thumbNewTouch +
+            "\nselectedMode: " + selectedMode +
+            "\nselectedPair: " + selectedPair +
+            "\nactiveJoint: " + activeJoint;
 
         // Process touched points and update visualization
         if ((useIndexFinger || useMiddleFinger || useThumbFinger) && touchedPoints != null)
         {
-            if (touchedPoints.ContainsKey("L_IndexTip") && touchedPoints.ContainsKey("L_ThumbTip"))
+            if (touchedPoints.ContainsKey(RotationPoint1Key) && touchedPoints.ContainsKey(RotationPoint0Key))
             {
-                indexTipPos = touchedPoints["L_IndexTip"];
-                thumbTipPos = touchedPoints["L_ThumbTip"];
+                rotationPoint0Position = touchedPoints[RotationPoint0Key];
+                rotationPoint1Position = touchedPoints[RotationPoint1Key];
 
                 // Project positions onto the debug plane
                 if (debugPlane != null && joints.ContainsKey(activeJoint))
@@ -476,12 +569,12 @@ public class JointAngle : MonoBehaviour
                     // NOW get the updated plane position for projection
                     Vector3 planePoint = debugPlane.transform.position;
 
-                    projectedIndexTip = ProjectPointOnPlane(indexTipPos, planePoint, planeNormal);
-                    projectedThumbTip = ProjectPointOnPlane(thumbTipPos, planePoint, planeNormal);
+                    projectedIndexTip = ProjectPointOnPlane(rotationPoint1Position, planePoint, planeNormal);
+                    projectedThumbTip = ProjectPointOnPlane(rotationPoint0Position, planePoint, planeNormal);
 
                     // Draw red line using raw (unprojected) positions
-                    lineRenderer.SetPosition(0, indexTipPos);
-                    lineRenderer.SetPosition(1, thumbTipPos);
+                    lineRenderer.SetPosition(0, rotationPoint1Position);
+                    lineRenderer.SetPosition(1, rotationPoint0Position);
 
                     // Debug.Log($"Active Joint: {activeJoint}, ProjectedIndex: {projectedIndexTip}, ProjectedThumb: {projectedThumbTip}");
 
@@ -601,8 +694,8 @@ public class JointAngle : MonoBehaviour
                         return;
                     }
 
-                    lineRenderer.SetPosition(0, indexTipPos);
-                    lineRenderer.SetPosition(1, thumbTipPos);
+                    lineRenderer.SetPosition(0, rotationPoint1Position);
+                    lineRenderer.SetPosition(1, rotationPoint0Position);
                 }
 
                 lineRenderer.enabled = showDebugVisuals; // Replaced lineRenderer.enabled = true;
@@ -628,7 +721,7 @@ public class JointAngle : MonoBehaviour
             rotationChangeTimer = 0f;
         }
 
-        // Debug.Log("indexTipPos: " + indexTipPos.ToString("F4") + ", thumbTipPos: " + thumbTipPos.ToString("F4"));
+        // Debug.Log("rotationPoint1Position: " + rotationPoint1Position.ToString("F4") + ", rotationPoint0Position: " + rotationPoint0Position.ToString("F4"));
     }
 
     void UpdateIndexMiddleIndependentAnglesAndBaseline()
