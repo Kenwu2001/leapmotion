@@ -425,6 +425,13 @@ public class JointAngle : MonoBehaviour
             }
         }
 
+        bool indexColliderTouched = triggerRightIndexTip != null && triggerRightIndexTip.isRightIndexTipTouched;
+        bool middleColliderTouched = triggerRightMiddleTip != null && triggerRightMiddleTip.isRightMiddleTipTouched;
+        bool thumbColliderTouched = triggerRightThumbTip != null && triggerRightThumbTip.isRightThumbTipTouched;
+        bool hasIndexTouchPoints = indexTouchPoints != null && indexTouchPoints.Count > 0;
+        bool hasMiddleTouchPoints = middleTouchPoints != null && middleTouchPoints.Count > 0;
+        bool hasThumbTouchPoints = thumbTouchPoints != null && thumbTouchPoints.Count > 0;
+
         bool hasIndexLegacyPoints = TryGetRotationPointPair(indexLegacyPoints, out Vector3 indexLegacyPoint0, out Vector3 indexLegacyPoint1);
         bool hasIndexNewPoints = TryGetRotationPointPair(indexNewPoints, out Vector3 indexNewPoint0, out Vector3 indexNewPoint1);
         bool hasMiddleLegacyPoints = TryGetRotationPointPair(middleLegacyPoints, out Vector3 middleLegacyPoint0, out Vector3 middleLegacyPoint1);
@@ -434,37 +441,55 @@ public class JointAngle : MonoBehaviour
 
         int confirmedMotorID = modeSwitching != null ? modeSwitching.confirmedMotorID : 0;
         string routedFinger = GetFingerRouteFromMotorID(confirmedMotorID);
+        bool isModeSelect = modeSwitching != null && modeSwitching.modeSelect;
+        bool isModeManipulate = modeSwitching != null && modeSwitching.modeManipulate;
+        bool allowDirectionUpdate = isModeManipulate;
 
-        bool indexLegacyTouch = routedFinger == "Index" && indexTouchPoints != null &&
+        if (!allowDirectionUpdate)
+        {
+            // Keep clockwise/counterclockwise neutral until manipulate mode starts.
+            isClockWise = 0f;
+            hasPreviousFrame = false;
+            lastRotationDirection = 1f;
+            noRotationTimer = 0f;
+            cumulativeRotation = 0f;
+            rotationHistory.Clear();
+            rotationChangeTimer = 0f;
+        }
+
+        bool indexLegacyTouch = routedFinger == "Index" && indexColliderTouched && hasIndexTouchPoints &&
             hasIndexLegacyPoints;
-        bool middleLegacyTouch = routedFinger == "Middle" && middleTouchPoints != null &&
+        bool middleLegacyTouch = routedFinger == "Middle" && middleColliderTouched && hasMiddleTouchPoints &&
             hasMiddleLegacyPoints;
-        bool thumbLegacyTouch = routedFinger == "Thumb" && thumbTouchPoints != null &&
+        bool thumbLegacyTouch = routedFinger == "Thumb" && thumbColliderTouched && hasThumbTouchPoints &&
             hasThumbLegacyPoints;
 
         //FIXME: why
-        indexNewTouch = routedFinger == "Index" && indexNewRotationMode && indexTouchPoints != null && hasIndexNewPoints;
+        indexNewTouch = routedFinger == "Index" && indexNewRotationMode && indexColliderTouched && hasIndexTouchPoints && hasIndexNewPoints;
 
         indexRotationDebug = " " + indexNewTouch + 
         "\nindexNewRotationMode: " + indexNewRotationMode +
-        "\nindexTouchPoints != null: " + (indexTouchPoints != null) + 
+        "\nindexColliderTouched: " + indexColliderTouched +
+        "\nindexTouchPoints count: " + (indexTouchPoints != null ? indexTouchPoints.Count : 0) + 
         "\nindexLegacyPoints assigned: " + hasIndexLegacyPoints +
         "\nindexNewPoints assigned: " + hasIndexNewPoints;
 
-        middleNewTouch = routedFinger == "Middle" && middleNewRotationMode && middleTouchPoints != null && hasMiddleNewPoints;
+        middleNewTouch = routedFinger == "Middle" && middleNewRotationMode && middleColliderTouched && hasMiddleTouchPoints && hasMiddleNewPoints;
 
         middleRotationDebug = " " + middleNewTouch +
         "\nmiddleNewRotationMode: " + middleNewRotationMode +
-        "\nmiddleTouchPoints != null: " + (middleTouchPoints != null) + 
+        "\nmiddleColliderTouched: " + middleColliderTouched +
+        "\nmiddleTouchPoints count: " + (middleTouchPoints != null ? middleTouchPoints.Count : 0) + 
         "\nmiddleLegacyPoints assigned: " + hasMiddleLegacyPoints +
         "\nmiddleNewPoints assigned: " + hasMiddleNewPoints;
 
-        thumbNewTouch = routedFinger == "Thumb" && thumbNewRotationMode && thumbTouchPoints != null && hasThumbNewPoints;
+        thumbNewTouch = routedFinger == "Thumb" && thumbNewRotationMode && thumbColliderTouched && hasThumbTouchPoints && hasThumbNewPoints;
 
         thumbRotationDebug = " " + thumbNewTouch +
         "\nthumbNewRotationMode: " + thumbNewRotationMode +
         "\ntriggerRightThumbTip == null: " + (triggerRightThumbTip == null) +
-        "\nthumbTouchPoints != null: " + (thumbTouchPoints != null) + 
+        "\nthumbColliderTouched: " + thumbColliderTouched +
+        "\nthumbTouchPoints count: " + (thumbTouchPoints != null ? thumbTouchPoints.Count : 0) + 
         "\nthumbLegacyPoints assigned: " + hasThumbLegacyPoints +
         "\nthumbNewPoints assigned: " + hasThumbNewPoints;
 
@@ -535,9 +560,15 @@ public class JointAngle : MonoBehaviour
         touchRoutingDebug =
             "confirmedMotorID: " + confirmedMotorID +
             "\nroutedFinger: " + routedFinger +
-            "indexTouchPoints != null: " + (indexTouchPoints != null) +
-            "\nmiddleTouchPoints != null: " + (middleTouchPoints != null) +
-            "\nthumbTouchPoints != null: " + (thumbTouchPoints != null) +
+            "\nmodeSelect: " + isModeSelect +
+            "\nmodeManipulate: " + isModeManipulate +
+            "\nallowDirectionUpdate: " + allowDirectionUpdate +
+            "\nindexColliderTouched: " + indexColliderTouched +
+            "\nindexTouchPoints count: " + (indexTouchPoints != null ? indexTouchPoints.Count : 0) +
+            "\nmiddleColliderTouched: " + middleColliderTouched +
+            "\nmiddleTouchPoints count: " + (middleTouchPoints != null ? middleTouchPoints.Count : 0) +
+            "\nthumbColliderTouched: " + thumbColliderTouched +
+            "\nthumbTouchPoints count: " + (thumbTouchPoints != null ? thumbTouchPoints.Count : 0) +
             "\nindexLegacyTouch: " + indexLegacyTouch +
             "\nindexNewTouch: " + indexNewTouch +
             "\nmiddleLegacyTouch: " + middleLegacyTouch +
@@ -579,7 +610,12 @@ public class JointAngle : MonoBehaviour
                     // Debug.Log($"Active Joint: {activeJoint}, ProjectedIndex: {projectedIndexTip}, ProjectedThumb: {projectedThumbTip}");
 
                     // Calculate rotation direction compared to previous frame
-                    if (hasPreviousFrame)
+                    if (!allowDirectionUpdate)
+                    {
+                        isClockWise = 0f;
+                        hasPreviousFrame = false;
+                    }
+                    else if (hasPreviousFrame)
                     {
                         float newRotation = GetRotationDirection(
                             previousIndexTip, previousThumbTip,
