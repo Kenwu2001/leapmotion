@@ -13,6 +13,16 @@ public class JointAngle : MonoBehaviour
         public Transform point1;
     }
 
+    [Header("Target Rotation Tag")]
+    public string targetRotationTag = "L_IndexTipSmall";
+    
+    public GameObject thumbRotationCollider;
+    public GameObject indexRotationCollider;
+    public GameObject middleRotationCollider;
+    public bool thumbRotationColliderMode = false;
+    public bool indexRotationColliderMode = false;
+    public bool middleRotationColliderMode = false;
+
     public string thumbRotationDebug = "";
     public string indexRotationDebug = "";
     public string middleRotationDebug = "";
@@ -118,6 +128,7 @@ public class JointAngle : MonoBehaviour
     public float publiAaverageRotation = 0f;
     private float nextDiagLogTime = 0f;
     private const float DIAG_LOG_INTERVAL = 0.5f;
+    private bool _lastModeManipulate = false;
 
     void AssignJointIfFound(string key, string objectName)
     {
@@ -272,6 +283,10 @@ public class JointAngle : MonoBehaviour
 
         if (modeSwitching == null)
             modeSwitching = FindObjectOfType<ModeSwitching>();
+
+        SetupRotationColliderDetectors();
+        ResetRotationColliderModes();
+        _lastModeManipulate = modeSwitching != null && modeSwitching.modeManipulate;
 
         // Create LineRenderer
         lineRenderer = gameObject.AddComponent<LineRenderer>();
@@ -443,7 +458,8 @@ public class JointAngle : MonoBehaviour
         string routedFinger = GetFingerRouteFromMotorID(confirmedMotorID);
         bool isModeSelect = modeSwitching != null && modeSwitching.modeSelect;
         bool isModeManipulate = modeSwitching != null && modeSwitching.modeManipulate;
-        bool allowDirectionUpdate = isModeManipulate;
+        UpdateRotationColliderLatchByMode(isModeManipulate);
+        bool allowDirectionUpdate = IsRotationColliderGateOpenForMotorRange(confirmedMotorID, isModeManipulate);
 
         if (!allowDirectionUpdate)
         {
@@ -563,6 +579,9 @@ public class JointAngle : MonoBehaviour
             "\nmodeSelect: " + isModeSelect +
             "\nmodeManipulate: " + isModeManipulate +
             "\nallowDirectionUpdate: " + allowDirectionUpdate +
+            "\nthumbRotationColliderMode: " + thumbRotationColliderMode +
+            "\nindexRotationColliderMode: " + indexRotationColliderMode +
+            "\nmiddleRotationColliderMode: " + middleRotationColliderMode +
             "\nindexColliderTouched: " + indexColliderTouched +
             "\nindexTouchPoints count: " + (indexTouchPoints != null ? indexTouchPoints.Count : 0) +
             "\nmiddleColliderTouched: " + middleColliderTouched +
@@ -580,7 +599,7 @@ public class JointAngle : MonoBehaviour
             "\nactiveJoint: " + activeJoint;
 
         // Process touched points and update visualization
-        if ((useIndexFinger || useMiddleFinger || useThumbFinger) && touchedPoints != null)
+        if (allowDirectionUpdate && (useIndexFinger || useMiddleFinger || useThumbFinger) && touchedPoints != null)
         {
             if (touchedPoints.ContainsKey(RotationPoint1Key) && touchedPoints.ContainsKey(RotationPoint0Key))
             {
@@ -1138,5 +1157,90 @@ public class JointAngle : MonoBehaviour
         }
 
         return Vector3.Distance(L_index_c.position, joints["Index2"].position);
+    }
+
+    private void SetupRotationColliderDetectors()
+    {
+        AttachRotationColliderDetector(thumbRotationCollider, 1);
+        AttachRotationColliderDetector(indexRotationCollider, 2);
+        AttachRotationColliderDetector(middleRotationCollider, 3);
+    }
+
+    private void AttachRotationColliderDetector(GameObject colliderObject, int colliderType)
+    {
+        if (colliderObject == null)
+            return;
+
+        RotationColliderDetector detector = colliderObject.GetComponent<RotationColliderDetector>();
+        if (detector == null)
+            detector = colliderObject.AddComponent<RotationColliderDetector>();
+
+        detector.Initialize(colliderType, targetRotationTag, this);
+    }
+
+    private void UpdateRotationColliderLatchByMode(bool isModeManipulate)
+    {
+        if (isModeManipulate != _lastModeManipulate)
+        {
+            ResetRotationColliderModes();
+            _lastModeManipulate = isModeManipulate;
+        }
+    }
+
+    private void ResetRotationColliderModes()
+    {
+        thumbRotationColliderMode = false;
+        indexRotationColliderMode = false;
+        middleRotationColliderMode = false;
+    }
+
+    private bool IsRotationColliderGateOpenForMotorRange(int confirmedMotorID, bool isModeManipulate)
+    {
+        if (!isModeManipulate)
+            return false;
+
+        if (confirmedMotorID >= 1 && confirmedMotorID <= 4)
+            return thumbRotationColliderMode;
+        if (confirmedMotorID >= 5 && confirmedMotorID <= 8)
+            return indexRotationColliderMode;
+        if (confirmedMotorID >= 9 && confirmedMotorID <= 12)
+            return middleRotationColliderMode;
+
+        return false;
+    }
+
+    internal void OnRotationColliderEntered(int colliderType)
+    {
+        if (modeSwitching == null || !modeSwitching.modeManipulate)
+            return;
+
+        if (colliderType == 1)
+            thumbRotationColliderMode = true;
+        else if (colliderType == 2)
+            indexRotationColliderMode = true;
+        else if (colliderType == 3)
+            middleRotationColliderMode = true;
+    }
+}
+
+// Attached to thumbRotationCollider / indexRotationCollider / middleRotationCollider
+// to detect targetRotationTag contact in modeManipulate and latch the corresponding flag.
+internal class RotationColliderDetector : MonoBehaviour
+{
+    private int colliderType; // 1 = thumb, 2 = index, 3 = middle
+    private string targetTag;
+    private JointAngle manager;
+
+    public void Initialize(int type, string tag, JointAngle managerRef)
+    {
+        colliderType = type;
+        targetTag = tag;
+        manager = managerRef;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag(targetTag) && manager != null)
+            manager.OnRotationColliderEntered(colliderType);
     }
 }
