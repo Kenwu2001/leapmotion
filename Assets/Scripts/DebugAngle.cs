@@ -10,12 +10,9 @@ public class DebugAngle : MonoBehaviour
     public TriggerRightThumbTip triggerRightThumbTip;
     public TriggerRightIndexTip rightIndexTip;
     public TriggerRightMiddleTip rightMiddleTip;
-    public TriggerIndexInnerExtension triggerIndexInnerExtension;
-    public TriggerThumbInnerExtension triggerThumbInnerExtension;
     public Transform clawIndexFingerTip;
     public Transform R_IndexTriggerTip;
     public ThreeFingerCollisionDetector threeFingerCollisionDetector;
-    public RetargetIndex retargetIndex;
     public SelectMotorCollider SelectMotorCollider;
     public ModeSwitching modeSwitching;
     public PaxiniValue paxiniValue;

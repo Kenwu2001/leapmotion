@@ -15,9 +15,20 @@ public class LeftHandTouchDetector : MonoBehaviour
     [Header("Mode Control")]
     public ModeSwitching modeSwitching;
 
+    [Tooltip("Optional: lets this script report current projection mode (FivePoint/TwoPoint/FrozenLine)")]
+    public SelectMotorCollider selectMotorCollider;
+
+    [Header("Retargeting Debug")]
+    [Tooltip("Print retargeting details to Console for verification")]
+    public bool enableRetargetingDebug = false;
+
+    [Tooltip("Minimum seconds between debug logs")]
+    public float retargetingDebugInterval = 0.25f;
+
     [Header("Recorded Offset")]
     private Vector3 _recordedOffset = Vector3.zero;
     private bool _isInZone = false;
+    private float _lastRetargetingDebugTime = -999f;
     public Vector3 RecordedOffset => _recordedOffset;
     public bool IsInZone => _isInZone;
 
@@ -58,6 +69,10 @@ public class LeftHandTouchDetector : MonoBehaviour
         // Clamp segT to ensure it's within valid range [0, 1]
         segT = Mathf.Clamp01(segT);
 
+        int rightJointCount = zone.rightFinger != null ? zone.rightFinger.GetJointCount() : 0;
+        int rawSeg = seg;
+        float rawSegT = segT;
+
         rightFingerPoint.position = rightPos;
         if (!rightFingerPoint.gameObject.activeSelf)
             rightFingerPoint.gameObject.SetActive(true);
@@ -92,6 +107,17 @@ public class LeftHandTouchDetector : MonoBehaviour
             Mathf.InverseLerp(maxDistance, minDistance, dist);
         t = Mathf.Clamp01(t);
 
+        // MaybeLogRetargeting(
+        //     zone,
+        //     rightJointCount,
+        //     clawJointCount,
+        //     rawSeg,
+        //     rawSegT,
+        //     seg,
+        //     dist,
+        //     t
+        // );
+
         ApplyToClaw(zone.clawFinger, t);
     }
 
@@ -115,5 +141,40 @@ public class LeftHandTouchDetector : MonoBehaviour
     {
         // ✅ Connect to Motor / LED / Servo here
         // Debug.Log($"{clawFinger.name} t={t}");
+    }
+
+    private void MaybeLogRetargeting(
+        RightFingerTouchZone zone,
+        int rightJointCount,
+        int clawJointCount,
+        int rawSeg,
+        float rawSegT,
+        int mappedSeg,
+        float dist,
+        float t
+    )
+    {
+        if (!enableRetargetingDebug)
+            return;
+
+        if (Time.time - _lastRetargetingDebugTime < retargetingDebugInterval)
+            return;
+
+        _lastRetargetingDebugTime = Time.time;
+
+        string projectionInfo = "SelectMotorCollider=unassigned";
+        if (selectMotorCollider != null)
+            projectionInfo = $"projectionMode={selectMotorCollider.projectionMode}";
+
+        Debug.Log(
+            "[LeftHandTouchDetector] RetargetingDebug" +
+            $" | zone={zone.name}" +
+            $" | {projectionInfo}" +
+            $" | rightJoints={rightJointCount} (segments={Mathf.Max(0, rightJointCount - 1)})" +
+            $" | clawJoints={clawJointCount} (segments={Mathf.Max(0, clawJointCount - 1)})" +
+            $" | rawSeg={rawSeg}, rawSegT={rawSegT:F3}" +
+            $" | mappedClawSeg={mappedSeg}" +
+            $" | dist={dist:F4}, t={t:F3}"
+        );
     }
 }

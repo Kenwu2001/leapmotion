@@ -41017,7 +41017,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1364976178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60824,6 +60824,9 @@ MonoBehaviour:
   rightFingerPoint: {fileID: 642066764}
   clawFingerPoint: {fileID: 1858448098}
   modeSwitching: {fileID: 951283614}
+  selectMotorCollider: {fileID: 859541734}
+  enableRetargetingDebug: 1
+  retargetingDebugInterval: 0.25
 --- !u!1 &2105288447
 GameObject:
   m_ObjectHideFlags: 0

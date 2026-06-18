@@ -8,13 +8,13 @@ public class LeapAnchorOffset : MonoBehaviour
     public RetargetTouchDetector retargetTouchDetector; // NEW: Used for modeSelect=false
     
     // OLD retarget scripts (commented out, kept for reference)
-    public RetargetIndex retargetIndex;
-    public RetargetMiddle retargetMiddle;
-    public RetargetThumb retargetThumb;
-    public RetargetThumbAbduction retargetThumbAbduction;
+    // public RetargetIndex retargetIndex;
+    // public RetargetMiddle retargetMiddle;
+    // public RetargetThumb retargetThumb;
+    // public RetargetThumbAbduction retargetThumbAbduction;
 
-    public Transform leftThumbTip;
-    public Transform leftIndexTip;
+    // public Transform leftThumbTip;
+    // public Transform leftIndexTip;
     
     public Transform baseLeapAnchorPosition;
 
@@ -31,27 +31,27 @@ public class LeapAnchorOffset : MonoBehaviour
     public float smoothSpeed = 0.1f;
 
     // private Vector3 _initialLocalPos;
-    private bool _isRetargeting = false;
+    // private bool _isRetargeting = false;
     
     // Recorded positions when trigger first detected
-    private Vector3 _recordedRightHandTipPos;
-    private Vector3 _recordedGripperTipPos;
-    private Vector3 _recordedLeftTipPos; // left thumb tip or left index tip
+    // private Vector3 _recordedRightHandTipPos;
+    // private Vector3 _recordedGripperTipPos;
+    // private Vector3 _recordedLeftTipPos; // left thumb tip or left index tip
     
     // Scale factors for retargeting
-    private Vector3 _scaleFactors;
-    private Vector3 _targetScaleFactors; // Target scale factors to smoothly interpolate towards
+    // private Vector3 _scaleFactors;
+    // private Vector3 _targetScaleFactors; // Target scale factors to smoothly interpolate towards
     
-    [Header("Scale Factor Stability")]
-    [Tooltip("Speed of scale factor updates (lower = more stable, higher = more responsive)")]
-    [Range(0.01f, 0.5f)]
-    public float scaleFactorDamping = 0.05f;
+    // [Header("Scale Factor Stability")]
+    // [Tooltip("Speed of scale factor updates (lower = more stable, higher = more responsive)")]
+    // [Range(0.01f, 0.5f)]
+    // public float scaleFactorDamping = 0.05f;
     
-    [Tooltip("Minimum allowed scale factor to prevent extreme values")]
-    public float minScaleFactor = -5f;
+    // [Tooltip("Minimum allowed scale factor to prevent extreme values")]
+    // public float minScaleFactor = -5f;
     
-    [Tooltip("Maximum allowed scale factor to prevent extreme values")]
-    public float maxScaleFactor = 5f;
+    // [Tooltip("Maximum allowed scale factor to prevent extreme values")]
+    // public float maxScaleFactor = 5f;
 
     // void Awake()
     // {

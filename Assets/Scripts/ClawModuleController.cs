@@ -14,10 +14,10 @@ public class ClawModuleController : MonoBehaviour
 
     public TriggerRightThumbAbduction triggerRightThumbAbduction;
 
-    public TriggerThumbInnerExtension triggerThumbInnerExtension;
-    public TriggerIndexInnerExtension triggerIndexInnerExtension;
+    // public TriggerThumbInnerExtension triggerThumbInnerExtension;
+    // public TriggerIndexInnerExtension triggerIndexInnerExtension;
 
-    public TriggerMiddleInnerExtension triggerMiddleInnerExtension;
+    // public TriggerMiddleInnerExtension triggerMiddleInnerExtension;
 
     public ModeSwitching modeSwitching;
     public TcpSender tcpSender;
@@ -3721,9 +3721,9 @@ public class ClawModuleController : MonoBehaviour
         SetTriggerColliderEnabled(triggerRightMiddleTip, enabled);
         SetTriggerColliderEnabled(triggerRightThumbTip, enabled);
         SetTriggerColliderEnabled(triggerRightThumbAbduction, enabled);
-        SetTriggerColliderEnabled(triggerThumbInnerExtension, enabled);
-        SetTriggerColliderEnabled(triggerIndexInnerExtension, enabled);
-        SetTriggerColliderEnabled(triggerMiddleInnerExtension, enabled);
+        // SetTriggerColliderEnabled(triggerThumbInnerExtension, enabled);
+        // SetTriggerColliderEnabled(triggerIndexInnerExtension, enabled);
+        // SetTriggerColliderEnabled(triggerMiddleInnerExtension, enabled);
     }
 
     void SetTriggerColliderEnabled(MonoBehaviour trigger, bool enabled)
