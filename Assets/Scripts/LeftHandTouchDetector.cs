@@ -54,36 +54,81 @@ public class LeftHandTouchDetector : MonoBehaviour
             other.GetComponent<RightFingerTouchZone>();
         if (zone == null) return;
 
+        if (leftHandPoint == null || zone.rightFinger == null || zone.clawFinger == null)
+            return;
+
+        int rightJointCount = zone.rightFinger.GetJointCount();
+        int clawJointCount = zone.clawFinger.GetJointCount();
+        if (rightJointCount < 2 || clawJointCount < 2)
+            return;
+
+        bool useTwoPoint = selectMotorCollider != null &&
+            (selectMotorCollider.projectionMode == ProjectionMode.TwoPoint ||
+             selectMotorCollider.projectionMode == ProjectionMode.FrozenLine);
+
         int seg;
         float segT;
         Vector3 rightPos;
 
-        FingerMath.ClosestPointOnFinger(
-            leftHandPoint.position,
-            zone.rightFinger,
-            out seg,
-            out segT,
-            out rightPos
-        );
+        // rawSeg/rawSegT represent the location on the right-hand path before claw mapping.
+        int rawSeg;
+        float rawSegT;
 
-        // Clamp segT to ensure it's within valid range [0, 1]
-        segT = Mathf.Clamp01(segT);
+        if (useTwoPoint)
+        {
+            // Two-point mode: project only on tip->base as one segment.
+            Vector3 tipPoint = zone.rightFinger.GetJoint(0);
+            Vector3 basePoint = zone.rightFinger.GetJoint(rightJointCount - 1);
 
-        int rightJointCount = zone.rightFinger != null ? zone.rightFinger.GetJointCount() : 0;
-        int rawSeg = seg;
-        float rawSegT = segT;
+            FingerMath.DistancePointToSegment(leftHandPoint.position, tipPoint, basePoint, out segT);
+            segT = Mathf.Clamp01(segT);
+
+            rightPos = Vector3.Lerp(tipPoint, basePoint, segT);
+            rawSeg = 0;
+            rawSegT = segT;
+
+            // Map 0-100% to all claw segments uniformly.
+            int clawSegmentCount = clawJointCount - 1;
+            float percentage = segT * 100f;
+            float step = 100f / clawSegmentCount;
+
+            if (percentage >= 100f)
+            {
+                seg = clawSegmentCount - 1;
+                segT = 1f;
+            }
+            else
+            {
+                seg = Mathf.Clamp((int)(percentage / step), 0, clawSegmentCount - 1);
+                segT = Mathf.Clamp01((percentage - seg * step) / step);
+            }
+        }
+        else
+        {
+            FingerMath.ClosestPointOnFinger(
+                leftHandPoint.position,
+                zone.rightFinger,
+                out seg,
+                out segT,
+                out rightPos
+            );
+
+            // Clamp segT to ensure it's within valid range [0, 1]
+            segT = Mathf.Clamp01(segT);
+            rawSeg = seg;
+            rawSegT = segT;
+
+            // Align claw segment indexing with the 6-point strategy used by SelectMotorCollider.
+            // When claw has 6+ points, element0 is the newly inserted point and normal mapping starts at element1.
+            if (clawJointCount >= 6)
+                seg = Mathf.Clamp(seg + 1, 0, clawJointCount - 2);
+            else
+                seg = Mathf.Clamp(seg, 0, clawJointCount - 2);
+        }
 
         rightFingerPoint.position = rightPos;
         if (!rightFingerPoint.gameObject.activeSelf)
             rightFingerPoint.gameObject.SetActive(true);
-
-        // Align claw segment indexing with the 6-point strategy used by SelectMotorCollider.
-        // When claw has 6+ points, element0 is the newly inserted point and normal mapping starts at element1.
-        int clawJointCount = zone.clawFinger.GetJointCount();
-        if (clawJointCount >= 6)
-            seg = Mathf.Clamp(seg + 1, 0, clawJointCount - 2);
-        else
-            seg = Mathf.Clamp(seg, 0, clawJointCount - 2);
 
         Vector3 clawPos =
             Vector3.Lerp(

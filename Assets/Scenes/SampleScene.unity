@@ -10615,17 +10615,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c5b0736fefc2541b53e9ebd2a407a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
-  handMiddleTip: {fileID: 193597868}
-  gripperMiddleTip: {fileID: 1115696000}
-  leapAnchorOffset: {fileID: 1641828944}
-  showColliderGizmo: 1
-  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
-  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
-  debugTriggerEvents: 1
-  hasRecordedPositions: 0
 --- !u!65 &193597870
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11293,12 +11282,9 @@ MonoBehaviour:
   triggerRightThumbTip: {fileID: 187972396}
   rightIndexTip: {fileID: 1201296085}
   rightMiddleTip: {fileID: 1307753529}
-  triggerIndexInnerExtension: {fileID: 1893964448}
-  triggerThumbInnerExtension: {fileID: 320938782}
   clawIndexFingerTip: {fileID: 924669250}
   R_IndexTriggerTip: {fileID: 1201296083}
   threeFingerCollisionDetector: {fileID: 1109305386}
-  retargetIndex: {fileID: 882396914}
   SelectMotorCollider: {fileID: 859541734}
   modeSwitching: {fileID: 951283614}
   paxiniValue: {fileID: 1086361769}
@@ -12195,9 +12181,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00d61ecb1cff00648ada221eff017004, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
 --- !u!65 &349889825
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -25975,9 +25958,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b352b016d0e64545a7c048954d3d2bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
 --- !u!65 &797724207
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26150,9 +26130,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00d61ecb1cff00648ada221eff017004, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
 --- !u!65 &827141709
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26586,9 +26563,9 @@ MonoBehaviour:
   frozenLineWidth: 0.003
   frozenSphereRadius: 0.005
   frozenSphereColor: {r: 0, g: 1, b: 1, a: 1}
-  showDebugSpheres: 0
+  showDebugSpheres: 1
   debugToggleKey: 100
-  showDebugLines: 0
+  showDebugLines: 1
   debugLineToggleKey: 108
   fingerRendererManager: {fileID: 370831957}
   thumbRightFingerProjectionSphere: {fileID: 2121579920}
@@ -26871,16 +26848,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf454a5bbf3200b4aac563269d5dd7e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTipRetarget
-  - L_ThumbTipRetarget
-  handIndexTip: {fileID: 882396912}
-  gripperIndexTip: {fileID: 924669250}
-  leapAnchorOffset: {fileID: 1641828944}
-  showColliderGizmo: 1
-  gizmoColor: {r: 0, g: 1, b: 0, a: 0.3}
-  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
-  hasRecordedPositions: 0
 --- !u!1 &886858301
 GameObject:
   m_ObjectHideFlags: 0
@@ -27073,17 +27040,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c5b0736fefc2541b53e9ebd2a407a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
-  handMiddleTip: {fileID: 909210620}
-  gripperMiddleTip: {fileID: 1115696000}
-  leapAnchorOffset: {fileID: 1641828944}
-  showColliderGizmo: 1
-  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
-  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
-  debugTriggerEvents: 1
-  hasRecordedPositions: 0
 --- !u!65 &909210622
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -36750,17 +36706,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c5b0736fefc2541b53e9ebd2a407a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
-  handMiddleTip: {fileID: 961990162}
-  gripperMiddleTip: {fileID: 1115696000}
-  leapAnchorOffset: {fileID: 1641828944}
-  showColliderGizmo: 1
-  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
-  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
-  debugTriggerEvents: 1
-  hasRecordedPositions: 0
 --- !u!65 &961990164
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -37595,9 +37540,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b352b016d0e64545a7c048954d3d2bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
 --- !u!1 &1024445121
 GameObject:
   m_ObjectHideFlags: 0
@@ -37684,9 +37626,6 @@ MonoBehaviour:
   triggerRightMiddleTip: {fileID: 1892804445}
   triggerRightThumbTip: {fileID: 1540125987}
   triggerRightThumbAbduction: {fileID: 0}
-  triggerThumbInnerExtension: {fileID: 0}
-  triggerIndexInnerExtension: {fileID: 0}
-  triggerMiddleInnerExtension: {fileID: 0}
   modeSwitching: {fileID: 0}
   tcpSender: {fileID: 0}
   paxiniValue: {fileID: 0}
@@ -39467,9 +39406,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b352b016d0e64545a7c048954d3d2bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
 --- !u!65 &1189440884
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -41030,25 +40966,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fb0479ddeb4af14b953ab2284a12cfc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modeSwitching: {fileID: 951283614}
-  triggerRightThumbTip: {fileID: 0}
-  triggerRightIndexTip: {fileID: 0}
-  triggerRightMiddleTip: {fileID: 0}
-  motorColliders:
-  - {fileID: 2121518864}
-  - {fileID: 774128490}
-  - {fileID: 1197134099}
-  - {fileID: 323629980}
-  - {fileID: 23009160}
-  - {fileID: 1365827851}
-  - {fileID: 1854144945}
-  - {fileID: 2003966245}
-  - {fileID: 193597870}
-  - {fileID: 1976175156}
-  - {fileID: 909210622}
-  - {fileID: 961990164}
-  currentActiveFinger: -1
-  debugInfo: 
 --- !u!4 &1364976179
 Transform:
   m_ObjectHideFlags: 0
@@ -46072,9 +45989,6 @@ MonoBehaviour:
   triggerRightMiddleTip: {fileID: 113849442}
   triggerRightThumbTip: {fileID: 867732987}
   triggerRightThumbAbduction: {fileID: 1064185241}
-  triggerThumbInnerExtension: {fileID: 845586719}
-  triggerIndexInnerExtension: {fileID: 349889824}
-  triggerMiddleInnerExtension: {fileID: 797724206}
   modeSwitching: {fileID: 0}
   tcpSender: {fileID: 0}
   paxiniValue: {fileID: 0}
@@ -47452,21 +47366,12 @@ MonoBehaviour:
   modeSwitching: {fileID: 951283614}
   leftHandTouchDetector: {fileID: 2101188480}
   retargetTouchDetector: {fileID: 528650935}
-  retargetIndex: {fileID: 882396914}
-  retargetMiddle: {fileID: 1776445284}
-  retargetThumb: {fileID: 2086587823}
-  retargetThumbAbduction: {fileID: 2050949042}
-  leftThumbTip: {fileID: 50064513}
-  leftIndexTip: {fileID: 1825497885}
   baseLeapAnchorPosition: {fileID: 1488673101}
   colliderBall: {fileID: 1527934884}
   rightFingertipBall: {fileID: 1316072728}
   gripperBall: {fileID: 1122764353}
   leftFingertipBall: {fileID: 1394481076}
   smoothSpeed: 0.1
-  scaleFactorDamping: 0.05
-  minScaleFactor: -5
-  maxScaleFactor: 5
 --- !u!114 &1643344169 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4830515129415512761, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
@@ -57665,9 +57570,6 @@ MonoBehaviour:
   triggerRightMiddleTip: {fileID: 1628439439}
   triggerRightThumbTip: {fileID: 1846067514}
   triggerRightThumbAbduction: {fileID: 393614486}
-  triggerThumbInnerExtension: {fileID: 800056395}
-  triggerIndexInnerExtension: {fileID: 827141708}
-  triggerMiddleInnerExtension: {fileID: 1189440883}
   modeSwitching: {fileID: 0}
   tcpSender: {fileID: 0}
   paxiniValue: {fileID: 0}
@@ -57882,17 +57784,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c5b0736fefc2541b53e9ebd2a407a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTipRetarget
-  - L_ThumbTipRetarget
-  handMiddleTip: {fileID: 1776445282}
-  gripperMiddleTip: {fileID: 1115696000}
-  leapAnchorOffset: {fileID: 1641828944}
-  showColliderGizmo: 1
-  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
-  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
-  debugTriggerEvents: 1
-  hasRecordedPositions: 0
 --- !u!1 &1784049803
 GameObject:
   m_ObjectHideFlags: 0
@@ -58899,9 +58790,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00d61ecb1cff00648ada221eff017004, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
 --- !u!1 &1907101960
 GameObject:
   m_ObjectHideFlags: 0
@@ -59531,17 +59419,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c5b0736fefc2541b53e9ebd2a407a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
-  handMiddleTip: {fileID: 1976175154}
-  gripperMiddleTip: {fileID: 1115696000}
-  leapAnchorOffset: {fileID: 1641828944}
-  showColliderGizmo: 1
-  gizmoColor: {r: 0, g: 1, b: 1, a: 0.3}
-  gizmoColorActive: {r: 1, g: 1, b: 0, a: 0.5}
-  debugTriggerEvents: 1
-  hasRecordedPositions: 0
 --- !u!65 &1976175156
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -60236,13 +60113,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a0543e2f6b4faa47ae158d9cee94d2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTip
-  - L_ThumbTip
-  handThumbTip: {fileID: 2050949039}
-  gripperThumbTip: {fileID: 97819078}
-  leapAnchorOffset: {fileID: 1641828944}
-  hasRecordedPositions: 0
 --- !u!1 &2057144134
 GameObject:
   m_ObjectHideFlags: 0
@@ -60683,13 +60553,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c97854ecccdb37b4ab4381a44943499e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTags:
-  - L_IndexTipRetarget
-  - L_ThumbTipRetarget
-  handThumbTip: {fileID: 2086587821}
-  gripperThumbTip: {fileID: 97819078}
-  leapAnchorOffset: {fileID: 1641828944}
-  hasRecordedPositions: 0
 --- !u!1 &2097127616
 GameObject:
   m_ObjectHideFlags: 0
@@ -63480,9 +63343,6 @@ MonoBehaviour:
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}
   triggerRightThumbAbduction: {fileID: 2050949041}
-  triggerThumbInnerExtension: {fileID: 320938782}
-  triggerIndexInnerExtension: {fileID: 1893964448}
-  triggerMiddleInnerExtension: {fileID: 1019242406}
   modeSwitching: {fileID: 951283614}
   tcpSender: {fileID: 188813409}
   paxiniValue: {fileID: 1086361769}

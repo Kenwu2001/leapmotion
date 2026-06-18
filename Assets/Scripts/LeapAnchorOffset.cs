@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class LeapAnchorOffset : MonoBehaviour
+public class LeapAnchorOffset : MonoBehaviour // this is for latest retargeting approach using offsets from RetargetTouchDetector, not the old scale factor method
 {
     // scripts
     public ModeSwitching modeSwitching;
@@ -63,9 +63,12 @@ public class LeapAnchorOffset : MonoBehaviour
         // When modeSelect is true, apply the recorded offset from LeftHandTouchDetector
         if (modeSwitching != null && modeSwitching.modeSelect)
         {
-            if (leftHandTouchDetector != null)
+            if (leftHandTouchDetector != null && leftHandTouchDetector.IsInZone
+                && leftHandTouchDetector.clawFingerPoint != null
+                && leftHandTouchDetector.leftHandPoint != null)
             {
-                Vector3 offset = leftHandTouchDetector.RecordedOffset;
+                // Shift anchor so that clawPos lands exactly on leftHandPoint
+                Vector3 offset = leftHandTouchDetector.clawFingerPoint.position - leftHandTouchDetector.leftHandPoint.position;
                 Vector3 targetPos = baseLeapAnchorPosition.position + offset;
                 transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed);
             }
@@ -82,7 +85,7 @@ public class LeapAnchorOffset : MonoBehaviour
         }
 
         // ===============================================
-        // NEW LOGIC: When modeSelect is false (retargeting mode)
+        // NEW LOGIC: modeManipulate retargeting mode
         // Use the same offset-based approach with RetargetTouchDetector
         // ===============================================
         if (retargetTouchDetector != null)
