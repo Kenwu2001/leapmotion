@@ -90,8 +90,15 @@ public class LeapAnchorOffset : MonoBehaviour // this is for latest retargeting 
         // ===============================================
         if (retargetTouchDetector != null)
         {
-            Vector3 offset = retargetTouchDetector.RecordedOffset;
-            Vector3 targetPos = baseLeapAnchorPosition.position + offset;
+            Vector3 targetPos = baseLeapAnchorPosition.position;
+            if (retargetTouchDetector.IsInZone &&
+                retargetTouchDetector.clawFingerPoint != null &&
+                retargetTouchDetector.leftHandPoint != null)
+            {
+                // Shift anchor so that clawPos lands exactly on leftHandPoint.
+                Vector3 offset = retargetTouchDetector.clawFingerPoint.position - retargetTouchDetector.leftHandPoint.position;
+                targetPos = baseLeapAnchorPosition.position + offset;
+            }
             
             // Debug.Log($"[LeapAnchorOffset] modeSelect=FALSE | IsInZone={retargetTouchDetector.IsInZone} | Offset={offset.ToString("F3")} | BasePos={baseLeapAnchorPosition.position.ToString("F3")} | TargetPos={targetPos.ToString("F3")} | CurrentPos={transform.position.ToString("F3")}");
             
