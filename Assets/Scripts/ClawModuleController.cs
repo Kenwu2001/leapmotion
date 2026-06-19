@@ -39,6 +39,11 @@ public class ClawModuleController : MonoBehaviour
     public GameObject middleLeftRightArrow;
     public GameObject middleLeftLeftArrow;
 
+    public GameObject thumbRightRightArrow;
+    public GameObject thumbRightLeftArrow;
+    public GameObject thumbLeftRightArrow;
+    public GameObject thumbLeftLeftArrow;
+
     // ==============================
     // 🔹 Thumb Transforms
     // ==============================
@@ -607,10 +612,20 @@ public class ClawModuleController : MonoBehaviour
             EnterKeyboardMode();
         }
 
+        thumbRightRightArrow.SetActive(false);
+        thumbRightLeftArrow.SetActive(false);
+        thumbLeftRightArrow.SetActive(false);
+        thumbLeftLeftArrow.SetActive(false);
+
         indexRightRightArrow.SetActive(false);
         indexRightLeftArrow.SetActive(false);
         indexLeftRightArrow.SetActive(false);
         indexLeftLeftArrow.SetActive(false);
+
+        middleRightRightArrow.SetActive(false);
+        middleRightLeftArrow.SetActive(false);
+        middleLeftRightArrow.SetActive(false);
+        middleLeftLeftArrow.SetActive(false);
     }
 
     void Update()
@@ -2346,6 +2361,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["ThumbAbduction"] = 0f;
         }
 
+        if (!canRotateThumbPronationThisTouch)
+        {
+            thumbRightRightArrow.SetActive(false);
+            thumbRightLeftArrow.SetActive(false);
+            thumbLeftRightArrow.SetActive(false);
+            thumbLeftLeftArrow.SetActive(false);
+        }
+
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched
              && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1
              && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 1)
@@ -2397,6 +2420,16 @@ public class ClawModuleController : MonoBehaviour
 
                     if (canRotateThumbPronationThisTouch && isThumbPronationUsingMaxRangeThisTouch)
                     {
+                        if (jointAngle.isClockWise > 0f)
+                        {
+                            thumbLeftRightArrow.SetActive(false);
+                            thumbLeftLeftArrow.SetActive(true);
+                        }
+                        else
+                        {
+                            thumbLeftRightArrow.SetActive(true);
+                            thumbLeftLeftArrow.SetActive(false);
+                        }
                         currentThumbRotationYMax += rotationDelta;
                         currentThumbRotationYMax = Mathf.Clamp(currentThumbRotationYMax, -90f, 0f);
 
@@ -2405,6 +2438,16 @@ public class ClawModuleController : MonoBehaviour
                     }
                     else if (canRotateThumbPronationThisTouch)
                     {
+                        if (jointAngle.isClockWise > 0f)
+                        {
+                            thumbRightRightArrow.SetActive(false);
+                            thumbRightLeftArrow.SetActive(true);
+                        }
+                        else
+                        {
+                            thumbRightRightArrow.SetActive(true);
+                            thumbRightLeftArrow.SetActive(false);
+                        }
                         currentThumbRotationYMin += rotationDelta;
                         currentThumbRotationYMin = Mathf.Clamp(currentThumbRotationYMin, 0f, 90f);
 
