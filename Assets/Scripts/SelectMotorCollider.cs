@@ -2330,6 +2330,82 @@ public class SelectMotorCollider : MonoBehaviour
         else if (motorMin == 5) indexProjectionPercent = percentage;
         else if (motorMin == 9) middleProjectionPercent = percentage;
 
+        Vector3 closestPoint = Vector3.Lerp(tipWorld, baseWorld, t);
+
+        // Calculate claw position before freeze handling so debug spheres keep moving
+        // even while the touch is inside the 0-20% freeze zone.
+        int clawSegIndex;
+        float localT;
+        int clawPathSegIndex;
+        int motorID;
+
+        if (enableFreezeMotorFeature)
+        {
+            // 5 zones: 0-20(freeze zone), 20-40, 40-60, 60-80, 80-100
+            if (percentage >= 100f)
+            {
+                clawSegIndex = 4;
+                localT = 1f;
+            }
+            else
+            {
+                clawSegIndex = Mathf.Clamp((int)(percentage / 20f), 0, 4);
+                localT = (percentage - clawSegIndex * 20f) / 20f;
+            }
+            clawPathSegIndex = clawSegIndex;
+
+            // Reserve seg0 as freeze zone; motor selection is clamped to [motorMin, motorMax].
+            motorID = (motorMax + 1) - clawSegIndex;
+        }
+        else
+        {
+            if (percentage >= 100f)
+            {
+                clawSegIndex = 3;
+                localT = 1f;
+            }
+            else
+            {
+                clawSegIndex = Mathf.Clamp((int)(percentage / 25f), 0, 3);
+                localT = (percentage - clawSegIndex * 25f) / 25f;
+            }
+
+            // Keep non-freeze behavior aligned with TwoPoint projection path indexing.
+            clawPathSegIndex = clawSegIndex + 1;
+            motorID = motorMax - clawSegIndex;
+        }
+
+        localT = Mathf.Clamp01(localT);
+        motorID = Mathf.Clamp(motorID, motorMin, motorMax);
+
+        Vector3 clawPos = Vector3.zero;
+        if (clawPath != null)
+        {
+            int clawJointCount = clawPath.GetJointCount();
+            int clampedSeg = Mathf.Clamp(clawPathSegIndex, 0, clawJointCount - 2);
+            clawPos = Vector3.Lerp(
+                clawPath.GetJoint(clampedSeg),
+                clawPath.GetJoint(clampedSeg + 1),
+                localT
+            );
+        }
+
+        Transform rightSphere = null, clawSphere = null;
+        if (motorMin == 1) { rightSphere = thumbRightFingerProjectionSphere; clawSphere = thumbClawProjectionSphere; }
+        else if (motorMin == 5) { rightSphere = indexRightFingerProjectionSphere; clawSphere = indexClawProjectionSphere; }
+        else if (motorMin == 9) { rightSphere = middleRightFingerProjectionSphere; clawSphere = middleClawProjectionSphere; }
+
+        if (showDebugSpheres)
+        {
+            if (rightSphere != null) { rightSphere.gameObject.SetActive(true); rightSphere.position = closestPoint; }
+            if (clawSphere != null && clawPath != null) { clawSphere.gameObject.SetActive(true); clawSphere.position = clawPos; }
+        }
+        else
+        {
+            if (rightSphere != null) rightSphere.gameObject.SetActive(false);
+            if (clawSphere != null) clawSphere.gameObject.SetActive(false);
+        }
+
         // Handle freeze zone (0-20% = toggle freeze, 20-100% = motor selection)
         if (enableFreezeMotorFeature)
         {
@@ -2350,48 +2426,9 @@ public class SelectMotorCollider : MonoBehaviour
                 if (motorMin == 1) thumbProjectionMotorID = 0;
                 else if (motorMin == 5) indexProjectionMotorID = 0;
                 else if (motorMin == 9) middleProjectionMotorID = 0;
-
-                Transform rs = (motorMin == 1) ? thumbRightFingerProjectionSphere : (motorMin == 5) ? indexRightFingerProjectionSphere : middleRightFingerProjectionSphere;
-                Transform cs = (motorMin == 1) ? thumbClawProjectionSphere : (motorMin == 5) ? indexClawProjectionSphere : middleClawProjectionSphere;
-                if (rs != null) rs.gameObject.SetActive(false);
-                if (cs != null) cs.gameObject.SetActive(false);
                 return;
             }
             percentage = remappedPct;
-        }
-        
-        // Map to 4 claw segments
-        int clawSegIndex;
-        float localT;
-        if (percentage >= 100f)
-        {
-            clawSegIndex = 3;
-            localT = 1f;
-        }
-        else
-        {
-            clawSegIndex = Mathf.Clamp((int)(percentage / 25f), 0, 3);
-            localT = (percentage - clawSegIndex * 25f) / 25f;
-        }
-        localT = Mathf.Clamp01(localT);
-        
-        // Motor ID: seg 0 → motorMax, seg 3 → motorMin
-        int motorID = motorMax - clawSegIndex;
-        motorID = Mathf.Clamp(motorID, motorMin, motorMax);
-        
-        Vector3 closestPoint = Vector3.Lerp(tipWorld, baseWorld, t);
-        
-        // Calculate claw position
-        Vector3 clawPos = Vector3.zero;
-        if (clawPath != null)
-        {
-            int clawJointCount = clawPath.GetJointCount();
-            int clampedSeg = Mathf.Clamp(clawSegIndex, 0, clawJointCount - 2);
-            clawPos = Vector3.Lerp(
-                clawPath.GetJoint(clampedSeg),
-                clawPath.GetJoint(clampedSeg + 1),
-                localT
-            );
         }
         
         // Check motor selectability
@@ -2419,23 +2456,6 @@ public class SelectMotorCollider : MonoBehaviour
             middleProjectionPosition = closestPoint;
             middleClawPosition = clawPos;
             middleClawProjectionPosition = clawPos;
-        }
-        
-        // Update debug spheres for the projection point on the frozen line
-        Transform rightSphere = null, clawSphere = null;
-        if (motorMin == 1) { rightSphere = thumbRightFingerProjectionSphere; clawSphere = thumbClawProjectionSphere; }
-        else if (motorMin == 5) { rightSphere = indexRightFingerProjectionSphere; clawSphere = indexClawProjectionSphere; }
-        else if (motorMin == 9) { rightSphere = middleRightFingerProjectionSphere; clawSphere = middleClawProjectionSphere; }
-        
-        if (showDebugSpheres)
-        {
-            if (rightSphere != null) { rightSphere.gameObject.SetActive(true); rightSphere.position = closestPoint; }
-            if (clawSphere != null && clawPath != null) { clawSphere.gameObject.SetActive(true); clawSphere.position = clawPos; }
-        }
-        else
-        {
-            if (rightSphere != null) rightSphere.gameObject.SetActive(false);
-            if (clawSphere != null) clawSphere.gameObject.SetActive(false);
         }
         
         // Motor switch logic
