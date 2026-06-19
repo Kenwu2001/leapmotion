@@ -3,6 +3,13 @@ using UnityEngine.XR;
 
 public class ControllerLocatorLeft : MonoBehaviour
 {
+    public enum HorizontalFacingAxis
+    {
+        Forward,
+        Up,
+        Right
+    }
+
     [Header("Debug")]
     public Vector3 currentControllerPosition;
     public Vector3 currentControllerEulerAngles;
@@ -20,6 +27,14 @@ public class ControllerLocatorLeft : MonoBehaviour
     public bool alwaysShowCanvasPlane = false;
     public bool previewCanvasPlaneOffset = false;
     public float canvasShowDelaySeconds = 1f;
+
+    [Header("Fallback Orientation")]
+    [Tooltip("Which LeftControllerLocator axis should define the panel's horizontal facing direction")]
+    public HorizontalFacingAxis fallbackHorizontalFacingAxis = HorizontalFacingAxis.Forward;
+    [Tooltip("Extra yaw offset (degrees) applied after horizontal facing is computed")]
+    public float fallbackHorizontalYawOffsetDegrees = 0f;
+    [Tooltip("Tilt the panel up from horizontal (90 = stands upright like a TV facing the controller, 0 = lies flat on the ground)")]
+    public float fallbackVerticalTiltDegrees = 90f;
 
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
@@ -310,14 +325,44 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         Transform canvasTransform = canvasPlane.transform;
-        Vector3 worldPosition = transform.TransformPoint(canvasInitialLocalPosition);
-        Quaternion worldRotation = transform.rotation * canvasInitialLocalRotation;
+        Vector3 referenceDirection = GetFallbackReferenceDirection();
+        Vector3 horizontalForward = Vector3.ProjectOnPlane(referenceDirection, Vector3.up);
+        if (horizontalForward.sqrMagnitude < 0.0001f)
+        {
+            horizontalForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+        }
+
+        if (horizontalForward.sqrMagnitude < 0.0001f)
+        {
+            horizontalForward = Vector3.forward;
+        }
+
+        Quaternion horizontalRotation = Quaternion.LookRotation(horizontalForward.normalized, Vector3.up) *
+                                        Quaternion.Euler(0f, fallbackHorizontalYawOffsetDegrees, 0f);
+        Vector3 worldPosition = transform.position + (horizontalRotation * canvasInitialLocalPosition);
+        Quaternion worldRotation = horizontalRotation *
+                                   Quaternion.Euler(fallbackVerticalTiltDegrees, 0f, 0f) *
+                                   canvasInitialLocalRotation;
 
         canvasTransform.SetParent(null, false);
         canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
         canvasTransform.localScale = canvasInitialLocalScale;
         SetCanvasVisibility(true);
         isCanvasFrozenInWorld = true;
+    }
+
+    private Vector3 GetFallbackReferenceDirection()
+    {
+        switch (fallbackHorizontalFacingAxis)
+        {
+            case HorizontalFacingAxis.Up:
+                return transform.up;
+            case HorizontalFacingAxis.Right:
+                return transform.right;
+            case HorizontalFacingAxis.Forward:
+            default:
+                return transform.forward;
+        }
     }
 
     private void HideCanvasPlane()
