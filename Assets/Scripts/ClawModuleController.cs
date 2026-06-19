@@ -34,6 +34,11 @@ public class ClawModuleController : MonoBehaviour
     public GameObject indexLeftRightArrow;
     public GameObject indexLeftLeftArrow;
 
+    public GameObject middleRightRightArrow;
+    public GameObject middleRightLeftArrow;
+    public GameObject middleLeftRightArrow;
+    public GameObject middleLeftLeftArrow;
+
     // ==============================
     // 🔹 Thumb Transforms
     // ==============================
@@ -2919,6 +2924,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["MiddleTwistY"] = 0f;
         }
 
+        if (!canRotateMiddlePronationThisTouch)
+        {
+            middleLeftLeftArrow.SetActive(false);
+            middleLeftRightArrow.SetActive(false);
+            middleRightLeftArrow.SetActive(false);
+            middleRightRightArrow.SetActive(false);
+        }
+
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
              && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlMiddle1 && !isIndex1Triggered
             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
@@ -2963,6 +2976,17 @@ public class ClawModuleController : MonoBehaviour
 
                     if (canRotateMiddlePronationThisTouch && isMiddlePronationUsingMaxRangeThisTouch)
                     {
+                        if (jointAngle.isClockWise == 1f)
+                        {
+                            middleLeftLeftArrow.SetActive(true);
+                            middleLeftRightArrow.SetActive(false);
+                        } 
+                        else
+                        {
+                            middleLeftLeftArrow.SetActive(false);
+                            middleLeftRightArrow.SetActive(true);   
+                        }
+
                         currentMiddleRotationYMax += rotationDelta;
                         currentMiddleRotationYMax = Mathf.Clamp(currentMiddleRotationYMax, -90f, 0f);
 
@@ -2972,6 +2996,17 @@ public class ClawModuleController : MonoBehaviour
                     }
                     else if (canRotateMiddlePronationThisTouch)
                     {
+                        if (jointAngle.isClockWise == 1f)
+                        {
+                            middleRightLeftArrow.SetActive(true);
+                            middleRightRightArrow.SetActive(false);
+                        } 
+                        else
+                        {
+                            middleRightLeftArrow.SetActive(false);
+                            middleRightRightArrow.SetActive(true);   
+                        }
+
                         currentMiddleRotationYMin += rotationDelta;
                         currentMiddleRotationYMin = Mathf.Clamp(currentMiddleRotationYMin, 0f, 90f);
 
