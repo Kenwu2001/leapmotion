@@ -10,6 +10,18 @@ This is a project for people to control virtual gripper using their own hands in
 
 You have to buy a Leapmotion2 so as to implement the project.
 
+![alt text](image-10.png)
+
+Original position
+![alt text](image-8.png)
+-0.03 -0.1 -0.17
+17.139 192.279 12.244
+
+New version
+![alt text](image-9.png)
+-0.03 -0.34 0.09
+-214.8 188.9 199.8
+
 ### Unity Scene
 
 - Creating a 3D Unity scene first.
