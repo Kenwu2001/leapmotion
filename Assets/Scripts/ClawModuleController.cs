@@ -27,6 +27,14 @@ public class ClawModuleController : MonoBehaviour
     // public FingerSnapManager fingerSnapManager;
 
     // ==============================
+    // 🔹 Arrows
+    // ==============================
+    public GameObject indexRightRightArrow;
+    public GameObject indexRightLeftArrow;
+    public GameObject indexLeftRightArrow;
+    public GameObject indexLeftLeftArrow;
+
+    // ==============================
     // 🔹 Thumb Transforms
     // ==============================
     public Transform ThumbAngle1Center;
@@ -593,6 +601,11 @@ public class ClawModuleController : MonoBehaviour
         {
             EnterKeyboardMode();
         }
+
+        indexRightRightArrow.SetActive(false);
+        indexRightLeftArrow.SetActive(false);
+        indexLeftRightArrow.SetActive(false);
+        indexLeftLeftArrow.SetActive(false);
     }
 
     void Update()
@@ -2598,6 +2611,14 @@ public class ClawModuleController : MonoBehaviour
         minIndexYAxisAngle = NormalizeAngle(indexGripperJoint1MinRotationVector.y);
         indexTargetYDebug = float.NaN;
 
+        if (!canRotateIndexPronationThisTouch)
+        {
+            indexLeftLeftArrow.SetActive(false);
+            indexLeftRightArrow.SetActive(false);
+            indexRightLeftArrow.SetActive(false);
+            indexRightRightArrow.SetActive(false);
+        }
+
         if (!fingerTipTouchDurations.ContainsKey("IndexTwistY"))
         {
             fingerTipTouchDurations["IndexTwistY"] = 0f;
@@ -2653,6 +2674,17 @@ public class ClawModuleController : MonoBehaviour
 
                     if (canRotateIndexPronationThisTouch && isIndexPronationUsingMaxRangeThisTouch)
                     {
+                        if (jointAngle.isClockWise == 1f)
+                        {
+                            indexLeftLeftArrow.SetActive(true);
+                            indexLeftRightArrow.SetActive(false);
+                        } 
+                        else
+                        {
+                            indexLeftLeftArrow.SetActive(false);
+                            indexLeftRightArrow.SetActive(true);   
+                        } 
+
                         currentIndexRotationYMax += rotationDelta;
                         currentIndexRotationYMax = Mathf.Clamp(currentIndexRotationYMax, -90f, 0f);
 
@@ -2661,6 +2693,17 @@ public class ClawModuleController : MonoBehaviour
                     }
                     else if (canRotateIndexPronationThisTouch)
                     {
+                        if (jointAngle.isClockWise == 1f)
+                        {
+                            indexRightLeftArrow.SetActive(true);
+                            indexRightRightArrow.SetActive(false);
+                        } 
+                        else
+                        {
+                            indexRightLeftArrow.SetActive(false);
+                            indexRightRightArrow.SetActive(true);   
+                        }
+
                         currentIndexRotationYMin += rotationDelta;
                         currentIndexRotationYMin = Mathf.Clamp(currentIndexRotationYMin, 0f, 90f);
 
