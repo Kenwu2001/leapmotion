@@ -29,20 +29,38 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Arrows
     // ==============================
-    public GameObject indexRightRightArrow;
-    public GameObject indexRightLeftArrow;
-    public GameObject indexLeftRightArrow;
-    public GameObject indexLeftLeftArrow;
+    public GameObject thumb3RightRightArrow;
+    public GameObject thumb3RightLeftArrow;
+    public GameObject thumb3LeftRightArrow;
+    public GameObject thumb3LeftLeftArrow;
+    
+    public GameObject index3RightRightArrow;
+    public GameObject index3RightLeftArrow;
+    public GameObject index3LeftRightArrow;
+    public GameObject index3LeftLeftArrow;
 
-    public GameObject middleRightRightArrow;
-    public GameObject middleRightLeftArrow;
-    public GameObject middleLeftRightArrow;
-    public GameObject middleLeftLeftArrow;
+    public GameObject middle3RightRightArrow;
+    public GameObject middle3RightLeftArrow;
+    public GameObject middle3LeftRightArrow;
+    public GameObject middle3LeftLeftArrow;
 
-    public GameObject thumbRightRightArrow;
-    public GameObject thumbRightLeftArrow;
-    public GameObject thumbLeftRightArrow;
-    public GameObject thumbLeftLeftArrow;
+
+    public GameObject thumb4RightRightArrow;
+    public GameObject thumb4RightLeftArrow;
+    public GameObject thumb4LeftRightArrow;
+    public GameObject thumb4LeftLeftArrow;
+
+    public GameObject index4RightRightArrow;
+    public GameObject index4RightLeftArrow;
+    public GameObject index4LeftRightArrow;
+    public GameObject index4LeftLeftArrow;
+
+    public GameObject middle4RightRightArrow;
+    public GameObject middle4RightLeftArrow;
+    public GameObject middle4LeftRightArrow;
+    public GameObject middle4LeftLeftArrow;
+
+
 
     // ==============================
     // 🔹 Thumb Transforms
@@ -612,20 +630,35 @@ public class ClawModuleController : MonoBehaviour
             EnterKeyboardMode();
         }
 
-        thumbRightRightArrow.SetActive(false);
-        thumbRightLeftArrow.SetActive(false);
-        thumbLeftRightArrow.SetActive(false);
-        thumbLeftLeftArrow.SetActive(false);
+        thumb3RightRightArrow.SetActive(false);
+        thumb3RightLeftArrow.SetActive(false);
+        thumb3LeftRightArrow.SetActive(false);
+        thumb3LeftLeftArrow.SetActive(false);
 
-        indexRightRightArrow.SetActive(false);
-        indexRightLeftArrow.SetActive(false);
-        indexLeftRightArrow.SetActive(false);
-        indexLeftLeftArrow.SetActive(false);
+        index3RightRightArrow.SetActive(false);
+        index3RightLeftArrow.SetActive(false);
+        index3LeftRightArrow.SetActive(false);
+        index3LeftLeftArrow.SetActive(false);
 
-        middleRightRightArrow.SetActive(false);
-        middleRightLeftArrow.SetActive(false);
-        middleLeftRightArrow.SetActive(false);
-        middleLeftLeftArrow.SetActive(false);
+        middle3RightRightArrow.SetActive(false);
+        middle3RightLeftArrow.SetActive(false);
+        middle3LeftRightArrow.SetActive(false);
+        middle3LeftLeftArrow.SetActive(false);
+
+        thumb4RightRightArrow.SetActive(false);
+        thumb4RightLeftArrow.SetActive(false);
+        thumb4LeftRightArrow.SetActive(false);
+        thumb4LeftLeftArrow.SetActive(false);
+
+        index4RightRightArrow.SetActive(false);
+        index4RightLeftArrow.SetActive(false);
+        index4LeftRightArrow.SetActive(false);
+        index4LeftLeftArrow.SetActive(false);
+
+        middle4RightRightArrow.SetActive(false);
+        middle4RightLeftArrow.SetActive(false);
+        middle4LeftRightArrow.SetActive(false);
+        middle4LeftLeftArrow.SetActive(false);
     }
 
     void Update()
@@ -1285,6 +1318,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["ThumbTwist"] = 0f;
         }
 
+        if (!canRotateThumbAbductionThisTouch)
+        {
+            thumb3RightRightArrow.SetActive(false);
+            thumb3RightLeftArrow.SetActive(false);
+            thumb3LeftRightArrow.SetActive(false);
+            thumb3LeftLeftArrow.SetActive(false);
+        }
+
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive
             && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 2)
         {
@@ -1362,9 +1403,17 @@ public class ClawModuleController : MonoBehaviour
                     if (isThumbAbductionUsingMaxRangeThisTouch)
                     {
                         if (!isThumbRotatingNegative)
+                        {
                             currentThumbRotationZMax -= twistRotationSpeed * Time.deltaTime;
+                            thumb3LeftRightArrow.SetActive(false);
+                            thumb3LeftLeftArrow.SetActive(true);
+                        }
                         else
+                        {
                             currentThumbRotationZMax += twistRotationSpeed * Time.deltaTime;
+                            thumb3LeftRightArrow.SetActive(true);
+                            thumb3LeftLeftArrow.SetActive(false);
+                        }
                         currentThumbRotationZMax = Mathf.Clamp(currentThumbRotationZMax, -90f, 0f);
                         thumbGripperJoint2MaxRotationVector =
                             (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZMax)).eulerAngles;
@@ -1374,9 +1423,17 @@ public class ClawModuleController : MonoBehaviour
                     else
                     {
                         if (isThumbRotatingNegative)
+                        {
                             currentThumbRotationZMin += twistRotationSpeed * Time.deltaTime;
+                            thumb3RightRightArrow.SetActive(true);
+                            thumb3RightLeftArrow.SetActive(false);
+                        }
                         else
+                        {
                             currentThumbRotationZMin -= twistRotationSpeed * Time.deltaTime;
+                            thumb3RightRightArrow.SetActive(false);
+                            thumb3RightLeftArrow.SetActive(true);
+                        }
                         currentThumbRotationZMin = Mathf.Clamp(currentThumbRotationZMin, 0f, 90f);
                         thumbGripperJoint2MinRotationVector =
                             (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZMin)).eulerAngles;
@@ -1642,6 +1699,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["IndexAbductionZ"] = 0f;
         }
 
+        if (!canRotateIndexAbductionThisTouch)
+        {
+            index3RightRightArrow.SetActive(false);
+            index3RightLeftArrow.SetActive(false);
+            index3LeftRightArrow.SetActive(false);
+            index3LeftLeftArrow.SetActive(false);
+        }
+
         if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
              && !isAnyMotor4Triggered && canControlIndex2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 6)
         {
@@ -1725,16 +1790,32 @@ public class ClawModuleController : MonoBehaviour
                     if (isIndexRotatingNegative)
                     {
                         if (isIndexAbductionUsingMaxRangeThisTouch)
+                        {
                             currentIndexRotationZMax -= rotationSpeed * Time.deltaTime;
+                            index3LeftRightArrow.SetActive(false);
+                            index3LeftLeftArrow.SetActive(true);
+                        }
                         else
+                        {
                             currentIndexRotationZMin -= rotationSpeed * Time.deltaTime;
+                            index3RightRightArrow.SetActive(false);
+                            index3RightLeftArrow.SetActive(true);
+                        }
                     }
                     else
                     {
                         if (isIndexAbductionUsingMaxRangeThisTouch)
+                        {
                             currentIndexRotationZMax += rotationSpeed * Time.deltaTime;
+                            index3LeftRightArrow.SetActive(true);
+                            index3LeftLeftArrow.SetActive(false);
+                        }
                         else
+                        {
                             currentIndexRotationZMin += rotationSpeed * Time.deltaTime;
+                            index3RightRightArrow.SetActive(true);
+                            index3RightLeftArrow.SetActive(false);
+                        }
                     }
 
                     if (isIndexAbductionUsingMaxRangeThisTouch)
@@ -2000,6 +2081,14 @@ public class ClawModuleController : MonoBehaviour
             fingerTipTouchDurations["MiddleAbductionZ"] = 0f;
         }
 
+        if (!canRotateMiddleAbductionThisTouch)
+        {
+            middle3RightRightArrow.SetActive(false);
+            middle3RightLeftArrow.SetActive(false);
+            middle3LeftRightArrow.SetActive(false);
+            middle3LeftLeftArrow.SetActive(false);
+        }
+
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
              && !isAnyMotor4Triggered && canControlMiddle2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 10)
         {
@@ -2083,16 +2172,32 @@ public class ClawModuleController : MonoBehaviour
                     if (isMiddleRotatingPositive)
                     {
                         if (isMiddleAbductionUsingMaxRangeThisTouch)
+                        {
                             currentMiddleRotationZMax += rotationSpeed * Time.deltaTime;
+                            middle3LeftRightArrow.SetActive(true);
+                            middle3LeftLeftArrow.SetActive(false);
+                        }
                         else
+                        {
                             currentMiddleRotationZMin += rotationSpeed * Time.deltaTime;
+                            middle3RightRightArrow.SetActive(true);
+                            middle3RightLeftArrow.SetActive(false);
+                        }
                     }
                     else
                     {
                         if (isMiddleAbductionUsingMaxRangeThisTouch)
+                        {
                             currentMiddleRotationZMax -= rotationSpeed * Time.deltaTime;
+                            middle3LeftRightArrow.SetActive(false);
+                            middle3LeftLeftArrow.SetActive(true);
+                        }
                         else
+                        {
                             currentMiddleRotationZMin -= rotationSpeed * Time.deltaTime;
+                            middle3RightRightArrow.SetActive(false);
+                            middle3RightLeftArrow.SetActive(true);
+                        }
                     }
 
                     if (isMiddleAbductionUsingMaxRangeThisTouch)
@@ -2363,10 +2468,10 @@ public class ClawModuleController : MonoBehaviour
 
         if (!canRotateThumbPronationThisTouch)
         {
-            thumbRightRightArrow.SetActive(false);
-            thumbRightLeftArrow.SetActive(false);
-            thumbLeftRightArrow.SetActive(false);
-            thumbLeftLeftArrow.SetActive(false);
+            thumb4RightRightArrow.SetActive(false);
+            thumb4RightLeftArrow.SetActive(false);
+            thumb4LeftRightArrow.SetActive(false);
+            thumb4LeftLeftArrow.SetActive(false);
         }
 
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched
@@ -2422,13 +2527,13 @@ public class ClawModuleController : MonoBehaviour
                     {
                         if (jointAngle.isClockWise > 0f)
                         {
-                            thumbLeftRightArrow.SetActive(false);
-                            thumbLeftLeftArrow.SetActive(true);
+                            thumb4LeftRightArrow.SetActive(false);
+                            thumb4LeftLeftArrow.SetActive(true);
                         }
                         else
                         {
-                            thumbLeftRightArrow.SetActive(true);
-                            thumbLeftLeftArrow.SetActive(false);
+                            thumb4LeftRightArrow.SetActive(true);
+                            thumb4LeftLeftArrow.SetActive(false);
                         }
                         currentThumbRotationYMax += rotationDelta;
                         currentThumbRotationYMax = Mathf.Clamp(currentThumbRotationYMax, -90f, 0f);
@@ -2440,13 +2545,13 @@ public class ClawModuleController : MonoBehaviour
                     {
                         if (jointAngle.isClockWise > 0f)
                         {
-                            thumbRightRightArrow.SetActive(false);
-                            thumbRightLeftArrow.SetActive(true);
+                            thumb4RightRightArrow.SetActive(false);
+                            thumb4RightLeftArrow.SetActive(true);
                         }
                         else
                         {
-                            thumbRightRightArrow.SetActive(true);
-                            thumbRightLeftArrow.SetActive(false);
+                            thumb4RightRightArrow.SetActive(true);
+                            thumb4RightLeftArrow.SetActive(false);
                         }
                         currentThumbRotationYMin += rotationDelta;
                         currentThumbRotationYMin = Mathf.Clamp(currentThumbRotationYMin, 0f, 90f);
@@ -2661,10 +2766,10 @@ public class ClawModuleController : MonoBehaviour
 
         if (!canRotateIndexPronationThisTouch)
         {
-            indexLeftLeftArrow.SetActive(false);
-            indexLeftRightArrow.SetActive(false);
-            indexRightLeftArrow.SetActive(false);
-            indexRightRightArrow.SetActive(false);
+            index4LeftLeftArrow.SetActive(false);
+            index4LeftRightArrow.SetActive(false);
+            index4RightLeftArrow.SetActive(false);
+            index4RightRightArrow.SetActive(false);
         }
 
         if (!fingerTipTouchDurations.ContainsKey("IndexTwistY"))
@@ -2724,13 +2829,13 @@ public class ClawModuleController : MonoBehaviour
                     {
                         if (jointAngle.isClockWise == 1f)
                         {
-                            indexLeftLeftArrow.SetActive(true);
-                            indexLeftRightArrow.SetActive(false);
+                            index4LeftLeftArrow.SetActive(true);
+                            index4LeftRightArrow.SetActive(false);
                         } 
                         else
                         {
-                            indexLeftLeftArrow.SetActive(false);
-                            indexLeftRightArrow.SetActive(true);   
+                            index4LeftLeftArrow.SetActive(false);
+                            index4LeftRightArrow.SetActive(true);   
                         } 
 
                         currentIndexRotationYMax += rotationDelta;
@@ -2743,13 +2848,13 @@ public class ClawModuleController : MonoBehaviour
                     {
                         if (jointAngle.isClockWise == 1f)
                         {
-                            indexRightLeftArrow.SetActive(true);
-                            indexRightRightArrow.SetActive(false);
+                            index4RightLeftArrow.SetActive(true);
+                            index4RightRightArrow.SetActive(false);
                         } 
                         else
                         {
-                            indexRightLeftArrow.SetActive(false);
-                            indexRightRightArrow.SetActive(true);   
+                            index4RightLeftArrow.SetActive(false);
+                            index4RightRightArrow.SetActive(true);   
                         }
 
                         currentIndexRotationYMin += rotationDelta;
@@ -2969,10 +3074,10 @@ public class ClawModuleController : MonoBehaviour
 
         if (!canRotateMiddlePronationThisTouch)
         {
-            middleLeftLeftArrow.SetActive(false);
-            middleLeftRightArrow.SetActive(false);
-            middleRightLeftArrow.SetActive(false);
-            middleRightRightArrow.SetActive(false);
+            middle4LeftLeftArrow.SetActive(false);
+            middle4LeftRightArrow.SetActive(false);
+            middle4RightLeftArrow.SetActive(false);
+            middle4RightRightArrow.SetActive(false);
         }
 
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
@@ -3021,13 +3126,13 @@ public class ClawModuleController : MonoBehaviour
                     {
                         if (jointAngle.isClockWise == 1f)
                         {
-                            middleLeftLeftArrow.SetActive(true);
-                            middleLeftRightArrow.SetActive(false);
+                            middle4LeftLeftArrow.SetActive(true);
+                            middle4LeftRightArrow.SetActive(false);
                         } 
                         else
                         {
-                            middleLeftLeftArrow.SetActive(false);
-                            middleLeftRightArrow.SetActive(true);   
+                            middle4LeftLeftArrow.SetActive(false);
+                            middle4LeftRightArrow.SetActive(true);   
                         }
 
                         currentMiddleRotationYMax += rotationDelta;
@@ -3041,13 +3146,13 @@ public class ClawModuleController : MonoBehaviour
                     {
                         if (jointAngle.isClockWise == 1f)
                         {
-                            middleRightLeftArrow.SetActive(true);
-                            middleRightRightArrow.SetActive(false);
+                            middle4RightLeftArrow.SetActive(true);
+                            middle4RightRightArrow.SetActive(false);
                         } 
                         else
                         {
-                            middleRightLeftArrow.SetActive(false);
-                            middleRightRightArrow.SetActive(true);   
+                            middle4RightLeftArrow.SetActive(false);
+                            middle4RightRightArrow.SetActive(true);   
                         }
 
                         currentMiddleRotationYMin += rotationDelta;
