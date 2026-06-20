@@ -40,6 +40,8 @@ public class ControllerLocatorLeft : MonoBehaviour
     public ModeSwitching modeSwitching;
 
     [Header("Hand Separation")]
+    [Tooltip("When L/R controllers are farther apart than this distance (meters), hide the left hand skins and quad")]
+    public float leftHandHideSeparationThreshold = 0.55f;
     [Tooltip("When L/R controllers are farther apart than this distance (meters), switch to the cube + panel fallback")]
     public float fallbackShowSeparationThreshold = 0.75f;
     [Tooltip("When fallback is active, hide it only after L/R controllers are closer than this distance (meters)")]
@@ -54,6 +56,7 @@ public class ControllerLocatorLeft : MonoBehaviour
     private bool wasAlwaysShowCanvasPlane;
     private float leftHandHiddenTimer;
     private bool isFallbackVisualsActive;
+    private bool shouldHideLeftHandByDistance;
 
     void Awake()
     {
@@ -84,6 +87,9 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     void Update()
     {
+        RefreshControllerSeparationState();
+        UpdateLeftHandVisualsHiddenState();
+
         InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
         if (!device.isValid)
         {
@@ -203,21 +209,32 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private bool ShouldUseFallbackVisuals()
     {
+        if (!isControllerSeparationValid)
+        {
+            return false;
+        }
+
+        if (!isFallbackVisualsActive)
+        {
+            return currentControllerSeparationDistance > fallbackShowSeparationThreshold;
+        }
+
+        return currentControllerSeparationDistance >= fallbackHideSeparationThreshold;
+    }
+
+    private void RefreshControllerSeparationState()
+    {
         if (!TryGetControllerSeparationDistance(out float controllerDistance))
         {
             isControllerSeparationValid = false;
-            return false;
+            currentControllerSeparationDistance = 0f;
+            shouldHideLeftHandByDistance = false;
+            return;
         }
 
         isControllerSeparationValid = true;
         currentControllerSeparationDistance = controllerDistance;
-
-        if (!isFallbackVisualsActive)
-        {
-            return controllerDistance > fallbackShowSeparationThreshold;
-        }
-
-        return controllerDistance >= fallbackHideSeparationThreshold;
+        shouldHideLeftHandByDistance = controllerDistance > leftHandHideSeparationThreshold;
     }
 
     private bool TryGetControllerSeparationDistance(out float controllerDistance)
@@ -245,26 +262,34 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void ShowFallbackVisuals()
     {
-        if (leftHandRetargetingSkin != null)
-        {
-            leftHandRetargetingSkin.SetActive(false);
-            leftHandOriginalSkin.SetActive(false);
-            leftQuad.SetActive(false);
-        }
-
+        UpdateLeftHandVisualsHiddenState();
         leftHandHiddenTimer = 0f;
     }
 
     private void HideFallbackVisuals()
     {
+        UpdateLeftHandVisualsHiddenState();
+        leftHandHiddenTimer = 0f;
+    }
+
+    private void UpdateLeftHandVisualsHiddenState()
+    {
+        bool shouldHideLeftHandVisuals = shouldHideLeftHandByDistance || isFallbackVisualsActive;
+
         if (leftHandRetargetingSkin != null)
         {
-            leftHandRetargetingSkin.SetActive(true);
-            leftHandOriginalSkin.SetActive(true);
-            leftQuad.SetActive(true);
+            leftHandRetargetingSkin.SetActive(!shouldHideLeftHandVisuals);
         }
 
-        leftHandHiddenTimer = 0f;
+        if (leftHandOriginalSkin != null)
+        {
+            leftHandOriginalSkin.SetActive(!shouldHideLeftHandVisuals);
+        }
+
+        if (leftQuad != null)
+        {
+            leftQuad.SetActive(!shouldHideLeftHandVisuals);
+        }
     }
 
     private void KeepCanvasPlaneAttachedForPreview(bool restoreInitialTransform)
