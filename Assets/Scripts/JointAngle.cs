@@ -130,6 +130,29 @@ public class JointAngle : MonoBehaviour
     private const float DIAG_LOG_INTERVAL = 0.5f;
     private bool _lastModeManipulate = false;
 
+    // ─── Angle Smoothing ─────────────────────────────────────────────────────
+    private struct AngleFilterState { public bool init; public float val; }
+
+    [Header("Angle Smoothing")]
+    [Tooltip("ON: apply delta-clamp outlier reject + EMA to all raw joint angles before they are read by ClawModuleController.")]
+    public bool enableAngleSmoothing = true;
+    [Range(0.05f, 1f)]
+    [Tooltip("EMA alpha for bone-flexion angles (thumbAngle1, indexAngle1/2, middleAngle1/2). Lower = smoother but more lag.")]
+    public float flexionSmoothAlpha = 0.25f;
+    [Range(0.05f, 1f)]
+    [Tooltip("EMA alpha for palm-plane angles (thumbPalmAngle, wristThumbAngle, indexMiddleAngleOnPalm, baselines).")]
+    public float palmAngleSmoothAlpha = 0.15f;
+    [Tooltip("Max degrees a bone-flexion angle may jump in one frame before being clamped.")]
+    public float flexionMaxDeltaDeg = 12f;
+    [Tooltip("Max degrees a palm-plane angle may jump in one frame before being clamped.")]
+    public float palmMaxDeltaDeg = 8f;
+
+    private AngleFilterState _fThumbA0, _fThumbA1;
+    private AngleFilterState _fIndexA0, _fIndexA1, _fIndexA2;
+    private AngleFilterState _fMiddleA0, _fMiddleA1, _fMiddleA2;
+    private AngleFilterState _fThumbPalm, _fWristThumb;
+    private AngleFilterState _fIdxMidAngle, _fIdxBaseline, _fMidBaseline;
+
     void AssignJointIfFound(string key, string objectName)
     {
         GameObject obj = GameObject.Find(objectName);
@@ -216,6 +239,22 @@ public class JointAngle : MonoBehaviour
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Outlier-reject then EMA-smooth a single angle value.
+    /// Call with the raw computed value; the filter state is updated in place.
+    /// When enableAngleSmoothing is false the raw value passes through unchanged.
+    /// </summary>
+    private float ApplyAngleFilter(float raw, ref AngleFilterState f, float maxDelta, float alpha)
+    {
+        if (!enableAngleSmoothing) return raw;
+        if (!f.init) { f.init = true; f.val = raw; return raw; }
+        float delta = raw - f.val;
+        if (Mathf.Abs(delta) > maxDelta)
+            raw = f.val + Mathf.Sign(delta) * maxDelta;
+        f.val = Mathf.Lerp(f.val, raw, alpha);
+        return f.val;
     }
 
     void Start()
@@ -366,27 +405,33 @@ public class JointAngle : MonoBehaviour
 
         UpdateThumbPlane(); // Uncomment this line
 
-        thumbPalmAngle = UpdateThumbPalmAngle();
-        wristThumbAngle = GetWristThumbAngle();
+        thumbPalmAngle    = ApplyAngleFilter(UpdateThumbPalmAngle(),     ref _fThumbPalm,   palmMaxDeltaDeg,    palmAngleSmoothAlpha);
+        wristThumbAngle   = ApplyAngleFilter(GetWristThumbAngle(),        ref _fWristThumb,  palmMaxDeltaDeg,    palmAngleSmoothAlpha);
 
         // thumbAngle0 = GetThumbAngle("Thumb0");
-        thumbAngle0 = joints["Thumb0"].localEulerAngles.z < 100 ? 0 : 360 - joints["Thumb0"].localEulerAngles.z;
-        thumbAngle1 = GetJointAngle("Thumb1", "Thumb0");
+        thumbAngle0 = ApplyAngleFilter(
+            joints["Thumb0"].localEulerAngles.z < 100 ? 0 : 360 - joints["Thumb0"].localEulerAngles.z,
+            ref _fThumbA0, flexionMaxDeltaDeg, flexionSmoothAlpha);
+        thumbAngle1 = ApplyAngleFilter(GetJointAngle("Thumb1", "Thumb0"), ref _fThumbA1,  flexionMaxDeltaDeg, flexionSmoothAlpha);
         // thumbLRAngle = GetRotateAngle("ThumbM", "Thumb0", "Thumb1");
 
-        indexAngle0 = GetJointPalmAngle("Index0");
-        indexAngle1 = GetJointAngle("Index1", "Index0");
-        indexAngle2 = GetJointAngle("Index2", "Index1");
+        indexAngle0 = ApplyAngleFilter(GetJointPalmAngle("Index0"),        ref _fIndexA0, flexionMaxDeltaDeg, flexionSmoothAlpha);
+        indexAngle1 = ApplyAngleFilter(GetJointAngle("Index1", "Index0"),  ref _fIndexA1, flexionMaxDeltaDeg, flexionSmoothAlpha);
+        indexAngle2 = ApplyAngleFilter(GetJointAngle("Index2", "Index1"),  ref _fIndexA2, flexionMaxDeltaDeg, flexionSmoothAlpha);
         // indexLRAngle = GetRotateAngle("IndexM", "Index0", "Index1");
 
-        middleAngle0 = GetJointPalmAngle("Middle0");
-        middleAngle1 = GetJointAngle("Middle1", "Middle0");
-        middleAngle2 = GetJointAngle("Middle2", "Middle1");
+        middleAngle0 = ApplyAngleFilter(GetJointPalmAngle("Middle0"),         ref _fMiddleA0, flexionMaxDeltaDeg, flexionSmoothAlpha);
+        middleAngle1 = ApplyAngleFilter(GetJointAngle("Middle1", "Middle0"),  ref _fMiddleA1, flexionMaxDeltaDeg, flexionSmoothAlpha);
+        middleAngle2 = ApplyAngleFilter(GetJointAngle("Middle2", "Middle1"),  ref _fMiddleA2, flexionMaxDeltaDeg, flexionSmoothAlpha);
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
 
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
         indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
         UpdateIndexMiddleIndependentAnglesAndBaseline();
+        // Filter palm-plane angles after their computation functions have written them
+        indexMiddleAngleOnPalm       = ApplyAngleFilter(indexMiddleAngleOnPalm,       ref _fIdxMidAngle,  palmMaxDeltaDeg, palmAngleSmoothAlpha);
+        indexToBaselineAngleOnPalm   = ApplyAngleFilter(indexToBaselineAngleOnPalm,   ref _fIdxBaseline,  palmMaxDeltaDeg, palmAngleSmoothAlpha);
+        middleToBaselineAngleOnPalm  = ApplyAngleFilter(middleToBaselineAngleOnPalm,  ref _fMidBaseline,  palmMaxDeltaDeg, palmAngleSmoothAlpha);
 
         // Determine which finger to use based on touch detection.
         // Each finger can independently choose legacy mode (2 source points)
