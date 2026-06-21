@@ -29,6 +29,24 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Arrows
     // ==============================
+    public GameObject motor3UpArrow;
+    public GameObject motor3DownArrow;
+    public GameObject motor4UpArrow;
+    public GameObject motor4DownArrow;
+
+    public GameObject motor7UpArrow;
+    public GameObject motor7DownArrow;
+    public GameObject motor8UpArrow;
+    public GameObject motor8DownArrow;
+
+    public GameObject motor11UpArrow;
+    public GameObject motor11DownArrow;
+    public GameObject motor12UpArrow;
+    public GameObject motor12DownArrow;
+
+    private Dictionary<int, GameObject> motorUpArrows = new Dictionary<int, GameObject>();
+    private Dictionary<int, GameObject> motorDownArrows = new Dictionary<int, GameObject>();
+
     public GameObject thumb3RightRightArrow;
     public GameObject thumb3RightLeftArrow;
     public GameObject thumb3LeftRightArrow;
@@ -559,9 +577,45 @@ public class ClawModuleController : MonoBehaviour
 
         useIndexMiddleIndividualMode = false;
 
+        InitializeMotorArrowMappings();
+
         if (useKeyboardControl && modeSwitching != null)
         {
             modeSwitching.enabled = false;
+        }
+    }
+
+    private void InitializeMotorArrowMappings()
+    {
+        motorUpArrows.Clear();
+        motorDownArrows.Clear();
+
+        motorUpArrows[3] = motor3UpArrow;
+        motorDownArrows[3] = motor3DownArrow;
+        motorUpArrows[4] = motor4UpArrow;
+        motorDownArrows[4] = motor4DownArrow;
+        motorUpArrows[7] = motor7UpArrow;
+        motorDownArrows[7] = motor7DownArrow;
+        motorUpArrows[8] = motor8UpArrow;
+        motorDownArrows[8] = motor8DownArrow;
+        motorUpArrows[11] = motor11UpArrow;
+        motorDownArrows[11] = motor11DownArrow;
+        motorUpArrows[12] = motor12UpArrow;
+        motorDownArrows[12] = motor12DownArrow;
+    }
+
+    private void SetMotorArrowState(int motorID, bool upActive, bool downActive)
+    {
+        GameObject upArrow;
+        if (motorUpArrows.TryGetValue(motorID, out upArrow) && upArrow != null)
+        {
+            upArrow.SetActive(upActive);
+        }
+
+        GameObject downArrow;
+        if (motorDownArrows.TryGetValue(motorID, out downArrow) && downArrow != null)
+        {
+            downArrow.SetActive(downActive);
         }
     }
 
@@ -659,6 +713,19 @@ public class ClawModuleController : MonoBehaviour
         middle4RightLeftArrow.SetActive(false);
         middle4LeftRightArrow.SetActive(false);
         middle4LeftLeftArrow.SetActive(false);
+
+        motor3UpArrow.SetActive(false);
+        motor3DownArrow.SetActive(false);
+        motor4UpArrow.SetActive(false);
+        motor4DownArrow.SetActive(false);
+        motor7UpArrow.SetActive(false);
+        motor7DownArrow.SetActive(false);
+        motor8UpArrow.SetActive(false);
+        motor8DownArrow.SetActive(false);
+        motor11UpArrow.SetActive(false);
+        motor11DownArrow.SetActive(false);
+        motor12UpArrow.SetActive(false);
+        motor12DownArrow.SetActive(false);
     }
 
     void Update()
@@ -3556,17 +3623,21 @@ public class ClawModuleController : MonoBehaviour
             float distanceFromMax = Mathf.Abs(currentTotalAngle - currentMaxAngle);
 
             // Debug.Log("angleRange: " + angleRange + ", distanceFromMin: " + distanceFromMin + ", distanceFromMax: " + distanceFromMax);
-
+            
+            SetMotorArrowState(motorID, false, false);
+            
             // If closer to max (moving in positive direction), rotate negative
             if (distanceFromMax < distanceFromMin && angleRange > 15f)
             {
                 currentTipRotation -= rotationSpeed * Time.deltaTime;
                 // Debug.Log("Rotating NEGATIVE (closer to max)");
+                SetMotorArrowState(motorID, true, false);
             }
             // If closer to min (moving in negative direction), rotate positive
             else if (distanceFromMin < distanceFromMax && angleRange > 15f)
             {
                 currentTipRotation += rotationSpeed * Time.deltaTime;
+                SetMotorArrowState(motorID, false, true);
                 // Debug.Log("Rotating POSITIVE (closer to min)");
             }
 
@@ -3577,6 +3648,7 @@ public class ClawModuleController : MonoBehaviour
         else
         {
             relatedMotorTriggered = false;
+            SetMotorArrowState(expectedMotorID, false, false);
             // Debug.Log("No!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");   90 -30
         }
 
