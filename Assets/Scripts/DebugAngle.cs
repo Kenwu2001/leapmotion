@@ -22,6 +22,13 @@ public class DebugAngle : MonoBehaviour
 
     public GameObject r_wrist;
 
+    private bool _lastIndexRotationColliderMode = false;
+    private bool _lastMiddleRotationColliderMode = false;
+    private float _latchedIndexEntryAngle = 0f;
+    private bool _hasLatchedIndexEntryAngle = false;
+    private float _latchedMiddleEntryAngle = 0f;
+    private bool _hasLatchedMiddleEntryAngle = false;
+
     // middle 59 58 57
     // index 302 303 304
 
@@ -111,12 +118,34 @@ public class DebugAngle : MonoBehaviour
       string leftToThumbAngle = jointAngle != null ? jointAngle.leftIndexTipToRightThumbTipAngle.ToString("F2") : "N/A";
       string leftToIndexAngle = jointAngle != null ? jointAngle.leftIndexTipToRightIndexTipAngle.ToString("F2") : "N/A";
       string leftToMiddleAngle = jointAngle != null ? jointAngle.leftIndexTipToRightMiddleTipAngle.ToString("F2") : "N/A";
+
+      bool currentIndexRotationColliderMode = jointAngle != null && jointAngle.indexRotationColliderMode;
+      if (currentIndexRotationColliderMode && !_lastIndexRotationColliderMode && jointAngle != null)
+      {
+        _latchedIndexEntryAngle = jointAngle.leftIndexTipToRightIndexTipAngle;
+        _hasLatchedIndexEntryAngle = true;
+      }
+      _lastIndexRotationColliderMode = currentIndexRotationColliderMode;
+
+      bool currentMiddleRotationColliderMode = jointAngle != null && jointAngle.middleRotationColliderMode;
+      if (currentMiddleRotationColliderMode && !_lastMiddleRotationColliderMode && jointAngle != null)
+      {
+        _latchedMiddleEntryAngle = jointAngle.leftIndexTipToRightMiddleTipAngle;
+        _hasLatchedMiddleEntryAngle = true;
+      }
+      _lastMiddleRotationColliderMode = currentMiddleRotationColliderMode;
       
       // Index Rotation Collider Debug Info
       string indexRotationColliderModeText = jointAngle != null ? jointAngle.indexRotationColliderMode.ToString() : "N/A";
       string enterRightIndexWithOldRotationText = jointAngle != null ? jointAngle.enterRightIndexWithOldRotation.ToString() : "N/A";
       string enterRightIndexWithNewRotationText = jointAngle != null ? jointAngle.enterRightIndexWithNewRotation.ToString() : "N/A";
-      string entryAngleText = jointAngle != null ? jointAngle.leftIndexTipToRightIndexTipAngle.ToString("F2") : "N/A";
+      string entryAngleText = _hasLatchedIndexEntryAngle ? _latchedIndexEntryAngle.ToString("F2") : "N/A";
+
+      // Middle Rotation Collider Debug Info
+      string middleRotationColliderModeText = jointAngle != null ? jointAngle.middleRotationColliderMode.ToString() : "N/A";
+      string enterRightMiddleWithOldRotationText = jointAngle != null ? jointAngle.enterRightMiddleWithOldRotation.ToString() : "N/A";
+      string enterRightMiddleWithNewRotationText = jointAngle != null ? jointAngle.enterRightMiddleWithNewRotation.ToString() : "N/A";
+      string middleEntryAngleText = _hasLatchedMiddleEntryAngle ? _latchedMiddleEntryAngle.ToString("F2") : "N/A";
       
       string planeDebug = GetPlaneActivationDebug();
       string syncLogState = BuildSelectMotorLogSyncState();
@@ -171,7 +200,12 @@ public class DebugAngle : MonoBehaviour
         "indexRotationColliderMode: " + indexRotationColliderModeText + "\n" +
         "enterRightIndexWithOldRotation: " + enterRightIndexWithOldRotationText + "\n" +
         "enterRightIndexWithNewRotation: " + enterRightIndexWithNewRotationText + "\n" +
-        "Entry Angle (L_IndexTipSmall -> R_index_c): " + entryAngleText + " deg\n";
+        "Entry Angle (L_IndexTipSmall -> R_index_c): " + entryAngleText + " deg\n" +
+        "\n[Middle Rotation Collider Debug]\n" +
+        "middleRotationColliderMode: " + middleRotationColliderModeText + "\n" +
+        "enterRightMiddleWithOldRotation: " + enterRightMiddleWithOldRotationText + "\n" +
+        "enterRightMiddleWithNewRotation: " + enterRightMiddleWithNewRotationText + "\n" +
+        "Entry Angle (L_IndexTipSmall -> R_middle_c): " + middleEntryAngleText + " deg\n";
         // "[ThumbOnly Mode]: " + thumbOnlyModeText +
         // "\nThumb Legacy Touch: " + (jointAngle != null ? jointAngle.thumbLegacyTouch.ToString() : "N/A") +
         // "\nIndex Legacy Touch: " + (jointAngle != null ? jointAngle.indexLegacyTouch.ToString() : "N/A") + "\n" +

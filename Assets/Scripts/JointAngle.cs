@@ -36,7 +36,17 @@ public class JointAngle : MonoBehaviour
     // when index rotation collider is touched, enter the new rotation mode for index finger
     // if leftIndexTipToRightIndexTipAngle is positive the moment indexRotationColliderMode beomes true
     // once the indexRotationColliderMode bocomes false, reset enterRightIndexWithNewRotation to false
-    public bool enterRightIndexWithNewRotation = false; 
+    public bool enterRightIndexWithNewRotation = false;
+
+    // when middle rotation collider is touched, enter the old rotation mode (legacy mode) for middle finger
+    // if leftIndexTipToRightMiddleTipAngle is negtive the moment middleRotationColliderMode beomes true
+    // once the middleRotationColliderMode bocomes false, reset enterRightMiddleWithOldRotation to false
+    public bool enterRightMiddleWithOldRotation = false;
+    
+    // when middle rotation collider is touched, enter the new rotation mode for middle finger
+    // if leftIndexTipToRightMiddleTipAngle is positive the moment middleRotationColliderMode beomes true
+    // once the middleRotationColliderMode bocomes false, reset enterRightMiddleWithNewRotation to false
+    public bool enterRightMiddleWithNewRotation = false;
 
     public string thumbRotationDebug = "";
     public string indexRotationDebug = "";
@@ -145,6 +155,7 @@ public class JointAngle : MonoBehaviour
     private const float DIAG_LOG_INTERVAL = 0.5f;
     private bool _lastModeManipulate = false;
     private bool _lastIndexRotationColliderMode = false;
+    private bool _lastMiddleRotationColliderMode = false;
 
     // ─── Angle Smoothing ─────────────────────────────────────────────────────
     private struct AngleFilterState { public bool init; public float val; }
@@ -449,6 +460,8 @@ public class JointAngle : MonoBehaviour
 
         UpdateLeftIndexToRightTipAngles();
         UpdateIndexEntryModeFromAngle();
+        UpdateMiddleEntryModeFromAngle();
+        UpdateMiddleEntryModeFromAngle();
 
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
         indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
@@ -545,7 +558,7 @@ public class JointAngle : MonoBehaviour
 
         bool indexLegacyTouch = routedFinger == "Index" && enterRightIndexWithOldRotation && indexColliderTouched && hasIndexTouchPoints &&
             hasIndexLegacyPoints;
-        bool middleLegacyTouch = routedFinger == "Middle" && middleColliderTouched && hasMiddleTouchPoints &&
+        bool middleLegacyTouch = routedFinger == "Middle" && enterRightMiddleWithOldRotation && middleColliderTouched && hasMiddleTouchPoints &&
             hasMiddleLegacyPoints;
         bool thumbLegacyTouch = routedFinger == "Thumb" && thumbColliderTouched && hasThumbTouchPoints &&
             hasThumbLegacyPoints;
@@ -563,10 +576,13 @@ public class JointAngle : MonoBehaviour
         "\nindexLegacyPoints assigned: " + hasIndexLegacyPoints +
         "\nindexNewPoints assigned: " + hasIndexNewPoints;
 
-        middleNewTouch = routedFinger == "Middle" && middleNewRotationMode && middleColliderTouched && hasMiddleTouchPoints && hasMiddleNewPoints;
+        middleNewTouch = routedFinger == "Middle" && enterRightMiddleWithNewRotation && middleColliderTouched && hasMiddleTouchPoints && hasMiddleNewPoints;
 
         middleRotationDebug = " " + middleNewTouch +
-        "\nmiddleNewRotationMode: " + middleNewRotationMode +
+        "\nenterRightMiddleWithOldRotation: " + enterRightMiddleWithOldRotation +
+        "\nenterRightMiddleWithNewRotation: " + enterRightMiddleWithNewRotation +
+        "\nleftIndexTipToRightMiddleTipAngle: " + leftIndexTipToRightMiddleTipAngle +
+        "\nmiddleNewRotationMode(inspector): " + middleNewRotationMode +
         "\nmiddleColliderTouched: " + middleColliderTouched +
         "\nmiddleTouchPoints count: " + (middleTouchPoints != null ? middleTouchPoints.Count : 0) + 
         "\nmiddleLegacyPoints assigned: " + hasMiddleLegacyPoints +
@@ -939,6 +955,33 @@ public class JointAngle : MonoBehaviour
         }
 
         _lastIndexRotationColliderMode = indexRotationColliderMode;
+    }
+
+    private void UpdateMiddleEntryModeFromAngle()
+    {
+        // Latch old/new mode exactly when middle rotation collider mode turns on.
+        if (middleRotationColliderMode && !_lastMiddleRotationColliderMode)
+        {
+            if (leftIndexTipToRightMiddleTipAngle < 0f)
+            {
+                enterRightMiddleWithOldRotation = true;
+                enterRightMiddleWithNewRotation = false;
+            }
+            else
+            {
+                enterRightMiddleWithOldRotation = false;
+                enterRightMiddleWithNewRotation = true;
+            }
+        }
+
+        // When latch is off, clear both mode decisions.
+        if (!middleRotationColliderMode)
+        {
+            enterRightMiddleWithOldRotation = false;
+            enterRightMiddleWithNewRotation = false;
+        }
+
+        _lastMiddleRotationColliderMode = middleRotationColliderMode;
     }
 
     void UpdateIndexMiddleIndependentAnglesAndBaseline()
