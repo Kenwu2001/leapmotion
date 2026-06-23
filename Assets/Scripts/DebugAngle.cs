@@ -108,6 +108,16 @@ public class DebugAngle : MonoBehaviour
 
       string planeActiveRaw = jointAngle != null ? jointAngle.isPlaneActive.ToString() : "N/A";
       string activeFingerRaw = jointAngle != null ? jointAngle.activeFinger : "N/A";
+      string leftToThumbAngle = jointAngle != null ? jointAngle.leftIndexTipToRightThumbTipAngle.ToString("F2") : "N/A";
+      string leftToIndexAngle = jointAngle != null ? jointAngle.leftIndexTipToRightIndexTipAngle.ToString("F2") : "N/A";
+      string leftToMiddleAngle = jointAngle != null ? jointAngle.leftIndexTipToRightMiddleTipAngle.ToString("F2") : "N/A";
+      
+      // Index Rotation Collider Debug Info
+      string indexRotationColliderModeText = jointAngle != null ? jointAngle.indexRotationColliderMode.ToString() : "N/A";
+      string enterRightIndexWithOldRotationText = jointAngle != null ? jointAngle.enterRightIndexWithOldRotation.ToString() : "N/A";
+      string enterRightIndexWithNewRotationText = jointAngle != null ? jointAngle.enterRightIndexWithNewRotation.ToString() : "N/A";
+      string entryAngleText = jointAngle != null ? jointAngle.leftIndexTipToRightIndexTipAngle.ToString("F2") : "N/A";
+      
       string planeDebug = GetPlaneActivationDebug();
       string syncLogState = BuildSelectMotorLogSyncState();
       string newTouchConditionDebug = BuildNewTouchConditionDebug();
@@ -153,17 +163,25 @@ public class DebugAngle : MonoBehaviour
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
         "Finger Priority: " + fingerPriorityText + "\n" +
-        "L/R Controller Distance: " + controllerDistanceText + "\n" +
+        // "L/R Controller Distance: " + controllerDistanceText + "\n" +
+        "L_IndexTipSmall -> R_thumb_b Angle: " + leftToThumbAngle + " deg\n" +
+        "L_IndexTipSmall -> R_index_c Angle: " + leftToIndexAngle + " deg\n" +
+        "L_IndexTipSmall -> R_middle_c Angle: " + leftToMiddleAngle + " deg\n" +
+        "\n[Index Rotation Collider Debug]\n" +
+        "indexRotationColliderMode: " + indexRotationColliderModeText + "\n" +
+        "enterRightIndexWithOldRotation: " + enterRightIndexWithOldRotationText + "\n" +
+        "enterRightIndexWithNewRotation: " + enterRightIndexWithNewRotationText + "\n" +
+        "Entry Angle (L_IndexTipSmall -> R_index_c): " + entryAngleText + " deg\n";
         // "[ThumbOnly Mode]: " + thumbOnlyModeText +
         // "\nThumb Legacy Touch: " + (jointAngle != null ? jointAngle.thumbLegacyTouch.ToString() : "N/A") +
         // "\nIndex Legacy Touch: " + (jointAngle != null ? jointAngle.indexLegacyTouch.ToString() : "N/A") + "\n" +
         // "Middle Legacy Touch: " + (jointAngle != null ? jointAngle.middleLegacyTouch.ToString() : "N/A") +
-        "Plane Active: " + planeActiveRaw + "\n" +
-        "Active Finger: " + activeFingerRaw + "\n" +
+        // "Plane Active: " + planeActiveRaw + "\n" +
+        // "Active Finger: " + activeFingerRaw + "\n" +
         // planeDebug +
-        "\n***indexRotationDebug*** " + jointAngle.indexRotationDebug + "\n" +
-        "\n***middleRotationDebug*** " + jointAngle.middleRotationDebug + "\n" +
-        "\n***thumbRotationDebug*** " + jointAngle.thumbRotationDebug + "\n";
+        // "\n***indexRotationDebug*** " + jointAngle.indexRotationDebug + "\n" +
+        // "\n***middleRotationDebug*** " + jointAngle.middleRotationDebug + "\n" +
+        // "\n***thumbRotationDebug*** " + jointAngle.thumbRotationDebug + "\n";
         // syncLogState;
     }
 

@@ -14,7 +14,12 @@ public class JointAngle : MonoBehaviour
     }
 
     [Header("Target Rotation Tag")]
-    public string targetRotationTag = "L_IndexTipSmall";
+    public string targetRotationTag = "L_IndexTipSmall"; //TODO: left index tip small
+
+    public float leftIndexTipToRightThumbTipAngle; // angle between L_IndexTipSmall local red axis and R_thumb_b local red axis
+    public float leftIndexTipToRightIndexTipAngle; // angle between L_IndexTipSmall local red axis and R_index_c local red axis
+    public float leftIndexTipToRightMiddleTipAngle; // angle between L_IndexTipSmall local red axis and R_middle_c local red axis
+    private Transform leftIndexTipReference;
     
     public GameObject thumbRotationCollider;
     public GameObject indexRotationCollider;
@@ -22,6 +27,16 @@ public class JointAngle : MonoBehaviour
     public bool thumbRotationColliderMode = false;
     public bool indexRotationColliderMode = false;
     public bool middleRotationColliderMode = false;
+
+    // when index rotation collider is touched, enter the old rotation mode (legacy mode) for index finger
+    // if leftIndexTipToRightIndexTipAngle is negtive the moment indexRotationColliderMode beomes true
+    // once the indexRotationColliderMode bocomes false, reset enterRightIndexWithOldRotation to false
+    public bool enterRightIndexWithOldRotation = false; 
+
+    // when index rotation collider is touched, enter the new rotation mode for index finger
+    // if leftIndexTipToRightIndexTipAngle is positive the moment indexRotationColliderMode beomes true
+    // once the indexRotationColliderMode bocomes false, reset enterRightIndexWithNewRotation to false
+    public bool enterRightIndexWithNewRotation = false; 
 
     public string thumbRotationDebug = "";
     public string indexRotationDebug = "";
@@ -129,6 +144,7 @@ public class JointAngle : MonoBehaviour
     private float nextDiagLogTime = 0f;
     private const float DIAG_LOG_INTERVAL = 0.5f;
     private bool _lastModeManipulate = false;
+    private bool _lastIndexRotationColliderMode = false;
 
     // ─── Angle Smoothing ─────────────────────────────────────────────────────
     private struct AngleFilterState { public bool init; public float val; }
@@ -261,19 +277,19 @@ public class JointAngle : MonoBehaviour
     {
         // Thumb joints
         AssignJointIfFound("Thumb0", "R_thumb_a");
-        AssignJointIfFound("Thumb1", "R_thumb_b");
+        AssignJointIfFound("Thumb1", "R_thumb_b"); //TODO: thumb tip
         // joints["ThumbM"] = GameObject.Find("R_thumb_Proximal").transform;
 
         // Index joints
         AssignJointIfFound("Index0", "R_index_Proximal");
         AssignJointIfFound("Index1", "R_index_b");
-        AssignJointIfFound("Index2", "R_index_c");
+        AssignJointIfFound("Index2", "R_index_c"); //TODO: index tip
         // joints["IndexM"] = GameObject.Find("R_index_meta").transform;
 
         // Middle joints
         AssignJointIfFound("Middle0", "R_middle_Proximal");
         AssignJointIfFound("Middle1", "R_middle_b");
-        AssignJointIfFound("Middle2", "R_middle_c");
+        AssignJointIfFound("Middle2", "R_middle_c"); //TODO: middle tip
         // joints["MiddleM"] = GameObject.Find("R_middle_meta").transform;
 
         // Points needed for forming the basic plane of the palm
@@ -284,6 +300,8 @@ public class JointAngle : MonoBehaviour
 
         AssignJointIfFound("L_index0", "L_index_Proximal");
         AssignJointIfFound("L_Thumb_Tip", "L_Thumb_Tip");
+
+        ResolveLeftIndexTipReference();
 
         thumbAngle0 = 0f;
         thumbAngle1 = 0f;
@@ -296,6 +314,10 @@ public class JointAngle : MonoBehaviour
         thumbLRAngle = 0f;
         indexLRAngle = 0f;
         middleLRAngle = 0f;
+
+        leftIndexTipToRightThumbTipAngle = 0f;
+        leftIndexTipToRightIndexTipAngle = 0f;
+        leftIndexTipToRightMiddleTipAngle = 0f;
 
         indexMiddleDistance = 0f;
         indexToBaselineAngleOnPalm = 0f;
@@ -425,6 +447,9 @@ public class JointAngle : MonoBehaviour
         middleAngle2 = ApplyAngleFilter(GetJointAngle("Middle2", "Middle1"),  ref _fMiddleA2, flexionMaxDeltaDeg, flexionSmoothAlpha);
         // middleLRAngle = GetRotateAngle("MiddleM", "Middle0", "Middle1");
 
+        UpdateLeftIndexToRightTipAngles();
+        UpdateIndexEntryModeFromAngle();
+
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
         indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
         UpdateIndexMiddleIndependentAnglesAndBaseline();
@@ -518,18 +543,21 @@ public class JointAngle : MonoBehaviour
             rotationChangeTimer = 0f;
         }
 
-        bool indexLegacyTouch = routedFinger == "Index" && indexColliderTouched && hasIndexTouchPoints &&
+        bool indexLegacyTouch = routedFinger == "Index" && enterRightIndexWithOldRotation && indexColliderTouched && hasIndexTouchPoints &&
             hasIndexLegacyPoints;
         bool middleLegacyTouch = routedFinger == "Middle" && middleColliderTouched && hasMiddleTouchPoints &&
             hasMiddleLegacyPoints;
         bool thumbLegacyTouch = routedFinger == "Thumb" && thumbColliderTouched && hasThumbTouchPoints &&
             hasThumbLegacyPoints;
 
-        //FIXME: why
-        indexNewTouch = routedFinger == "Index" && indexNewRotationMode && indexColliderTouched && hasIndexTouchPoints && hasIndexNewPoints;
+        // Index new/legacy mode is now decided at index rotation collider entry by signed angle.
+        indexNewTouch = routedFinger == "Index" && enterRightIndexWithNewRotation && indexColliderTouched && hasIndexTouchPoints && hasIndexNewPoints;
 
         indexRotationDebug = " " + indexNewTouch + 
-        "\nindexNewRotationMode: " + indexNewRotationMode +
+        "\nenterRightIndexWithOldRotation: " + enterRightIndexWithOldRotation +
+        "\nenterRightIndexWithNewRotation: " + enterRightIndexWithNewRotation +
+        "\nleftIndexTipToRightIndexTipAngle: " + leftIndexTipToRightIndexTipAngle +
+        "\nindexNewRotationMode(inspector): " + indexNewRotationMode +
         "\nindexColliderTouched: " + indexColliderTouched +
         "\nindexTouchPoints count: " + (indexTouchPoints != null ? indexTouchPoints.Count : 0) + 
         "\nindexLegacyPoints assigned: " + hasIndexLegacyPoints +
@@ -822,6 +850,95 @@ public class JointAngle : MonoBehaviour
         }
 
         // Debug.Log("rotationPoint1Position: " + rotationPoint1Position.ToString("F4") + ", rotationPoint0Position: " + rotationPoint0Position.ToString("F4"));
+    }
+
+    private void ResolveLeftIndexTipReference()
+    {
+        // Prefer explicit inspector assignment when available.
+        if (L_index_c != null)
+        {
+            leftIndexTipReference = L_index_c;
+            return;
+        }
+
+        GameObject leftTipByName = GameObject.Find("L_IndexTipSmall");
+        if (leftTipByName != null)
+        {
+            leftIndexTipReference = leftTipByName.transform;
+            return;
+        }
+
+        // Fallback: if targetRotationTag is a real tag, try resolving by tag.
+        if (!string.IsNullOrEmpty(targetRotationTag))
+        {
+            try
+            {
+                GameObject leftTipByTag = GameObject.FindGameObjectWithTag(targetRotationTag);
+                if (leftTipByTag != null)
+                    leftIndexTipReference = leftTipByTag.transform;
+            }
+            catch
+            {
+                // Ignore invalid tag definitions and keep trying other fallbacks.
+            }
+        }
+    }
+
+    private float GetProjectedRedAxisSignedAngleOnTargetRedBluePlane(Transform source, Transform target)
+    {
+        if (source == null || target == null)
+            return 0f;
+
+        // Target red-blue plane is spanned by target.right (red) and target.forward (blue).
+        // Its normal is target.up (green).
+        Vector3 sourceRed = source.right;
+        Vector3 projectedSourceRed = Vector3.ProjectOnPlane(sourceRed, target.up);
+
+        if (projectedSourceRed.sqrMagnitude < 1e-10f)
+            return 0f;
+
+        return Vector3.SignedAngle(target.right, projectedSourceRed.normalized, target.up);
+    }
+
+    private void UpdateLeftIndexToRightTipAngles()
+    {
+        if (leftIndexTipReference == null)
+            ResolveLeftIndexTipReference();
+
+        Transform rightThumbTip = joints.ContainsKey("Thumb1") ? joints["Thumb1"] : null;
+        Transform rightIndexTip = joints.ContainsKey("Index2") ? joints["Index2"] : null;
+        Transform rightMiddleTip = joints.ContainsKey("Middle2") ? joints["Middle2"] : null;
+
+        leftIndexTipToRightThumbTipAngle = GetProjectedRedAxisSignedAngleOnTargetRedBluePlane(leftIndexTipReference, rightThumbTip);
+        leftIndexTipToRightIndexTipAngle = GetProjectedRedAxisSignedAngleOnTargetRedBluePlane(leftIndexTipReference, rightIndexTip);
+        leftIndexTipToRightMiddleTipAngle = GetProjectedRedAxisSignedAngleOnTargetRedBluePlane(leftIndexTipReference, rightMiddleTip);
+    }
+
+    private void UpdateIndexEntryModeFromAngle()
+    {
+        // Latch old/new mode exactly when index rotation collider mode turns on.
+        if (indexRotationColliderMode && !_lastIndexRotationColliderMode)
+        {
+            if (leftIndexTipToRightIndexTipAngle < 0f)
+            {
+                enterRightIndexWithOldRotation = true;
+                enterRightIndexWithNewRotation = false;
+            }
+            else
+            {
+                enterRightIndexWithOldRotation = false;
+                enterRightIndexWithNewRotation = true;
+            }
+        }
+
+        // When latch is off, clear both mode decisions.
+        if (!indexRotationColliderMode)
+        {
+            enterRightIndexWithOldRotation = false;
+            enterRightIndexWithNewRotation = false;
+        }
+
+        _lastIndexRotationColliderMode = indexRotationColliderMode;
     }
 
     void UpdateIndexMiddleIndependentAnglesAndBaseline()
