@@ -19,7 +19,7 @@ Original position
 
 New version
 ![alt text](image-9.png)
--0.03 -0.34 0.09
+-0.03 -0.34 0.09(0.02)
 -214.8 188.9 199.8
 
 ### Unity Scene
