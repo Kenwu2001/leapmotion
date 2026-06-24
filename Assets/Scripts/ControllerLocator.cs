@@ -26,6 +26,7 @@ public class ControllerLocator : MonoBehaviour
             if (target != null)
             {
                 Vector3 localPos = transform.InverseTransformPoint(target.position);
+                Debug.Log($"XR Position: {pos}");
             }
         }
     }

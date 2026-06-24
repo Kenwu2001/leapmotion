@@ -22,6 +22,13 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject leftHandOriginalSkin;
     public GameObject leftQuad;
     public GameObject canvasPlane;
+    public Transform mainCameraTransform;
+    [Tooltip("Added to left-hand world X when placing fallback canvas in world space")]
+    public float fallbackCanvasXOffset = 0f;
+    [Tooltip("Added to main camera world Y when placing fallback canvas in world space")]
+    public float fallbackCanvasYOffset = 0f;
+    [Tooltip("Added to main camera world Z when placing fallback canvas in world space")]
+    public float fallbackCanvasZOffset = 0.3f;
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
     public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
@@ -35,6 +42,8 @@ public class ControllerLocatorLeft : MonoBehaviour
     public float fallbackHorizontalYawOffsetDegrees = 0f;
     [Tooltip("Tilt the panel up from horizontal (90 = stands upright like a TV facing the controller, 0 = lies flat on the ground)")]
     public float fallbackVerticalTiltDegrees = 90f;
+    [Tooltip("Extra local Euler rotation (X/Y/Z) applied to canvasPlane in fallback world pose")]
+    public Vector3 fallbackCanvasRotationOffsetEuler;
 
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
@@ -46,6 +55,8 @@ public class ControllerLocatorLeft : MonoBehaviour
     public float fallbackShowSeparationThreshold = 0.75f;
     [Tooltip("When fallback is active, hide it only after L/R controllers are closer than this distance (meters)")]
     public float fallbackHideSeparationThreshold = 0.5f;
+    [Tooltip("Fallback is allowed only when (MainCameraY - LeftHandY) is below this value (meters)")]
+    public float fallbackMaxMainCameraMinusLeftHandY = 0.05f;
 
     private Transform canvasOriginalParent;
     private Vector3 canvasInitialLocalPosition;
@@ -63,6 +74,11 @@ public class ControllerLocatorLeft : MonoBehaviour
         if (modeSwitching == null)
         {
             modeSwitching = FindObjectOfType<ModeSwitching>();
+        }
+
+        if (mainCameraTransform == null && Camera.main != null)
+        {
+            mainCameraTransform = Camera.main.transform;
         }
 
         if (canvasPlane == null)
@@ -216,10 +232,23 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         if (!isFallbackVisualsActive)
         {
-            return currentControllerSeparationDistance > fallbackShowSeparationThreshold;
+            return currentControllerSeparationDistance > fallbackShowSeparationThreshold &&
+                   IsLeftHandCloseToMainCameraY();
         }
 
         return currentControllerSeparationDistance >= fallbackHideSeparationThreshold;
+    }
+
+    private bool IsLeftHandCloseToMainCameraY()
+    {
+        if (!TryGetLeftHandControllerWorldPosition(out Vector3 leftHandWorldPosition) ||
+            !TryGetMainCameraWorldPosition(out Vector3 mainCameraWorldPosition))
+        {
+            return false;
+        }
+
+        float mainCameraMinusLeftHandY = mainCameraWorldPosition.y - leftHandWorldPosition.y;
+        return mainCameraMinusLeftHandY < fallbackMaxMainCameraMinusLeftHandY;
     }
 
     private void RefreshControllerSeparationState()
@@ -362,18 +391,75 @@ public class ControllerLocatorLeft : MonoBehaviour
             horizontalForward = Vector3.forward;
         }
 
-        Quaternion horizontalRotation = Quaternion.LookRotation(horizontalForward.normalized, Vector3.up) *
-                                        Quaternion.Euler(0f, fallbackHorizontalYawOffsetDegrees, 0f);
-        Vector3 worldPosition = transform.position + (horizontalRotation * canvasInitialLocalPosition);
-        Quaternion worldRotation = horizontalRotation *
-                                   Quaternion.Euler(fallbackVerticalTiltDegrees, 0f, 0f) *
-                                   canvasInitialLocalRotation;
+        Vector3 worldPosition;
+        if (TryGetLeftHandControllerWorldPosition(out Vector3 leftHandWorldPosition) &&
+            TryGetMainCameraWorldPosition(out Vector3 mainCameraWorldPosition))
+        {
+            worldPosition = new Vector3(
+                leftHandWorldPosition.x + fallbackCanvasXOffset,
+                mainCameraWorldPosition.y + fallbackCanvasYOffset,
+                mainCameraWorldPosition.z + fallbackCanvasZOffset
+            );
+        }
+        else
+        {
+            Quaternion horizontalRotation = Quaternion.LookRotation(horizontalForward.normalized, Vector3.up);
+            worldPosition = transform.position + (horizontalRotation * canvasInitialLocalPosition);
+        }
+
+        // Use pure world-space Euler rotation, independent of any parent transforms
+        Quaternion worldRotation = Quaternion.Euler(
+            fallbackVerticalTiltDegrees + fallbackCanvasRotationOffsetEuler.x,
+            fallbackHorizontalYawOffsetDegrees + fallbackCanvasRotationOffsetEuler.y,
+            fallbackCanvasRotationOffsetEuler.z
+        );
 
         canvasTransform.SetParent(null, false);
         canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
         canvasTransform.localScale = canvasInitialLocalScale;
         SetCanvasVisibility(true);
         isCanvasFrozenInWorld = true;
+    }
+
+    private bool TryGetLeftHandControllerWorldPosition(out Vector3 leftHandWorldPosition)
+    {
+        leftHandWorldPosition = Vector3.zero;
+
+        InputDevice leftDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        if (!leftDevice.isValid)
+        {
+            return false;
+        }
+
+        if (!leftDevice.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 leftHandTrackingPosition))
+        {
+            return false;
+        }
+
+        Transform parentTransform = transform.parent;
+        leftHandWorldPosition = parentTransform != null
+            ? parentTransform.TransformPoint(leftHandTrackingPosition)
+            : leftHandTrackingPosition;
+
+        return true;
+    }
+
+    private bool TryGetMainCameraWorldPosition(out Vector3 mainCameraWorldPosition)
+    {
+        mainCameraWorldPosition = Vector3.zero;
+
+        if (mainCameraTransform == null && Camera.main != null)
+        {
+            mainCameraTransform = Camera.main.transform;
+        }
+
+        if (mainCameraTransform == null)
+        {
+            return false;
+        }
+
+        mainCameraWorldPosition = mainCameraTransform.position;
+        return true;
     }
 
     private Vector3 GetFallbackReferenceDirection()
