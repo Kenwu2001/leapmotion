@@ -42,6 +42,8 @@ public class ModeSwitching : MonoBehaviour
     [Header("Selection Timing")]
     [Tooltip("How many seconds to confirm selection (turn dark red)")]
     public float confirmationTime = 0.25f; // Confirm after exceeding this time
+    [Tooltip("Faster confirmation time for fingertip motors (4, 8, 12) to allow quick switching between fingers")]
+    public float fingertipConfirmationTime = 0.08f;
     
     public bool modeSelect = true;
     public bool motorSelected = false;
@@ -171,7 +173,10 @@ public class ModeSwitching : MonoBehaviour
             else if (currentMotorID != 0)
             {
                 // Continuously touching the same motor - check if confirmation time exceeded
-                if (!isConfirmed && (Time.time - touchStartTime) >= confirmationTime)
+                // Use faster confirmation time when crossing finger groups (e.g., from index to thumb)
+                bool isCrossFingerSwitch = confirmedMotorID != 0 && !IsSameFingerGroup(confirmedMotorID, currentMotorID);
+                float requiredConfirmTime = isCrossFingerSwitch ? fingertipConfirmationTime : confirmationTime;
+                if (!isConfirmed && (Time.time - touchStartTime) >= requiredConfirmTime)
                 {
                     // Exceeded confirmation time, turn dark red (confirmed selection)
                     isConfirmed = true;

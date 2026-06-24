@@ -32,8 +32,8 @@ public class HUDText : MonoBehaviour
         string engagementColor = isEngaged ? "green" : "white";
 
         textMesh.text =
+            $"<color={engagementColor}>{engagementText}</color>\n" +
             $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
-            $"<color={individualColor}>{indexMiddleText}</color>\n" +
-            $"<color={engagementColor}>{engagementText}</color>";
+            $"<color={individualColor}>{indexMiddleText}</color>\n";
     }
 }
