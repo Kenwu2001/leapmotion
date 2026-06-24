@@ -23,13 +23,13 @@ public class ManipulationColliderManager : MonoBehaviour
 
     [Header("Manipulation Retargeting Colliders")]
     [Tooltip("Collider used during manipulate mode for thumb retargeting (Motor 1-4 / 13)")]
-    public Collider thumbManipulateRetargetingCollider;
+    public Collider thumbManipulationRetargetingCollider;
 
     [Tooltip("Collider used during manipulate mode for index retargeting (Motor 5-8 / 14)")]
-    public Collider indexManipulateRetargetingCollider;
+    public Collider indexManipulationRetargetingCollider;
 
     [Tooltip("Collider used during manipulate mode for middle retargeting (Motor 9-12 / 15)")]
-    public Collider middleManipulateRetargetingCollider;
+    public Collider middleManipulationRetargetingCollider;
 
     [Header("Debug Info")]
     public bool isThumbColliderActive = false;
@@ -153,9 +153,9 @@ public class ManipulationColliderManager : MonoBehaviour
         EnableCollider(indexTipCollider, indexEnabled);
         EnableCollider(middleTipCollider, middleEnabled);
 
-        EnableCollider(thumbManipulateRetargetingCollider, false);
-        EnableCollider(indexManipulateRetargetingCollider, false);
-        EnableCollider(middleManipulateRetargetingCollider, false);
+        EnableCollider(thumbManipulationRetargetingCollider, false);
+        EnableCollider(indexManipulationRetargetingCollider, false);
+        EnableCollider(middleManipulationRetargetingCollider, false);
 
         if (enableVerboseLogs)
         {
@@ -170,9 +170,9 @@ public class ManipulationColliderManager : MonoBehaviour
         EnableCollider(indexTipCollider, indexEnabled);
         EnableCollider(middleTipCollider, middleEnabled);
 
-        EnableCollider(thumbManipulateRetargetingCollider, thumbEnabled);
-        EnableCollider(indexManipulateRetargetingCollider, indexEnabled);
-        EnableCollider(middleManipulateRetargetingCollider, middleEnabled);
+        EnableCollider(thumbManipulationRetargetingCollider, thumbEnabled);
+        EnableCollider(indexManipulationRetargetingCollider, indexEnabled);
+        EnableCollider(middleManipulationRetargetingCollider, middleEnabled);
 
         if (enableVerboseLogs)
         {
@@ -186,9 +186,9 @@ public class ManipulationColliderManager : MonoBehaviour
         isIndexColliderActive = indexTipCollider != null && indexTipCollider.enabled;
         isMiddleColliderActive = middleTipCollider != null && middleTipCollider.enabled;
 
-        isThumbRetargetingColliderActive = thumbManipulateRetargetingCollider != null && thumbManipulateRetargetingCollider.enabled;
-        isIndexRetargetingColliderActive = indexManipulateRetargetingCollider != null && indexManipulateRetargetingCollider.enabled;
-        isMiddleRetargetingColliderActive = middleManipulateRetargetingCollider != null && middleManipulateRetargetingCollider.enabled;
+        isThumbRetargetingColliderActive = thumbManipulationRetargetingCollider != null && thumbManipulationRetargetingCollider.enabled;
+        isIndexRetargetingColliderActive = indexManipulationRetargetingCollider != null && indexManipulationRetargetingCollider.enabled;
+        isMiddleRetargetingColliderActive = middleManipulationRetargetingCollider != null && middleManipulationRetargetingCollider.enabled;
     }
 
     private void LogColliderSnapshot(string source)
@@ -201,7 +201,7 @@ public class ManipulationColliderManager : MonoBehaviour
         //     " | " + mode +
         //     $" | confirmedMotorID={confirmed}" +
         //     " | Sel(T/I/M)=" + ColliderState(thumbTipCollider) + "/" + ColliderState(indexTipCollider) + "/" + ColliderState(middleTipCollider) +
-        //     " | Retarget(T/I/M)=" + ColliderState(thumbManipulateRetargetingCollider) + "/" + ColliderState(indexManipulateRetargetingCollider) + "/" + ColliderState(middleManipulateRetargetingCollider)
+        //     " | Retarget(T/I/M)=" + ColliderState(thumbManipulationRetargetingCollider) + "/" + ColliderState(indexManipulationRetargetingCollider) + "/" + ColliderState(middleManipulationRetargetingCollider)
         // );
     }
 

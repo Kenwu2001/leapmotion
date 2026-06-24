@@ -182,8 +182,9 @@ public class DebugAngle : MonoBehaviour
       string fingerPriorityText = fingerPriorityValue switch
       {
         0 => "0 (none)",
-        1 => "1 (index priority, middle blocked)",
-        2 => "2 (middle priority, index blocked)",
+        1 => "1 (thumb priority, index/middle blocked)",
+        2 => "2 (index priority, thumb/middle blocked)",
+        3 => "3 (middle priority, thumb/index blocked)",
         _ => "N/A"
       };
 

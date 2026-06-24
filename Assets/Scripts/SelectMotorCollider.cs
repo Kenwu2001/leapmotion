@@ -15,6 +15,13 @@ public class SelectMotorCollider : MonoBehaviour
     private const int IndexPaxiniMotorID = 14;
     private const int MiddlePaxiniMotorID = 15;
 
+    public Collider thumbSelectionRetargetingCollider;
+    public Collider thumbManipulationRetargetingCollider;
+    public Collider indexSelectionRetargetingCollider;
+    public Collider indexManipulationRetargetingCollider;
+    public Collider middleSelectionRetargetingCollider;
+    public Collider middleManipulationRetargetingCollider;
+
     [Header("12 Motor Colliders (for Thumb only - motors 1-4)")]
     [Tooltip("Drag and drop 12 collider GameObjects here (index 0-11 = motor ID 1-12)")]
     public GameObject[] motorColliders = new GameObject[12];
@@ -65,14 +72,17 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Reference to ModeSwitching — required for freeze gate (Problem 1), confirmed-motor color clear (Problem 2), and mutual exclusion (Problem 3)")]
     public ModeSwitching modeSwitching;
 
-    [Header("=== Priority Colliders (Index vs Middle disambiguation) ===")]
-    [Tooltip("Small collider near index fingertip — last OnTriggerEnter sets index priority, blocking middle projection")]
+    [Header("=== Priority Colliders (Thumb/Index/Middle disambiguation) ===")]
+    [Tooltip("Small collider near thumb fingertip — last OnTriggerEnter sets thumb priority, blocking index/middle projection")]
+    public GameObject thumbPriorityCollider;
+
+    [Tooltip("Small collider near index fingertip — last OnTriggerEnter sets index priority, blocking thumb/middle projection")]
     public GameObject indexPriorityCollider;
 
-    [Tooltip("Small collider near middle fingertip — last OnTriggerEnter sets middle priority, blocking index projection")]
+    [Tooltip("Small collider near middle fingertip — last OnTriggerEnter sets middle priority, blocking thumb/index projection")]
     public GameObject middlePriorityCollider;
 
-    [Tooltip("[Debug] Current finger priority: 0=none, 1=index priority (middle blocked), 2=middle priority (index blocked)")]
+    [Tooltip("[Debug] Current finger priority: 0=none, 1=thumb priority, 2=index priority, 3=middle priority")]
     public int debugFingerPriority = 0;
 
     [Header("=== New Feature: Fingertip Priority Selection ===")]
@@ -203,7 +213,7 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Which finger is frozen (0=none, 4=thumb, 8=index, 12=middle)")]
     public int frozenFingerID = 0;
 
-    // Priority collider state: 0=none, 1=index priority (blocks middle), 2=middle priority (blocks index)
+    // Priority collider state: 0=none, 1=thumb, 2=index, 3=middle
     private int _fingerPriority = 0;
 
     // Track which motor is currently touched (1-12, 0 = none)
@@ -373,18 +383,24 @@ public class SelectMotorCollider : MonoBehaviour
         _middleFreezeLerpTarget = Color.black;
         _middleFreezeLerpColorT = 1f;
 
-        // Setup priority collider detectors (index vs middle disambiguation)
+        // Setup priority collider detectors (thumb/index/middle disambiguation)
+        if (thumbPriorityCollider != null)
+        {
+            var det = thumbPriorityCollider.GetComponent<PriorityColliderDetector>();
+            if (det == null) det = thumbPriorityCollider.AddComponent<PriorityColliderDetector>();
+            det.Initialize(1, targetTag, this);
+        }
         if (indexPriorityCollider != null)
         {
             var det = indexPriorityCollider.GetComponent<PriorityColliderDetector>();
             if (det == null) det = indexPriorityCollider.AddComponent<PriorityColliderDetector>();
-            det.Initialize(1, targetTag, this);
+            det.Initialize(2, targetTag, this);
         }
         if (middlePriorityCollider != null)
         {
             var det = middlePriorityCollider.GetComponent<PriorityColliderDetector>();
             if (det == null) det = middlePriorityCollider.AddComponent<PriorityColliderDetector>();
-            det.Initialize(2, targetTag, this);
+            det.Initialize(3, targetTag, this);
         }
     }
 
@@ -735,6 +751,8 @@ public class SelectMotorCollider : MonoBehaviour
     private void UpdateThumbProjection()
     {
         bool isThumbTouched = triggerRightThumbTip != null && triggerRightThumbTip.isRightThumbTipTouched;
+        // Priority gate: if index or middle priority is active, suppress thumb projection
+        if (_fingerPriority == 2 || _fingerPriority == 3) isThumbTouched = false;
         
         if (!isThumbTouched || leftHandPoint == null || rightThumbPath == null)
         {
@@ -903,6 +921,8 @@ public class SelectMotorCollider : MonoBehaviour
     private void UpdateThumbProjection_TwoPoint()
     {
         bool isThumbTouched = triggerRightThumbTip != null && triggerRightThumbTip.isRightThumbTipTouched;
+        // Priority gate: if index or middle priority is active, suppress thumb projection
+        if (_fingerPriority == 2 || _fingerPriority == 3) isThumbTouched = false;
         
         if (!isThumbTouched || leftHandPoint == null || rightThumbPath == null)
         {
@@ -1127,8 +1147,8 @@ public class SelectMotorCollider : MonoBehaviour
     {
         // Check if index finger is being touched
         bool isIndexTouched = triggerRightIndexTip != null && triggerRightIndexTip.isRightIndexTipTouched;
-        // Priority gate: if middle priority is active, suppress index projection
-        if (_fingerPriority == 2) isIndexTouched = false;
+        // Priority gate: if thumb or middle priority is active, suppress index projection
+        if (_fingerPriority == 1 || _fingerPriority == 3) isIndexTouched = false;
         
         if (!isIndexTouched || leftHandPoint == null || rightIndexPath == null)
         {
@@ -1320,8 +1340,8 @@ public class SelectMotorCollider : MonoBehaviour
     {
         // Check if middle finger is being touched
         bool isMiddleTouched = triggerRightMiddleTip != null && triggerRightMiddleTip.isRightMiddleTipTouched;
-        // Priority gate: if index priority is active, suppress middle projection
-        if (_fingerPriority == 1) isMiddleTouched = false;
+        // Priority gate: if thumb or index priority is active, suppress middle projection
+        if (_fingerPriority == 1 || _fingerPriority == 2) isMiddleTouched = false;
         
         if (!isMiddleTouched || leftHandPoint == null || rightMiddlePath == null)
         {
@@ -1514,8 +1534,8 @@ public class SelectMotorCollider : MonoBehaviour
     private void UpdateIndexFingerProjection_TwoPoint()
     {
         bool isIndexTouched = triggerRightIndexTip != null && triggerRightIndexTip.isRightIndexTipTouched;
-        // Priority gate: if middle priority is active, suppress index projection
-        if (_fingerPriority == 2) isIndexTouched = false;
+        // Priority gate: if thumb or middle priority is active, suppress index projection
+        if (_fingerPriority == 1 || _fingerPriority == 3) isIndexTouched = false;
         
         if (!isIndexTouched || leftHandPoint == null || rightIndexPath == null)
         {
@@ -1755,8 +1775,8 @@ public class SelectMotorCollider : MonoBehaviour
     private void UpdateMiddleFingerProjection_TwoPoint()
     {
         bool isMiddleTouched = triggerRightMiddleTip != null && triggerRightMiddleTip.isRightMiddleTipTouched;
-        // Priority gate: if index priority is active, suppress middle projection
-        if (_fingerPriority == 1) isMiddleTouched = false;
+        // Priority gate: if thumb or index priority is active, suppress middle projection
+        if (_fingerPriority == 1 || _fingerPriority == 2) isMiddleTouched = false;
         
         if (!isMiddleTouched || leftHandPoint == null || rightMiddlePath == null)
         {
@@ -3006,10 +3026,10 @@ public class SelectMotorCollider : MonoBehaviour
     }
 }
 
-// Attached to indexPriorityCollider / middlePriorityCollider to detect L_IndexTipSmall contact
+// Attached to thumb/index/middle priority colliders to detect L_IndexTipSmall contact
 internal class PriorityColliderDetector : MonoBehaviour
 {
-    private int priorityType; // 1 = index priority, 2 = middle priority
+    private int priorityType; // 1 = thumb priority, 2 = index priority, 3 = middle priority
     private string targetTag;
     private SelectMotorCollider manager;
 
