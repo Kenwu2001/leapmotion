@@ -28,6 +28,18 @@ public class JointAngle : MonoBehaviour
     public bool indexRotationColliderMode = false;
     public bool middleRotationColliderMode = false;
 
+    //TODO: thumb legacy mode and new mode, index legacy mode and new mode, middle legacy mode and new mode
+
+    // when thumb rotation collider is touched, enter the old rotation mode (legacy mode) for thumb
+    // if leftIndexTipToRightThumbTipAngle is negtive the moment thumbRotationColliderMode beomes true
+    // once the thumbRotationColliderMode bocomes false, reset enterRightThumbWithOldRotation to false
+    public bool enterRightThumbWithOldRotation = false;
+
+    // when thumb rotation collider is touched, enter the new rotation mode for thumb
+    // if leftIndexTipToRightThumbTipAngle is positive the moment thumbRotationColliderMode beomes true
+    // once the thumbRotationColliderMode bocomes false, reset enterRightThumbWithNewRotation to false
+    public bool enterRightThumbWithNewRotation = false;
+
     // when index rotation collider is touched, enter the old rotation mode (legacy mode) for index finger
     // if leftIndexTipToRightIndexTipAngle is negtive the moment indexRotationColliderMode beomes true
     // once the indexRotationColliderMode bocomes false, reset enterRightIndexWithOldRotation to false
@@ -156,6 +168,7 @@ public class JointAngle : MonoBehaviour
     private bool _lastModeManipulate = false;
     private bool _lastIndexRotationColliderMode = false;
     private bool _lastMiddleRotationColliderMode = false;
+    private bool _lastThumbRotationColliderMode = false;
 
     // ─── Angle Smoothing ─────────────────────────────────────────────────────
     private struct AngleFilterState { public bool init; public float val; }
@@ -461,7 +474,7 @@ public class JointAngle : MonoBehaviour
         UpdateLeftIndexToRightTipAngles();
         UpdateIndexEntryModeFromAngle();
         UpdateMiddleEntryModeFromAngle();
-        UpdateMiddleEntryModeFromAngle();
+        UpdateThumbEntryModeFromAngle();
 
         indexMiddleDistance = GetProjectedDistanceOnPalm("Index1", "Middle1") * 100f;
         indexMiddleAngleOnPalm = GetIndexMiddleAngleOnPalm();
@@ -560,7 +573,7 @@ public class JointAngle : MonoBehaviour
             hasIndexLegacyPoints;
         bool middleLegacyTouch = routedFinger == "Middle" && enterRightMiddleWithOldRotation && middleColliderTouched && hasMiddleTouchPoints &&
             hasMiddleLegacyPoints;
-        bool thumbLegacyTouch = routedFinger == "Thumb" && thumbColliderTouched && hasThumbTouchPoints &&
+        bool thumbLegacyTouch = routedFinger == "Thumb" && enterRightThumbWithOldRotation && thumbColliderTouched && hasThumbTouchPoints &&
             hasThumbLegacyPoints;
 
         // Index new/legacy mode is now decided at index rotation collider entry by signed angle.
@@ -588,9 +601,12 @@ public class JointAngle : MonoBehaviour
         "\nmiddleLegacyPoints assigned: " + hasMiddleLegacyPoints +
         "\nmiddleNewPoints assigned: " + hasMiddleNewPoints;
 
-        thumbNewTouch = routedFinger == "Thumb" && thumbNewRotationMode && thumbColliderTouched && hasThumbTouchPoints && hasThumbNewPoints;
+        thumbNewTouch = routedFinger == "Thumb" && enterRightThumbWithNewRotation && thumbColliderTouched && hasThumbTouchPoints && hasThumbNewPoints;
 
         thumbRotationDebug = " " + thumbNewTouch +
+        "\nenterRightThumbWithOldRotation: " + enterRightThumbWithOldRotation +
+        "\nenterRightThumbWithNewRotation: " + enterRightThumbWithNewRotation +
+        "\nleftIndexTipToRightThumbTipAngle: " + leftIndexTipToRightThumbTipAngle +
         "\nthumbNewRotationMode: " + thumbNewRotationMode +
         "\ntriggerRightThumbTip == null: " + (triggerRightThumbTip == null) +
         "\nthumbColliderTouched: " + thumbColliderTouched +
@@ -982,6 +998,33 @@ public class JointAngle : MonoBehaviour
         }
 
         _lastMiddleRotationColliderMode = middleRotationColliderMode;
+    }
+
+    private void UpdateThumbEntryModeFromAngle()
+    {
+        // Latch old/new mode exactly when thumb rotation collider mode turns on.
+        if (thumbRotationColliderMode && !_lastThumbRotationColliderMode)
+        {
+            if (leftIndexTipToRightThumbTipAngle < 0f)
+            {
+                enterRightThumbWithOldRotation = true;
+                enterRightThumbWithNewRotation = false;
+            }
+            else
+            {
+                enterRightThumbWithOldRotation = false;
+                enterRightThumbWithNewRotation = true;
+            }
+        }
+
+        // When latch is off, clear both mode decisions.
+        if (!thumbRotationColliderMode)
+        {
+            enterRightThumbWithOldRotation = false;
+            enterRightThumbWithNewRotation = false;
+        }
+
+        _lastThumbRotationColliderMode = thumbRotationColliderMode;
     }
 
     void UpdateIndexMiddleIndependentAnglesAndBaseline()
