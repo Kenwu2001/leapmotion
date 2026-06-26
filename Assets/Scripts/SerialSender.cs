@@ -7,13 +7,11 @@ public class SerialSender : MonoBehaviour {
     private SerialManager serialmanager;
     public float updateFrequency = 20f; // 20 updates per second
     public ClawModuleController clawModuleController;
-    [Header("Engagement Gate")]
-    [Tooltip("When enabled, serial commands are sent only while engagement is ON.")]
-    public bool gateByEngagement = true;
-    public TcpSender tcpSender;
-    public TriggerRightWrist triggerRightWrist;
 
     public DeltaUserStudy deltaUserStudy;
+
+    private bool loggedPortClosed;
+    private bool loggedMissingClawController;
     
     private void Awake()
     {
@@ -28,31 +26,20 @@ public class SerialSender : MonoBehaviour {
     IEnumerator SendDataCoroutine() {
         while(true) {
             if (serialmanager != null && serialmanager.serialPort != null && serialmanager.serialPort.IsOpen) {
-                if (gateByEngagement)
-                {
-                    bool isEngaged = false;
-
-                    if (tcpSender != null)
-                    {
-                        isEngaged = tcpSender.isSending;
-                    }
-                    else if (triggerRightWrist != null)
-                    {
-                        isEngaged = triggerRightWrist.IsEngaged;
-                    }
-
-                    if (!isEngaged)
-                    {
-                        yield return new WaitForSeconds(1f/updateFrequency);
-                        continue;
-                    }
-                }
+                loggedPortClosed = false;
 
                 if (clawModuleController == null)
                 {
+                    if (!loggedMissingClawController)
+                    {
+                        Debug.LogWarning("SerialSender: clawModuleController is not assigned, skipping serial send.");
+                        loggedMissingClawController = true;
+                    }
                     yield return new WaitForSeconds(1f/updateFrequency);
                     continue;
                 }
+
+                loggedMissingClawController = false;
                 
                 // Format data with all angle variables including LR angles
 
@@ -90,7 +77,20 @@ public class SerialSender : MonoBehaviour {
                 //     0
                 // );
                 
-                serialmanager.serialPort.WriteLine(dataString);
+                try
+                {
+                    // dataString already contains a trailing '\n'.
+                    serialmanager.serialPort.Write(dataString);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError("SerialSender write failed: " + ex.Message);
+                }
+            }
+            else if (!loggedPortClosed)
+            {
+                Debug.LogWarning("SerialSender: serial port is not open yet.");
+                loggedPortClosed = true;
             }
             
             yield return new WaitForSeconds(1f/updateFrequency);
