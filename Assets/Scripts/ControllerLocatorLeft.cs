@@ -3,13 +3,6 @@ using UnityEngine.XR;
 
 public class ControllerLocatorLeft : MonoBehaviour
 {
-    public enum HorizontalFacingAxis
-    {
-        Forward,
-        Up,
-        Right
-    }
-
     [Header("Debug")]
     public Vector3 currentControllerPosition;
     public Vector3 currentControllerEulerAngles;
@@ -22,28 +15,21 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject leftHandOriginalSkin;
     public GameObject leftQuad;
     public GameObject canvasPlane;
-    public Transform mainCameraTransform;
-    [Tooltip("Added to left-hand world X when placing fallback canvas in world space")]
-    public float fallbackCanvasXOffset = 0f;
-    [Tooltip("Added to main camera world Y when placing fallback canvas in world space")]
-    public float fallbackCanvasYOffset = 0f;
-    [Tooltip("Added to main camera world Z when placing fallback canvas in world space")]
-    public float fallbackCanvasZOffset = 0.3f;
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
     public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
     public bool previewCanvasPlaneOffset = false;
     public float canvasShowDelaySeconds = 1f;
 
-    [Header("Fallback Orientation")]
-    [Tooltip("Which LeftControllerLocator axis should define the panel's horizontal facing direction")]
-    public HorizontalFacingAxis fallbackHorizontalFacingAxis = HorizontalFacingAxis.Forward;
-    [Tooltip("Extra yaw offset (degrees) applied after horizontal facing is computed")]
-    public float fallbackHorizontalYawOffsetDegrees = 0f;
-    [Tooltip("Tilt the panel up from horizontal (90 = stands upright like a TV facing the controller, 0 = lies flat on the ground)")]
-    public float fallbackVerticalTiltDegrees = 90f;
-    [Tooltip("Extra local Euler rotation (X/Y/Z) applied to canvasPlane in fallback world pose")]
-    public Vector3 fallbackCanvasRotationOffsetEuler;
+    [Header("Right Hand Follow")]
+    [Tooltip("Local offset from right-hand controller to fallback canvas (X)")]
+    public float rightHandCanvasXOffset = 0f;
+    [Tooltip("Local offset from right-hand controller to fallback canvas (Y)")]
+    public float rightHandCanvasYOffset = 0f;
+    [Tooltip("Local offset from right-hand controller to fallback canvas (Z)")]
+    public float rightHandCanvasZOffset = 0.3f;
+    [Tooltip("Fixed world Euler rotation (X/Y/Z) for fallback canvas while following right-hand position")]
+    public Vector3 rightHandCanvasRotationOffsetEuler;
 
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
@@ -55,8 +41,6 @@ public class ControllerLocatorLeft : MonoBehaviour
     public float fallbackShowSeparationThreshold = 0.75f;
     [Tooltip("When fallback is active, hide it only after L/R controllers are closer than this distance (meters)")]
     public float fallbackHideSeparationThreshold = 0.5f;
-    [Tooltip("Fallback is allowed only when (MainCameraY - LeftHandY) is below this value (meters)")]
-    public float fallbackMaxMainCameraMinusLeftHandY = 0.05f;
 
     private Transform canvasOriginalParent;
     private Vector3 canvasInitialLocalPosition;
@@ -74,11 +58,6 @@ public class ControllerLocatorLeft : MonoBehaviour
         if (modeSwitching == null)
         {
             modeSwitching = FindObjectOfType<ModeSwitching>();
-        }
-
-        if (mainCameraTransform == null && Camera.main != null)
-        {
-            mainCameraTransform = Camera.main.transform;
         }
 
         if (canvasPlane == null)
@@ -204,20 +183,23 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         bool shouldUseFallbackVisuals = ShouldUseFallbackVisuals();
-        if (shouldUseFallbackVisuals == isFallbackVisualsActive)
+
+        if (shouldUseFallbackVisuals)
         {
+            if (!isFallbackVisualsActive)
+            {
+                isFallbackVisualsActive = true;
+                ShowFallbackVisuals();
+                ShowCanvasPlaneFollowingRightHand();
+            }
+
+            UpdateCanvasPlaneFollowingRightHandPose();
             return;
         }
 
-        isFallbackVisualsActive = shouldUseFallbackVisuals;
-
         if (isFallbackVisualsActive)
         {
-            ShowFallbackVisuals();
-            ShowCanvasPlaneAtFrozenWorldPose();
-        }
-        else
-        {
+            isFallbackVisualsActive = false;
             HideFallbackVisuals();
             HideCanvasPlane();
         }
@@ -232,23 +214,10 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         if (!isFallbackVisualsActive)
         {
-            return currentControllerSeparationDistance > fallbackShowSeparationThreshold &&
-                   IsLeftHandCloseToMainCameraY();
+            return currentControllerSeparationDistance > fallbackShowSeparationThreshold;
         }
 
         return currentControllerSeparationDistance >= fallbackHideSeparationThreshold;
-    }
-
-    private bool IsLeftHandCloseToMainCameraY()
-    {
-        if (!TryGetLeftHandControllerWorldPosition(out Vector3 leftHandWorldPosition) ||
-            !TryGetMainCameraWorldPosition(out Vector3 mainCameraWorldPosition))
-        {
-            return false;
-        }
-
-        float mainCameraMinusLeftHandY = mainCameraWorldPosition.y - leftHandWorldPosition.y;
-        return mainCameraMinusLeftHandY < fallbackMaxMainCameraMinusLeftHandY;
     }
 
     private void RefreshControllerSeparationState()
@@ -371,109 +340,71 @@ public class ControllerLocatorLeft : MonoBehaviour
         leftHandHiddenTimer = 0f;
     }
 
-    private void ShowCanvasPlaneAtFrozenWorldPose()
+    private void ShowCanvasPlaneFollowingRightHand()
     {
-        if (isCanvasFrozenInWorld)
+        Transform canvasTransform = canvasPlane.transform;
+        canvasTransform.SetParent(null, false);
+        SetCanvasVisibility(true);
+        isCanvasFrozenInWorld = true;
+        UpdateCanvasPlaneFollowingRightHandPose();
+    }
+
+    private void UpdateCanvasPlaneFollowingRightHandPose()
+    {
+        if (!isFallbackVisualsActive || canvasPlane == null)
+        {
+            return;
+        }
+
+        if (!TryGetRightHandControllerWorldPose(out Vector3 rightHandWorldPosition, out Quaternion rightHandWorldRotation))
         {
             return;
         }
 
         Transform canvasTransform = canvasPlane.transform;
-        Vector3 referenceDirection = GetFallbackReferenceDirection();
-        Vector3 horizontalForward = Vector3.ProjectOnPlane(referenceDirection, Vector3.up);
-        if (horizontalForward.sqrMagnitude < 0.0001f)
-        {
-            horizontalForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
-        }
-
-        if (horizontalForward.sqrMagnitude < 0.0001f)
-        {
-            horizontalForward = Vector3.forward;
-        }
-
-        Vector3 worldPosition;
-        if (TryGetLeftHandControllerWorldPosition(out Vector3 leftHandWorldPosition) &&
-            TryGetMainCameraWorldPosition(out Vector3 mainCameraWorldPosition))
-        {
-            worldPosition = new Vector3(
-                leftHandWorldPosition.x + fallbackCanvasXOffset,
-                mainCameraWorldPosition.y + fallbackCanvasYOffset,
-                mainCameraWorldPosition.z + fallbackCanvasZOffset
-            );
-        }
-        else
-        {
-            Quaternion horizontalRotation = Quaternion.LookRotation(horizontalForward.normalized, Vector3.up);
-            worldPosition = transform.position + (horizontalRotation * canvasInitialLocalPosition);
-        }
-
-        // Use pure world-space Euler rotation, independent of any parent transforms
-        Quaternion worldRotation = Quaternion.Euler(
-            fallbackVerticalTiltDegrees + fallbackCanvasRotationOffsetEuler.x,
-            fallbackHorizontalYawOffsetDegrees + fallbackCanvasRotationOffsetEuler.y,
-            fallbackCanvasRotationOffsetEuler.z
+        Vector3 localOffset = new Vector3(
+            rightHandCanvasXOffset,
+            rightHandCanvasYOffset,
+            rightHandCanvasZOffset
         );
 
-        canvasTransform.SetParent(null, false);
+        Vector3 worldPosition = rightHandWorldPosition + (rightHandWorldRotation * localOffset);
+        Quaternion worldRotation = Quaternion.Euler(rightHandCanvasRotationOffsetEuler);
+
         canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
         canvasTransform.localScale = canvasInitialLocalScale;
-        SetCanvasVisibility(true);
-        isCanvasFrozenInWorld = true;
     }
 
-    private bool TryGetLeftHandControllerWorldPosition(out Vector3 leftHandWorldPosition)
+    private bool TryGetRightHandControllerWorldPose(out Vector3 rightHandWorldPosition, out Quaternion rightHandWorldRotation)
     {
-        leftHandWorldPosition = Vector3.zero;
+        rightHandWorldPosition = Vector3.zero;
+        rightHandWorldRotation = Quaternion.identity;
 
-        InputDevice leftDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        if (!leftDevice.isValid)
+        InputDevice rightDevice = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        if (!rightDevice.isValid)
         {
             return false;
         }
 
-        if (!leftDevice.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 leftHandTrackingPosition))
+        if (!rightDevice.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 rightHandTrackingPosition) ||
+            !rightDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out Quaternion rightHandTrackingRotation))
         {
             return false;
         }
 
         Transform parentTransform = transform.parent;
-        leftHandWorldPosition = parentTransform != null
-            ? parentTransform.TransformPoint(leftHandTrackingPosition)
-            : leftHandTrackingPosition;
+        if (parentTransform != null)
+        {
+            rightHandWorldPosition = parentTransform.TransformPoint(rightHandTrackingPosition);
+            rightHandWorldRotation = parentTransform.rotation * rightHandTrackingRotation;
+        }
+        else
+        {
+            rightHandWorldPosition = rightHandTrackingPosition;
+            rightHandWorldRotation = rightHandTrackingRotation;
+        }
 
         return true;
-    }
-
-    private bool TryGetMainCameraWorldPosition(out Vector3 mainCameraWorldPosition)
-    {
-        mainCameraWorldPosition = Vector3.zero;
-
-        if (mainCameraTransform == null && Camera.main != null)
-        {
-            mainCameraTransform = Camera.main.transform;
-        }
-
-        if (mainCameraTransform == null)
-        {
-            return false;
-        }
-
-        mainCameraWorldPosition = mainCameraTransform.position;
-        return true;
-    }
-
-    private Vector3 GetFallbackReferenceDirection()
-    {
-        switch (fallbackHorizontalFacingAxis)
-        {
-            case HorizontalFacingAxis.Up:
-                return transform.up;
-            case HorizontalFacingAxis.Right:
-                return transform.right;
-            case HorizontalFacingAxis.Forward:
-            default:
-                return transform.forward;
-        }
     }
 
     private void HideCanvasPlane()

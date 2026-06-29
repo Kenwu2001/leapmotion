@@ -190,10 +190,10 @@ public class DebugAngle : MonoBehaviour
 
       //TODO: print here
       angleText.text =
+        "L/R Controller Distance: " + controllerDistanceText + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
         "Finger Priority: " + fingerPriorityText + "\n" +
-        // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         "L_IndexTipSmall -> R_thumb_b Angle: " + leftToThumbAngle + " deg\n" +
         "L_IndexTipSmall -> R_index_c Angle: " + leftToIndexAngle + " deg\n" +
         "L_IndexTipSmall -> R_middle_c Angle: " + leftToMiddleAngle + " deg\n" +
