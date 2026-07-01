@@ -59,3 +59,6 @@ ClawModuleController
 
 #### Index&Middle Individual Line Visual
 ![alt text](image-7.png)
+
+#### Single Finger Snapping
+![alt text](image-11.png)

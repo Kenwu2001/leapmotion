@@ -189,27 +189,29 @@ public class DebugAngle : MonoBehaviour
       };
 
       string allJointLocalEulerText = BuildAllJointLocalEulerText();
+      string touchSnappedText = BuildTouchSnappedText();
 
       //TODO: print here
       angleText.text =
         allJointLocalEulerText +
+        touchSnappedText +
         "L/R Controller Distance: " + controllerDistanceText + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
-        "Rotation Direction: " + rotationDirection + "\n" +
-        "Finger Priority: " + fingerPriorityText + "\n" +
-        "L_IndexTipSmall -> R_thumb_b Angle: " + leftToThumbAngle + " deg\n" +
-        "L_IndexTipSmall -> R_index_c Angle: " + leftToIndexAngle + " deg\n" +
-        "L_IndexTipSmall -> R_middle_c Angle: " + leftToMiddleAngle + " deg\n" +
-        "\n[Index Rotation Collider Debug]\n" +
-        "indexRotationColliderMode: " + indexRotationColliderModeText + "\n" +
-        "enterRightIndexWithOldRotation: " + enterRightIndexWithOldRotationText + "\n" +
-        "enterRightIndexWithNewRotation: " + enterRightIndexWithNewRotationText + "\n" +
-        "Entry Angle (L_IndexTipSmall -> R_index_c): " + entryAngleText + " deg\n" +
-        "\n[Middle Rotation Collider Debug]\n" +
-        "middleRotationColliderMode: " + middleRotationColliderModeText + "\n" +
-        "enterRightMiddleWithOldRotation: " + enterRightMiddleWithOldRotationText + "\n" +
-        "enterRightMiddleWithNewRotation: " + enterRightMiddleWithNewRotationText + "\n" +
-        "Entry Angle (L_IndexTipSmall -> R_middle_c): " + middleEntryAngleText + " deg\n";
+        "Rotation Direction: " + rotationDirection + "\n";
+        // "Finger Priority: " + fingerPriorityText + "\n" +
+        // "L_IndexTipSmall -> R_thumb_b Angle: " + leftToThumbAngle + " deg\n" +
+        // "L_IndexTipSmall -> R_index_c Angle: " + leftToIndexAngle + " deg\n" +
+        // "L_IndexTipSmall -> R_middle_c Angle: " + leftToMiddleAngle + " deg\n" +
+        // "\n[Index Rotation Collider Debug]\n" +
+        // "indexRotationColliderMode: " + indexRotationColliderModeText + "\n" +
+        // "enterRightIndexWithOldRotation: " + enterRightIndexWithOldRotationText + "\n" +
+        // "enterRightIndexWithNewRotation: " + enterRightIndexWithNewRotationText + "\n" +
+        // "Entry Angle (L_IndexTipSmall -> R_index_c): " + entryAngleText + " deg\n" +
+        // "\n[Middle Rotation Collider Debug]\n" +
+        // "middleRotationColliderMode: " + middleRotationColliderModeText + "\n" +
+        // "enterRightMiddleWithOldRotation: " + enterRightMiddleWithOldRotationText + "\n" +
+        // "enterRightMiddleWithNewRotation: " + enterRightMiddleWithNewRotationText + "\n" +
+        // "Entry Angle (L_IndexTipSmall -> R_middle_c): " + middleEntryAngleText + " deg\n";
         // "[ThumbOnly Mode]: " + thumbOnlyModeText +
         // "\nThumb Legacy Touch: " + (jointAngle != null ? jointAngle.thumbLegacyTouch.ToString() : "N/A") +
         // "\nIndex Legacy Touch: " + (jointAngle != null ? jointAngle.indexLegacyTouch.ToString() : "N/A") + "\n" +
@@ -221,6 +223,27 @@ public class DebugAngle : MonoBehaviour
         // "\n***middleRotationDebug*** " + jointAngle.middleRotationDebug + "\n" +
         // "\n***thumbRotationDebug*** " + jointAngle.thumbRotationDebug + "\n";
         // syncLogState;
+    }
+
+    private string BuildTouchSnappedText()
+    {
+      if (paxiniValue == null)
+      {
+        return "[TouchSnapped]\nPaxiniValue: N/A\n";
+      }
+
+      string rxAgeText = paxiniValue.HasReceivedPayload
+        ? paxiniValue.SecondsSinceLastPayload.ToString("F2") + "s"
+        : "N/A";
+
+      return "[TouchSnapped]\n" +
+        "Rx Packets: " + paxiniValue.ReceivedPacketCount + " | Parse Errors: " + paxiniValue.JsonParseErrorCount + " | Last Rx Age: " + rxAgeText + "\n" +
+        "Thresholds -> Zero <= " + paxiniValue.paxiniZeroThreshold.ToString("F2") + ", SnapOn > " + paxiniValue.paxiniSnapOnThreshold.ToString("F2") + "\n" +
+        "Fz Thumb/Index/Middle: " + paxiniValue.LatestFzThumb.ToString("F2") + " / " + paxiniValue.LatestFzIndex.ToString("F2") + " / " + paxiniValue.LatestFzMiddle.ToString("F2") + "\n" +
+        "Zero Flags T/I/M: " + paxiniValue.isThumbPaxiniZero + " / " + paxiniValue.isIndexPaxiniZero + " / " + paxiniValue.isMiddlePaxiniZero + "\n" +
+        "Thumb isTouchSnapped: " + paxiniValue.isThumbTouchSnapped + "\n" +
+        "Index isTouchSnapped: " + paxiniValue.isIndexTouchSnapped + "\n" +
+        "Middle isTouchSnapped: " + paxiniValue.isMiddleTouchSnapped + "\n";
     }
 
     private string BuildAllJointLocalEulerText()
