@@ -140,6 +140,13 @@ public class ClawModuleController : MonoBehaviour
     public bool isFullRangeMapping = true;
 
     // ==============================
+    // 🔹 180snapping types
+    // ==============================
+    public bool isIndexMiddle180SnappingEnabled = false;
+    public bool isThumbIndex180SnappingEnabled = false;
+    public bool isThumbMiddle180SnappingEnabled = false;
+    
+    // ==============================
     // 🔹 Colors
     // ==============================
     private Color originalColor;
@@ -2678,27 +2685,35 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
 
         // 180Snapping range check for thumb to middle finger
-        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 90f); // thumb to left 0->90
+        // thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 90f); // thumb to left 0->90
 
-        // if (ThumbAngle1Center != null)
-        // {
-        //     if (modeSwitching.modeSelect && thumbMiddleInThumbRange && thumbMiddleInMiddleRange)
-        //     {
-        //         Vector3 snapEuler = targetRotation.eulerAngles;
-        //         snapEuler.y = 30f; // adjust snap angle if needed
-        //         ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     }
-        //     else
-        //     {
-        //         ThumbAngle1Center.localRotation = targetRotation;
-        //     }
-        // }
+        // 180Snapping range check for thumb to index finger
+        // thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // thumb to right 359->270
+
+        if (ThumbAngle1Center != null)
+        {
+            if ((modeSwitching.modeSelect && thumbMiddleInThumbRange && thumbMiddleInMiddleRange) || (modeSwitching.modeSelect && isThumbMiddle180SnappingEnabled))
+            {
+                Vector3 snapEuler = targetRotation.eulerAngles;
+                snapEuler.y = 30f; // adjust snap angle if needed
+                ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            }
+            else if ((modeSwitching.modeSelect && thumbIndexInThumbRange && thumbIndexInIndexRange) || (modeSwitching.modeSelect && isThumbIndex180SnappingEnabled))
+            {
+                Vector3 snapEuler = targetRotation.eulerAngles;
+                snapEuler.y = 330f; // adjust snap angle if needed
+                ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            }
+            else
+            {
+                ThumbAngle1Center.localRotation = targetRotation;
+            }
+        }
 
         // if snapping is not active, apply the target rotation directly
-        ThumbAngle1Center.localRotation = targetRotation;
+        // ThumbAngle1Center.localRotation = targetRotation;
 
 
         // singleFingerSnapping
@@ -2998,26 +3013,34 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
         // 180Snapping range check for Y-axis
-        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // index to left 359->270
+        // indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // index to left 359->270
+        
+        // 180Snapping range check for thumb to index finger
+        // thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 1f, 90f); // index to right 0->90
 
-        // if (IndexAngle1Center != null)
-        // {
-        //     if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
-        //     {
-        //         Vector3 snapEuler = targetRotation.eulerAngles;
-        //         snapEuler.y = 330f; // adjust snap angle if needed
-        //         IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     }
-        //     else
-        //     {
-        //         IndexAngle1Center.localRotation = targetRotation;
-        //     }
-        // }
+        if (IndexAngle1Center != null)
+        {
+            if ((modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange) || (modeSwitching.modeSelect && isIndexMiddle180SnappingEnabled))
+            {
+                Vector3 snapEuler = targetRotation.eulerAngles;
+                snapEuler.y = 330f; // adjust snap angle if needed
+                IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            }
+            else if ((modeSwitching.modeSelect && thumbIndexInIndexRange && thumbIndexInThumbRange) || (modeSwitching.modeSelect && isThumbIndex180SnappingEnabled))
+            {
+                Vector3 snapEuler = targetRotation.eulerAngles;
+                snapEuler.y = 30f; // adjust snap angle if needed
+                IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            }
+            else
+            {
+                IndexAngle1Center.localRotation = targetRotation;
+            }
+        }
 
-        IndexAngle1Center.localRotation = targetRotation;
+        // IndexAngle1Center.localRotation = targetRotation;
 
         // singleFingerSnapping
         // if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
@@ -3311,33 +3334,33 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // 180Snapping range check index&middle
-        indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 1f, 90f);  // middle to right 0->90
+        // indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 1f, 90f);  // middle to right 0->90
 
         // 180Snapping range check thumb&middle
-        thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // middle to left 359->270
+        // thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // middle to left 359->270
 
-        // if (MiddleAngle1Center != null)
-        // {
-        //     if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
-        //     {
-        //         Vector3 snapEuler = targetRotation.eulerAngles;
-        //         snapEuler.y = 30f; // adjust snap angle if needed
-        //         MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     }
-        //     else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
-        //     {
-        //         Vector3 snapEuler = targetRotation.eulerAngles;
-        //         snapEuler.y = 330f; // adjust snap angle if needed
-        //         MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-        //     }
-        //     else
-        //     {
-        //         MiddleAngle1Center.localRotation = targetRotation;
-        //     }
-        // }
+        if (MiddleAngle1Center != null)
+        {
+            if ((modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange) || (modeSwitching.modeSelect && isIndexMiddle180SnappingEnabled))
+            {
+                Vector3 snapEuler = targetRotation.eulerAngles;
+                snapEuler.y = 30f; // adjust snap angle if needed
+                MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            }
+            else if ((modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange) || (modeSwitching.modeSelect && isThumbMiddle180SnappingEnabled))
+            {
+                Vector3 snapEuler = targetRotation.eulerAngles;
+                snapEuler.y = 330f; // adjust snap angle if needed
+                MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+            }
+            else
+            {
+                MiddleAngle1Center.localRotation = targetRotation;
+            }
+        }
 
         // if snapping is not needed, just set the rotation directly
-        MiddleAngle1Center.localRotation = targetRotation;
+        // MiddleAngle1Center.localRotation = targetRotation;
 
 
         // singleFingerSnapping
