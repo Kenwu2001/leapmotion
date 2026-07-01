@@ -188,8 +188,11 @@ public class DebugAngle : MonoBehaviour
         _ => "N/A"
       };
 
+      string allJointLocalEulerText = BuildAllJointLocalEulerText();
+
       //TODO: print here
       angleText.text =
+        allJointLocalEulerText +
         "L/R Controller Distance: " + controllerDistanceText + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n" +
@@ -218,6 +221,37 @@ public class DebugAngle : MonoBehaviour
         // "\n***middleRotationDebug*** " + jointAngle.middleRotationDebug + "\n" +
         // "\n***thumbRotationDebug*** " + jointAngle.thumbRotationDebug + "\n";
         // syncLogState;
+    }
+
+    private string BuildAllJointLocalEulerText()
+    {
+      if (clawModuleController == null)
+      {
+        return "[12 Joints LocalEulerAngles]\nClawModuleController: N/A\n";
+      }
+
+      return "[12 Joints LocalEulerAngles]\n" +
+        GetLocalEulerText("Thumb1", clawModuleController.ThumbAngle1Center) + "\n" +
+        GetLocalEulerText("Thumb2", clawModuleController.ThumbAngle2Center) + "\n" +
+        GetLocalEulerText("Thumb3", clawModuleController.ThumbAngle3Center) + "\n" +
+        GetLocalEulerText("Thumb4", clawModuleController.ThumbAngle4Center) + "\n" +
+        GetLocalEulerText("Index1", clawModuleController.IndexAngle1Center) + "\n" +
+        GetLocalEulerText("Index2", clawModuleController.IndexAngle2Center) + "\n" +
+        GetLocalEulerText("Index3", clawModuleController.IndexAngle3Center) + "\n" +
+        GetLocalEulerText("Index4", clawModuleController.IndexAngle4Center) + "\n" +
+        GetLocalEulerText("Middle1", clawModuleController.MiddleAngle1Center) + "\n" +
+        GetLocalEulerText("Middle2", clawModuleController.MiddleAngle2Center) + "\n" +
+        GetLocalEulerText("Middle3", clawModuleController.MiddleAngle3Center) + "\n" +
+        GetLocalEulerText("Middle4", clawModuleController.MiddleAngle4Center) + "\n";
+    }
+
+    private string GetLocalEulerText(string label, Transform t)
+    {
+      if (t == null)
+        return label + ": N/A";
+
+      Vector3 e = t.localEulerAngles;
+      return label + ": (" + e.x.ToString("F2") + ", " + e.y.ToString("F2") + ", " + e.z.ToString("F2") + ")";
     }
 
     private string GetPlaneActivationDebug()

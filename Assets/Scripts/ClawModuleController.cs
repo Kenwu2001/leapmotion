@@ -51,7 +51,7 @@ public class ClawModuleController : MonoBehaviour
     public GameObject thumb3RightLeftArrow;
     public GameObject thumb3LeftRightArrow;
     public GameObject thumb3LeftLeftArrow;
-    
+
     public GameObject index3RightRightArrow;
     public GameObject index3RightLeftArrow;
     public GameObject index3LeftRightArrow;
@@ -553,12 +553,12 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 SMC Freeze Motor Feature State
     // ==============================
-    private bool _smcThumbFreezeWasEnabled  = false;
-    private bool _smcIndexFreezeWasEnabled  = false;
+    private bool _smcThumbFreezeWasEnabled = false;
+    private bool _smcIndexFreezeWasEnabled = false;
     private bool _smcMiddleFreezeWasEnabled = false;
 
-    private Quaternion _smcFrozenThumbM1,  _smcFrozenThumbM2,  _smcFrozenThumbM3,  _smcFrozenThumbM4;
-    private Quaternion _smcFrozenIndexM1,  _smcFrozenIndexM2,  _smcFrozenIndexM3,  _smcFrozenIndexM4;
+    private Quaternion _smcFrozenThumbM1, _smcFrozenThumbM2, _smcFrozenThumbM3, _smcFrozenThumbM4;
+    private Quaternion _smcFrozenIndexM1, _smcFrozenIndexM2, _smcFrozenIndexM3, _smcFrozenIndexM4;
     private Quaternion _smcFrozenMiddleM1, _smcFrozenMiddleM2, _smcFrozenMiddleM3, _smcFrozenMiddleM4;
 
     /// <summary>
@@ -1095,8 +1095,8 @@ public class ClawModuleController : MonoBehaviour
         SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
         if (!smc.enableFreezeMotorFeature)
         {
-            _smcThumbFreezeWasEnabled  = false;
-            _smcIndexFreezeWasEnabled  = false;
+            _smcThumbFreezeWasEnabled = false;
+            _smcIndexFreezeWasEnabled = false;
             _smcMiddleFreezeWasEnabled = false;
             return;
         }
@@ -1564,7 +1564,7 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // snapping
+        // singleFingerSnapping
         if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
         {
             if (!_thumbMotor2Locked && ThumbAngle2Center != null)
@@ -1965,7 +1965,7 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // snapping
+        // singleFingerSnapping
         if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
         {
             if (!_indexMotor2Locked && IndexAngle2Center != null)
@@ -2329,7 +2329,7 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // snapping
+        // singleFingerSnapping
         if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
         {
             if (!_middleMotor2Locked && MiddleAngle2Center != null)
@@ -2678,28 +2678,48 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
-        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 30f);
+        // thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 320f, 340f);
 
-        // snapping
-        if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
-        {
-            if (!_thumbMotor1Locked && ThumbAngle1Center != null)
-            {
-                _thumbMotor1Locked = true;
-                _thumbMotor1LockedRot = ThumbAngle1Center.localRotation;
-            }
+        // 180Snapping range check for thumb to middle finger
+        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 90f); // thumb to left 0->90
 
-            if (ThumbAngle1Center != null)
-                ThumbAngle1Center.localRotation = _thumbMotor1LockedRot;
-        }
-        else
-        {
-            _thumbMotor1Locked = false;
+        // if (ThumbAngle1Center != null)
+        // {
+        //     if (modeSwitching.modeSelect && thumbMiddleInThumbRange && thumbMiddleInMiddleRange)
+        //     {
+        //         Vector3 snapEuler = targetRotation.eulerAngles;
+        //         snapEuler.y = 30f; // adjust snap angle if needed
+        //         ThumbAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     }
+        //     else
+        //     {
+        //         ThumbAngle1Center.localRotation = targetRotation;
+        //     }
+        // }
 
-            if (ThumbAngle1Center != null)
-                ThumbAngle1Center.localRotation = targetRotation;
-        }
+        // if snapping is not active, apply the target rotation directly
+        ThumbAngle1Center.localRotation = targetRotation;
+
+
+        // singleFingerSnapping
+        // if (modeSwitching.modeSelect && paxiniValue.isThumbTouchSnapped)
+        // {
+        //     if (!_thumbMotor1Locked && ThumbAngle1Center != null)
+        //     {
+        //         _thumbMotor1Locked = true;
+        //         _thumbMotor1LockedRot = ThumbAngle1Center.localRotation;
+        //     }
+
+        //     if (ThumbAngle1Center != null)
+        //         ThumbAngle1Center.localRotation = _thumbMotor1LockedRot;
+        // }
+        // else
+        // {
+        //     _thumbMotor1Locked = false;
+
+        //     if (ThumbAngle1Center != null)
+        //         ThumbAngle1Center.localRotation = targetRotation;
+        // }
     }
     #endregion
 
@@ -2898,12 +2918,12 @@ public class ClawModuleController : MonoBehaviour
                         {
                             index4LeftLeftArrow.SetActive(true);
                             index4LeftRightArrow.SetActive(false);
-                        } 
+                        }
                         else
                         {
                             index4LeftLeftArrow.SetActive(false);
-                            index4LeftRightArrow.SetActive(true);   
-                        } 
+                            index4LeftRightArrow.SetActive(true);
+                        }
 
                         currentIndexRotationYMax += rotationDelta;
                         currentIndexRotationYMax = Mathf.Clamp(currentIndexRotationYMax, -90f, 0f);
@@ -2917,11 +2937,11 @@ public class ClawModuleController : MonoBehaviour
                         {
                             index4RightLeftArrow.SetActive(true);
                             index4RightRightArrow.SetActive(false);
-                        } 
+                        }
                         else
                         {
                             index4RightLeftArrow.SetActive(false);
-                            index4RightRightArrow.SetActive(true);   
+                            index4RightRightArrow.SetActive(true);
                         }
 
                         currentIndexRotationYMin += rotationDelta;
@@ -2978,41 +2998,57 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // Snap range check for Y-axis
-        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 295f, 335f);
-        thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
+        // thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 20f, 40f);
 
-        // snapping
-        if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
-        {
-            if (!_indexMotor1Locked && IndexAngle1Center != null)
-            {
-                _indexMotor1Locked = true;
-                _indexMotor1LockedRot = IndexAngle1Center.localRotation;
-            }
+        // 180Snapping range check for Y-axis
+        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // index to left 359->270
 
-            if (IndexAngle1Center != null)
-                IndexAngle1Center.localRotation = _indexMotor1LockedRot;
-        }
-        else
-        {
-            _indexMotor1Locked = false;
+        // if (IndexAngle1Center != null)
+        // {
+        //     if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
+        //     {
+        //         Vector3 snapEuler = targetRotation.eulerAngles;
+        //         snapEuler.y = 330f; // adjust snap angle if needed
+        //         IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     }
+        //     else
+        //     {
+        //         IndexAngle1Center.localRotation = targetRotation;
+        //     }
+        // }
 
-            if (IndexAngle1Center != null)
-            {
-                if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
-                {
-                    // Vector3 snapEuler = targetRotation.eulerAngles;
-                    // snapEuler.y = 330f; // adjust snap angle if needed
-                    // IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-                    IndexAngle1Center.localRotation = targetRotation;
-                }
-                else
-                {
-                    IndexAngle1Center.localRotation = targetRotation;
-                }
-            }
-        }
+        IndexAngle1Center.localRotation = targetRotation;
+
+        // singleFingerSnapping
+        // if (modeSwitching.modeSelect && paxiniValue.isIndexTouchSnapped)
+        // {
+        //     if (!_indexMotor1Locked && IndexAngle1Center != null)
+        //     {
+        //         _indexMotor1Locked = true;
+        //         _indexMotor1LockedRot = IndexAngle1Center.localRotation;
+        //     }
+
+        //     if (IndexAngle1Center != null)
+        //         IndexAngle1Center.localRotation = _indexMotor1LockedRot;
+        // }
+        // else
+        // {
+        //     _indexMotor1Locked = false;
+
+        //     if (IndexAngle1Center != null)
+        //     {
+        //         if (modeSwitching.modeSelect && indexMiddleInIndexRange && indexMiddleInMiddleRange)
+        //         {
+        //             Vector3 snapEuler = targetRotation.eulerAngles;
+        //             snapEuler.y = 330f; // adjust snap angle if needed
+        //             IndexAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //         }
+        //         else
+        //         {
+        //             IndexAngle1Center.localRotation = targetRotation;
+        //         }
+        //     }
+        // }
     }
     #endregion
 
@@ -3195,11 +3231,11 @@ public class ClawModuleController : MonoBehaviour
                         {
                             middle4LeftLeftArrow.SetActive(true);
                             middle4LeftRightArrow.SetActive(false);
-                        } 
+                        }
                         else
                         {
                             middle4LeftLeftArrow.SetActive(false);
-                            middle4LeftRightArrow.SetActive(true);   
+                            middle4LeftRightArrow.SetActive(true);
                         }
 
                         currentMiddleRotationYMax += rotationDelta;
@@ -3215,11 +3251,11 @@ public class ClawModuleController : MonoBehaviour
                         {
                             middle4RightLeftArrow.SetActive(true);
                             middle4RightRightArrow.SetActive(false);
-                        } 
+                        }
                         else
                         {
                             middle4RightLeftArrow.SetActive(false);
-                            middle4RightRightArrow.SetActive(true);   
+                            middle4RightRightArrow.SetActive(true);
                         }
 
                         currentMiddleRotationYMin += rotationDelta;
@@ -3274,41 +3310,73 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
-        // Snap range check for Y-axis
-        indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 30f, 65f);
-        thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 30f);
+        // 180Snapping range check index&middle
+        indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 1f, 90f);  // middle to right 0->90
 
-        // snapping
-        if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
-        {
-            if (!_middleMotor1Locked && MiddleAngle1Center != null)
-            {
-                _middleMotor1Locked = true;
-                _middleMotor1LockedRot = MiddleAngle1Center.localRotation;
-            }
+        // 180Snapping range check thumb&middle
+        thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // middle to left 359->270
 
-            if (MiddleAngle1Center != null)
-                MiddleAngle1Center.localRotation = _middleMotor1LockedRot;
-        }
-        else
-        {
-            _middleMotor1Locked = false;
+        // if (MiddleAngle1Center != null)
+        // {
+        //     if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
+        //     {
+        //         Vector3 snapEuler = targetRotation.eulerAngles;
+        //         snapEuler.y = 30f; // adjust snap angle if needed
+        //         MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     }
+        //     else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
+        //     {
+        //         Vector3 snapEuler = targetRotation.eulerAngles;
+        //         snapEuler.y = 330f; // adjust snap angle if needed
+        //         MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //     }
+        //     else
+        //     {
+        //         MiddleAngle1Center.localRotation = targetRotation;
+        //     }
+        // }
 
-            if (MiddleAngle1Center != null)
-            {
-                if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
-                {
-                    // Vector3 snapEuler = targetRotation.eulerAngles;
-                    // snapEuler.y = 30f; // adjust snap angle if needed
-                    // MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
-                    MiddleAngle1Center.localRotation = targetRotation;
-                }
-                else
-                {
-                    MiddleAngle1Center.localRotation = targetRotation;
-                }
-            }
-        }
+        // if snapping is not needed, just set the rotation directly
+        MiddleAngle1Center.localRotation = targetRotation;
+
+
+        // singleFingerSnapping
+        // if (modeSwitching.modeSelect && paxiniValue.isMiddleTouchSnapped)
+        // {
+        //     if (!_middleMotor1Locked && MiddleAngle1Center != null)
+        //     {
+        //         _middleMotor1Locked = true;
+        //         _middleMotor1LockedRot = MiddleAngle1Center.localRotation;
+        //     }
+
+        //     if (MiddleAngle1Center != null)
+        //         MiddleAngle1Center.localRotation = _middleMotor1LockedRot;
+        // }
+        // else
+        // {
+        //     _middleMotor1Locked = false;
+
+        //     if (MiddleAngle1Center != null)
+        //     {
+        //         if (modeSwitching.modeSelect && indexMiddleInMiddleRange && indexMiddleInIndexRange)
+        //         {
+        //             Vector3 snapEuler = targetRotation.eulerAngles;
+        //             snapEuler.y = 30f; // adjust snap angle if needed
+        //             MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //             // MiddleAngle1Center.localRotation = targetRotation;
+        //         }
+        //         else if (modeSwitching.modeSelect && thumbMiddleInMiddleRange && thumbMiddleInThumbRange)
+        //         {
+        //             Vector3 snapEuler = targetRotation.eulerAngles;
+        //             snapEuler.y = 15f; // adjust snap angle if needed
+        //             MiddleAngle1Center.localRotation = Quaternion.Euler(snapEuler.x, snapEuler.y, snapEuler.z);
+        //         }
+        //         else
+        //         {
+        //             MiddleAngle1Center.localRotation = targetRotation;
+        //         }
+        //     }
+        // }
     }
     #endregion
 
@@ -3623,9 +3691,9 @@ public class ClawModuleController : MonoBehaviour
             float distanceFromMax = Mathf.Abs(currentTotalAngle - currentMaxAngle);
 
             // Debug.Log("angleRange: " + angleRange + ", distanceFromMin: " + distanceFromMin + ", distanceFromMax: " + distanceFromMax);
-            
+
             SetMotorArrowState(motorID, false, false);
-            
+
             // If closer to max (moving in positive direction), rotate negative
             if (distanceFromMax < distanceFromMin && angleRange > 15f)
             {
