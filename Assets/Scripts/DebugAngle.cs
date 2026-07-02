@@ -190,11 +190,13 @@ public class DebugAngle : MonoBehaviour
 
       string allJointLocalEulerText = BuildAllJointLocalEulerText();
       string touchSnappedText = BuildTouchSnappedText();
+      string tcpSenderDebugText = BuildTcpSenderDebugText();
 
       //TODO: print here
       angleText.text =
         allJointLocalEulerText +
         touchSnappedText +
+        tcpSenderDebugText +
         "L/R Controller Distance: " + controllerDistanceText + "\n" +
         "Clockwise Raw: " + clockwiseRaw + "\n" +
         "Rotation Direction: " + rotationDirection + "\n";
@@ -244,6 +246,26 @@ public class DebugAngle : MonoBehaviour
         "Thumb isTouchSnapped: " + paxiniValue.isThumbTouchSnapped + "\n" +
         "Index isTouchSnapped: " + paxiniValue.isIndexTouchSnapped + "\n" +
         "Middle isTouchSnapped: " + paxiniValue.isMiddleTouchSnapped + "\n";
+    }
+
+    private string BuildTcpSenderDebugText()
+    {
+      if (tcpSender == null)
+      {
+        return "[TcpSender]\nTcpSender: N/A\n";
+      }
+
+      return "[TcpSender]\n" +
+        "isSending: " + tcpSender.isSending + "\n" +
+        "Rotation Mode: " + tcpSender.rotationMode + "\n" +
+        "Position: (" +
+          tcpSender.debug_pos_x.ToString("F3") + ", " +
+          tcpSender.debug_pos_y.ToString("F3") + ", " +
+          tcpSender.debug_pos_z.ToString("F3") + ")\n" +
+        "Euler: (" +
+          tcpSender.debug_euler_x.ToString("F3") + ", " +
+          tcpSender.debug_euler_y.ToString("F3") + ", " +
+          tcpSender.debug_euler_z.ToString("F3") + ")\n";
     }
 
     private string BuildAllJointLocalEulerText()

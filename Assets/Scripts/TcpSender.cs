@@ -255,9 +255,9 @@ public class TcpSender : MonoBehaviour
                 // Build data object
                 var dataObj = new DataToSend
                 {
-                    pos_x = pos.x,
-                    pos_y = pos.y,
-                    pos_z = pos.z,
+                    pos_x = pos.x, // gripper front
+                    pos_y = pos.y, // to ceiling
+                    pos_z = pos.z, // to window
                     new_session = !waseSendingLastFrame
                 };
 
