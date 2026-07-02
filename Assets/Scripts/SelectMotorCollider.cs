@@ -257,6 +257,26 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Enable freeze motor feature: 0-20% zone toggles freeze ON/OFF for the selected finger's 4 motors")]
     public bool enableFreezeMotorFeature = false;
 
+    [Tooltip("Allow keyboard/Inspector manual freeze toggles even when enableFreezeMotorFeature is OFF")]
+    public bool allowManualFreezeWhenFeatureDisabled = true;
+
+    [Header("Manual Freeze Controls (works when freeze feature is OFF)")]
+    [Tooltip("Enable keyboard toggles for finger freeze when enableFreezeMotorFeature is OFF")]
+    public bool enableManualFreezeKeyboard = true;
+    [Tooltip("Keyboard key to toggle thumb freeze (motors 1-4)")]
+    public KeyCode thumbManualFreezeKey = KeyCode.Alpha1;
+    [Tooltip("Keyboard key to toggle index freeze (motors 5-8)")]
+    public KeyCode indexManualFreezeKey = KeyCode.Alpha2;
+    [Tooltip("Keyboard key to toggle middle freeze (motors 9-12)")]
+    public KeyCode middleManualFreezeKey = KeyCode.Alpha3;
+
+    [Tooltip("Inspector one-shot toggle for thumb freeze (auto-reset next frame)")]
+    public bool inspectorToggleThumbFreeze = false;
+    [Tooltip("Inspector one-shot toggle for index freeze (auto-reset next frame)")]
+    public bool inspectorToggleIndexFreeze = false;
+    [Tooltip("Inspector one-shot toggle for middle freeze (auto-reset next frame)")]
+    public bool inspectorToggleMiddleFreeze = false;
+
     [Tooltip("[Debug] Thumb motors freeze enabled")]
     public bool thumbFreezeEnabled = false;
     [Tooltip("[Debug] Index motors freeze enabled")]
@@ -406,6 +426,8 @@ public class SelectMotorCollider : MonoBehaviour
 
     private void Update()
     {
+        HandleManualFreezeControls();
+
         // Toggle debug spheres with key press
         if (Input.GetKeyDown(debugToggleKey))
         {
@@ -540,6 +562,80 @@ public class SelectMotorCollider : MonoBehaviour
 
         // Update freeze feature color animations
         UpdateFreezeColors();
+    }
+
+    private void HandleManualFreezeControls()
+    {
+        if (enableFreezeMotorFeature || !allowManualFreezeWhenFeatureDisabled)
+        {
+            inspectorToggleThumbFreeze = false;
+            inspectorToggleIndexFreeze = false;
+            inspectorToggleMiddleFreeze = false;
+            return;
+        }
+
+        if (enableManualFreezeKeyboard)
+        {
+            if (Input.GetKeyDown(thumbManualFreezeKey))
+            {
+                ToggleFingerFreezeManual(1);
+            }
+            if (Input.GetKeyDown(indexManualFreezeKey))
+            {
+                ToggleFingerFreezeManual(5);
+            }
+            if (Input.GetKeyDown(middleManualFreezeKey))
+            {
+                ToggleFingerFreezeManual(9);
+            }
+        }
+
+        if (inspectorToggleThumbFreeze)
+        {
+            ToggleFingerFreezeManual(1);
+            inspectorToggleThumbFreeze = false;
+        }
+        if (inspectorToggleIndexFreeze)
+        {
+            ToggleFingerFreezeManual(5);
+            inspectorToggleIndexFreeze = false;
+        }
+        if (inspectorToggleMiddleFreeze)
+        {
+            ToggleFingerFreezeManual(9);
+            inspectorToggleMiddleFreeze = false;
+        }
+    }
+
+    private void ToggleFingerFreezeManual(int fingerMinMotor)
+    {
+        if (fingerMinMotor == 1)
+        {
+            thumbFreezeEnabled = !thumbFreezeEnabled;
+            thumbInFreezeZone = false;
+            _thumbFreezePending = false;
+            _thumbFreezeCanTrigger = true;
+            _suppressFromThumbFreeze = false;
+            _thumbFreezeGateUnlocked = false;
+        }
+        else if (fingerMinMotor == 5)
+        {
+            indexFreezeEnabled = !indexFreezeEnabled;
+            indexInFreezeZone = false;
+            _indexFreezePending = false;
+            _indexFreezeCanTrigger = true;
+            _suppressFromIndexFreeze = false;
+            _indexFreezeGateUnlocked = false;
+        }
+        else if (fingerMinMotor == 9)
+        {
+            middleFreezeEnabled = !middleFreezeEnabled;
+            middleInFreezeZone = false;
+            _middleFreezePending = false;
+            _middleFreezeCanTrigger = true;
+            _suppressFromMiddleFreeze = false;
+            _middleFreezeGateUnlocked = false;
+        }
     }
 
     private bool IsManipulateModeActive()

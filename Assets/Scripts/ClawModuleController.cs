@@ -1107,7 +1107,8 @@ public class ClawModuleController : MonoBehaviour
     {
         if (modeSwitching == null || modeSwitching.SelectMotorCollider == null) return;
         SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
-        if (!smc.enableFreezeMotorFeature)
+        bool allowAnySMCFreeze = smc.enableFreezeMotorFeature || smc.allowManualFreezeWhenFeatureDisabled;
+        if (!allowAnySMCFreeze)
         {
             _smcThumbFreezeWasEnabled = false;
             _smcIndexFreezeWasEnabled = false;
