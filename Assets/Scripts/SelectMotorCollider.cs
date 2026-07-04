@@ -3090,20 +3090,62 @@ public class SelectMotorCollider : MonoBehaviour
         }
     }
 
+    public void ForcePaxiniOnForMotor(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4)
+        {
+            thumbFreezeEnabled = true;
+            _thumbFreezePending = false;
+            _thumbFreezeCanTrigger = true;
+            _thumbFreezeLerpStart = Color.yellow;
+            _thumbFreezeLerpTarget = Color.yellow;
+            _thumbFreezeColorLerpT = 1f;
+            if (triggerRightThumbTip != null)
+            {
+                triggerRightThumbTip.showFreezeColor = true;
+                triggerRightThumbTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightThumbTip.thumbPaxiniRenderer != null)
+                    triggerRightThumbTip.thumbPaxiniRenderer.material.color = Color.yellow;
+            }
+        }
+        else if (motorID >= 5 && motorID <= 8)
+        {
+            indexFreezeEnabled = true;
+            _indexFreezePending = false;
+            _indexFreezeCanTrigger = true;
+            _indexFreezeLerpStart = Color.yellow;
+            _indexFreezeLerpTarget = Color.yellow;
+            _indexFreezeColorLerpT = 1f;
+            if (triggerRightIndexTip != null)
+            {
+                triggerRightIndexTip.showFreezeColor = true;
+                triggerRightIndexTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightIndexTip.indexPaxiniRenderer != null)
+                    triggerRightIndexTip.indexPaxiniRenderer.material.color = Color.yellow;
+            }
+        }
+        else if (motorID >= 9 && motorID <= 12)
+        {
+            middleFreezeEnabled = true;
+            _middleFreezePending = false;
+            _middleFreezeCanTrigger = true;
+            _middleFreezeLerpStart = Color.yellow;
+            _middleFreezeLerpTarget = Color.yellow;
+            _middleFreezeLerpColorT = 1f;
+            if (triggerRightMiddleTip != null)
+            {
+                triggerRightMiddleTip.showFreezeColor = true;
+                triggerRightMiddleTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightMiddleTip.middlePaxiniRenderer != null)
+                    triggerRightMiddleTip.middlePaxiniRenderer.material.color = Color.yellow;
+            }
+        }
+    }
+
     private bool IsPaxiniBlockedByOtherMotor(int fingerMinMotor, int fingerMaxMotor, int paxiniMotorID)
     {
-        if (modeSwitching == null)
-        {
-            return false;  
-        } 
-
-        // Only block Paxini yellow when a non-Paxini motor in the same finger group is the
-        // CONFIRMED motor (hold time fully elapsed). Do NOT block based on currentRedMotorID
-        // (merely hovered / lerp phase) so the yellow persists until confirmation.
-        int confirmed = modeSwitching.confirmedMotorID;
-        if (confirmed != 0 && confirmed != paxiniMotorID && confirmed >= fingerMinMotor && confirmed <= fingerMaxMotor)
-            return true;
-
+        // New behavior: do not auto-block Paxini from same-group motor confirmations.
+        // Paxini state should only change when freeze itself is toggled.
         return false;
     }
 

@@ -62,6 +62,13 @@ public class ModeSwitching : MonoBehaviour
     
     private bool hasEnteredCloseRange = false; // Track if we've entered < 0.16f during manipulation
     private bool hasSetManipulateColors = false; // Track if we've set manipulate colors
+    private bool _wasModeSelectLastFrame = false;
+
+    // Baseline snapshot captured when entering modeSelect.
+    // Enforced so each finger-group state differs from baseline by at most one switched value.
+    private bool _thumbBaselinePaxiniOn = false;
+    private bool _indexBaselinePaxiniOn = false;
+    private bool _middleBaselinePaxiniOn = false;
 
     public Material yellowMaterial;
     
@@ -103,6 +110,7 @@ public class ModeSwitching : MonoBehaviour
         modeSelect = true;
         motorSelected = false;
         modeManipulate = false;
+        _wasModeSelectLastFrame = modeSelect;
         
         // Initialize fingertip priority feature
         if (useFingertipFirst)
@@ -118,6 +126,8 @@ public class ModeSwitching : MonoBehaviour
         {
             UpdateGrayColors();
         }
+
+        CaptureModeSelectBaseline();
     }
 
     void Update()
@@ -126,6 +136,13 @@ public class ModeSwitching : MonoBehaviour
         {
             currentHandSeparationDistance = jointAngle.GetLIndexToIndex2Distance();
         }
+
+        // Capture baseline once when entering modeSelect.
+        if (modeSelect && !_wasModeSelectLastFrame)
+        {
+            CaptureModeSelectBaseline();
+        }
+        _wasModeSelectLastFrame = modeSelect;
 
         if (modeSelect && SelectMotorCollider != null)
         {
@@ -136,17 +153,9 @@ public class ModeSwitching : MonoBehaviour
             {
                 if (currentMotorID != 0)
                 {
-                    // Guard: if ANY Paxini (13/14/15) is confirmed (yellow), do NOT turn it off
-                    // yet — yellow must stay until the new motor is confirmed after hold time,
-                    // regardless of whether the hover is same-finger or cross-finger.
-                    bool confirmedIsPaxini =
-                        confirmedMotorID == ThumbPaxiniMotorID ||
-                        confirmedMotorID == IndexPaxiniMotorID ||
-                        confirmedMotorID == MiddlePaxiniMotorID;
-                    if (!confirmedIsPaxini)
-                    {
-                        SelectMotorCollider.ForcePaxiniOffForMotor(currentMotorID);
-                    }
+                    // Keep Paxini freeze state unchanged while switching hover/selection targets.
+                    // This preserves the initial per-finger bool combination until the user
+                    // explicitly toggles freeze itself.
 
                     // New motor touched
                     touchStartTime = Time.time; // Record the start touch time
@@ -184,18 +193,13 @@ public class ModeSwitching : MonoBehaviour
                     // Handle confirmation logic based on whether fingertip priority mode is enabled
                     if (useFingertipFirst)
                     {
-                        // If a Paxini was confirmed (yellow), clear it now that a new motor is confirmed.
-                        if (ShouldClearConfirmedPaxiniForNewMotor(currentMotorID))
-                            SelectMotorCollider.ForcePaxiniOffForMotor(confirmedMotorID);
                         HandleFingertipFirstConfirmation(currentMotorID);
+                        EnforceGroupBaselineForConfirmedMotor(currentMotorID);
                     }
                     else
                     {
-                        // If a Paxini was confirmed (yellow), clear it now that a new motor is confirmed.
-                        if (ShouldClearConfirmedPaxiniForNewMotor(currentMotorID))
-                            SelectMotorCollider.ForcePaxiniOffForMotor(confirmedMotorID);
                         confirmedMotorID = currentMotorID; // Original logic
-                        SelectMotorCollider.ForcePaxiniOffForMotor(currentMotorID);
+                        EnforceGroupBaselineForConfirmedMotor(currentMotorID);
                     }
 
                     UpdateMotorColors();
@@ -415,7 +419,53 @@ public class ModeSwitching : MonoBehaviour
                     SelectMotorCollider.ReleaseFrozenLine();
                     UpdateGrayColors(); // Gray out non-fingertip motors again
                 }
+
+                CaptureModeSelectBaseline();
             }
+        }
+    }
+
+    private void CaptureModeSelectBaseline()
+    {
+        if (SelectMotorCollider == null)
+        {
+            _thumbBaselinePaxiniOn = false;
+            _indexBaselinePaxiniOn = false;
+            _middleBaselinePaxiniOn = false;
+            return;
+        }
+
+        _thumbBaselinePaxiniOn = SelectMotorCollider.thumbFreezeEnabled;
+        _indexBaselinePaxiniOn = SelectMotorCollider.indexFreezeEnabled;
+        _middleBaselinePaxiniOn = SelectMotorCollider.middleFreezeEnabled;
+    }
+
+    private void EnforceGroupBaselineForConfirmedMotor(int motorID)
+    {
+        if (SelectMotorCollider == null) return;
+
+        // If a normal motor is confirmed, keep this finger's Paxini at baseline state.
+        // This prevents accumulating 2 switched values versus modeSelect baseline.
+        if (motorID >= 1 && motorID <= 4)
+        {
+            if (_thumbBaselinePaxiniOn)
+                SelectMotorCollider.ForcePaxiniOnForMotor(motorID);
+            else
+                SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
+        }
+        else if (motorID >= 5 && motorID <= 8)
+        {
+            if (_indexBaselinePaxiniOn)
+                SelectMotorCollider.ForcePaxiniOnForMotor(motorID);
+            else
+                SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
+        }
+        else if (motorID >= 9 && motorID <= 12)
+        {
+            if (_middleBaselinePaxiniOn)
+                SelectMotorCollider.ForcePaxiniOnForMotor(motorID);
+            else
+                SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
         }
     }
     
@@ -539,6 +589,11 @@ public class ModeSwitching : MonoBehaviour
             middleJoint3Renderer.material.color = originalColor;
             middleJoint4Renderer.material.color = originalColor;
         }
+
+        // A new select cycle starts here while Paxini freeze may still be ON.
+        // Refresh baseline so subsequent motor confirmations compare against
+        // this returned base state instead of a stale older snapshot.
+        CaptureModeSelectBaseline();
     }
 
     private int GetFingerGroupIndex(int motorID)
@@ -774,7 +829,6 @@ public class ModeSwitching : MonoBehaviour
                         // Switch to the new finger
                         confirmedFingertipID = motorID;
                         confirmedMotorID = motorID;
-                        SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
                         
                         // Notify SelectMotorCollider that the fingertip switched
                         SelectMotorCollider.OnFingertipConfirmed(motorID);
@@ -794,7 +848,6 @@ public class ModeSwitching : MonoBehaviour
                     {
                         // Still the same fingertip
                         confirmedMotorID = motorID;
-                        SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
                         currentPhase = SelectionPhase.MotorConfirmed;
                         // Debug.Log($"[ModeSwitching] Maintaining fingertip motor {motorID}");
                     }
@@ -803,7 +856,7 @@ public class ModeSwitching : MonoBehaviour
                 {
                     // Selecting another motor of the confirmed finger
                     confirmedMotorID = motorID;
-                    SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
+                    EnforceGroupBaselineForConfirmedMotor(motorID);
                     currentPhase = SelectionPhase.MotorConfirmed;
                     // Debug.Log($"[ModeSwitching] Motor {motorID} confirmed. Can enter manipulate mode.");
                 }
