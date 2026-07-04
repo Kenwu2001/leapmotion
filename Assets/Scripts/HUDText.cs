@@ -23,9 +23,12 @@ public class HUDText : MonoBehaviour
         bool isFullRangeMapping = clawModuleController.isFullRangeMapping;
         bool isIndexMiddleIndividual = clawModuleController.useIndexMiddleIndividualMode;
         bool isEngaged = triggerRightWrist != null && triggerRightWrist.IsEngaged;
+        bool showThumbMiddle180 = clawModuleController.thumbMiddle180SnappingVisible;
+        bool thumbMiddle180Enabled = clawModuleController.isThumbMiddle180SnappingEnabled;
         string fullRangeText = isFullRangeMapping ? "Full Range Mapping" : "Small Range Mapping";
         string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle Coupled";
         string engagementText = isEngaged ? "Engagement" : "Disengagement";
+        string thumbMiddle180Color = thumbMiddle180Enabled ? "green" : "white";
         string fullRangeColor = isFullRangeMapping ? "white" : "green";
         string resetColor = isReset ? "green" : "white";
         string individualColor = isIndexMiddleIndividual ? "green" : "white";
@@ -34,6 +37,9 @@ public class HUDText : MonoBehaviour
         textMesh.text =
             $"<color={engagementColor}>{engagementText}</color>\n" +
             $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
-            $"<color={individualColor}>{indexMiddleText}</color>\n";
+            $"<color={individualColor}>{indexMiddleText}</color>\n" +
+            (showThumbMiddle180
+                ? $"<color={thumbMiddle180Color}>thumbMiddle180Snapping</color>\n"
+                : string.Empty);
     }
 }

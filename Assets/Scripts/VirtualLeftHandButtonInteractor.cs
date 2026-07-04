@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,6 +11,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         public GameObject buttonObject;
         public Collider buttonCollider;
         public Renderer buttonRenderer;
+        public TMP_Text buttonText;
         public Color toggledColor = Color.green;
         public bool isTouched;
         public bool isOn;
@@ -36,6 +38,11 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             if (buttonRenderer == null && buttonCollider != null)
             {
                 buttonRenderer = buttonCollider.GetComponent<Renderer>();
+            }
+
+            if (buttonText == null && buttonObject != null)
+            {
+                buttonText = buttonObject.GetComponentInChildren<TMP_Text>(true);
             }
 
             if (buttonRenderer != null)
@@ -77,12 +84,21 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
 
             buttonRenderer.material.color = isOn ? toggledColor : originalColor;
         }
+
+        public void SetText(string text)
+        {
+            if (buttonText != null)
+            {
+                buttonText.text = text;
+            }
+        }
     }
 
     [Header("Button Setup")]
     public ButtonBinding button1 = new ButtonBinding { buttonName = "Button 1" };
     public ButtonBinding button2 = new ButtonBinding { buttonName = "Button 2" };
     public ButtonBinding button3 = new ButtonBinding { buttonName = "Button 3" };
+    public ButtonBinding button180Snapping = new ButtonBinding { buttonName = "180 Snapping Button" };
 
     [Header("State Sources")]
     public ClawModuleController clawModuleController;
@@ -97,6 +113,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         InitializeButton(button1);
         InitializeButton(button2);
         InitializeButton(button3);
+        InitializeButton(button180Snapping);
         SyncButtonStates();
     }
 
@@ -119,6 +136,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (TryHandleEnter(button1, other)) return;
         if (TryHandleEnter(button2, other)) return;
         TryHandleEnter(button3, other);
+        TryHandleEnter(button180Snapping, other);
     }
 
     private void OnTriggerExit(Collider other)
@@ -126,6 +144,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (TryHandleExit(button1, other)) return;
         if (TryHandleExit(button2, other)) return;
         TryHandleExit(button3, other);
+        TryHandleExit(button180Snapping, other);
     }
 
     private bool TryHandleEnter(ButtonBinding button, Collider other)
@@ -187,6 +206,13 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
+        if (button180Snapping.isTouched)
+        {
+            currentTouchedButton = button180Snapping.buttonName;
+            interactionDebug = "Touch stay: " + button180Snapping.buttonName;
+            return;
+        }
+
         currentTouchedButton = "None";
         interactionDebug = "No button touched";
     }
@@ -209,6 +235,9 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             button2.SetVisible(!clawModuleController.IsResetState);
             SetButtonState(button2, clawModuleController.IsResetState);
             SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
+            button180Snapping.SetVisible(clawModuleController.thumbMiddle180SnappingVisible);
+            SetButtonState(button180Snapping, clawModuleController.isThumbMiddle180SnappingEnabled);
+            button180Snapping.SetText(clawModuleController.current180SnappingText);
         }
     }
 
@@ -238,6 +267,11 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (button3.buttonName == "Button 3")
         {
             button3.buttonName = "IndexMiddleIndividual";
+        }
+
+        if (button180Snapping.buttonName == "180 Snapping Button")
+        {
+            button180Snapping.buttonName = "thumbMiddle180Snapping";
         }
     }
 
@@ -275,6 +309,15 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             clawModuleController.useIndexMiddleIndividualMode = !clawModuleController.useIndexMiddleIndividualMode;
             SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
             interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.useIndexMiddleIndividualMode;
+            return;
+        }
+
+        if (button == button180Snapping)
+        {
+            clawModuleController.isThumbMiddle180SnappingEnabled = !clawModuleController.isThumbMiddle180SnappingEnabled;
+            SetButtonState(button180Snapping, clawModuleController.isThumbMiddle180SnappingEnabled);
+            button180Snapping.SetVisible(clawModuleController.thumbMiddle180SnappingVisible);
+            interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.isThumbMiddle180SnappingEnabled;
         }
     }
 }

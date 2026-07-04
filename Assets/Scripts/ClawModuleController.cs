@@ -145,6 +145,7 @@ public class ClawModuleController : MonoBehaviour
     public bool isIndexMiddle180SnappingEnabled = false;
     public bool isThumbIndex180SnappingEnabled = false;
     public bool isThumbMiddle180SnappingEnabled = false;
+    public bool thumbMiddle180SnappingVisible => thumbMiddle180ByRangeActive || isThumbMiddle180SnappingEnabled;
     
     // ==============================
     // 🔹 Colors
@@ -465,6 +466,10 @@ public class ClawModuleController : MonoBehaviour
     public bool thumbMiddleInMiddleRange = false; //0-30
     public bool indexMiddleInIndexRange = false;
     public bool indexMiddleInMiddleRange = false;
+    public bool thumbMiddle180ByRangeActive = false;
+    public bool thumbIndex180ByRangeActive = false;
+    public bool indexMiddle180ByRangeActive = false;
+    public string current180SnappingText = string.Empty;
 
     // Snap state tracking
     private bool _thumbMotor1Locked = false;
@@ -2695,15 +2700,19 @@ public class ClawModuleController : MonoBehaviour
 
 
         // 180Snapping range check for thumb to middle finger
-        // thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 90f); // thumb to left 0->90
+        thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 50f); // thumb to left 0->90
 
         // 180Snapping range check for thumb to index finger
-        // thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // thumb to right 359->270
+        thumbIndexInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 310f, 350f); // thumb to right 359->270
 
         bool thumbMiddle180ByRange = (thumbMiddleInThumbRange && thumbMiddleInMiddleRange);
         bool thumbIndex180ByRange = (thumbIndexInThumbRange && thumbIndexInIndexRange);
         bool thumbMiddle180ByForce = isThumbMiddle180SnappingEnabled;
         bool thumbIndex180ByForce = isThumbIndex180SnappingEnabled;
+
+        thumbMiddle180ByRangeActive = thumbMiddle180ByRange;
+        thumbIndex180ByRangeActive = thumbIndex180ByRange;
+        Update180SnappingText();
 
         // Force flags persist across modeSelect/modeManipulate; range triggers are modeSelect-only.
         if (thumbMiddle180ByForce)
@@ -2716,19 +2725,23 @@ public class ClawModuleController : MonoBehaviour
             _thumb180Latched = true;
             _thumb180LatchedY = 330f;
         }
+        else if (!isThumbMiddle180SnappingEnabled)
+        {
+            _thumb180Latched = false;
+        }
         else if (!modeSwitching.modeSelect)
         {
             _thumb180Latched = false;
         }
-        else if (thumbMiddle180ByRange)
+        else if (thumbMiddle180ByRange && isThumbMiddle180SnappingEnabled)
         {
             _thumb180Latched = true;
             _thumb180LatchedY = 30f;
         }
         else if (thumbIndex180ByRange)
         {
-            _thumb180Latched = true;
-            _thumb180LatchedY = 330f;
+            // _thumb180Latched = true;
+            // _thumb180LatchedY = 330f;
         }
 
         if (_thumb180Latched)
@@ -3039,15 +3052,18 @@ public class ClawModuleController : MonoBehaviour
 
 
         // 180Snapping range check for Y-axis
-        // indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // index to left 359->270
+        indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 310f, 350f); // index to left 359->270
         
         // 180Snapping range check for thumb to index finger
-        // thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 1f, 90f); // index to right 0->90
+        thumbIndexInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 50f); // index to right 0->90
 
         bool indexMiddle180ByRange = (indexMiddleInIndexRange && indexMiddleInMiddleRange);
         bool thumbIndex180OnIndexByRange = (thumbIndexInIndexRange && thumbIndexInThumbRange);
         bool indexMiddle180ByForce = isIndexMiddle180SnappingEnabled;
         bool thumbIndex180OnIndexByForce = isThumbIndex180SnappingEnabled;
+
+        indexMiddle180ByRangeActive = indexMiddle180ByRange;
+        Update180SnappingText();
 
         // Force flags persist across modeSelect/modeManipulate; range triggers are modeSelect-only.
         if (indexMiddle180ByForce)
@@ -3066,13 +3082,13 @@ public class ClawModuleController : MonoBehaviour
         }
         else if (indexMiddle180ByRange)
         {
-            _index180Latched = true;
-            _index180LatchedY = 330f;
+            // _index180Latched = true;
+            // _index180LatchedY = 330f;
         }
         else if (thumbIndex180OnIndexByRange)
         {
-            _index180Latched = true;
-            _index180LatchedY = 30f;
+            // _index180Latched = true;
+            // _index180LatchedY = 30f;
         }
 
         if (_index180Latched)
@@ -3102,6 +3118,18 @@ public class ClawModuleController : MonoBehaviour
             _indexMotor1Locked = false;
             if (IndexAngle1Center != null)
                 IndexAngle1Center.localRotation = targetRotation;
+        }
+    }
+
+    private void Update180SnappingText()
+    {
+        if (thumbMiddle180SnappingVisible)
+        {
+            current180SnappingText = "thumbMiddle180Snapping";
+        }
+        else
+        {
+            current180SnappingText = string.Empty;
         }
     }
     #endregion
@@ -3365,10 +3393,10 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // 180Snapping range check index&middle
-        // indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 1f, 90f);  // middle to right 0->90
+        indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 50f);  // middle to right 0->90
 
         // 180Snapping range check thumb&middle
-        // thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 270f, 359f); // middle to left 359->270
+        thumbMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 310f, 350f); // middle to left 359->270
 
         bool indexMiddle180OnMiddleByRange = (indexMiddleInMiddleRange && indexMiddleInIndexRange);
         bool thumbMiddle180OnMiddleByRange = (thumbMiddleInMiddleRange && thumbMiddleInThumbRange);
@@ -3386,16 +3414,20 @@ public class ClawModuleController : MonoBehaviour
             _middle180Latched = true;
             _middle180LatchedY = 330f;
         }
+        else if (!isThumbMiddle180SnappingEnabled)
+        {
+            _middle180Latched = false;
+        }
         else if (!modeSwitching.modeSelect)
         {
             _middle180Latched = false;
         }
         else if (indexMiddle180OnMiddleByRange)
         {
-            _middle180Latched = true;
-            _middle180LatchedY = 30f;
+            // _middle180Latched = true;
+            // _middle180LatchedY = 30f;
         }
-        else if (thumbMiddle180OnMiddleByRange)
+        else if (thumbMiddle180OnMiddleByRange && isThumbMiddle180SnappingEnabled)
         {
             _middle180Latched = true;
             _middle180LatchedY = 330f;
