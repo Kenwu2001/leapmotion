@@ -23,13 +23,13 @@ public class HUDText : MonoBehaviour
         bool isFullRangeMapping = clawModuleController.isFullRangeMapping;
         bool isIndexMiddleIndividual = clawModuleController.useIndexMiddleIndividualMode;
         bool isEngaged = triggerRightWrist != null && triggerRightWrist.IsEngaged;
-        bool show180Snapping = clawModuleController.hasAny180SnappingVisible;
-        bool current180Enabled = clawModuleController.IsCurrent180SnappingEnabled();
-        string current180Text = clawModuleController.GetCurrent180SnappingText();
+        bool showSnapping = clawModuleController.hasAnySnappingVisible;
+        bool currentSnappingEnabled = clawModuleController.IsCurrentSnappingEnabled();
+        string currentSnappingText = clawModuleController.GetCurrentSnappingText();
         string fullRangeText = isFullRangeMapping ? "Full Range Mapping" : "Small Range Mapping";
         string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle Coupled";
         string engagementText = isEngaged ? "Engagement" : "Disengagement";
-        string current180Color = current180Enabled ? "green" : "white";
+        string currentSnappingColor = currentSnappingEnabled ? "green" : "white";
         string fullRangeColor = isFullRangeMapping ? "white" : "green";
         string resetColor = isReset ? "green" : "white";
         string individualColor = isIndexMiddleIndividual ? "green" : "white";
@@ -39,8 +39,8 @@ public class HUDText : MonoBehaviour
             $"<color={engagementColor}>{engagementText}</color>\n" +
             $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
             $"<color={individualColor}>{indexMiddleText}</color>\n" +
-            (show180Snapping
-                ? $"<color={current180Color}>{current180Text}</color>\n"
+            (showSnapping
+                ? $"<color={currentSnappingColor}>{currentSnappingText}</color>\n"
                 : string.Empty);
     }
 }
