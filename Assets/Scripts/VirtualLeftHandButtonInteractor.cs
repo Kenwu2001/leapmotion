@@ -235,9 +235,9 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             button2.SetVisible(!clawModuleController.IsResetState);
             SetButtonState(button2, clawModuleController.IsResetState);
             SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
-            button180Snapping.SetVisible(clawModuleController.thumbMiddle180SnappingVisible);
-            SetButtonState(button180Snapping, clawModuleController.isThumbMiddle180SnappingEnabled);
-            button180Snapping.SetText(clawModuleController.current180SnappingText);
+            button180Snapping.SetVisible(clawModuleController.hasAny180SnappingVisible);
+            SetButtonState(button180Snapping, clawModuleController.IsCurrent180SnappingEnabled());
+            button180Snapping.SetText(clawModuleController.GetCurrent180SnappingText());
         }
     }
 
@@ -314,10 +314,11 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
 
         if (button == button180Snapping)
         {
-            clawModuleController.isThumbMiddle180SnappingEnabled = !clawModuleController.isThumbMiddle180SnappingEnabled;
-            SetButtonState(button180Snapping, clawModuleController.isThumbMiddle180SnappingEnabled);
-            button180Snapping.SetVisible(clawModuleController.thumbMiddle180SnappingVisible);
-            interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.isThumbMiddle180SnappingEnabled;
+            clawModuleController.ToggleCurrent180Snapping();
+            SetButtonState(button180Snapping, clawModuleController.IsCurrent180SnappingEnabled());
+            button180Snapping.SetVisible(clawModuleController.hasAny180SnappingVisible);
+            button180Snapping.SetText(clawModuleController.GetCurrent180SnappingText());
+            interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.IsCurrent180SnappingEnabled();
         }
     }
 }
