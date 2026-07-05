@@ -4259,14 +4259,6 @@ public class ClawModuleController : MonoBehaviour
         ResetAllFreezeStates();
         ResetModeSwitchingState();
 
-        // Reset grayMode and all single-motor freeze states in ModeSwitching
-        if (modeSwitching != null)
-        {
-            modeSwitching.grayMode = false;
-            if (modeSwitching.singleMotorFrozen != null)
-                System.Array.Clear(modeSwitching.singleMotorFrozen, 0, modeSwitching.singleMotorFrozen.Length);
-        }
-
         // Reset all snapping flags
         isIndexMiddle180SnappingEnabled = false;
         isThumbIndex180SnappingEnabled = false;
@@ -4408,25 +4400,7 @@ public class ClawModuleController : MonoBehaviour
     {
         if (modeSwitching != null)
         {
-            modeSwitching.modeSelect = true;
-            modeSwitching.motorSelected = false;
-            modeSwitching.modeManipulate = false;
-            modeSwitching.confirmedMotorID = 0;
-            modeSwitching.currentRedMotorID = 0;
-            modeSwitching.lastTouchedMotorID = 0;
-
-            if (modeSwitching.SelectMotorCollider != null)
-            {
-                modeSwitching.SelectMotorCollider.RestoreDebugVisuals();
-                modeSwitching.SelectMotorCollider.ReleaseFrozenLine();
-                modeSwitching.SelectMotorCollider.ResetFingertipConfirmation();
-            }
-
-            if (modeSwitching.useFingertipFirst)
-            {
-                modeSwitching.currentPhase = ModeSwitching.SelectionPhase.SelectingFingertip;
-                modeSwitching.confirmedFingertipID = 0;
-            }
+            modeSwitching.HardResetToAllOffState();
         }
     }
 

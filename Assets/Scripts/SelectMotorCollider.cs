@@ -576,8 +576,9 @@ public class SelectMotorCollider : MonoBehaviour
         // Update freeze feature color animations
         UpdateFreezeColors();
 
-        // Paxini group-sync: detect user-driven Paxini state changes and cascade to group motors.
-        // OFF→ON: force-freeze all 4 group motors. ON→OFF: force-unfreeze all 4 group motors.
+        // Paxini group-sync: detect user-driven Paxini state changes and notify ModeSwitching.
+        // OFF→ON: visual/group lock only (full freeze state commit is deferred by ModeSwitching).
+        // ON→OFF: restore the group to the round baseline snapshot.
         if (_prevThumbFreezeEnabled && !thumbFreezeEnabled)
         {
             if (!_suppressThumbBulkUnfreeze && modeSwitching != null)
