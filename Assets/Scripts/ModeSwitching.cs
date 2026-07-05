@@ -118,6 +118,16 @@ public class ModeSwitching : MonoBehaviour
     private bool   _frozenBaselineCaptured          = false; // edge-trigger: true once per hand-away event (frozen motors present)
     private bool   _noFreezeRoundBaselineCaptured   = false; // edge-trigger: true once per hand-away event (no frozen motors, but round had a change)
 
+    // Paxini group-sync: prev-state tracking for Paxini OFF → group unfreeze in Update()
+    private bool _prevThumbPaxiniEnabled  = false;
+    private bool _prevIndexPaxiniEnabled  = false;
+    private bool _prevMiddlePaxiniEnabled = false;
+    // Set by CheckAndAutoDisablePaxini so the Update() group-sync does NOT unfreeze all 4
+    // (individual motor unfreeze only removes that motor; others stay frozen)
+    private bool _suppressThumbPaxiniGroupUnfreeze  = false;
+    private bool _suppressIndexPaxiniGroupUnfreeze  = false;
+    private bool _suppressMiddlePaxiniGroupUnfreeze = false;
+
     public enum SelectionPhase
     {
         SelectingFingertip,   // Phase 1: Selecting fingertip (4, 8, 12)
@@ -280,8 +290,10 @@ public class ModeSwitching : MonoBehaviour
                         motorSelected = false;
                         confirmedMotorID = 0;
                         UpdateMotorColors();
+                        // Auto-disable Paxini if it was ON for this group (other motors stay frozen)
+                        CheckAndAutoDisablePaxini(fm);
                     }
-                    // else: still lerping yellow→original (per-frame section handles color)
+                    // else: still lerping yellow→hint color (per-frame section handles color)
                 }
                 else
                 {
@@ -355,6 +367,8 @@ public class ModeSwitching : MonoBehaviour
                         _justFrozeMotorID = frozenID;
                         SetMotorColorDirect(frozenID, singleFrozenColor);
                         UpdateMotorColors(); // Refresh reverted motor color
+                        // Auto-enable Paxini if all 4 motors in this group are now frozen
+                        CheckAndAutoEnablePaxini(frozenID);
                     }
                 }
                 else
@@ -376,6 +390,51 @@ public class ModeSwitching : MonoBehaviour
         }
 
         bool isConfirmedPaxiniMotor = IsPaxiniMotor(confirmedMotorID);
+
+        // Paxini group-sync: detect Paxini OFF → force-unfreeze all 4 group motors so individual
+        // freeze states can't outlive the Paxini ON period.
+        // Paxini has highest priority: when it turns OFF, the entire group returns to free.
+        if (modeSelect && SelectMotorCollider != null)
+        {
+            bool thumbOn  = SelectMotorCollider.thumbFreezeEnabled;
+            bool indexOn  = SelectMotorCollider.indexFreezeEnabled;
+            bool middleOn = SelectMotorCollider.middleFreezeEnabled;
+
+            if (_prevThumbPaxiniEnabled && !thumbOn)
+            {
+                if (!_suppressThumbPaxiniGroupUnfreeze)
+                {
+                    for (int m = 1; m <= 4; m++) singleMotorFrozen[m - 1] = false;
+                    CaptureModeSelectBaseline();
+                    UpdateMotorColors();
+                }
+                _suppressThumbPaxiniGroupUnfreeze = false;
+            }
+            if (_prevIndexPaxiniEnabled && !indexOn)
+            {
+                if (!_suppressIndexPaxiniGroupUnfreeze)
+                {
+                    for (int m = 5; m <= 8; m++) singleMotorFrozen[m - 1] = false;
+                    CaptureModeSelectBaseline();
+                    UpdateMotorColors();
+                }
+                _suppressIndexPaxiniGroupUnfreeze = false;
+            }
+            if (_prevMiddlePaxiniEnabled && !middleOn)
+            {
+                if (!_suppressMiddlePaxiniGroupUnfreeze)
+                {
+                    for (int m = 9; m <= 12; m++) singleMotorFrozen[m - 1] = false;
+                    CaptureModeSelectBaseline();
+                    UpdateMotorColors();
+                }
+                _suppressMiddlePaxiniGroupUnfreeze = false;
+            }
+
+            _prevThumbPaxiniEnabled  = thumbOn;
+            _prevIndexPaxiniEnabled  = indexOn;
+            _prevMiddlePaxiniEnabled = middleOn;
+        }
 
         // For Paxini pseudo motors (13/14/15): never enter manipulate mode.
         // When hands separate, return to base select state but keep freeze (yellow) handled by TriggerRight*Tip.
@@ -670,6 +729,30 @@ public class ModeSwitching : MonoBehaviour
                 CaptureModeSelectBaseline();
             }
         }
+
+        // Per-frame Paxini group sync: when Paxini is ON, keep singleMotorFrozen state and
+        // motor colors consistent regardless of hand distance or mode transition.
+        // Guard: skip during active unfreeze animation so the lerp hint color is visible.
+        if (SelectMotorCollider != null && !_isUnfreezing)
+        {
+            // State sync (modeSelect): ensure all 4 group motors stay frozen while Paxini is ON
+            if (modeSelect)
+            {
+                if (SelectMotorCollider.thumbFreezeEnabled)
+                    for (int m = 1; m <= 4; m++) singleMotorFrozen[m - 1] = true;
+                if (SelectMotorCollider.indexFreezeEnabled)
+                    for (int m = 5; m <= 8; m++) singleMotorFrozen[m - 1] = true;
+                if (SelectMotorCollider.middleFreezeEnabled)
+                    for (int m = 9; m <= 12; m++) singleMotorFrozen[m - 1] = true;
+            }
+            // Color sync (both modes): paint all group motors yellow — final authority
+            if (SelectMotorCollider.thumbFreezeEnabled)
+                for (int m = 1; m <= 4; m++) SetMotorColorDirect(m, singleFrozenColor);
+            if (SelectMotorCollider.indexFreezeEnabled)
+                for (int m = 5; m <= 8; m++) SetMotorColorDirect(m, singleFrozenColor);
+            if (SelectMotorCollider.middleFreezeEnabled)
+                for (int m = 9; m <= 12; m++) SetMotorColorDirect(m, singleFrozenColor);
+        }
     }
 
     private void CaptureModeSelectBaseline()
@@ -771,6 +854,18 @@ public class ModeSwitching : MonoBehaviour
         {
             if (singleMotorFrozen[i])
                 SetMotorColorDirect(i + 1, singleFrozenColor);
+        }
+
+        // Paxini visual sync: when Paxini is ON for a group, all 4 group motors must appear yellow.
+        // Overrides everything above including individual frozen states.
+        if (SelectMotorCollider != null)
+        {
+            if (SelectMotorCollider.thumbFreezeEnabled)
+                for (int m = 1; m <= 4; m++) SetMotorColorDirect(m, singleFrozenColor);
+            if (SelectMotorCollider.indexFreezeEnabled)
+                for (int m = 5; m <= 8; m++) SetMotorColorDirect(m, singleFrozenColor);
+            if (SelectMotorCollider.middleFreezeEnabled)
+                for (int m = 9; m <= 12; m++) SetMotorColorDirect(m, singleFrozenColor);
         }
     }
 
@@ -933,6 +1028,89 @@ public class ModeSwitching : MonoBehaviour
             currentRedMotorID = 0;
             isConfirmed = false;
             UpdateMotorColors();
+        }
+    }
+
+    /// <summary>
+    /// Returns true if all 4 motors in the given group are currently frozen.
+    /// Used by SelectMotorCollider to gate manual Paxini toggle-ON.
+    /// </summary>
+    public bool IsGroupAllFrozen(int groupStart)
+    {
+        int gEnd = groupStart + 3;
+        if (gEnd > 12) return false;
+        for (int m = groupStart; m <= gEnd; m++)
+            if (!singleMotorFrozen[m - 1]) return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Bulk-unfreezes all 4 motors in the given group (called when user directly toggles Paxini OFF).
+    /// Refreshes the round baseline so the group starts the next round clean.
+    /// </summary>
+    public void UnfreezeGroupMotors(int groupStart)
+    {
+        int gEnd = groupStart + 3;
+        if (gEnd > 12) return;
+        for (int m = groupStart; m <= gEnd; m++)
+            singleMotorFrozen[m - 1] = false;
+        CaptureModeSelectBaseline();
+        UpdateMotorColors();
+    }
+
+    /// <summary>
+    /// Bulk-freezes all 4 motors in the given group (called when Paxini toggles ON,
+    /// forcing any unfrozen group motors into the frozen state).
+    /// </summary>
+    public void FreezeGroupMotors(int groupStart)
+    {
+        int gEnd = groupStart + 3;
+        if (gEnd > 12) return;
+        for (int m = groupStart; m <= gEnd; m++)
+            singleMotorFrozen[m - 1] = true;
+        CaptureModeSelectBaseline();
+        UpdateMotorColors();
+    }
+
+    /// <summary>
+    /// Called after a motor freezes: if all 4 in its group are now frozen, auto-enables Paxini.
+    /// </summary>
+    private void CheckAndAutoEnablePaxini(int frozenMotorID)
+    {
+        if (SelectMotorCollider == null) return;
+        int gStart, gEnd;
+        if      (frozenMotorID >= 1 && frozenMotorID <= 4)  { gStart = 1; gEnd = 4; }
+        else if (frozenMotorID >= 5 && frozenMotorID <= 8)  { gStart = 5; gEnd = 8; }
+        else if (frozenMotorID >= 9 && frozenMotorID <= 12) { gStart = 9; gEnd = 12; }
+        else return;
+        for (int m = gStart; m <= gEnd; m++)
+            if (!singleMotorFrozen[m - 1]) return; // not all frozen yet
+        // All 4 frozen — immediately display Paxini as yellow (instant, no lerp)
+        SelectMotorCollider.ForcePaxiniOnForMotor(gStart);
+    }
+
+    /// <summary>
+    /// Called after a motor unfreezes: if Paxini was ON for its group, auto-disables it.
+    /// Other motors in the group remain at their current freeze state.
+    /// </summary>
+    private void CheckAndAutoDisablePaxini(int unfrozenMotorID)
+    {
+        if (SelectMotorCollider == null) return;
+        int gStart;
+        if      (unfrozenMotorID >= 1 && unfrozenMotorID <= 4)  gStart = 1;
+        else if (unfrozenMotorID >= 5 && unfrozenMotorID <= 8)  gStart = 5;
+        else if (unfrozenMotorID >= 9 && unfrozenMotorID <= 12) gStart = 9;
+        else return;
+        bool paxiniOn = (gStart == 1 && SelectMotorCollider.thumbFreezeEnabled)
+                     || (gStart == 5 && SelectMotorCollider.indexFreezeEnabled)
+                     || (gStart == 9 && SelectMotorCollider.middleFreezeEnabled);
+        if (paxiniOn)
+        {
+            // Suppress group-unfreeze: only the single motor that unfroze goes off; others stay frozen.
+            if (gStart == 1) _suppressThumbPaxiniGroupUnfreeze = true;
+            else if (gStart == 5) _suppressIndexPaxiniGroupUnfreeze = true;
+            else if (gStart == 9) _suppressMiddlePaxiniGroupUnfreeze = true;
+            SelectMotorCollider.ForcePaxiniOffForMotor(gStart);
         }
     }
 

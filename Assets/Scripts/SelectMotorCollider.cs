@@ -329,6 +329,19 @@ public class SelectMotorCollider : MonoBehaviour
     private bool _indexFreezePending  = false;
     private bool _middleFreezePending = false;
 
+    // Paxini group-sync: track previous Paxini ON states to detect user-driven toggle OFF → bulk unfreeze
+    private bool _prevThumbFreezeEnabled  = false;
+    private bool _prevIndexFreezeEnabled  = false;
+    private bool _prevMiddleFreezeEnabled = false;
+    // Set before any programmatic (non-user-initiated) *FreezeEnabled = false to suppress bulk unfreeze.
+    private bool _suppressThumbBulkUnfreeze  = false;
+    private bool _suppressIndexBulkUnfreeze  = false;
+    private bool _suppressMiddleBulkUnfreeze = false;
+    // Set before any programmatic *FreezeEnabled = true to suppress bulk freeze (motors already handled).
+    private bool _suppressThumbBulkFreeze  = false;
+    private bool _suppressIndexBulkFreeze  = false;
+    private bool _suppressMiddleBulkFreeze = false;
+
     private void Start()
     {
         // Setup trigger detectors for motor colliders 1-4 (Thumb only) - skip if using projection mode
@@ -562,6 +575,48 @@ public class SelectMotorCollider : MonoBehaviour
 
         // Update freeze feature color animations
         UpdateFreezeColors();
+
+        // Paxini group-sync: detect user-driven Paxini state changes and cascade to group motors.
+        // OFF→ON: force-freeze all 4 group motors. ON→OFF: force-unfreeze all 4 group motors.
+        if (_prevThumbFreezeEnabled && !thumbFreezeEnabled)
+        {
+            if (!_suppressThumbBulkUnfreeze && modeSwitching != null)
+                modeSwitching.UnfreezeGroupMotors(1);
+            _suppressThumbBulkUnfreeze = false;
+        }
+        else if (!_prevThumbFreezeEnabled && thumbFreezeEnabled)
+        {
+            if (!_suppressThumbBulkFreeze && modeSwitching != null)
+                modeSwitching.FreezeGroupMotors(1);
+            _suppressThumbBulkFreeze = false;
+        }
+        if (_prevIndexFreezeEnabled && !indexFreezeEnabled)
+        {
+            if (!_suppressIndexBulkUnfreeze && modeSwitching != null)
+                modeSwitching.UnfreezeGroupMotors(5);
+            _suppressIndexBulkUnfreeze = false;
+        }
+        else if (!_prevIndexFreezeEnabled && indexFreezeEnabled)
+        {
+            if (!_suppressIndexBulkFreeze && modeSwitching != null)
+                modeSwitching.FreezeGroupMotors(5);
+            _suppressIndexBulkFreeze = false;
+        }
+        if (_prevMiddleFreezeEnabled && !middleFreezeEnabled)
+        {
+            if (!_suppressMiddleBulkUnfreeze && modeSwitching != null)
+                modeSwitching.UnfreezeGroupMotors(9);
+            _suppressMiddleBulkUnfreeze = false;
+        }
+        else if (!_prevMiddleFreezeEnabled && middleFreezeEnabled)
+        {
+            if (!_suppressMiddleBulkFreeze && modeSwitching != null)
+                modeSwitching.FreezeGroupMotors(9);
+            _suppressMiddleBulkFreeze = false;
+        }
+        _prevThumbFreezeEnabled  = thumbFreezeEnabled;
+        _prevIndexFreezeEnabled  = indexFreezeEnabled;
+        _prevMiddleFreezeEnabled = middleFreezeEnabled;
     }
 
     private void HandleManualFreezeControls()
@@ -3042,6 +3097,7 @@ public class SelectMotorCollider : MonoBehaviour
     {
         if (motorID >= 1 && motorID <= 4)
         {
+            _suppressThumbBulkUnfreeze = true;
             thumbFreezeEnabled = false;
             _thumbFreezePending = false;
             _thumbFreezeCanTrigger = true;
@@ -3058,6 +3114,7 @@ public class SelectMotorCollider : MonoBehaviour
         }
         else if (motorID >= 5 && motorID <= 8)
         {
+            _suppressIndexBulkUnfreeze = true;
             indexFreezeEnabled = false;
             _indexFreezePending = false;
             _indexFreezeCanTrigger = true;
@@ -3074,6 +3131,7 @@ public class SelectMotorCollider : MonoBehaviour
         }
         else if (motorID >= 9 && motorID <= 12)
         {
+            _suppressMiddleBulkUnfreeze = true;
             middleFreezeEnabled = false;
             _middleFreezePending = false;
             _middleFreezeCanTrigger = true;
@@ -3094,6 +3152,7 @@ public class SelectMotorCollider : MonoBehaviour
     {
         if (motorID >= 1 && motorID <= 4)
         {
+            _suppressThumbBulkFreeze = true;
             thumbFreezeEnabled = true;
             _thumbFreezePending = false;
             _thumbFreezeCanTrigger = true;
@@ -3110,6 +3169,7 @@ public class SelectMotorCollider : MonoBehaviour
         }
         else if (motorID >= 5 && motorID <= 8)
         {
+            _suppressIndexBulkFreeze = true;
             indexFreezeEnabled = true;
             _indexFreezePending = false;
             _indexFreezeCanTrigger = true;
@@ -3126,6 +3186,7 @@ public class SelectMotorCollider : MonoBehaviour
         }
         else if (motorID >= 9 && motorID <= 12)
         {
+            _suppressMiddleBulkFreeze = true;
             middleFreezeEnabled = true;
             _middleFreezePending = false;
             _middleFreezeCanTrigger = true;

@@ -32,6 +32,32 @@ public class DebugAngle : MonoBehaviour
     // middle 59 58 57
     // index 302 303 304
 
+    private string BuildMotorFreezeStateText()
+    {
+        if (modeSwitching == null || SelectMotorCollider == null)
+            return "[Motor Freeze State]\nN/A\n";
+
+        bool[] frozen = modeSwitching.singleMotorFrozen;
+        bool thumbPaxini  = SelectMotorCollider.thumbFreezeEnabled;
+        bool indexPaxini  = SelectMotorCollider.indexFreezeEnabled;
+        bool middlePaxini = SelectMotorCollider.middleFreezeEnabled;
+
+        string MotorState(int id)
+        {
+            if (id < 1 || id > 12) return "?";
+            if (frozen[id - 1]) return "freeze";
+            if (modeSwitching.confirmedMotorID == id) return "on";
+            return "off";
+        }
+
+        string PaxState(bool on) => on ? "freeze on" : "freeze off";
+
+        return "[Motor Freeze State]\n" +
+            $"(m1,m2,m3,m4,m13) = ({MotorState(1)},{MotorState(2)},{MotorState(3)},{MotorState(4)},{PaxState(thumbPaxini)})\n" +
+            $"(m5,m6,m7,m8,m14) = ({MotorState(5)},{MotorState(6)},{MotorState(7)},{MotorState(8)},{PaxState(indexPaxini)})\n" +
+            $"(m9,m10,m11,m12,m15) = ({MotorState(9)},{MotorState(10)},{MotorState(11)},{MotorState(12)},{PaxState(middlePaxini)})\n";
+    }
+
     private string BuildSelectMotorLogSyncState()
     {
       if (SelectMotorCollider == null)
@@ -194,12 +220,13 @@ public class DebugAngle : MonoBehaviour
 
       //TODO: print here
       angleText.text =
-        allJointLocalEulerText +
-        touchSnappedText +
-        tcpSenderDebugText +
-        "L/R Controller Distance: " + controllerDistanceText + "\n" +
-        "Clockwise Raw: " + clockwiseRaw + "\n" +
-        "Rotation Direction: " + rotationDirection + "\n";
+        // allJointLocalEulerText +
+        // touchSnappedText +
+        // tcpSenderDebugText +
+        BuildMotorFreezeStateText();
+        // "L/R Controller Distance: " + controllerDistanceText + "\n" +
+        // "Clockwise Raw: " + clockwiseRaw + "\n" +
+        // "Rotation Direction: " + rotationDirection + "\n";
         // "Finger Priority: " + fingerPriorityText + "\n" +
         // "L_IndexTipSmall -> R_thumb_b Angle: " + leftToThumbAngle + " deg\n" +
         // "L_IndexTipSmall -> R_index_c Angle: " + leftToIndexAngle + " deg\n" +
