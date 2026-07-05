@@ -598,6 +598,12 @@ public class ClawModuleController : MonoBehaviour
     private Quaternion _smcFrozenIndexM1, _smcFrozenIndexM2, _smcFrozenIndexM3, _smcFrozenIndexM4;
     private Quaternion _smcFrozenMiddleM1, _smcFrozenMiddleM2, _smcFrozenMiddleM3, _smcFrozenMiddleM4;
 
+    // ==============================
+    // 🔹 Single Motor Freeze State (motors 1-12)
+    // ==============================
+    private bool[]       _singleMotorFrozenWas = new bool[12];       // previous-frame state for rising-edge detection
+    private Quaternion[] _singleMotorFrozenRot = new Quaternion[12]; // captured joint rotation per motor
+
     /// <summary>
     /// Awake runs before ALL Start() calls.
     /// Save originalColor here (before any Start() can change material colors).
@@ -1101,6 +1107,11 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Apply SMC Finger Freeze
         // ==============================
         ApplySMCFreezeMotors();
+
+        // ==============================
+        // 🔹 Apply Single Motor Freeze
+        // ==============================
+        ApplySingleMotorFreezeOverrides();
     }
 
     // ==============================
@@ -1116,6 +1127,59 @@ public class ClawModuleController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             ResetFingerRotations();
+        }
+    }
+
+    // ==============================
+    // 🔹 Single Motor Freeze Override
+    // ==============================
+    /// <summary>
+    /// Locks individual motor joints whose singleMotorFrozen flag is set in ModeSwitching.
+    /// On the rising edge the current rotation is captured; every frame while frozen it is restored.
+    /// Applied AFTER ApplySMCFreezeMotors so individual locks win over group locks.
+    /// </summary>
+    private void ApplySingleMotorFreezeOverrides()
+    {
+        if (modeSwitching == null) return;
+        bool[] frozen = modeSwitching.singleMotorFrozen;
+        if (frozen == null || frozen.Length < 12) return;
+
+        for (int i = 0; i < 12; i++)
+        {
+            bool isFrozen = frozen[i];
+            Transform t = GetMotorTransform(i + 1);
+            if (t == null) { _singleMotorFrozenWas[i] = isFrozen; continue; }
+
+            // Rising edge: capture current rotation
+            if (isFrozen && !_singleMotorFrozenWas[i])
+                _singleMotorFrozenRot[i] = t.localRotation;
+
+            // While frozen: lock to captured rotation
+            if (isFrozen)
+                t.localRotation = _singleMotorFrozenRot[i];
+
+            _singleMotorFrozenWas[i] = isFrozen;
+        }
+    }
+
+    /// <summary>Returns the joint Transform for motor IDs 1-12.</summary>
+    private Transform GetMotorTransform(int motorID)
+    {
+        switch (motorID)
+        {
+            case 1:  return ThumbAngle1Center;
+            case 2:  return ThumbAngle2Center;
+            case 3:  return ThumbAngle3Center;
+            case 4:  return ThumbAngle4Center;
+            case 5:  return IndexAngle1Center;
+            case 6:  return IndexAngle2Center;
+            case 7:  return IndexAngle3Center;
+            case 8:  return IndexAngle4Center;
+            case 9:  return MiddleAngle1Center;
+            case 10: return MiddleAngle2Center;
+            case 11: return MiddleAngle3Center;
+            case 12: return MiddleAngle4Center;
+            default: return null;
         }
     }
 

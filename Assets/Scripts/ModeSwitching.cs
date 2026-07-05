@@ -81,9 +81,39 @@ public class ModeSwitching : MonoBehaviour
     
     [Tooltip("ID of the confirmed fingertip motor")]
     public int confirmedFingertipID = 0;
+
+    [Tooltip("Gray mode visuals for fingertip-first: ON = non-selectable motors are gray, OFF = keep original claw colors")]
+    public bool grayMode = true;
     
     public Color grayColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Gray (disabled/unselectable)
-    
+
+    [Header("=== Single Motor Freeze (motors 1-12) ===")]
+    [Tooltip("Time (seconds) of continuous holding after confirmation to freeze a single motor (red \u2192 yellow)")]
+    public float singleMotorFreezeTime = 1.0f;
+    [Tooltip("Color for a single frozen motor")]
+    public Color singleFrozenColor = Color.yellow;
+    [Tooltip("[Debug] Per-motor freeze state (index 0-11 = motor ID 1-12)")]
+    public bool[] singleMotorFrozen = new bool[12];
+
+    // Single motor freeze \u2014 private state
+    private bool _isUnfreezing = false;          // currently touching a frozen motor to unfreeze
+    private int  _unfreezeTargetMotorID = 0;     // which motor is being unfrozen
+    private bool _justFrozeWhileHolding = false; // true when motor just froze while finger still held
+    private int  _justFrozeMotorID = 0;          // which motor just froze while held
+    private bool _singleFreezeInProgress = false;// true during red→yellow lerp (blocks manipulate)
+
+    // One-motor-per-round constraint: tracks which motor 1-12 changed mode this round.
+    // Once set, no OTHER motor 1-12 may confirm or unfreeze until a new round begins.
+    // Motors 13/14/15 (Paxini) are always free and never counted.
+    private int _roundChangedMotorID = 0;
+
+    // Baseline frozen state — captured each time the hand moves away with frozen motors.
+    // Frozen motors in the baseline are NOT cleared by ClearSingleFrozenMotorInGroup,
+    // so they persist into the next selection round (same as Paxini "on" persisting).
+    private bool[] _singleMotorFrozenBaseline = new bool[12];
+    private bool   _frozenBaselineCaptured          = false; // edge-trigger: true once per hand-away event (frozen motors present)
+    private bool   _noFreezeRoundBaselineCaptured   = false; // edge-trigger: true once per hand-away event (no frozen motors, but round had a change)
+
     public enum SelectionPhase
     {
         SelectingFingertip,   // Phase 1: Selecting fingertip (4, 8, 12)
@@ -121,13 +151,20 @@ public class ModeSwitching : MonoBehaviour
         
         ResetAllColors();
 
-        // If fingertip priority mode is enabled, initially gray out non-fingertip motors
-        if (useFingertipFirst)
-        {
-            UpdateGrayColors();
-        }
+        // Apply initial modeSelect visuals.
+        ApplyModeSelectBaseColors();
 
         CaptureModeSelectBaseline();
+
+        singleMotorFrozen = new bool[12];
+        _isUnfreezing = false;
+        _unfreezeTargetMotorID = 0;
+        _justFrozeWhileHolding = false;
+        _justFrozeMotorID = 0;
+        _singleFreezeInProgress = false;
+        _roundChangedMotorID = 0;
+        _singleMotorFrozenBaseline = new bool[12];
+        _frozenBaselineCaptured = false;
     }
 
     void Update()
@@ -151,28 +188,54 @@ public class ModeSwitching : MonoBehaviour
             // Motor switched
             if (currentMotorID != lastTouchedMotorID)
             {
+                // Clear just-froze guard on any motor change
+                _justFrozeWhileHolding = false;
+                _justFrozeMotorID = 0;
+                _singleFreezeInProgress = false;
+
                 if (currentMotorID != 0)
                 {
-                    // Keep Paxini freeze state unchanged while switching hover/selection targets.
-                    // This preserves the initial per-finger bool combination until the user
-                    // explicitly toggles freeze itself.
+                    // Detect if the newly touched motor is currently single-frozen → unfreeze flow
+                    bool isFrozenMotor = currentMotorID >= 1 && currentMotorID <= 12
+                                        && singleMotorFrozen[currentMotorID - 1];
 
-                    // New motor touched
-                    touchStartTime = Time.time; // Record the start touch time
-                    isConfirmed = false; // New touch not yet confirmed
-                    currentRedMotorID = currentMotorID;
-
-                    // Update color display
-                    UpdateMotorColors();
-
-                    if (!motorSelected)
+                    if (isFrozenMotor)
                     {
-                        motorSelected = true;
+                        // Unfreeze flow: yellow → original over confirmationTime
+                        _isUnfreezing = true;
+                        _unfreezeTargetMotorID = currentMotorID;
+                        touchStartTime = Time.time;
+                        isConfirmed = false;
+                        currentRedMotorID = currentMotorID;
+                        // motorSelected intentionally NOT set: unfreeze ≠ motor selected
+                    }
+                    else
+                    {
+                        _isUnfreezing = false;
+                        _unfreezeTargetMotorID = 0;
+
+                        // Keep Paxini freeze state unchanged while switching hover/selection targets.
+                        // This preserves the initial per-finger bool combination until the user
+                        // explicitly toggles freeze itself.
+
+                        // New motor touched
+                        touchStartTime = Time.time;
+                        isConfirmed = false;
+                        currentRedMotorID = currentMotorID;
+
+                        UpdateMotorColors();
+
+                        if (!motorSelected)
+                        {
+                            motorSelected = true;
+                        }
                     }
                 }
                 else
                 {
-                    // Left all motors - only keep the confirmed selection in dark red
+                    // Left all motors
+                    _isUnfreezing = false;
+                    _unfreezeTargetMotorID = 0;
                     currentRedMotorID = 0;
                     UpdateMotorColors();
                 }
@@ -181,29 +244,128 @@ public class ModeSwitching : MonoBehaviour
             }
             else if (currentMotorID != 0)
             {
-                // Continuously touching the same motor - check if confirmation time exceeded
-                // Use faster confirmation time when crossing finger groups (e.g., from index to thumb)
-                bool isCrossFingerSwitch = confirmedMotorID != 0 && !IsSameFingerGroup(confirmedMotorID, currentMotorID);
-                float requiredConfirmTime = isCrossFingerSwitch ? fingertipConfirmationTime : confirmationTime;
-                if (!isConfirmed && (Time.time - touchStartTime) >= requiredConfirmTime)
+                // Continuously touching the same motor
+                if (_justFrozeWhileHolding && currentMotorID == _justFrozeMotorID)
                 {
-                    // Exceeded confirmation time, turn dark red (confirmed selection)
-                    isConfirmed = true;
-
-                    // Handle confirmation logic based on whether fingertip priority mode is enabled
-                    if (useFingertipFirst)
-                    {
-                        HandleFingertipFirstConfirmation(currentMotorID);
-                        EnforceGroupBaselineForConfirmedMotor(currentMotorID);
-                    }
-                    else
-                    {
-                        confirmedMotorID = currentMotorID; // Original logic
-                        EnforceGroupBaselineForConfirmedMotor(currentMotorID);
-                    }
-
-                    UpdateMotorColors();
+                    // Motor just froze while still being held — wait for release before starting unfreeze
                 }
+                else if (_isUnfreezing)
+                {
+                    // Unfreeze confirmation: check if confirmationTime elapsed
+                    if (!isConfirmed && (Time.time - touchStartTime) >= confirmationTime)
+                    {
+                        int fm = _unfreezeTargetMotorID;
+                        // If a DIFFERENT motor already has a committed change, revert it first
+                        // (selecting a new motor is always the highest priority).
+                        if (fm >= 1 && fm <= 12
+                            && _roundChangedMotorID != 0 && _roundChangedMotorID != fm)
+                        {
+                            RevertMotorToBaseline(_roundChangedMotorID);
+                            _roundChangedMotorID = 0;
+                        }
+                        isConfirmed = true;
+                        singleMotorFrozen[fm - 1] = false;
+                        // Track round change only if net state differs from baseline
+                        if (fm >= 1 && fm <= 12)
+                            _roundChangedMotorID = _singleMotorFrozenBaseline[fm - 1] ? fm : 0;
+                        _isUnfreezing = false;
+                        _unfreezeTargetMotorID = 0;
+                        currentRedMotorID = 0;
+                        motorSelected = false;
+                        confirmedMotorID = 0;
+                        UpdateMotorColors();
+                    }
+                    // else: still lerping yellow→original (per-frame section handles color)
+                }
+                else
+                {
+                    // Continuously touching the same motor - check if confirmation time exceeded
+                    // Use faster confirmation time when crossing finger groups (e.g., from index to thumb)
+                    bool isCrossFingerSwitch = confirmedMotorID != 0 && !IsSameFingerGroup(confirmedMotorID, currentMotorID);
+                    float requiredConfirmTime = isCrossFingerSwitch ? fingertipConfirmationTime : confirmationTime;
+                    if (!isConfirmed && (Time.time - touchStartTime) >= requiredConfirmTime)
+                    {
+                        // Selecting (confirming) a new motor is ALWAYS allowed.
+                        // If a DIFFERENT motor already has a committed change this round, revert it first.
+                        if (currentMotorID >= 1 && currentMotorID <= 12
+                            && _roundChangedMotorID != 0 && _roundChangedMotorID != currentMotorID)
+                        {
+                            RevertMotorToBaseline(_roundChangedMotorID);
+                            _roundChangedMotorID = 0;
+                        }
+
+                        isConfirmed = true;
+
+                        // Handle confirmation logic based on whether fingertip priority mode is enabled
+                        if (useFingertipFirst)
+                        {
+                            HandleFingertipFirstConfirmation(currentMotorID);
+                            EnforceGroupBaselineForConfirmedMotor(currentMotorID);
+                        }
+                        else
+                        {
+                            confirmedMotorID = currentMotorID;
+                            EnforceGroupBaselineForConfirmedMotor(currentMotorID);
+                        }
+
+                        UpdateMotorColors();
+                    }
+                }
+            }
+
+            // ─── Per-frame: single motor freeze buildup (confirmed + still holding → red→yellow) ───
+            if (isConfirmed && !_isUnfreezing
+                && confirmedMotorID >= 1 && confirmedMotorID <= 12
+                && currentMotorID == confirmedMotorID)
+            {
+                float elapsed = Time.time - touchStartTime - confirmationTime;
+                if (elapsed > 0f)
+                {
+                    float t = Mathf.Clamp01(elapsed / singleMotorFreezeTime);
+                    _singleFreezeInProgress = (t < 1f);
+                    SetMotorColorDirect(confirmedMotorID, Color.Lerp(darkRedColor, singleFrozenColor, t));
+
+                    if (t >= 1f && !singleMotorFrozen[confirmedMotorID - 1])
+                    {
+                        int frozenID = confirmedMotorID;
+                        // If a DIFFERENT motor already has a committed change, revert it first.
+                        if (frozenID >= 1 && frozenID <= 12
+                            && _roundChangedMotorID != 0 && _roundChangedMotorID != frozenID)
+                        {
+                            RevertMotorToBaseline(_roundChangedMotorID);
+                            _roundChangedMotorID = 0;
+                        }
+                        // Motor is now frozen!
+                        singleMotorFrozen[frozenID - 1] = true;
+                        // Track round change only if net state differs from baseline
+                        if (frozenID >= 1 && frozenID <= 12)
+                            _roundChangedMotorID = !_singleMotorFrozenBaseline[frozenID - 1] ? frozenID : 0;
+                        confirmedMotorID = 0;
+                        motorSelected = false;
+                        currentRedMotorID = 0;
+                        isConfirmed = false;
+                        _singleFreezeInProgress = false;
+                        _justFrozeWhileHolding = true;
+                        _justFrozeMotorID = frozenID;
+                        SetMotorColorDirect(frozenID, singleFrozenColor);
+                        UpdateMotorColors(); // Refresh reverted motor color
+                    }
+                }
+                else
+                {
+                    _singleFreezeInProgress = false;
+                }
+            }
+            else
+            {
+                _singleFreezeInProgress = false;
+            }
+
+            // ─── Per-frame: unfreeze lerp (frozen motor being touched → yellow→original) ───
+            if (_isUnfreezing && _unfreezeTargetMotorID != 0 && currentMotorID == _unfreezeTargetMotorID)
+            {
+                float t = Mathf.Clamp01((Time.time - touchStartTime) / confirmationTime);
+                SetMotorColorDirect(_unfreezeTargetMotorID, Color.Lerp(singleFrozenColor, originalColor, t));
             }
         }
 
@@ -220,6 +382,69 @@ public class ModeSwitching : MonoBehaviour
             }
         }
 
+        // Single frozen motor + hand away → lock freeze into baseline.
+        // IMPORTANT: runs even when motorSelected=true so that the user touching a new motor
+        // in the same frame as the hand-away event still gets the baseline captured and
+        // _roundChangedMotorID cleared before the confirmation logic fires next frame.
+        if (modeSelect)
+        {
+            bool hasAnyFrozen = false;
+            for (int i = 0; i < 12; i++) { if (singleMotorFrozen[i]) { hasAnyFrozen = true; break; } }
+
+            if (hasAnyFrozen)
+            {
+                if (currentHandSeparationDistance > 0.16f)
+                {
+                    if (!_frozenBaselineCaptured)
+                    {
+                        _frozenBaselineCaptured = true;
+                        // Capture current frozen state as the new round baseline.
+                        // This also resets _roundChangedMotorID = 0 so the frozen motor is
+                        // not incorrectly reverted when a new motor is confirmed.
+                        CaptureModeSelectBaseline();
+                        // Reset hover/selection transient state only when no motor is being touched
+                        if (!motorSelected)
+                        {
+                            lastTouchedMotorID      = 0;
+                            currentRedMotorID       = 0;
+                            isConfirmed             = false;
+                            touchStartTime          = 0f;
+                            _isUnfreezing           = false;
+                            _unfreezeTargetMotorID  = 0;
+                            _justFrozeWhileHolding  = false;
+                            _justFrozeMotorID       = 0;
+                            _singleFreezeInProgress = false;
+                        }
+                    }
+                }
+                else
+                {
+                    // Hand came back close — allow the lock to re-trigger on the next away event
+                    _frozenBaselineCaptured = false;
+                }
+            }
+            else
+            {
+                _frozenBaselineCaptured = false;
+                // If a round change was committed (e.g. an unfreeze) but no motors are
+                // currently frozen, capture a fresh baseline when the hand moves away.
+                // Without this, the stale frozen baseline would incorrectly re-freeze
+                // the unfrozen motor the next time a different motor is confirmed.
+                if (_roundChangedMotorID != 0 && currentHandSeparationDistance > 0.16f)
+                {
+                    if (!_noFreezeRoundBaselineCaptured)
+                    {
+                        _noFreezeRoundBaselineCaptured = true;
+                        CaptureModeSelectBaseline(); // refreshes _singleMotorFrozenBaseline and resets _roundChangedMotorID
+                    }
+                }
+                else
+                {
+                    _noFreezeRoundBaselineCaptured = false;
+                }
+            }
+        }
+
         // Transition: Select → Manipulate (distance increases)
         // Only confirmed motor (dark red) can enter Manipulate mode
         // Fingertip priority mode: Must be in MotorConfirmed phase
@@ -233,6 +458,11 @@ public class ModeSwitching : MonoBehaviour
             canEnterManipulate = canEnterManipulate && currentPhase == SelectionPhase.MotorConfirmed;
         }
         if (SelectMotorCollider != null && SelectMotorCollider.suppressManipulateTransition)
+        {
+            canEnterManipulate = false;
+        }
+        // Block manipulate while single-motor freeze is building up (red→yellow lerp in progress)
+        if (_singleFreezeInProgress)
         {
             canEnterManipulate = false;
         }
@@ -381,6 +611,11 @@ public class ModeSwitching : MonoBehaviour
                 hasSetManipulateColors = true;
             }
 
+            // Frozen motors keep yellow with HIGHEST PRIORITY every frame in modeManipulate
+            for (int i = 0; i < 12; i++)
+                if (singleMotorFrozen[i])
+                    SetMotorColorDirect(i + 1, singleFrozenColor);
+
             // Track if we've entered close range (< 0.16f) for manipulation
             if (distance < 0.16f)
             {
@@ -394,15 +629,18 @@ public class ModeSwitching : MonoBehaviour
                 modeSelect = true;
                 motorSelected = false;
                 modeManipulate = false;
-                ResetAllColors();
-                currentRedMotorID = 0; // Clear the current touch record
-                confirmedMotorID = 0; // Clear confirmed selection
+                currentRedMotorID = 0;
+                confirmedMotorID = 0;
                 lastTouchedMotorID = 0;
                 isConfirmed = false;
                 touchStartTime = 0f;
                 hasEnteredCloseRange = false;
-                hasSetManipulateColors = false; // Reset color flag
-                // baseRenderer.material.color = originalColor; // Reset base color
+                hasSetManipulateColors = false;
+                _isUnfreezing = false;
+                _unfreezeTargetMotorID = 0;
+                _justFrozeWhileHolding = false;
+                _justFrozeMotorID = 0;
+                _singleFreezeInProgress = false;
 
                 // Restore debug visuals based on current toggle states
                 if (SelectMotorCollider != null)
@@ -417,8 +655,11 @@ public class ModeSwitching : MonoBehaviour
                     confirmedFingertipID = 0;
                     SelectMotorCollider.ResetFingertipConfirmation();
                     SelectMotorCollider.ReleaseFrozenLine();
-                    UpdateGrayColors(); // Gray out non-fingertip motors again
                 }
+
+                // Apply colors AFTER all state resets so frozen yellow is always preserved
+                ResetAllColors();
+                UpdateMotorColors();
 
                 CaptureModeSelectBaseline();
             }
@@ -432,12 +673,20 @@ public class ModeSwitching : MonoBehaviour
             _thumbBaselinePaxiniOn = false;
             _indexBaselinePaxiniOn = false;
             _middleBaselinePaxiniOn = false;
+            System.Array.Clear(_singleMotorFrozenBaseline, 0, 12);
             return;
         }
 
         _thumbBaselinePaxiniOn = SelectMotorCollider.thumbFreezeEnabled;
         _indexBaselinePaxiniOn = SelectMotorCollider.indexFreezeEnabled;
         _middleBaselinePaxiniOn = SelectMotorCollider.middleFreezeEnabled;
+
+        // Snapshot current single-motor frozen state as the new baseline.
+        // Motors in the baseline will NOT be cleared by ClearSingleFrozenMotorInGroup.
+        System.Array.Copy(singleMotorFrozen, _singleMotorFrozenBaseline, 12);
+
+        // New round — reset the one-motor-per-round change tracker
+        _roundChangedMotorID = 0;
     }
 
     private void EnforceGroupBaselineForConfirmedMotor(int motorID)
@@ -479,8 +728,8 @@ public class ModeSwitching : MonoBehaviour
         // Reset all colors first
         if (useFingertipFirst)
         {
-            // Fingertip-first mode: set gray base
-            UpdateGrayColors();
+            // Fingertip-first mode: keep selection gate logic, visual base depends on grayMode.
+            ApplyModeSelectBaseColors();
         }
         else
         {
@@ -492,20 +741,30 @@ public class ModeSwitching : MonoBehaviour
         {
             SetMotorColorDirect(confirmedMotorID, darkRedColor);
         }
-        
+
         // If the currently touched motor is not the confirmed one, show it in light red
         if (currentRedMotorID != 0 && currentRedMotorID != confirmedMotorID)
         {
-            if (isConfirmed)
+            // Skip normal color for the motor being unfrozen (per-frame lerp handles yellow→original)
+            if (_isUnfreezing && currentRedMotorID == _unfreezeTargetMotorID)
             {
-                // If the current touch is confirmed, use dark red
+                // Color handled by per-frame unfreeze lerp
+            }
+            else if (isConfirmed)
+            {
                 SetMotorColorDirect(currentRedMotorID, darkRedColor);
             }
             else
             {
-                // Not yet confirmed, use light red
                 SetMotorColorDirect(currentRedMotorID, lightRedColor);
             }
+        }
+
+        // ★ Single frozen motor colors are applied LAST — highest priority, always overrides everything above.
+        for (int i = 0; i < 12; i++)
+        {
+            if (singleMotorFrozen[i])
+                SetMotorColorDirect(i + 1, singleFrozenColor);
         }
     }
 
@@ -544,7 +803,7 @@ public class ModeSwitching : MonoBehaviour
         hasEnteredCloseRange = false;
         hasSetManipulateColors = false;
 
-        if (useFingertipFirst)
+        if (useFingertipFirst && grayMode)
         {
             currentPhase = SelectionPhase.SelectingFingertip;
             confirmedFingertipID = 0;
@@ -594,6 +853,49 @@ public class ModeSwitching : MonoBehaviour
         // Refresh baseline so subsequent motor confirmations compare against
         // this returned base state instead of a stale older snapshot.
         CaptureModeSelectBaseline();
+
+        // Re-apply single frozen motor colors after the reset above
+        for (int i = 0; i < 12; i++)
+        {
+            if (singleMotorFrozen[i])
+                SetMotorColorDirect(i + 1, singleFrozenColor);
+        }
+    }
+
+    /// <summary>
+    /// Clears single-motor freeze for all motors in the same finger group as motorID,
+    /// EXCEPT motorID itself. Called when a motor is confirmed via normal selection.
+    /// </summary>
+    private void ClearSingleFrozenMotorInGroup(int motorID)
+    {
+        int gStart, gEnd;
+        if      (motorID >= 1 && motorID <= 4)  { gStart = 1;  gEnd = 4;  }
+        else if (motorID >= 5 && motorID <= 8)  { gStart = 5;  gEnd = 8;  }
+        else if (motorID >= 9 && motorID <= 12) { gStart = 9;  gEnd = 12; }
+        else return; // Paxini or out-of-range, no action
+        for (int m = gStart; m <= gEnd; m++)
+        {
+            if (m == motorID) continue;
+            // Respect the baseline: motors frozen in a previous round (baseline) are NOT cleared
+            // here — they persist as a "locked" state until the user explicitly unfreezes them.
+            // Only newly-frozen motors from the current round get cleared.
+            if (!_singleMotorFrozenBaseline[m - 1])
+                singleMotorFrozen[m - 1] = false;
+        }
+    }
+
+    /// <summary>
+    /// Reverts a motor's freeze state to its round-start baseline value and updates its color.
+    /// Called when a new committed change (freeze/unfreeze) in the same round replaces a previous one,
+    /// ensuring only ONE motor 1-12 can have a changed state vs the round baseline.
+    /// </summary>
+    private void RevertMotorToBaseline(int motorID)
+    {
+        if (motorID < 1 || motorID > 12) return;
+        bool baselineFrozen = _singleMotorFrozenBaseline[motorID - 1];
+        singleMotorFrozen[motorID - 1] = baselineFrozen;
+        // Immediately update color: yellow if still frozen per baseline, original otherwise
+        SetMotorColorDirect(motorID, baselineFrozen ? singleFrozenColor : originalColor);
     }
 
     private int GetFingerGroupIndex(int motorID)
@@ -735,6 +1037,10 @@ public class ModeSwitching : MonoBehaviour
 
     public Color GetPaxiniDisplayColor(int motorID, Color fallbackOriginalColor)
     {
+        // Single frozen motors (1-12): return frozen color
+        if (motorID >= 1 && motorID <= 12 && singleMotorFrozen[motorID - 1])
+            return singleFrozenColor;
+
         // Paxini renderers (13/14/15): always return original color.
         // Yellow is handled by the showFreezeColor path in TriggerRight*Tip (bypasses this function).
         // Gray/red must never affect Paxini — they are not part of the 1-12 motor selection system.
@@ -751,7 +1057,7 @@ public class ModeSwitching : MonoBehaviour
         // Motors 1-12: apply gray/red logic as normal
         Color baseColor = fallbackOriginalColor;
 
-        if (useFingertipFirst)
+        if (useFingertipFirst && grayMode)
         {
             if (currentPhase == SelectionPhase.SelectingFingertip)
             {
@@ -784,6 +1090,14 @@ public class ModeSwitching : MonoBehaviour
             return isConfirmed ? darkRedColor : lightRedColor;
 
         return baseColor;
+    }
+
+    private void ApplyModeSelectBaseColors()
+    {
+        if (useFingertipFirst && grayMode)
+            UpdateGrayColors();
+        else
+            ResetAllColors();
     }
     
     /// <summary>
@@ -869,7 +1183,7 @@ public class ModeSwitching : MonoBehaviour
     /// </summary>
     private void UpdateGrayColors()
     {
-        if (!useFingertipFirst)
+        if (!useFingertipFirst || !grayMode)
         {
             ResetAllColors();
             return;
