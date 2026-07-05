@@ -92,6 +92,10 @@ public class ModeSwitching : MonoBehaviour
     public float singleMotorFreezeTime = 1.0f;
     [Tooltip("Color for a single frozen motor")]
     public Color singleFrozenColor = Color.yellow;
+    [Tooltip("Time (seconds) of continuous hovering on a frozen (yellow) motor before the freeze is cancelled. Increase to make cancellation require a longer hold.")]
+    public float unfreezeConfirmationTime = 1.5f;
+    [Tooltip("Hint color the frozen motor lerps toward while the user is holding to cancel. Signals that the freeze is about to be removed. Original color is restored on completion.")]
+    public Color unfreezeHintColor = new Color(1f, 0.4f, 0.7f, 1f);
     [Tooltip("[Debug] Per-motor freeze state (index 0-11 = motor ID 1-12)")]
     public bool[] singleMotorFrozen = new bool[12];
 
@@ -201,13 +205,15 @@ public class ModeSwitching : MonoBehaviour
 
                     if (isFrozenMotor)
                     {
-                        // Unfreeze flow: yellow → original over confirmationTime
+                        // Unfreeze flow: yellow → hint color over unfreezeConfirmationTime
                         _isUnfreezing = true;
                         _unfreezeTargetMotorID = currentMotorID;
                         touchStartTime = Time.time;
                         isConfirmed = false;
                         currentRedMotorID = currentMotorID;
                         // motorSelected intentionally NOT set: unfreeze ≠ motor selected
+                        // Clear residual color on any previously-hovered motor before lerp starts.
+                        UpdateMotorColors();
                     }
                     else
                     {
@@ -251,8 +257,8 @@ public class ModeSwitching : MonoBehaviour
                 }
                 else if (_isUnfreezing)
                 {
-                    // Unfreeze confirmation: check if confirmationTime elapsed
-                    if (!isConfirmed && (Time.time - touchStartTime) >= confirmationTime)
+                    // Unfreeze confirmation: check if unfreezeConfirmationTime elapsed
+                    if (!isConfirmed && (Time.time - touchStartTime) >= unfreezeConfirmationTime)
                     {
                         int fm = _unfreezeTargetMotorID;
                         // If a DIFFERENT motor already has a committed change, revert it first
@@ -361,11 +367,11 @@ public class ModeSwitching : MonoBehaviour
                 _singleFreezeInProgress = false;
             }
 
-            // ─── Per-frame: unfreeze lerp (frozen motor being touched → yellow→original) ───
+            // ─── Per-frame: unfreeze lerp (frozen motor being touched → yellow→unfreezeHintColor) ───
             if (_isUnfreezing && _unfreezeTargetMotorID != 0 && currentMotorID == _unfreezeTargetMotorID)
             {
-                float t = Mathf.Clamp01((Time.time - touchStartTime) / confirmationTime);
-                SetMotorColorDirect(_unfreezeTargetMotorID, Color.Lerp(singleFrozenColor, originalColor, t));
+                float t = Mathf.Clamp01((Time.time - touchStartTime) / unfreezeConfirmationTime);
+                SetMotorColorDirect(_unfreezeTargetMotorID, Color.Lerp(singleFrozenColor, unfreezeHintColor, t));
             }
         }
 
