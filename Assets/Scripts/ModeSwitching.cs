@@ -179,6 +179,17 @@ public class ModeSwitching : MonoBehaviour
         _roundChangedMotorID = 0;
         _singleMotorFrozenBaseline = new bool[12];
         _frozenBaselineCaptured = false;
+
+        // Reset: grayMode off, all motors off, all Paxini freeze off
+        grayMode = false;
+        if (SelectMotorCollider != null)
+        {
+            SelectMotorCollider.ForcePaxiniOffForMotor(1);
+            SelectMotorCollider.ForcePaxiniOffForMotor(5);
+            SelectMotorCollider.ForcePaxiniOffForMotor(9);
+        }
+        ResetAllColors();
+        CaptureModeSelectBaseline();
     }
 
     void Update()
@@ -289,9 +300,10 @@ public class ModeSwitching : MonoBehaviour
                         currentRedMotorID = 0;
                         motorSelected = false;
                         confirmedMotorID = 0;
-                        UpdateMotorColors();
-                        // Auto-disable Paxini if it was ON for this group (other motors stay frozen)
+                        // Auto-disable Paxini BEFORE UpdateMotorColors so the visual sync
+                        // sees thumbFreezeEnabled=false and does not repaint the unfrozen motor yellow.
                         CheckAndAutoDisablePaxini(fm);
+                        UpdateMotorColors();
                     }
                     // else: still lerping yellow→hint color (per-frame section handles color)
                 }

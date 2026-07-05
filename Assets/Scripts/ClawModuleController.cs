@@ -4258,6 +4258,21 @@ public class ClawModuleController : MonoBehaviour
         ApplyResetRotations();
         ResetAllFreezeStates();
         ResetModeSwitchingState();
+
+        // Reset grayMode and all single-motor freeze states in ModeSwitching
+        if (modeSwitching != null)
+        {
+            modeSwitching.grayMode = false;
+            if (modeSwitching.singleMotorFrozen != null)
+                System.Array.Clear(modeSwitching.singleMotorFrozen, 0, modeSwitching.singleMotorFrozen.Length);
+        }
+
+        // Reset all snapping flags
+        isIndexMiddle180SnappingEnabled = false;
+        isThumbIndex180SnappingEnabled = false;
+        isThumbMiddle180SnappingEnabled = false;
+        is120SnappingEnabled = false;
+
         SetEmbodimentInitialColors();
         ForceAllPaxiniOffAndRestoreColor();
         tt = 0f;
@@ -4470,23 +4485,26 @@ public class ClawModuleController : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets embodiment initial colors: fingertips (row 3 / joint4) = originalColor,
-    /// other 9 joints (rows 0-2 / joint1-3) = gray.
+    /// Sets embodiment initial colors. When grayMode is off, all joints use originalColor.
+    /// When grayMode is on: joints 1-3 = gray, joint4 (fingertips) = originalColor.
     /// </summary>
     void SetEmbodimentInitialColors()
     {
-        Color gray = modeSwitching != null ? modeSwitching.grayColor : new Color(0.5f, 0.5f, 0.5f, 1f);
+        bool useGray = modeSwitching != null && modeSwitching.grayMode;
+        Color joint123Color = useGray
+            ? (modeSwitching != null ? modeSwitching.grayColor : new Color(0.5f, 0.5f, 0.5f, 1f))
+            : originalColor;
 
-        // Rows 0-2 (joint1, joint2, joint3) = gray
-        thumbJoint1Renderer.material.color = gray;
-        thumbJoint2Renderer.material.color = gray;
-        thumbJoint3Renderer.material.color = gray;
-        indexJoint1Renderer.material.color = gray;
-        indexJoint2Renderer.material.color = gray;
-        indexJoint3Renderer.material.color = gray;
-        middleJoint1Renderer.material.color = gray;
-        middleJoint2Renderer.material.color = gray;
-        middleJoint3Renderer.material.color = gray;
+        // Rows 0-2 (joint1, joint2, joint3)
+        thumbJoint1Renderer.material.color = joint123Color;
+        thumbJoint2Renderer.material.color = joint123Color;
+        thumbJoint3Renderer.material.color = joint123Color;
+        indexJoint1Renderer.material.color = joint123Color;
+        indexJoint2Renderer.material.color = joint123Color;
+        indexJoint3Renderer.material.color = joint123Color;
+        middleJoint1Renderer.material.color = joint123Color;
+        middleJoint2Renderer.material.color = joint123Color;
+        middleJoint3Renderer.material.color = joint123Color;
 
         // Row 3 (joint4 = fingertips) = originalColor
         thumbJoint4Renderer.material.color = originalColor;
