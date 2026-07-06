@@ -561,6 +561,9 @@ public class ModeSwitching : MonoBehaviour
 
                         // Capture current frozen state as the new round baseline.
                         CaptureModeSelectBaseline();
+                        // Commit changed state first, then repaint from authoritative state
+                        // so stale yellow/original colors cannot linger after hand-away.
+                        UpdateMotorColors();
                         // Reset hover/selection transient state only when no motor is being touched
                         if (!motorSelected)
                         {
@@ -595,6 +598,7 @@ public class ModeSwitching : MonoBehaviour
                     {
                         _noFreezeRoundBaselineCaptured = true;
                         CaptureModeSelectBaseline(); // refreshes _singleMotorFrozenBaseline and resets _roundChangedMotorID
+                        UpdateMotorColors();
                     }
                 }
                 else
@@ -887,21 +891,32 @@ public class ModeSwitching : MonoBehaviour
             if (_thumbBaselinePaxiniOn)
                 SelectMotorCollider.ForcePaxiniOnForMotor(motorID);
             else
+            {
+                // Baseline-enforced OFF is a programmatic revert, not a user direct OFF.
+                // Suppress group-sync OFF→UnfreezeGroupMotors side-effect for this frame.
+                _suppressThumbPaxiniGroupUnfreeze = true;
                 SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
+            }
         }
         else if (motorID >= 5 && motorID <= 8)
         {
             if (_indexBaselinePaxiniOn)
                 SelectMotorCollider.ForcePaxiniOnForMotor(motorID);
             else
+            {
+                _suppressIndexPaxiniGroupUnfreeze = true;
                 SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
+            }
         }
         else if (motorID >= 9 && motorID <= 12)
         {
             if (_middleBaselinePaxiniOn)
                 SelectMotorCollider.ForcePaxiniOnForMotor(motorID);
             else
+            {
+                _suppressMiddlePaxiniGroupUnfreeze = true;
                 SelectMotorCollider.ForcePaxiniOffForMotor(motorID);
+            }
         }
     }
     
