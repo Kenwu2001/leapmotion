@@ -223,7 +223,8 @@ public class DebugAngle : MonoBehaviour
         // allJointLocalEulerText +
         // touchSnappedText +
         // tcpSenderDebugText +
-        BuildMotorFreezeStateText();
+        BuildMotorFreezeStateText() +
+        BuildFingertipFirstDebugText();
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Clockwise Raw: " + clockwiseRaw + "\n" +
         // "Rotation Direction: " + rotationDirection + "\n";
@@ -252,6 +253,30 @@ public class DebugAngle : MonoBehaviour
         // "\n***middleRotationDebug*** " + jointAngle.middleRotationDebug + "\n" +
         // "\n***thumbRotationDebug*** " + jointAngle.thumbRotationDebug + "\n";
         // syncLogState;
+    }
+
+    private string BuildFingertipFirstDebugText()
+    {
+        if (modeSwitching == null || SelectMotorCollider == null)
+            return "\n[FingertipFirst]\nN/A\n";
+
+        if (!modeSwitching.useFingertipFirst)
+            return "\n[FingertipFirst]\ndisabled\n";
+
+        string phase = modeSwitching.currentPhase.ToString();
+        int msConfirmedTip = modeSwitching.confirmedFingertipID;
+        bool smcConfirmed  = SelectMotorCollider.isFingertipConfirmed;
+        int smcTipID       = SelectMotorCollider.confirmedFingertipMotorID;
+        string range       = SelectMotorCollider.selectableMotorRange;
+        int touchedMotor   = SelectMotorCollider.currentTouchedMotorID;
+
+        return "\n[FingertipFirst]\n" +
+            $"Phase: {phase}\n" +
+            $"MS confirmedFingertipID: {msConfirmedTip}\n" +
+            $"SMC isFingertipConfirmed: {smcConfirmed}\n" +
+            $"SMC confirmedFingertipMotorID: {smcTipID}\n" +
+            $"SelectableRange: {range}\n" +
+            $"currentTouchedMotorID: {touchedMotor}\n";
     }
 
     private string BuildTouchSnappedText()

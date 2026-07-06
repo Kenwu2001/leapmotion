@@ -254,6 +254,20 @@ public class ModeSwitching : MonoBehaviour
                         isConfirmed = false;
                         currentRedMotorID = currentMotorID;
                         // motorSelected intentionally NOT set: unfreeze ≠ motor selected
+
+                        // FingertipFirst fix: a frozen fingertip (4/8/12) still needs to unlock
+                        // the group so motors 1-3 / 5-7 / 9-11 remain selectable while the
+                        // unfreeze gesture is in progress. Without this, isFingertipConfirmed
+                        // stays false and IsMotorSelectable blocks the other group motors.
+                        if (useFingertipFirst && SelectMotorCollider != null &&
+                            (currentMotorID == 4 || currentMotorID == 8 || currentMotorID == 12))
+                        {
+                            confirmedFingertipID = currentMotorID;
+                            currentPhase = SelectionPhase.MotorConfirmed;
+                            SelectMotorCollider.OnFingertipConfirmed(currentMotorID);
+                            SelectMotorCollider.CaptureFrozenLine(currentMotorID);
+                        }
+
                         // Clear residual color on any previously-hovered motor before lerp starts.
                         UpdateMotorColors();
                     }
