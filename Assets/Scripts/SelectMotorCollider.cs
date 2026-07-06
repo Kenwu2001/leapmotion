@@ -342,6 +342,16 @@ public class SelectMotorCollider : MonoBehaviour
     private bool _suppressIndexBulkFreeze  = false;
     private bool _suppressMiddleBulkFreeze = false;
 
+    // Paxini visual force override — controlled by ModeSwitching for pending states.
+    // ForceYellow: show yellow without thumbFreezeEnabled=true (pending auto-ON).
+    // ForceOriginal: show original despite thumbFreezeEnabled=true (pending auto-OFF).
+    [HideInInspector] public bool thumbPaxiniForceYellow    = false;
+    [HideInInspector] public bool thumbPaxiniForceOriginal  = false;
+    [HideInInspector] public bool indexPaxiniForceYellow    = false;
+    [HideInInspector] public bool indexPaxiniForceOriginal  = false;
+    [HideInInspector] public bool middlePaxiniForceYellow   = false;
+    [HideInInspector] public bool middlePaxiniForceOriginal = false;
+
     private void Start()
     {
         // Setup trigger detectors for motor colliders 1-4 (Thumb only) - skip if using projection mode
@@ -3024,7 +3034,23 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightThumbTip != null)
         {
-            if (thumbFreezeAllowed && !thumbPaxiniBlockedByOtherMotor)
+            if (thumbPaxiniForceOriginal)
+            {
+                // Pending auto-OFF: override to original despite thumbFreezeEnabled=true
+                triggerRightThumbTip.showFreezeColor = false;
+                triggerRightThumbTip.freezeDisplayColor = triggerRightThumbTip.originalColor;
+                if (triggerRightThumbTip.thumbPaxiniRenderer != null)
+                    triggerRightThumbTip.thumbPaxiniRenderer.material.color = triggerRightThumbTip.originalColor;
+            }
+            else if (thumbPaxiniForceYellow)
+            {
+                // Pending auto-ON: override to yellow without thumbFreezeEnabled=true
+                triggerRightThumbTip.showFreezeColor = true;
+                triggerRightThumbTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightThumbTip.thumbPaxiniRenderer != null)
+                    triggerRightThumbTip.thumbPaxiniRenderer.material.color = Color.yellow;
+            }
+            else if (thumbFreezeAllowed && !thumbPaxiniBlockedByOtherMotor)
             {
                 _thumbFreezeColorLerpT = Mathf.MoveTowards(_thumbFreezeColorLerpT, 1f, lerpSpeed * Time.deltaTime);
                 triggerRightThumbTip.showFreezeColor = true;
@@ -3047,7 +3073,21 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightIndexTip != null)
         {
-            if (indexFreezeAllowed && !indexPaxiniBlockedByOtherMotor)
+            if (indexPaxiniForceOriginal)
+            {
+                triggerRightIndexTip.showFreezeColor = false;
+                triggerRightIndexTip.freezeDisplayColor = triggerRightIndexTip.originalColor;
+                if (triggerRightIndexTip.indexPaxiniRenderer != null)
+                    triggerRightIndexTip.indexPaxiniRenderer.material.color = triggerRightIndexTip.originalColor;
+            }
+            else if (indexPaxiniForceYellow)
+            {
+                triggerRightIndexTip.showFreezeColor = true;
+                triggerRightIndexTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightIndexTip.indexPaxiniRenderer != null)
+                    triggerRightIndexTip.indexPaxiniRenderer.material.color = Color.yellow;
+            }
+            else if (indexFreezeAllowed && !indexPaxiniBlockedByOtherMotor)
             {
                 _indexFreezeColorLerpT = Mathf.MoveTowards(_indexFreezeColorLerpT, 1f, lerpSpeed * Time.deltaTime);
                 triggerRightIndexTip.showFreezeColor = true;
@@ -3070,7 +3110,21 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightMiddleTip != null)
         {
-            if (middleFreezeAllowed && !middlePaxiniBlockedByOtherMotor)
+            if (middlePaxiniForceOriginal)
+            {
+                triggerRightMiddleTip.showFreezeColor = false;
+                triggerRightMiddleTip.freezeDisplayColor = triggerRightMiddleTip.originalColor;
+                if (triggerRightMiddleTip.middlePaxiniRenderer != null)
+                    triggerRightMiddleTip.middlePaxiniRenderer.material.color = triggerRightMiddleTip.originalColor;
+            }
+            else if (middlePaxiniForceYellow)
+            {
+                triggerRightMiddleTip.showFreezeColor = true;
+                triggerRightMiddleTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightMiddleTip.middlePaxiniRenderer != null)
+                    triggerRightMiddleTip.middlePaxiniRenderer.material.color = Color.yellow;
+            }
+            else if (middleFreezeAllowed && !middlePaxiniBlockedByOtherMotor)
             {
                 _middleFreezeLerpColorT = Mathf.MoveTowards(_middleFreezeLerpColorT, 1f, lerpSpeed * Time.deltaTime);
                 triggerRightMiddleTip.showFreezeColor = true;
