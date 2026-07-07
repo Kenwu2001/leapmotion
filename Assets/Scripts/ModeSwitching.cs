@@ -149,6 +149,24 @@ public class ModeSwitching : MonoBehaviour
     private bool _suppressIndexGroupYellow  = false;
     private bool _suppressMiddleGroupYellow = false;
 
+    [Header("Debug - Paxini Group Sync")]
+    [Tooltip("True on frames where FreezeGroupMotors was entered")]
+    public bool debugEnteredFreezeGroupMotors = false;
+    [Tooltip("True on frames where UnfreezeGroupMotors was entered")]
+    public bool debugEnteredUnfreezeGroupMotors = false;
+    [Tooltip("Last group-sync action name")]
+    public string debugLastGroupSyncAction = "None";
+    [Tooltip("Last group start used by group-sync action (1/5/9)")]
+    public int debugLastGroupStart = 0;
+    [Tooltip("Last Paxini motor ID resolved for group-sync action (13/14/15)")]
+    public int debugLastGroupPaxiniID = 0;
+    [Tooltip("Unity frame where the last group-sync action happened")]
+    public int debugGroupSyncFrame = -1;
+    [Tooltip("How many times FreezeGroupMotors has been entered")]
+    public int debugFreezeGroupCallCount = 0;
+    [Tooltip("How many times UnfreezeGroupMotors has been entered")]
+    public int debugUnfreezeGroupCallCount = 0;
+
     public enum SelectionPhase
     {
         SelectingFingertip,   // Phase 1: Selecting fingertip (4, 8, 12)
@@ -1314,6 +1332,24 @@ public class ModeSwitching : MonoBehaviour
         return true;
     }
 
+    private void MarkGroupSyncDebug(bool isFreezeAction, int groupStart, bool validGroup)
+    {
+        debugEnteredFreezeGroupMotors = isFreezeAction;
+        debugEnteredUnfreezeGroupMotors = !isFreezeAction;
+        debugLastGroupSyncAction = isFreezeAction ? "FreezeGroupMotors" : "UnfreezeGroupMotors";
+        if (!validGroup)
+            debugLastGroupSyncAction += "(invalid group)";
+        debugLastGroupStart = groupStart;
+        debugLastGroupPaxiniID = (groupStart == 1) ? ThumbPaxiniMotorID
+                             : (groupStart == 5) ? IndexPaxiniMotorID
+                             : (groupStart == 9) ? MiddlePaxiniMotorID
+                             : 0;
+        debugGroupSyncFrame = Time.frameCount;
+
+        if (isFreezeAction) debugFreezeGroupCallCount++;
+        else debugUnfreezeGroupCallCount++;
+    }
+
     /// <summary>
     /// Handles Paxini ON transition for a group (direct user selection via freeze zone).
     /// Enforces one-change-per-round (now including motors 13/14/15):
@@ -1326,7 +1362,9 @@ public class ModeSwitching : MonoBehaviour
     public void FreezeGroupMotors(int groupStart)
     {
         int gEnd = groupStart + 3;
-        if (gEnd > 12) return;
+        bool validGroup = gEnd <= 12;
+        MarkGroupSyncDebug(true, groupStart, validGroup);
+        if (!validGroup) return;
 
         int paxiniID = GetPaxiniIDForGroup(groupStart);
 
@@ -1367,7 +1405,9 @@ public class ModeSwitching : MonoBehaviour
     public void UnfreezeGroupMotors(int groupStart)
     {
         int gEnd = groupStart + 3;
-        if (gEnd > 12) return;
+        bool validGroup = gEnd <= 12;
+        MarkGroupSyncDebug(false, groupStart, validGroup);
+        if (!validGroup) return;
 
         int paxiniID = GetPaxiniIDForGroup(groupStart);
 

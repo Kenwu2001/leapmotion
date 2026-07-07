@@ -58,6 +58,30 @@ public class DebugAngle : MonoBehaviour
             $"(m9,m10,m11,m12,m15) = ({MotorState(9)},{MotorState(10)},{MotorState(11)},{MotorState(12)},{PaxState(middlePaxini)})\n";
     }
 
+    private string BuildPaxiniGroupSyncDebugText()
+    {
+      if (SelectMotorCollider == null)
+        return "\n[Paxini Group Sync]\nSelectMotorCollider: N/A\n";
+
+      return "\n[Paxini Group Sync]\n" +
+        "DebugText: " + SelectMotorCollider.debugGroupSyncText + "\n" +
+        "Frame: " + SelectMotorCollider.debugGroupSyncFrame + "\n";
+    }
+
+    private string BuildFreezeEdgeDebugText()
+    {
+      if (SelectMotorCollider == null)
+        return "\n[Freeze Edge Debug]\nSelectMotorCollider: N/A\n";
+
+      return "\n[Freeze Edge Debug]\n" +
+        "_prevThumbFreezeEnabled: " + SelectMotorCollider.debugPrevThumbFreezeEnabled + "\n" +
+        "thumbFreezeEnabled: " + SelectMotorCollider.thumbFreezeEnabled + "\n" +
+        "_prevIndexFreezeEnabled: " + SelectMotorCollider.debugPrevIndexFreezeEnabled + "\n" +
+        "indexFreezeEnabled: " + SelectMotorCollider.indexFreezeEnabled + "\n" +
+        "_prevMiddleFreezeEnabled: " + SelectMotorCollider.debugPrevMiddleFreezeEnabled + "\n" +
+        "middleFreezeEnabled: " + SelectMotorCollider.middleFreezeEnabled + "\n";
+    }
+
     private string BuildSelectMotorLogSyncState()
     {
       if (SelectMotorCollider == null)
@@ -223,8 +247,10 @@ public class DebugAngle : MonoBehaviour
         // allJointLocalEulerText +
         // touchSnappedText +
         // tcpSenderDebugText +
-        BuildMotorFreezeStateText() +
-        BuildFingertipFirstDebugText();
+        // BuildMotorFreezeStateText() +
+        // BuildFingertipFirstDebugText() +
+        BuildPaxiniGroupSyncDebugText() +
+        BuildFreezeEdgeDebugText();
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Clockwise Raw: " + clockwiseRaw + "\n" +
         // "Rotation Direction: " + rotationDirection + "\n";

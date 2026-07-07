@@ -291,6 +291,11 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("[Debug] Middle currently in freeze zone (0-20%)")]
     public bool middleInFreezeZone = false;
 
+    [Tooltip("[Debug] Last Paxini group-sync event text")]
+    public string debugGroupSyncText = "No group-sync event yet";
+    [Tooltip("[Debug] Frame index when debugGroupSyncText was updated")]
+    public int debugGroupSyncFrame = -1;
+
     [Tooltip("Suppresses Select→Manipulate transition when freeze zone was last action")]
     public bool suppressManipulateTransition = false;
 
@@ -333,6 +338,9 @@ public class SelectMotorCollider : MonoBehaviour
     private bool _prevThumbFreezeEnabled  = false;
     private bool _prevIndexFreezeEnabled  = false;
     private bool _prevMiddleFreezeEnabled = false;
+    public bool debugPrevThumbFreezeEnabled => _prevThumbFreezeEnabled;
+    public bool debugPrevIndexFreezeEnabled => _prevIndexFreezeEnabled;
+    public bool debugPrevMiddleFreezeEnabled => _prevMiddleFreezeEnabled;
     // Set before any programmatic (non-user-initiated) *FreezeEnabled = false to suppress bulk unfreeze.
     private bool _suppressThumbBulkUnfreeze  = false;
     private bool _suppressIndexBulkUnfreeze  = false;
@@ -585,44 +593,69 @@ public class SelectMotorCollider : MonoBehaviour
 
         // Update freeze feature color animations
         UpdateFreezeColors();
-
+        
+        //FIXME: state weired
         // Paxini group-sync: detect user-driven Paxini state changes and notify ModeSwitching.
         // OFF→ON: visual/group lock only (full freeze state commit is deferred by ModeSwitching).
         // ON→OFF: restore the group to the round baseline snapshot.
         if (_prevThumbFreezeEnabled && !thumbFreezeEnabled)
         {
-            if (!_suppressThumbBulkUnfreeze && modeSwitching != null)
+            if (!_suppressThumbBulkUnfreeze)
+            {
+                debugGroupSyncText = "UnfreezeGroupMotors(1)";
+                debugGroupSyncFrame = Time.frameCount;
                 modeSwitching.UnfreezeGroupMotors(1);
+            }
             _suppressThumbBulkUnfreeze = false;
         }
         else if (!_prevThumbFreezeEnabled && thumbFreezeEnabled)
         {
-            if (!_suppressThumbBulkFreeze && modeSwitching != null)
+            if (!_suppressThumbBulkFreeze)
+            {
+                debugGroupSyncText = "FreezeGroupMotors(1)";
+                debugGroupSyncFrame = Time.frameCount;
                 modeSwitching.FreezeGroupMotors(1);
+            }
             _suppressThumbBulkFreeze = false;
         }
         if (_prevIndexFreezeEnabled && !indexFreezeEnabled)
         {
-            if (!_suppressIndexBulkUnfreeze && modeSwitching != null)
+            if (!_suppressIndexBulkUnfreeze)
+            {
+                debugGroupSyncText = "UnfreezeGroupMotors(5)";
+                debugGroupSyncFrame = Time.frameCount;
                 modeSwitching.UnfreezeGroupMotors(5);
+            }
             _suppressIndexBulkUnfreeze = false;
         }
         else if (!_prevIndexFreezeEnabled && indexFreezeEnabled)
         {
-            if (!_suppressIndexBulkFreeze && modeSwitching != null)
+            if (!_suppressIndexBulkFreeze)
+            {
+                debugGroupSyncText = "FreezeGroupMotors(5)";
+                debugGroupSyncFrame = Time.frameCount;
                 modeSwitching.FreezeGroupMotors(5);
+            }
             _suppressIndexBulkFreeze = false;
         }
         if (_prevMiddleFreezeEnabled && !middleFreezeEnabled)
         {
-            if (!_suppressMiddleBulkUnfreeze && modeSwitching != null)
+            if (!_suppressMiddleBulkUnfreeze)
+            {
+                debugGroupSyncText = "UnfreezeGroupMotors(9)";
+                debugGroupSyncFrame = Time.frameCount;
                 modeSwitching.UnfreezeGroupMotors(9);
+            }
             _suppressMiddleBulkUnfreeze = false;
         }
         else if (!_prevMiddleFreezeEnabled && middleFreezeEnabled)
         {
-            if (!_suppressMiddleBulkFreeze && modeSwitching != null)
+            if (!_suppressMiddleBulkFreeze)
+            {
+                debugGroupSyncText = "FreezeGroupMotors(9)";
+                debugGroupSyncFrame = Time.frameCount;
                 modeSwitching.FreezeGroupMotors(9);
+            }
             _suppressMiddleBulkFreeze = false;
         }
         _prevThumbFreezeEnabled  = thumbFreezeEnabled;
