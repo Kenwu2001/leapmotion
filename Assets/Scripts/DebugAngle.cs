@@ -224,6 +224,9 @@ public class DebugAngle : MonoBehaviour
       string syncLogState = BuildSelectMotorLogSyncState();
       string newTouchConditionDebug = BuildNewTouchConditionDebug();
       int fingerPriorityValue = SelectMotorCollider != null ? SelectMotorCollider.debugFingerPriority : -1;
+      string lIndexToIndex2DistanceText = jointAngle != null
+        ? jointAngle.GetLIndexToIndex2Distance().ToString("F3") + " m"
+        : "N/A";
       string controllerDistanceText = "N/A";
       if (controllerLocatorLeft != null)
       {
@@ -270,6 +273,8 @@ public class DebugAngle : MonoBehaviour
         // allJointLocalEulerText +
         // touchSnappedText +
         // tcpSenderDebugText +
+        "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
+        "L/R Controller Distance: " + controllerDistanceText + "\n" +
         BuildMotorFreezeStateText() +
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
