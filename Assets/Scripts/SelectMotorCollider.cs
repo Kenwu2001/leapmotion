@@ -604,6 +604,7 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 debugGroupSyncText = "UnfreezeGroupMotors(1)";
                 debugGroupSyncFrame = Time.frameCount;
+                Debug.Log($"##########################[SelectMotorCollider] Paxini group-sync: Thumb OFF → UnfreezeGroupMotors(1) frame={Time.frameCount}");
                 modeSwitching.UnfreezeGroupMotors(1);
             }
             _suppressThumbBulkUnfreeze = false;

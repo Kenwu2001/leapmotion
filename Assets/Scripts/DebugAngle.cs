@@ -82,6 +82,29 @@ public class DebugAngle : MonoBehaviour
         "middleFreezeEnabled: " + SelectMotorCollider.middleFreezeEnabled + "\n";
     }
 
+    private string BuildThumbFreezeCompareDebugText()
+    {
+      if (modeSwitching == null || SelectMotorCollider == null)
+        return "\n[Thumb Freeze Compare]\nN/A\n";
+
+      bool thumbOn = modeSwitching.debugThumbOn;
+      bool thumbFreezeEnabled = SelectMotorCollider.thumbFreezeEnabled;
+
+      return "\n[Thumb Freeze Compare]\n" +
+        "ModeSwitching.thumbOn: " + thumbOn + "\n" +
+        "SelectMotorCollider.thumbFreezeEnabled: " + thumbFreezeEnabled + "\n" +
+        "Same: " + (thumbOn == thumbFreezeEnabled) + "\n";
+    }
+
+    private string BuildSuppressThumbPaxiniDebugText()
+    {
+      if (modeSwitching == null)
+        return "\n[Suppress Thumb Paxini]\nN/A\n";
+
+      return "\n[Suppress Thumb Paxini]\n" +
+        "_suppressThumbPaxiniGroupUnfreeze: " + modeSwitching.debugSuppressThumbPaxiniGroupUnfreeze + "\n";
+    }
+
     private string BuildSelectMotorLogSyncState()
     {
       if (SelectMotorCollider == null)
@@ -247,10 +270,12 @@ public class DebugAngle : MonoBehaviour
         // allJointLocalEulerText +
         // touchSnappedText +
         // tcpSenderDebugText +
-        // BuildMotorFreezeStateText() +
+        BuildMotorFreezeStateText() +
         // BuildFingertipFirstDebugText() +
-        BuildPaxiniGroupSyncDebugText() +
-        BuildFreezeEdgeDebugText();
+        // BuildPaxiniGroupSyncDebugText() +
+        BuildFreezeEdgeDebugText() +
+        BuildThumbFreezeCompareDebugText() +
+        BuildSuppressThumbPaxiniDebugText();
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Clockwise Raw: " + clockwiseRaw + "\n" +
         // "Rotation Direction: " + rotationDirection + "\n";

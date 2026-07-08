@@ -167,6 +167,12 @@ public class ModeSwitching : MonoBehaviour
     [Tooltip("How many times UnfreezeGroupMotors has been entered")]
     public int debugUnfreezeGroupCallCount = 0;
 
+    [Header("Debug - Paxini Live Flags")]
+    [Tooltip("Mirror of Update() local variable 'thumbOn' for runtime debugging")]
+    public bool debugThumbOn = false;
+    [Tooltip("Mirror of _suppressThumbPaxiniGroupUnfreeze for runtime debugging")]
+    public bool debugSuppressThumbPaxiniGroupUnfreeze = false;
+
     public enum SelectionPhase
     {
         SelectingFingertip,   // Phase 1: Selecting fingertip (4, 8, 12)
@@ -464,11 +470,15 @@ public class ModeSwitching : MonoBehaviour
             bool thumbOn  = SelectMotorCollider.thumbFreezeEnabled;
             bool indexOn  = SelectMotorCollider.indexFreezeEnabled;
             bool middleOn = SelectMotorCollider.middleFreezeEnabled;
+            debugThumbOn = thumbOn;
+r            debugSuppressThumbPaxiniGroupUnfreeze = _suppressThumbPaxiniGroupUnfreeze;
 
+            //FIXME: trace _suppressThumbPaxiniGroupUnfreeze
             if (_prevThumbPaxiniEnabled && !thumbOn)
             {
                 if (!_suppressThumbPaxiniGroupUnfreeze)
                 {
+                    Debug.Log($"!!!!!!!!!!!!!!!![SelectMotorCollider] Paxini group-sync: Thumb OFF → UnfreezeGroupMotors(1) frame={Time.frameCount}");
                     UnfreezeGroupMotors(1);
                 }
                 _suppressThumbPaxiniGroupUnfreeze = false;
@@ -1404,6 +1414,7 @@ public class ModeSwitching : MonoBehaviour
     /// </summary>
     public void UnfreezeGroupMotors(int groupStart)
     {
+        Debug.Log($"UnfreezeGroupMotors({groupStart}) frame={Time.frameCount}");
         int gEnd = groupStart + 3;
         bool validGroup = gEnd <= 12;
         MarkGroupSyncDebug(false, groupStart, validGroup);
