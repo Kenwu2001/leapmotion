@@ -291,6 +291,9 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("[Debug] Middle currently in freeze zone (0-20%)")]
     public bool middleInFreezeZone = false;
 
+    [Tooltip("Duration (seconds) required in the freeze zone to toggle Paxini freeze ON/OFF (motors 13/14/15)")]
+    public float paxiniFreezeToggleDuration = 0.25f;
+
     [Tooltip("[Debug] Last Paxini group-sync event text")]
     public string debugGroupSyncText = "No group-sync event yet";
     [Tooltip("[Debug] Frame index when debugGroupSyncText was updated")]
@@ -3001,7 +3004,8 @@ public class SelectMotorCollider : MonoBehaviour
             return;
         }
 
-        const float lerpSpeed = 4f; // ~0.25 s to fully transition
+        float safeDuration = Mathf.Max(0.01f, paxiniFreezeToggleDuration);
+        float lerpSpeed = 1f / safeDuration;
 
         // When useFingertipFirst is active and a fingertip is confirmed, only the confirmed finger
         // may unlock its freeze gate, enter freeze zone, or show the freeze color animation.
