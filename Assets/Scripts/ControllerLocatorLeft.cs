@@ -18,6 +18,8 @@ public class ControllerLocatorLeft : MonoBehaviour
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
     public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
+    [Tooltip("Ignore hand-separation thresholds and always show toy hand + canvas fallback. Canvas follows the right-hand controller pose.")]
+    public bool alwaysAllowToyHandAndCanvas = false;
     public bool previewCanvasPlaneOffset = false;
     public float canvasShowDelaySeconds = 1f;
 
@@ -84,6 +86,40 @@ public class ControllerLocatorLeft : MonoBehaviour
     {
         RefreshControllerSeparationState();
         UpdateLeftHandVisualsHiddenState();
+
+        if (alwaysAllowToyHandAndCanvas)
+        {
+            InputDevice alwaysAllowDevice = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+            if (!alwaysAllowDevice.isValid)
+            {
+                controllerPoseDebug = "LeftHand controller not tracked";
+            }
+            else if (alwaysAllowDevice.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 alwaysAllowPos) &&
+                     alwaysAllowDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out Quaternion alwaysAllowRot))
+            {
+                currentControllerPosition = alwaysAllowPos;
+                currentControllerEulerAngles = alwaysAllowRot.eulerAngles;
+                controllerPoseDebug = "LeftHand Pos: (" +
+                                      alwaysAllowPos.x.ToString("F3") + ", " +
+                                      alwaysAllowPos.y.ToString("F3") + ", " +
+                                      alwaysAllowPos.z.ToString("F3") + ") Rot: (" +
+                                      currentControllerEulerAngles.x.ToString("F1") + ", " +
+                                      currentControllerEulerAngles.y.ToString("F1") + ", " +
+                                      currentControllerEulerAngles.z.ToString("F1") + ")";
+
+                transform.localPosition = alwaysAllowPos;
+                transform.localRotation = alwaysAllowRot;
+            }
+            else
+            {
+                controllerPoseDebug = "LeftHand controller pose unavailable";
+            }
+
+            wasPreviewCanvasPlaneOffset = false;
+            wasAlwaysShowCanvasPlane = false;
+            UpdateCanvasPlaneVisibility();
+            return;
+        }
 
         InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
         if (!device.isValid)
@@ -193,6 +229,9 @@ public class ControllerLocatorLeft : MonoBehaviour
                 ShowCanvasPlaneFollowingRightHand();
             }
 
+            // Keep linked fallback objects visible even if another script toggled them off.
+            SetCanvasVisibility(true);
+
             UpdateCanvasPlaneFollowingRightHandPose();
             return;
         }
@@ -207,6 +246,11 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private bool ShouldUseFallbackVisuals()
     {
+        if (alwaysAllowToyHandAndCanvas)
+        {
+            return true;
+        }
+
         if (!isControllerSeparationValid)
         {
             return false;
@@ -272,7 +316,8 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateLeftHandVisualsHiddenState()
     {
-        bool shouldHideLeftHandVisuals = shouldHideLeftHandByDistance || isFallbackVisualsActive;
+        bool shouldHideLeftHandVisuals = !alwaysAllowToyHandAndCanvas &&
+                                        (shouldHideLeftHandByDistance || isFallbackVisualsActive);
 
         if (leftHandRetargetingSkin != null)
         {

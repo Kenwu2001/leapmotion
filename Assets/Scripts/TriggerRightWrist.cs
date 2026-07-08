@@ -6,7 +6,8 @@ public class TriggerRightWrist : MonoBehaviour
 {
     public TcpSender tcpSender;
     // public string leftPinkyName = "L_PinkyTip";
-    public string leftIndexTipName = "L_IndexTip";
+    // public string leftIndexTipName = "L_IndexTip";
+    public string leftIndexTipName = "ToyHand";
     public bool isRightWristTouched = false;
     public GameObject indicatorQuad; // The quad to show/hide
     [Tooltip("Minimum interval between engagement toggles to resist tracking jitter.")]

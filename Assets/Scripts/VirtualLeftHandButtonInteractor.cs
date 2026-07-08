@@ -101,6 +101,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     public ButtonBinding button3 = new ButtonBinding { buttonName = "Button 3" };
     [FormerlySerializedAs("buttonSnapping")]
     public ButtonBinding buttonSnapping = new ButtonBinding { buttonName = "Snapping Button" };
+    // public ButtonBinding buttonAlbow = new ButtonBinding { buttonName = "Albow Button" };
 
     [Header("State Sources")]
     public ClawModuleController clawModuleController;
@@ -116,6 +117,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         InitializeButton(button2);
         InitializeButton(button3);
         InitializeButton(buttonSnapping);
+        // InitializeButton(buttonAlbow);
         SyncButtonStates();
     }
 
@@ -137,16 +139,18 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     {
         if (TryHandleEnter(button1, other)) return;
         if (TryHandleEnter(button2, other)) return;
-        TryHandleEnter(button3, other);
-        TryHandleEnter(buttonSnapping, other);
+        if (TryHandleEnter(button3, other)) return;
+        if (TryHandleEnter(buttonSnapping, other)) return;
+        // TryHandleEnter(buttonAlbow, other);
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (TryHandleExit(button1, other)) return;
         if (TryHandleExit(button2, other)) return;
-        TryHandleExit(button3, other);
-        TryHandleExit(buttonSnapping, other);
+        if (TryHandleExit(button3, other)) return;
+        if (TryHandleExit(buttonSnapping, other)) return;
+        // TryHandleExit(buttonAlbow, other);
     }
 
     private bool TryHandleEnter(ButtonBinding button, Collider other)
@@ -215,6 +219,13 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
+        // if (buttonAlbow.isTouched)
+        // {
+        //     currentTouchedButton = buttonAlbow.buttonName;
+        //     interactionDebug = "Touch stay: " + buttonAlbow.buttonName;
+        //     return;
+        // }
+
         currentTouchedButton = "None";
         interactionDebug = "No button touched";
     }
@@ -241,6 +252,9 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
             buttonSnapping.SetText(clawModuleController.GetCurrentSnappingText());
         }
+
+        // Albow button logic is temporarily disabled.
+        // buttonAlbow.ApplyCurrentColor();
     }
 
     private void SetButtonState(ButtonBinding button, bool isOn)
@@ -275,6 +289,11 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         {
             buttonSnapping.buttonName = "snapping";
         }
+
+        // if (buttonAlbow.buttonName == "Albow Button")
+        // {
+        //     buttonAlbow.buttonName = "Albow";
+        // }
     }
 
     private void HandleButtonPress(ButtonBinding button)
@@ -321,6 +340,14 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             buttonSnapping.SetVisible(clawModuleController.hasAnySnappingVisible);
             buttonSnapping.SetText(clawModuleController.GetCurrentSnappingText());
             interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.IsCurrentSnappingEnabled();
+            return;
         }
+
+        // if (button == buttonAlbow)
+        // {
+        //     buttonAlbow.isOn = !buttonAlbow.isOn;
+        //     buttonAlbow.ApplyCurrentColor();
+        //     interactionDebug = "Touch enter: " + button.buttonName + " -> " + buttonAlbow.isOn;
+        // }
     }
 }

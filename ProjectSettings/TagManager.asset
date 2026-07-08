@@ -12,6 +12,7 @@ TagManager:
   - L_IndexTipRetarget
   - L_ThumbTipSmall
   - L_PinkyTip
+  - ToyHand
   layers:
   - Default
   - TransparentFX

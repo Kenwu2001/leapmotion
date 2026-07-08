@@ -19,6 +19,7 @@ public class DebugAngle : MonoBehaviour
     public TcpSender tcpSender;
     public TriggerRightWrist triggerRightWrist;
     public ControllerLocatorLeft controllerLocatorLeft;
+    // public VirtualLeftHandButtonInteractor virtualLeftHandButtonInteractor;
 
     public GameObject r_wrist;
 
@@ -235,6 +236,12 @@ public class DebugAngle : MonoBehaviour
           : "Controller pose unavailable";
       }
 
+      // string albowButtonStateText = "N/A";
+      // if (virtualLeftHandButtonInteractor != null)
+      // {
+      //   albowButtonStateText = virtualLeftHandButtonInteractor.buttonAlbow.isOn ? "ON" : "OFF";
+      // }
+
       // Thumb-Only Rotation Mode debug
       string thumbOnlyModeText = "N/A";
       // if (jointAngle != null)
@@ -275,6 +282,7 @@ public class DebugAngle : MonoBehaviour
         // tcpSenderDebugText +
         "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
         "L/R Controller Distance: " + controllerDistanceText + "\n" +
+        // "Albow Button: " + albowButtonStateText + "\n" +
         BuildMotorFreezeStateText() +
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
