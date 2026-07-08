@@ -49,6 +49,16 @@ public class ModeSwitching : MonoBehaviour
     public bool motorSelected = false;
     public bool modeManipulate = false;
     public float currentHandSeparationDistance = 0f;
+
+    [Header("Separation Source")]
+    [Tooltip("OFF: use JointAngle.GetLIndexToIndex2Distance() and hand threshold. ON: use ControllerLocatorLeft.currentControllerSeparationDistance and controller threshold.")]
+    public bool useControllerSeperationDistance = false;
+    [Tooltip("Reference for controller-based separation distance when useControllerSeperationDistance is ON")]
+    public ControllerLocatorLeft controllerlocatorleft;
+    [Tooltip("Transition threshold used when useControllerSeperationDistance is OFF")]
+    public float handSeparationThreshold = 0.16f;
+    [Tooltip("Transition threshold used when useControllerSeperationDistance is ON")]
+    public float controllerSeparationThreshold = 0.43f;
     
     public int lastTouchedMotorID = 0;
     public int currentRedMotorID = 0; // Currently touched motor (displayed in light/dark red)
@@ -60,7 +70,7 @@ public class ModeSwitching : MonoBehaviour
     private float touchStartTime = 0f; // Time when touch started
     private bool isConfirmed = false; // Whether the currently touched motor is confirmed (dark red)
     
-    private bool hasEnteredCloseRange = false; // Track if we've entered < 0.16f during manipulation
+    private bool hasEnteredCloseRange = false; // Track if we've entered below the active separation threshold during manipulation
     private bool hasSetManipulateColors = false; // Track if we've set manipulate colors
     private bool _wasModeSelectLastFrame = false;
 
@@ -182,6 +192,11 @@ public class ModeSwitching : MonoBehaviour
     
     void Start()
     {
+        if (controllerlocatorleft == null)
+        {
+            controllerlocatorleft = FindObjectOfType<ControllerLocatorLeft>();
+        }
+
         if (SelectMotorCollider != null)
         {
             if (thumbPaxiniRenderer == null && SelectMotorCollider.triggerRightThumbTip != null)
@@ -239,10 +254,8 @@ public class ModeSwitching : MonoBehaviour
 
     void Update()
     {
-        if (jointAngle != null)
-        {
-            currentHandSeparationDistance = jointAngle.GetLIndexToIndex2Distance();
-        }
+        UpdateCurrentHandSeparationDistance();
+        float activeSeparationThreshold = GetActiveSeparationThreshold();
 
         // Capture baseline once when entering modeSelect.
         if (modeSelect && !_wasModeSelectLastFrame)
@@ -519,7 +532,7 @@ public class ModeSwitching : MonoBehaviour
         if (modeSelect && motorSelected && isConfirmedPaxiniMotor)
         {
             float distance = currentHandSeparationDistance;
-            if (distance > 0.16f)
+            if (distance > activeSeparationThreshold)
             {
                 ReturnToBaseSelectStateAfterPaxini();
             }
@@ -540,7 +553,7 @@ public class ModeSwitching : MonoBehaviour
 
             if (hasAnyFrozen || hasPendingPaxini)
             {
-                if (currentHandSeparationDistance > 0.16f)
+                if (currentHandSeparationDistance > activeSeparationThreshold)
                 {
                     if (!_frozenBaselineCaptured)
                     {
@@ -643,7 +656,7 @@ public class ModeSwitching : MonoBehaviour
                 // currently frozen, capture a fresh baseline when the hand moves away.
                 // Without this, the stale frozen baseline would incorrectly re-freeze
                 // the unfrozen motor the next time a different motor is confirmed.
-                if (_roundChangedMotorID != 0 && currentHandSeparationDistance > 0.16f)
+                if (_roundChangedMotorID != 0 && currentHandSeparationDistance > activeSeparationThreshold)
                 {
                     if (!_noFreezeRoundBaselineCaptured)
                     {
@@ -685,7 +698,7 @@ public class ModeSwitching : MonoBehaviour
         {
             float distance = currentHandSeparationDistance;
 
-            if (distance > 0.16f)
+            if (distance > activeSeparationThreshold)
             {
                 modeSelect = false;
                 motorSelected = false;
@@ -830,15 +843,15 @@ public class ModeSwitching : MonoBehaviour
                 if (singleMotorFrozen[i])
                     SetMotorColorDirect(i + 1, singleFrozenColor);
 
-            // Track if we've entered close range (< 0.16f) for manipulation
-            if (distance < 0.16f)
+            // Track if we've entered close range (< active threshold) for manipulation
+            if (distance < activeSeparationThreshold)
             {
                 hasEnteredCloseRange = true;
             }
 
             // Only exit if we've performed manipulation (entered close range) 
-            // and then moved back out (> 0.16f)
-            if (hasEnteredCloseRange && distance > 0.16f)
+            // and then moved back out (> active threshold)
+            if (hasEnteredCloseRange && distance > activeSeparationThreshold)
             {
                 modeSelect = true;
                 motorSelected = false;
@@ -889,7 +902,7 @@ public class ModeSwitching : MonoBehaviour
             // Skip when auto-OFF is pending (those groups must NOT be force-frozen here).
             if (modeSelect)
             {
-                bool shouldCommitPaxiniFreeze = currentHandSeparationDistance > 0.16f;
+                bool shouldCommitPaxiniFreeze = currentHandSeparationDistance > activeSeparationThreshold;
                 if (shouldCommitPaxiniFreeze && SelectMotorCollider.thumbFreezeEnabled && !_pendingThumbAutoOff)
                     for (int m = 1; m <= 4; m++) singleMotorFrozen[m - 1] = true;
                 if (shouldCommitPaxiniFreeze && SelectMotorCollider.indexFreezeEnabled && !_pendingIndexAutoOff)
@@ -906,6 +919,31 @@ public class ModeSwitching : MonoBehaviour
             if (SelectMotorCollider.middleFreezeEnabled && !_pendingMiddleAutoOff)
                 for (int m = 9; m <= 12; m++) SetMotorColorDirect(m, singleFrozenColor);
         }
+    }
+
+    private void UpdateCurrentHandSeparationDistance()
+    {
+        if (useControllerSeperationDistance)
+        {
+            if (controllerlocatorleft != null)
+            {
+                currentHandSeparationDistance = controllerlocatorleft.currentControllerSeparationDistance;
+                return;
+            }
+
+            currentHandSeparationDistance = 0f;
+            return;
+        }
+
+        if (jointAngle != null)
+        {
+            currentHandSeparationDistance = jointAngle.GetLIndexToIndex2Distance();
+        }
+    }
+
+    private float GetActiveSeparationThreshold()
+    {
+        return useControllerSeperationDistance ? controllerSeparationThreshold : handSeparationThreshold;
     }
 
     private void CaptureModeSelectBaseline()

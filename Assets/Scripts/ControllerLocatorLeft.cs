@@ -36,6 +36,19 @@ public class ControllerLocatorLeft : MonoBehaviour
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
 
+    [Header("Fingertip Distance Thresholds")]
+    [Tooltip("ON: use fingertip distance and fingertip thresholds for left-hand hide/fallback logic. OFF: use controller distance thresholds.")]
+    public bool distanceThresholdByFingertips = false;
+    public JointAngle jointAngle;
+    public float currentFingertipSeparate;
+    public bool isFingertipSeparationValid;
+    [Tooltip("Left hand hide threshold when distanceThresholdByFingertips is ON")]
+    public float leftHandHideSeparationThresholdByFingertip = 0.16f;
+    [Tooltip("Fallback show threshold when distanceThresholdByFingertips is ON")]
+    public float fallbackShowSeparationThresholdByFingertip = 0.16f;
+    [Tooltip("Fallback hide threshold when distanceThresholdByFingertips is ON")]
+    public float fallbackHideSeparationThresholdByFingertip = 0.16f;
+
     [Header("Hand Separation")]
     [Tooltip("When L/R controllers are farther apart than this distance (meters), hide the left hand skins and quad")]
     public float leftHandHideSeparationThreshold = 0.55f;
@@ -62,6 +75,18 @@ public class ControllerLocatorLeft : MonoBehaviour
             modeSwitching = FindObjectOfType<ModeSwitching>();
         }
 
+        if (jointAngle == null)
+        {
+            if (modeSwitching != null && modeSwitching.jointAngle != null)
+            {
+                jointAngle = modeSwitching.jointAngle;
+            }
+            else
+            {
+                jointAngle = FindObjectOfType<JointAngle>();
+            }
+        }
+
         if (canvasPlane == null)
         {
             return;
@@ -85,6 +110,8 @@ public class ControllerLocatorLeft : MonoBehaviour
     void Update()
     {
         RefreshControllerSeparationState();
+        RefreshFingertipSeparationState();
+        RefreshLeftHandSeparationHideState();
         UpdateLeftHandVisualsHiddenState();
 
         if (alwaysAllowToyHandAndCanvas)
@@ -251,17 +278,17 @@ public class ControllerLocatorLeft : MonoBehaviour
             return true;
         }
 
-        if (!isControllerSeparationValid)
+        if (!TryGetActiveSeparationDistance(out float activeDistance))
         {
             return false;
         }
 
         if (!isFallbackVisualsActive)
         {
-            return currentControllerSeparationDistance > fallbackShowSeparationThreshold;
+            return activeDistance > GetActiveFallbackShowThreshold();
         }
 
-        return currentControllerSeparationDistance >= fallbackHideSeparationThreshold;
+        return activeDistance >= GetActiveFallbackHideThreshold();
     }
 
     private void RefreshControllerSeparationState()
@@ -276,7 +303,81 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         isControllerSeparationValid = true;
         currentControllerSeparationDistance = controllerDistance;
-        shouldHideLeftHandByDistance = controllerDistance > leftHandHideSeparationThreshold;
+    }
+
+    private void RefreshFingertipSeparationState()
+    {
+        if (jointAngle == null && modeSwitching != null && modeSwitching.jointAngle != null)
+        {
+            jointAngle = modeSwitching.jointAngle;
+        }
+
+        if (jointAngle == null)
+        {
+            isFingertipSeparationValid = false;
+            currentFingertipSeparate = 0f;
+            return;
+        }
+
+        float fingertipsDistance = jointAngle.GetLIndexToIndex2Distance();
+        currentFingertipSeparate = fingertipsDistance;
+        isFingertipSeparationValid = !float.IsNaN(fingertipsDistance) && !float.IsInfinity(fingertipsDistance);
+    }
+
+    private void RefreshLeftHandSeparationHideState()
+    {
+        if (!TryGetActiveSeparationDistance(out float activeDistance))
+        {
+            shouldHideLeftHandByDistance = false;
+            return;
+        }
+
+        shouldHideLeftHandByDistance = activeDistance > GetActiveLeftHandHideThreshold();
+    }
+
+    private bool TryGetActiveSeparationDistance(out float activeDistance)
+    {
+        activeDistance = 0f;
+
+        if (distanceThresholdByFingertips)
+        {
+            if (!isFingertipSeparationValid)
+            {
+                return false;
+            }
+
+            activeDistance = currentFingertipSeparate;
+            return true;
+        }
+
+        if (!isControllerSeparationValid)
+        {
+            return false;
+        }
+
+        activeDistance = currentControllerSeparationDistance;
+        return true;
+    }
+
+    private float GetActiveLeftHandHideThreshold()
+    {
+        return distanceThresholdByFingertips
+            ? leftHandHideSeparationThresholdByFingertip
+            : leftHandHideSeparationThreshold;
+    }
+
+    private float GetActiveFallbackShowThreshold()
+    {
+        return distanceThresholdByFingertips
+            ? fallbackShowSeparationThresholdByFingertip
+            : fallbackShowSeparationThreshold;
+    }
+
+    private float GetActiveFallbackHideThreshold()
+    {
+        return distanceThresholdByFingertips
+            ? fallbackHideSeparationThresholdByFingertip
+            : fallbackHideSeparationThreshold;
     }
 
     private bool TryGetControllerSeparationDistance(out float controllerDistance)
