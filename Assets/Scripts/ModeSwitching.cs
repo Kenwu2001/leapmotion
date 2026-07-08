@@ -471,9 +471,18 @@ public class ModeSwitching : MonoBehaviour
             bool indexOn  = SelectMotorCollider.indexFreezeEnabled;
             bool middleOn = SelectMotorCollider.middleFreezeEnabled;
             debugThumbOn = thumbOn;
-r            debugSuppressThumbPaxiniGroupUnfreeze = _suppressThumbPaxiniGroupUnfreeze;
 
-            //FIXME: trace _suppressThumbPaxiniGroupUnfreeze
+            // Paxini OFF→ON edge: clear stale suppress flags.
+            // suppress is set by programmatic OFF paths (EnforceGroupBaseline, auto-OFF commit, etc.).
+            // If it is never cleared and the user then manually turns Paxini OFF, the suppress would
+            // block UnfreezeGroupMotors, leaving motors permanently frozen. Clearing on the ON edge
+            // ensures the very next user-triggered OFF always goes through UnfreezeGroupMotors.
+            if (!_prevThumbPaxiniEnabled  && thumbOn)  _suppressThumbPaxiniGroupUnfreeze  = false;
+            if (!_prevIndexPaxiniEnabled  && indexOn)  _suppressIndexPaxiniGroupUnfreeze  = false;
+            if (!_prevMiddlePaxiniEnabled && middleOn) _suppressMiddlePaxiniGroupUnfreeze = false;
+
+            debugSuppressThumbPaxiniGroupUnfreeze = _suppressThumbPaxiniGroupUnfreeze;
+
             if (_prevThumbPaxiniEnabled && !thumbOn)
             {
                 if (!_suppressThumbPaxiniGroupUnfreeze)

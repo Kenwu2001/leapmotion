@@ -594,7 +594,7 @@ public class SelectMotorCollider : MonoBehaviour
         // Update freeze feature color animations
         UpdateFreezeColors();
         
-        //FIXME: state weired
+        //FIXME: state weired, don't use here to unfreezegroup
         // Paxini group-sync: detect user-driven Paxini state changes and notify ModeSwitching.
         // OFF→ON: visual/group lock only (full freeze state commit is deferred by ModeSwitching).
         // ON→OFF: restore the group to the round baseline snapshot.
@@ -605,7 +605,7 @@ public class SelectMotorCollider : MonoBehaviour
                 debugGroupSyncText = "UnfreezeGroupMotors(1)";
                 debugGroupSyncFrame = Time.frameCount;
                 Debug.Log($"##########################[SelectMotorCollider] Paxini group-sync: Thumb OFF → UnfreezeGroupMotors(1) frame={Time.frameCount}");
-                modeSwitching.UnfreezeGroupMotors(1);
+                // modeSwitching.UnfreezeGroupMotors(1);
             }
             _suppressThumbBulkUnfreeze = false;
         }
@@ -615,7 +615,7 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 debugGroupSyncText = "FreezeGroupMotors(1)";
                 debugGroupSyncFrame = Time.frameCount;
-                modeSwitching.FreezeGroupMotors(1);
+                // modeSwitching.FreezeGroupMotors(1);
             }
             _suppressThumbBulkFreeze = false;
         }
@@ -625,7 +625,7 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 debugGroupSyncText = "UnfreezeGroupMotors(5)";
                 debugGroupSyncFrame = Time.frameCount;
-                modeSwitching.UnfreezeGroupMotors(5);
+                // modeSwitching.UnfreezeGroupMotors(5);
             }
             _suppressIndexBulkUnfreeze = false;
         }
@@ -635,7 +635,7 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 debugGroupSyncText = "FreezeGroupMotors(5)";
                 debugGroupSyncFrame = Time.frameCount;
-                modeSwitching.FreezeGroupMotors(5);
+                // modeSwitching.FreezeGroupMotors(5);
             }
             _suppressIndexBulkFreeze = false;
         }
@@ -645,7 +645,7 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 debugGroupSyncText = "UnfreezeGroupMotors(9)";
                 debugGroupSyncFrame = Time.frameCount;
-                modeSwitching.UnfreezeGroupMotors(9);
+                // modeSwitching.UnfreezeGroupMotors(9);
             }
             _suppressMiddleBulkUnfreeze = false;
         }
@@ -655,7 +655,7 @@ public class SelectMotorCollider : MonoBehaviour
             {
                 debugGroupSyncText = "FreezeGroupMotors(9)";
                 debugGroupSyncFrame = Time.frameCount;
-                modeSwitching.FreezeGroupMotors(9);
+                // modeSwitching.FreezeGroupMotors(9);
             }
             _suppressMiddleBulkFreeze = false;
         }
