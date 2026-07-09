@@ -278,6 +278,11 @@ public class ControllerLocatorLeft : MonoBehaviour
             return true;
         }
 
+        if (!IsModeSelectActive())
+        {
+            return false;
+        }
+
         if (!TryGetActiveSeparationDistance(out float activeDistance))
         {
             return false;
@@ -289,6 +294,16 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         return activeDistance >= GetActiveFallbackHideThreshold();
+    }
+
+    private bool IsModeSelectActive()
+    {
+        if (modeSwitching == null)
+        {
+            modeSwitching = FindObjectOfType<ModeSwitching>();
+        }
+
+        return modeSwitching != null && modeSwitching.modeSelect && !modeSwitching.modeManipulate;
     }
 
     private void RefreshControllerSeparationState()
