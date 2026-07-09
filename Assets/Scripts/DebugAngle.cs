@@ -272,12 +272,14 @@ public class DebugAngle : MonoBehaviour
       };
 
       string allJointLocalEulerText = BuildAllJointLocalEulerText();
+      string mappedMotorAngleText = BuildMappedMotorAngleText();
       string touchSnappedText = BuildTouchSnappedText();
       string tcpSenderDebugText = BuildTcpSenderDebugText();
 
       //TODO: print here
       angleText.text =
-        // allJointLocalEulerText +
+        allJointLocalEulerText +
+        mappedMotorAngleText +
         // touchSnappedText +
         // tcpSenderDebugText +
         "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
@@ -406,6 +408,19 @@ public class DebugAngle : MonoBehaviour
         GetLocalEulerText("Middle4", clawModuleController.MiddleAngle4Center) + "\n";
     }
 
+    private string BuildMappedMotorAngleText()
+    {
+      if (clawModuleController == null)
+      {
+        return "\n[Mapped Motor Angles]\nClawModuleController: N/A\n";
+      }
+
+      return "\n[Mapped Motor Angles]\n" +
+        "Thumb1 mapped Y: " + FormatAngle(clawModuleController.thumbMappedYDebug) + "\n" +
+        "Index1 mapped Y: " + FormatAngle(clawModuleController.indexMappedYDebug) + "\n" +
+        "Middle1 mapped Y: " + FormatAngle(clawModuleController.middleMappedYDebug) + "\n";
+    }
+
     private string GetLocalEulerText(string label, Transform t)
     {
       if (t == null)
@@ -413,6 +428,11 @@ public class DebugAngle : MonoBehaviour
 
       Vector3 e = t.localEulerAngles;
       return label + ": (" + e.x.ToString("F2") + ", " + e.y.ToString("F2") + ", " + e.z.ToString("F2") + ")";
+    }
+
+    private string FormatAngle(float angle)
+    {
+      return float.IsNaN(angle) ? "N/A" : angle.ToString("F2");
     }
 
     private string GetPlaneActivationDebug()

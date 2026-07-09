@@ -333,6 +333,9 @@ public class ClawModuleController : MonoBehaviour
     public string thumbAbductionDeltaPositiveDebug = "N/A";
     public string thumbPronation360ZoneDebug = "N/A";
     public string thumbPronationNon360ZoneDebug = "N/A";
+    public float thumbMappedYDebug = float.NaN;
+    public float indexMappedYDebug = float.NaN;
+    public float middleMappedYDebug = float.NaN;
     public string middleJoint1YDebugSource = "N/A";
     public float middleJoint1MaxRawYDebug = float.NaN;
     public float middleJoint1MinRawYDebug = float.NaN;
@@ -1112,6 +1115,8 @@ public class ClawModuleController : MonoBehaviour
         // 🔹 Apply Single Motor Freeze
         // ==============================
         ApplySingleMotorFreezeOverrides();
+
+        RefreshLiveSnappingStateAndApplyLocks();
     }
 
     // ==============================
@@ -2780,6 +2785,8 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
+        thumbMappedYDebug = targetRotation.eulerAngles.y;
+
 
         // 180Snapping range check for thumb to middle finger
         thumbMiddleInThumbRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 50f); // thumb to left 0->90
@@ -2793,15 +2800,16 @@ public class ClawModuleController : MonoBehaviour
 
         bool thumbMiddle180ByRange = (thumbMiddleInThumbRange && thumbMiddleInMiddleRange);
         bool thumbIndex180ByRange = (thumbIndexInThumbRange && thumbIndexInIndexRange);
-        bool thumbMiddle180ByForce = isThumbMiddle180SnappingEnabled;
-        bool thumbIndex180ByForce = isThumbIndex180SnappingEnabled;
+        bool full120SnapNow = ShouldApplyFull120SnapNow();
+        bool thumbMiddle180ByForce = isThumbMiddle180SnappingEnabled && thumbMiddle180ByRange;
+        bool thumbIndex180ByForce = isThumbIndex180SnappingEnabled && thumbIndex180ByRange;
 
         thumbMiddle180ByRangeActive = thumbMiddle180ByRange;
         thumbIndex180ByRangeActive = thumbIndex180ByRange;
         Update180SnappingText();
 
         // Only enabled flags latch motors. Range flags are for visibility/text only.
-        if (is120SnappingEnabled)
+        if (full120SnapNow)
         {
             _thumb180Latched = true;
             _thumb180LatchedY = 0f;
@@ -3127,6 +3135,8 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
+        indexMappedYDebug = targetRotation.eulerAngles.y;
+
 
         // 180Snapping range check for Y-axis
         indexMiddleInIndexRange = IsAngleInRange(targetRotation.eulerAngles.y, 310f, 350f); // index to left 359->270
@@ -3138,14 +3148,15 @@ public class ClawModuleController : MonoBehaviour
         index120DegreeSnappingActive = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 10f) || IsAngleInRange(targetRotation.eulerAngles.y, 350f, 360f);
 
         bool indexMiddle180ByRange = (indexMiddleInIndexRange && indexMiddleInMiddleRange);
-        bool indexMiddle180ByForce = isIndexMiddle180SnappingEnabled;
-        bool thumbIndex180OnIndexByForce = isThumbIndex180SnappingEnabled;
+        bool full120SnapNow = ShouldApplyFull120SnapNow();
+        bool indexMiddle180ByForce = isIndexMiddle180SnappingEnabled && indexMiddle180ByRange;
+        bool thumbIndex180OnIndexByForce = isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
 
         indexMiddle180ByRangeActive = indexMiddle180ByRange;
         Update180SnappingText();
 
         // Only enabled flags latch motors. Range flags are for visibility/text only.
-        if (is120SnappingEnabled)
+        if (full120SnapNow)
         {
             _index180Latched = true;
             _index180LatchedY = 0f;
@@ -3204,6 +3215,88 @@ public class ClawModuleController : MonoBehaviour
         }
 
         current180SnappingText = GetCurrentSnappingText();
+    }
+
+    private bool ShouldApplyFull120SnapNow()
+    {
+        return is120SnappingEnabled &&
+               thumb120DegreeSnappingActive &&
+               index120DegreeSnappingActive &&
+               middle120DegreeSnappingActive;
+    }
+
+    private void RefreshLiveSnappingStateAndApplyLocks()
+    {
+        float thumbY = GetJointLocalY(ThumbAngle1Center);
+        float indexY = GetJointLocalY(IndexAngle1Center);
+        float middleY = GetJointLocalY(MiddleAngle1Center);
+
+        thumbMiddleInThumbRange = IsAngleInRange(thumbY, 10f, 50f);
+        thumbIndexInThumbRange = IsAngleInRange(thumbY, 310f, 350f);
+        thumb120DegreeSnappingActive = IsAngleInRange(thumbY, 0f, 10f) || IsAngleInRange(thumbY, 350f, 360f);
+
+        thumbIndexInIndexRange = IsAngleInRange(indexY, 10f, 50f);
+        indexMiddleInIndexRange = IsAngleInRange(indexY, 310f, 350f);
+        index120DegreeSnappingActive = IsAngleInRange(indexY, 0f, 10f) || IsAngleInRange(indexY, 350f, 360f);
+
+        indexMiddleInMiddleRange = IsAngleInRange(middleY, 10f, 50f);
+        thumbMiddleInMiddleRange = IsAngleInRange(middleY, 310f, 350f);
+        middle120DegreeSnappingActive = IsAngleInRange(middleY, 0f, 10f) || IsAngleInRange(middleY, 350f, 360f);
+
+        thumbMiddle180ByRangeActive = thumbMiddleInThumbRange && thumbMiddleInMiddleRange;
+        thumbIndex180ByRangeActive = thumbIndexInThumbRange && thumbIndexInIndexRange;
+        indexMiddle180ByRangeActive = indexMiddleInIndexRange && indexMiddleInMiddleRange;
+
+        bool full120SnapNow = ShouldApplyFull120SnapNow();
+        bool thumbMiddleSnapNow = isThumbMiddle180SnappingEnabled && thumbMiddle180ByRangeActive;
+        bool thumbIndexSnapNow = isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
+        bool indexMiddleSnapNow = isIndexMiddle180SnappingEnabled && indexMiddle180ByRangeActive;
+
+        if (full120SnapNow)
+        {
+            ApplyJointY(ThumbAngle1Center, 0f);
+            ApplyJointY(IndexAngle1Center, 0f);
+            ApplyJointY(MiddleAngle1Center, 0f);
+        }
+        else
+        {
+            if (thumbMiddleSnapNow)
+            {
+                ApplyJointY(ThumbAngle1Center, 30f);
+                ApplyJointY(MiddleAngle1Center, 330f);
+            }
+
+            if (thumbIndexSnapNow)
+            {
+                ApplyJointY(ThumbAngle1Center, 330f);
+                ApplyJointY(IndexAngle1Center, 30f);
+            }
+
+            if (indexMiddleSnapNow)
+            {
+                ApplyJointY(IndexAngle1Center, 330f);
+                ApplyJointY(MiddleAngle1Center, 30f);
+            }
+        }
+
+        Update180SnappingText();
+    }
+
+    private float GetJointLocalY(Transform joint)
+    {
+        return joint != null ? joint.localRotation.eulerAngles.y : 0f;
+    }
+
+    private void ApplyJointY(Transform joint, float yAngle)
+    {
+        if (joint == null)
+        {
+            return;
+        }
+
+        Vector3 euler = joint.localRotation.eulerAngles;
+        euler.y = yAngle;
+        joint.localRotation = Quaternion.Euler(euler.x, euler.y, euler.z);
     }
 
     public string GetCurrentSnappingText()
@@ -3601,6 +3694,8 @@ public class ClawModuleController : MonoBehaviour
             }
         }
 
+        middleMappedYDebug = targetRotation.eulerAngles.y;
+
         // 180Snapping range check index&middle
         indexMiddleInMiddleRange = IsAngleInRange(targetRotation.eulerAngles.y, 10f, 50f);  // middle to right 0->90
 
@@ -3610,11 +3705,12 @@ public class ClawModuleController : MonoBehaviour
         // 120Snapping range check for Y-axis
         middle120DegreeSnappingActive = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 10f) || IsAngleInRange(targetRotation.eulerAngles.y, 350f, 360f);
 
-        bool indexMiddle180OnMiddleByForce = isIndexMiddle180SnappingEnabled;
-        bool thumbMiddle180OnMiddleByForce = isThumbMiddle180SnappingEnabled;
+        bool full120SnapNow = ShouldApplyFull120SnapNow();
+        bool indexMiddle180OnMiddleByForce = isIndexMiddle180SnappingEnabled && indexMiddleInIndexRange && indexMiddleInMiddleRange;
+        bool thumbMiddle180OnMiddleByForce = isThumbMiddle180SnappingEnabled && thumbMiddleInThumbRange && thumbMiddleInMiddleRange;
 
         // Only enabled flags latch motors. Range flags are for visibility/text only.
-        if (is120SnappingEnabled)
+        if (full120SnapNow)
         {
             _middle180Latched = true;
             _middle180LatchedY = 0f;
