@@ -287,7 +287,7 @@ public class DebugAngle : MonoBehaviour
         // "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Albow Button: " + albowButtonStateText + "\n" +
-        // BuildMotorFreezeStateText() +
+        BuildMotorFreezeStateText() +
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
         // BuildFreezeEdgeDebugText() +

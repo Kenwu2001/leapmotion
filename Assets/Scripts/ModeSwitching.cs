@@ -98,13 +98,13 @@ public class ModeSwitching : MonoBehaviour
     public Color grayColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Gray (disabled/unselectable)
 
     [Header("=== Single Motor Freeze (motors 1-12) ===")]
-    [Tooltip("Time (seconds) of continuous holding after confirmation to freeze a single motor (red \u2192 yellow)")]
+    [Tooltip("Time (seconds) of continuous holding after confirmation before a single motor becomes frozen")]
     public float singleMotorFreezeTime = 1.0f;
     [Tooltip("Color for a single frozen motor")]
     public Color singleFrozenColor = Color.yellow;
     [Tooltip("Time (seconds) of continuous hovering on a frozen (yellow) motor before the freeze is cancelled. Increase to make cancellation require a longer hold.")]
     public float unfreezeConfirmationTime = 1.5f;
-    [Tooltip("Hint color the frozen motor lerps toward while the user is holding to cancel. Signals that the freeze is about to be removed. Original color is restored on completion.")]
+    [Tooltip("Hint color shown while the user is holding to cancel a frozen motor. Original color is restored on completion.")]
     public Color unfreezeHintColor = new Color(1f, 0.4f, 0.7f, 1f);
     [Tooltip("[Debug] Per-motor freeze state (index 0-11 = motor ID 1-12)")]
     public bool[] singleMotorFrozen = new bool[12];
@@ -377,7 +377,7 @@ public class ModeSwitching : MonoBehaviour
                         CheckAndAutoDisablePaxini(fm);
                         UpdateMotorColors();
                     }
-                    // else: still lerping yellow→hint color (per-frame section handles color)
+                    // else: still holding on the frozen motor; per-frame section keeps it pink
                 }
                 else
                 {
@@ -415,7 +415,7 @@ public class ModeSwitching : MonoBehaviour
                 }
             }
 
-            // ─── Per-frame: single motor freeze buildup (confirmed + still holding → red→yellow) ───
+            // ─── Per-frame: single motor freeze buildup (confirmed + still holding) ───
             if (isConfirmed && !_isUnfreezing
                 && confirmedMotorID >= 1 && confirmedMotorID <= 12
                 && currentMotorID == confirmedMotorID)
@@ -423,11 +423,19 @@ public class ModeSwitching : MonoBehaviour
                 float elapsed = Time.time - touchStartTime - confirmationTime;
                 if (elapsed > 0f)
                 {
-                    float t = Mathf.Clamp01(elapsed / singleMotorFreezeTime);
-                    _singleFreezeInProgress = (t < 1f);
-                    SetMotorColorDirect(confirmedMotorID, Color.Lerp(darkRedColor, singleFrozenColor, t));
+                    bool isStillBuildingFreeze = elapsed < singleMotorFreezeTime;
+                    _singleFreezeInProgress = isStillBuildingFreeze;
 
-                    if (t >= 1f && !singleMotorFrozen[confirmedMotorID - 1])
+                    if (isStillBuildingFreeze)
+                    {
+                        SetMotorColorDirect(confirmedMotorID, darkRedColor);
+                    }
+                    else
+                    {
+                        SetMotorColorDirect(confirmedMotorID, singleFrozenColor);
+                    }
+
+                    if (!isStillBuildingFreeze && !singleMotorFrozen[confirmedMotorID - 1])
                     {
                         int frozenID = confirmedMotorID;
                         // If a DIFFERENT motor already has a committed change, revert it first.
@@ -465,11 +473,10 @@ public class ModeSwitching : MonoBehaviour
                 _singleFreezeInProgress = false;
             }
 
-            // ─── Per-frame: unfreeze lerp (frozen motor being touched → yellow→unfreezeHintColor) ───
+            // ─── Per-frame: unfreeze hover (frozen motor being touched) ───
             if (_isUnfreezing && _unfreezeTargetMotorID != 0 && currentMotorID == _unfreezeTargetMotorID)
             {
-                float t = Mathf.Clamp01((Time.time - touchStartTime) / unfreezeConfirmationTime);
-                SetMotorColorDirect(_unfreezeTargetMotorID, Color.Lerp(singleFrozenColor, unfreezeHintColor, t));
+                SetMotorColorDirect(_unfreezeTargetMotorID, unfreezeHintColor);
             }
         }
 
