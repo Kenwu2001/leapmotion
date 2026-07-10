@@ -19,6 +19,7 @@ public class DebugAngle : MonoBehaviour
     public TcpSender tcpSender;
     public TriggerRightWrist triggerRightWrist;
     public ControllerLocatorLeft controllerLocatorLeft;
+    public ArmUIPlaneController armUIPlaneController;
     // public VirtualLeftHandButtonInteractor virtualLeftHandButtonInteractor;
 
     public GameObject r_wrist;
@@ -275,22 +276,24 @@ public class DebugAngle : MonoBehaviour
       string mappedMotorAngleText = BuildMappedMotorAngleText();
       string touchSnappedText = BuildTouchSnappedText();
       string tcpSenderDebugText = BuildTcpSenderDebugText();
+      string armUiColliderDebugText = BuildArmUIColliderDebugText();
 
       //TODO: print here
       angleText.text =
-        allJointLocalEulerText +
-        mappedMotorAngleText +
+        // allJointLocalEulerText +
+        // mappedMotorAngleText +
         // touchSnappedText +
         // tcpSenderDebugText +
-        "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
-        "L/R Controller Distance: " + controllerDistanceText + "\n" +
+        // "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
+        // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Albow Button: " + albowButtonStateText + "\n" +
-        BuildMotorFreezeStateText() +
+        // BuildMotorFreezeStateText() +
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
-        BuildFreezeEdgeDebugText() +
-        BuildThumbFreezeCompareDebugText() +
-        BuildSuppressThumbPaxiniDebugText();
+        // BuildFreezeEdgeDebugText() +
+        // BuildThumbFreezeCompareDebugText() +
+        // BuildSuppressThumbPaxiniDebugText() +
+        armUiColliderDebugText;
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Clockwise Raw: " + clockwiseRaw + "\n" +
         // "Rotation Direction: " + rotationDirection + "\n";
@@ -384,6 +387,19 @@ public class DebugAngle : MonoBehaviour
           tcpSender.debug_euler_x.ToString("F3") + ", " +
           tcpSender.debug_euler_y.ToString("F3") + ", " +
           tcpSender.debug_euler_z.ToString("F3") + ")\n";
+    }
+
+    private string BuildArmUIColliderDebugText()
+    {
+      if (armUIPlaneController == null)
+      {
+        return "\n[Arm UI Collider]\nArmUIPlaneController: N/A\n";
+      }
+
+      return "\n[Arm UI Collider]\n" +
+        "Touched Button: " + armUIPlaneController.currentTouchedButton + "\n" +
+        "Touched Collider: " + armUIPlaneController.currentTouchedCollider + "\n" +
+        "Interaction: " + armUIPlaneController.interactionDebug + "\n";
     }
 
     private string BuildAllJointLocalEulerText()
