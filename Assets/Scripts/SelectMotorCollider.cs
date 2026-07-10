@@ -72,6 +72,9 @@ public class SelectMotorCollider : MonoBehaviour
     [Tooltip("Reference to ModeSwitching — required for freeze gate (Problem 1), confirmed-motor color clear (Problem 2), and mutual exclusion (Problem 3)")]
     public ModeSwitching modeSwitching;
 
+    [Tooltip("Reference to ArmUIPlaneController. When useArmUIPlane is true, motor selection is suppressed.")]
+    public ArmUIPlaneController armUIPlaneController;
+
     [Header("=== Priority Colliders (Thumb/Index/Middle disambiguation) ===")]
     [Tooltip("Small collider near thumb fingertip — last OnTriggerEnter sets thumb priority, blocking index/middle projection")]
     public GameObject thumbPriorityCollider;
@@ -365,6 +368,11 @@ public class SelectMotorCollider : MonoBehaviour
 
     private void Start()
     {
+        if (armUIPlaneController == null)
+        {
+            armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
+        }
+
         // Setup trigger detectors for motor colliders 1-4 (Thumb only) - skip if using projection mode
         if (!useThumbProjection)
         {
@@ -508,6 +516,12 @@ public class SelectMotorCollider : MonoBehaviour
 
             // Keep freeze display state updated while manipulating.
             UpdateFreezeColors();
+            return;
+        }
+
+        if (IsArmUIPlaneActive())
+        {
+            ClearSelectionStateForArmUIPlane();
             return;
         }
         
@@ -748,6 +762,11 @@ public class SelectMotorCollider : MonoBehaviour
         return (modeSwitching != null && modeSwitching.modeManipulate) || _visualsForceHidden;
     }
 
+    private bool IsArmUIPlaneActive()
+    {
+        return armUIPlaneController != null && armUIPlaneController.useArmUIPlane;
+    }
+
     private void ClearSelectionStateForManipulate()
     {
         activeTouchedMotorID = 0;
@@ -767,6 +786,15 @@ public class SelectMotorCollider : MonoBehaviour
         if (indexClawProjectionSphere != null) indexClawProjectionSphere.gameObject.SetActive(false);
         if (middleRightFingerProjectionSphere != null) middleRightFingerProjectionSphere.gameObject.SetActive(false);
         if (middleClawProjectionSphere != null) middleClawProjectionSphere.gameObject.SetActive(false);
+    }
+
+    public void ClearSelectionStateForArmUIPlane()
+    {
+        ClearSelectionStateForManipulate();
+
+        currentTouchedMotorID = 0;
+        touchPosition = Vector3.zero;
+        isAnyMotorTouched = false;
     }
     
     /// <summary>
@@ -881,6 +909,11 @@ public class SelectMotorCollider : MonoBehaviour
     /// <returns>True if selectable</returns>
     public bool IsMotorSelectable(int motorID)
     {
+        if (IsArmUIPlaneActive())
+        {
+            return false;
+        }
+
         // If fingertip-first is not enabled, all motors are selectable
         if (!useFingertipFirst)
         {
@@ -2210,6 +2243,9 @@ public class SelectMotorCollider : MonoBehaviour
     // Called by MotorTriggerDetector when a motor is touched (only for motors 1-4 Thumb)
     internal void OnMotorTouched(int motorID, Vector3 position)
     {
+        if (IsArmUIPlaneActive())
+            return;
+
         if (IsManipulateModeActive())
             return;
 
@@ -2283,6 +2319,9 @@ public class SelectMotorCollider : MonoBehaviour
 
     internal void OnPseudoMotorTouched(int motorID, Vector3 position)
     {
+        if (IsArmUIPlaneActive())
+            return;
+
         if (IsManipulateModeActive())
             return;
 

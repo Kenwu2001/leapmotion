@@ -71,6 +71,10 @@ public class ArmUIPlaneController : MonoBehaviour
     [Tooltip("Middle motor id buttons (count is flexible, e.g. 5).")]
     public List<ButtonBinding> middleMotorIdButtons = new List<ButtonBinding>();
 
+    [Header("Selection Suppression")]
+    [Tooltip("When enabled, motor selection/highlight logic is suppressed so the Arm UI plane can take over interaction.")]
+    public bool useArmUIPlane = false;
+
     [Header("Debug")]
     public string currentTouchedButton = "None";
     public string currentTouchedCollider = "None";

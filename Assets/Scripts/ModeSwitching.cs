@@ -10,6 +10,7 @@ public class ModeSwitching : MonoBehaviour
 
     public JointAngle jointAngle;
     public SelectMotorCollider SelectMotorCollider;
+    public ArmUIPlaneController armUIPlaneController;
 
     public Renderer thumbJoint1Renderer;
     public Renderer thumbJoint2Renderer;
@@ -197,6 +198,11 @@ public class ModeSwitching : MonoBehaviour
             controllerlocatorleft = FindObjectOfType<ControllerLocatorLeft>();
         }
 
+        if (armUIPlaneController == null)
+        {
+            armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
+        }
+
         if (SelectMotorCollider != null)
         {
             if (thumbPaxiniRenderer == null && SelectMotorCollider.triggerRightThumbTip != null)
@@ -263,6 +269,16 @@ public class ModeSwitching : MonoBehaviour
             CaptureModeSelectBaseline();
         }
         _wasModeSelectLastFrame = modeSelect;
+
+        if (IsArmUIPlaneActive())
+        {
+            ClearSelectionStateForArmUIPlane();
+            if (SelectMotorCollider != null)
+            {
+                SelectMotorCollider.ClearSelectionStateForArmUIPlane();
+            }
+            return;
+        }
 
         if (modeSelect && SelectMotorCollider != null)
         {
@@ -951,6 +967,48 @@ public class ModeSwitching : MonoBehaviour
     private float GetActiveSeparationThreshold()
     {
         return useControllerSeperationDistance ? controllerSeparationThreshold : handSeparationThreshold;
+    }
+
+    private bool IsArmUIPlaneActive()
+    {
+        return armUIPlaneController != null && armUIPlaneController.useArmUIPlane;
+    }
+
+    private void ClearSelectionStateForArmUIPlane()
+    {
+        modeSelect = true;
+        modeManipulate = false;
+        lastTouchedMotorID = 0;
+        currentRedMotorID = 0;
+        confirmedMotorID = 0;
+        motorSelected = false;
+        isConfirmed = false;
+        touchStartTime = 0f;
+        _isUnfreezing = false;
+        _unfreezeTargetMotorID = 0;
+        _justFrozeWhileHolding = false;
+        _justFrozeMotorID = 0;
+        _singleFreezeInProgress = false;
+        hasEnteredCloseRange = false;
+        hasSetManipulateColors = false;
+
+        if (useFingertipFirst)
+        {
+            currentPhase = SelectionPhase.SelectingFingertip;
+            confirmedFingertipID = 0;
+            if (SelectMotorCollider != null)
+            {
+                SelectMotorCollider.ResetFingertipConfirmation();
+                SelectMotorCollider.ReleaseFrozenLine();
+            }
+        }
+
+        if (SelectMotorCollider != null)
+        {
+            SelectMotorCollider.RestoreDebugVisuals();
+        }
+
+        UpdateMotorColors();
     }
 
     private void CaptureModeSelectBaseline()

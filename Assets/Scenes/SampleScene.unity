@@ -30078,6 +30078,7 @@ MonoBehaviour:
   clawMiddlePath: {fileID: 5903652984707887455}
   triggerRightMiddleTip: {fileID: 1307753529}
   modeSwitching: {fileID: 0}
+  armUIPlaneController: {fileID: 1016481714}
   thumbPriorityCollider: {fileID: 1297600688}
   indexPriorityCollider: {fileID: 747444223}
   middlePriorityCollider: {fileID: 1743050265}
@@ -40755,6 +40756,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1422305614}
   SelectMotorCollider: {fileID: 859541734}
+  armUIPlaneController: {fileID: 1016481714}
   thumbJoint1Renderer: {fileID: 124780635897985153}
   thumbJoint2Renderer: {fileID: 1178915889120169799}
   thumbJoint3Renderer: {fileID: 7677362120163736149}
@@ -42200,6 +42202,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     originalColor: {r: 0, g: 0, b: 0, a: 0}
+  useArmUIPlane: 0
   currentTouchedButton: None
   currentTouchedCollider: None
   interactionDebug: No Arm UI button touched
