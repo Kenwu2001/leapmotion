@@ -441,30 +441,38 @@ public class ModeSwitching : MonoBehaviour
                     float requiredConfirmTime = isCrossFingerSwitch ? fingertipConfirmationTime : confirmationTime;
                     if (!isConfirmed && (Time.time - touchStartTime) >= requiredConfirmTime)
                     {
-                        // Selecting (confirming) a new motor is ALWAYS allowed.
-                        // If a DIFFERENT motor already has a committed change this round, revert it first.
-                        if (currentMotorID >= 1 && currentMotorID <= 12
-                            && _roundChangedMotorID != 0 && _roundChangedMotorID != currentMotorID)
+                        if (isArmUIPlaneActive && IsPaxiniMotor(currentMotorID))
                         {
-                            RevertMotorToBaseline(_roundChangedMotorID);
-                            _roundChangedMotorID = 0;
-                        }
-
-                        isConfirmed = true;
-
-                        // Handle confirmation logic based on whether fingertip priority mode is enabled
-                        if (useFingertipFirst)
-                        {
-                            HandleFingertipFirstConfirmation(currentMotorID);
-                            EnforceGroupBaselineForConfirmedMotor(currentMotorID);
+                            CommitArmUIPaxiniToggle(currentMotorID);
+                            UpdateMotorColors();
                         }
                         else
                         {
-                            confirmedMotorID = currentMotorID;
-                            EnforceGroupBaselineForConfirmedMotor(currentMotorID);
-                        }
+                            // Selecting (confirming) a new motor is ALWAYS allowed.
+                            // If a DIFFERENT motor already has a committed change this round, revert it first.
+                            if (currentMotorID >= 1 && currentMotorID <= 12
+                                && _roundChangedMotorID != 0 && _roundChangedMotorID != currentMotorID)
+                            {
+                                RevertMotorToBaseline(_roundChangedMotorID);
+                                _roundChangedMotorID = 0;
+                            }
 
-                        UpdateMotorColors();
+                            isConfirmed = true;
+
+                            // Handle confirmation logic based on whether fingertip priority mode is enabled
+                            if (useFingertipFirst)
+                            {
+                                HandleFingertipFirstConfirmation(currentMotorID);
+                                EnforceGroupBaselineForConfirmedMotor(currentMotorID);
+                            }
+                            else
+                            {
+                                confirmedMotorID = currentMotorID;
+                                EnforceGroupBaselineForConfirmedMotor(currentMotorID);
+                            }
+
+                            UpdateMotorColors();
+                        }
                     }
                 }
             }
@@ -605,6 +613,10 @@ public class ModeSwitching : MonoBehaviour
         // _roundChangedMotorID cleared before the confirmation logic fires next frame.
         if (modeSelect)
         {
+            bool isHoldingArmUIPaxiniButton = isArmUIPlaneActive
+                                           && _armUIInputIsInsideEnterPlane
+                                           && IsPaxiniMotor(_armUIInputTouchedMotorID);
+
             bool hasAnyFrozen = false;
             for (int i = 0; i < 12; i++) { if (singleMotorFrozen[i]) { hasAnyFrozen = true; break; } }
 
@@ -690,7 +702,7 @@ public class ModeSwitching : MonoBehaviour
                         // so stale yellow/original colors cannot linger after hand-away.
                         UpdateMotorColors();
                         // Reset hover/selection transient state only when no motor is being touched
-                        if (!motorSelected)
+                        if (!motorSelected && !isHoldingArmUIPaxiniButton)
                         {
                             lastTouchedMotorID      = 0;
                             currentRedMotorID       = 0;
@@ -1218,6 +1230,45 @@ public class ModeSwitching : MonoBehaviour
         if (motorID == IndexPaxiniMotorID) return SelectMotorCollider.indexFreezeEnabled;
         if (motorID == MiddlePaxiniMotorID) return SelectMotorCollider.middleFreezeEnabled;
         return false;
+    }
+
+    private void CommitArmUIPaxiniToggle(int motorID)
+    {
+        int groupStart = GetGroupStartForPaxiniMotor(motorID);
+        if (groupStart == 0 || SelectMotorCollider == null)
+        {
+            return;
+        }
+
+        if (IsCanonicalPaxiniOnForMotor(motorID))
+        {
+            SelectMotorCollider.ForcePaxiniOffForMotor(groupStart);
+            UnfreezeGroupMotors(groupStart);
+        }
+        else
+        {
+            SelectMotorCollider.ForcePaxiniOnForMotor(groupStart);
+            FreezeGroupMotors(groupStart);
+        }
+
+        motorSelected = false;
+        currentRedMotorID = 0;
+        confirmedMotorID = 0;
+        isConfirmed = false;
+        touchStartTime = 0f;
+        _isUnfreezing = false;
+        _unfreezeTargetMotorID = 0;
+        _singleFreezeInProgress = false;
+        _justFrozeWhileHolding = true;
+        _justFrozeMotorID = motorID;
+    }
+
+    private int GetGroupStartForPaxiniMotor(int motorID)
+    {
+        if (motorID == ThumbPaxiniMotorID) return 1;
+        if (motorID == IndexPaxiniMotorID) return 5;
+        if (motorID == MiddlePaxiniMotorID) return 9;
+        return 0;
     }
 
     private void SyncArmUIProxyStateFromCanonical(bool isArmUIPlaneActive)
