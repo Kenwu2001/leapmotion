@@ -611,8 +611,20 @@ public class ControllerLocatorLeft : MonoBehaviour
             GameObject linkedObject = canvasLinkedObjects[i];
             if (linkedObject != null)
             {
-                linkedObject.SetActive(isVisible);
+                bool shouldStayVisibleForArmUI = ShouldKeepLinkedObjectVisibleForArmUI(linkedObject);
+                linkedObject.SetActive(isVisible || shouldStayVisibleForArmUI);
             }
         }
+    }
+
+    private bool ShouldKeepLinkedObjectVisibleForArmUI(GameObject linkedObject)
+    {
+        if (linkedObject == null)
+        {
+            return false;
+        }
+
+        ArmUIPlaneController armUIPlaneController = linkedObject.GetComponentInParent<ArmUIPlaneController>(true);
+        return armUIPlaneController != null && armUIPlaneController.useArmUIPlane;
     }
 }

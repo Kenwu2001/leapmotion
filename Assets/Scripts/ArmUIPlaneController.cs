@@ -87,6 +87,11 @@ public class ArmUIPlaneController : MonoBehaviour
     public ButtonBinding directAngleButton = new ButtonBinding { buttonName = "Direct Angle Button" };
     public ButtonBinding maxMinAngleButton = new ButtonBinding { buttonName = "Max Min Angle Button" };
 
+    [Header("Arm Sliders")]
+    public GameObject thumbSliderObject;
+    public GameObject indexSliderObject;
+    public GameObject middleSliderObject;
+
     [Header("Arm Motor Id Buttons")]
     [Tooltip("Thumb motor id buttons (count is flexible, e.g. 5).")]
     public List<ButtonBinding> thumbMotorIdButtons = new List<ButtonBinding>();
@@ -126,11 +131,15 @@ public class ArmUIPlaneController : MonoBehaviour
     public int armRejectedMotorID = 0;
     public string armRejectReason = "None";
     public string armUIProxyDebug = "N/A";
-    [TextArea(6, 16)] public string armUIProxyHistory = "N/A";
+    // [TextArea(6, 16)] public string armUIProxyHistory = "N/A";
 
     private readonly List<ButtonBinding> _motorButtons = new List<ButtonBinding>();
-    private readonly Queue<string> _armUIHistoryEntries = new Queue<string>();
-    private string _lastArmUIProxyDebugSnapshot = string.Empty;
+    // private readonly Queue<string> _armUIHistoryEntries = new Queue<string>();
+    // private string _lastArmUIProxyDebugSnapshot = string.Empty;
+    private bool _thumbSliderVisible;
+    private bool _indexSliderVisible;
+    private bool _middleSliderVisible;
+    private bool _lastArmModeManipulate;
 
     private void Awake()
     {
@@ -162,6 +171,10 @@ public class ArmUIPlaneController : MonoBehaviour
             {
                 modeSwitching.ClearArmUIInput();
             }
+            armModeManipulate = false;
+            armModeSelect = true;
+            SyncSliderVisibility();
+            SyncMotorButtonVisibility();
             SyncMotorButtonColors();
             return;
         }
@@ -196,29 +209,173 @@ public class ArmUIPlaneController : MonoBehaviour
                 " Reason=" + armRejectReason +
                 " | MotorState=" + BuildMotorIDStateSnapshot() +
                 " | ArmMotorState=" + BuildArmMotorIDStateSnapshot();
-            RecordArmUIHistoryIfChanged();
+            // RecordArmUIHistoryIfChanged();
         }
 
+        SyncSliderVisibility();
+        SyncMotorButtonVisibility();
         SyncMotorButtonColors();
+        _lastArmModeManipulate = armModeManipulate;
     }
 
-    private void RecordArmUIHistoryIfChanged()
+    private void SyncSliderVisibility()
     {
-        if (armUIProxyDebug == _lastArmUIProxyDebugSnapshot)
+        bool showThumb = _thumbSliderVisible;
+        bool showIndex = _indexSliderVisible;
+        bool showMiddle = _middleSliderVisible;
+
+        if (!useArmUIPlane)
+        {
+            showThumb = false;
+            showIndex = false;
+            showMiddle = false;
+        }
+        else if (armModeManipulate)
+        {
+            int confirmedMotorID = armConfirmedMotorID;
+            showThumb = false;
+            showIndex = false;
+            showMiddle = false;
+            if (confirmedMotorID >= 1 && confirmedMotorID <= 4)
+            {
+                showThumb = true;
+            }
+            else if (confirmedMotorID >= 5 && confirmedMotorID <= 8)
+            {
+                showIndex = true;
+            }
+            else if (confirmedMotorID >= 9 && confirmedMotorID <= 12)
+            {
+                showMiddle = true;
+            }
+        }
+        else if (armModeSelect)
+        {
+            // Hide sliders when manipulate transitions back to select.
+            if (_lastArmModeManipulate || _thumbSliderVisible || _indexSliderVisible || _middleSliderVisible)
+            {
+                showThumb = false;
+                showIndex = false;
+                showMiddle = false;
+            }
+        }
+
+        SetSliderActive(thumbSliderObject, showThumb, ref _thumbSliderVisible);
+        SetSliderActive(indexSliderObject, showIndex, ref _indexSliderVisible);
+        SetSliderActive(middleSliderObject, showMiddle, ref _middleSliderVisible);
+    }
+
+    private void SetSliderActive(GameObject sliderObject, bool shouldBeVisible, ref bool currentState)
+    {
+        if (sliderObject == null)
         {
             return;
         }
 
-        _lastArmUIProxyDebugSnapshot = armUIProxyDebug;
-        string historyLine = "f=" + Time.frameCount + " t=" + Time.time.ToString("F3") + " " + armUIProxyDebug;
-        _armUIHistoryEntries.Enqueue(historyLine);
-        while (_armUIHistoryEntries.Count > 12)
+        if (currentState == shouldBeVisible && sliderObject.activeSelf == shouldBeVisible)
         {
-            _armUIHistoryEntries.Dequeue();
+            return;
         }
 
-        armUIProxyHistory = string.Join("\n", _armUIHistoryEntries.ToArray());
+        sliderObject.SetActive(shouldBeVisible);
+        currentState = shouldBeVisible;
     }
+
+    private void SyncMotorButtonVisibility()
+    {
+        for (int i = 0; i < _motorButtons.Count; i++)
+        {
+            ButtonBinding button = _motorButtons[i];
+            if (button == null)
+            {
+                continue;
+            }
+
+            bool shouldHide = ShouldHideMotorButtonForActiveSlider(button.resolvedMotorID);
+            SetMotorButtonVisible(button, !shouldHide);
+        }
+
+        RefreshActiveArmMotor();
+        RefreshCurrentTouchedButton();
+    }
+
+    private bool ShouldHideMotorButtonForActiveSlider(int motorID)
+    {
+        if (_thumbSliderVisible)
+        {
+            return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID;
+        }
+
+        if (_indexSliderVisible)
+        {
+            return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID;
+        }
+
+        if (_middleSliderVisible)
+        {
+            return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID;
+        }
+
+        return false;
+    }
+
+    private void SetMotorButtonVisible(ButtonBinding button, bool shouldBeVisible)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        // Keep Arm UI hierarchy alive; hide motor buttons by disabling visuals/interactions
+        // instead of SetActive(false), which can accidentally disable parent containers.
+        if (button.buttonCollider != null)
+        {
+            button.buttonCollider.enabled = shouldBeVisible;
+        }
+
+        if (button.buttonRenderer != null)
+        {
+            button.buttonRenderer.enabled = shouldBeVisible;
+        }
+
+        if (button.buttonObject != null)
+        {
+            Collider[] colliders = button.buttonObject.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                colliders[i].enabled = shouldBeVisible;
+            }
+
+            Renderer[] renderers = button.buttonObject.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].enabled = shouldBeVisible;
+            }
+        }
+
+        if (!shouldBeVisible && button.isTouched)
+        {
+            button.isTouched = false;
+        }
+    }
+
+    // private void RecordArmUIHistoryIfChanged()
+    // {
+    //     if (armUIProxyDebug == _lastArmUIProxyDebugSnapshot)
+    //     {
+    //         return;
+    //     }
+
+    //     _lastArmUIProxyDebugSnapshot = armUIProxyDebug;
+    //     string historyLine = "f=" + Time.frameCount + " t=" + Time.time.ToString("F3") + " " + armUIProxyDebug;
+    //     _armUIHistoryEntries.Enqueue(historyLine);
+    //     while (_armUIHistoryEntries.Count > 12)
+    //     {
+    //         _armUIHistoryEntries.Dequeue();
+    //     }
+
+    //     armUIProxyHistory = string.Join("\n", _armUIHistoryEntries.ToArray());
+    // }
 
     private string BuildMotorIDStateSnapshot()
     {

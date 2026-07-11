@@ -307,7 +307,7 @@ public class ModeSwitching : MonoBehaviour
 
             if (_armUIWasInsideEnterPlane != _armUIInputIsInsideEnterPlane)
             {
-                if (_armUIInputIsInsideEnterPlane)
+                if (_armUIInputIsInsideEnterPlane && modeSelect)
                 {
                     ResetTransientSelectionStateForArmUIPlane();
                     CaptureModeSelectBaseline();
@@ -315,9 +315,6 @@ public class ModeSwitching : MonoBehaviour
 
                 _armUIWasInsideEnterPlane = _armUIInputIsInsideEnterPlane;
             }
-
-            modeSelect = true;
-            modeManipulate = false;
         }
 
         if (modeSelect)
@@ -763,10 +760,7 @@ public class ModeSwitching : MonoBehaviour
         {
             canEnterManipulate = false;
         }
-        if (isArmUIPlaneActive)
-        {
-            canEnterManipulate = false;
-        }
+        bool armUIWantsEnterManipulate = isArmUIPlaneActive && !_armUIInputIsInsideEnterPlane;
         // Block manipulate while single-motor freeze is building up (red→yellow lerp in progress)
         if (_singleFreezeInProgress)
         {
@@ -775,9 +769,19 @@ public class ModeSwitching : MonoBehaviour
 
         if (canEnterManipulate)
         {
-            float distance = currentHandSeparationDistance;
+            bool shouldEnterManipulate = false;
+            if (isArmUIPlaneActive)
+            {
+                // Arm UI equivalent of "moved away": left enter plane.
+                shouldEnterManipulate = armUIWantsEnterManipulate;
+            }
+            else
+            {
+                float distance = currentHandSeparationDistance;
+                shouldEnterManipulate = distance > activeSeparationThreshold;
+            }
 
-            if (distance > activeSeparationThreshold)
+            if (shouldEnterManipulate)
             {
                 modeSelect = false;
                 motorSelected = false;
@@ -923,14 +927,26 @@ public class ModeSwitching : MonoBehaviour
                     SetMotorColorDirect(i + 1, singleFrozenColor);
 
             // Track if we've entered close range (< active threshold) for manipulation
-            if (distance < activeSeparationThreshold)
+            if ((isArmUIPlaneActive && _armUIInputIsInsideEnterPlane)
+                || (!isArmUIPlaneActive && distance < activeSeparationThreshold))
             {
                 hasEnteredCloseRange = true;
             }
 
             // Only exit if we've performed manipulation (entered close range) 
             // and then moved back out (> active threshold)
-            if (hasEnteredCloseRange && distance > activeSeparationThreshold)
+            bool shouldExitManipulate = false;
+            if (isArmUIPlaneActive)
+            {
+                // Arm UI equivalent of "close then away": re-entered then left enter plane.
+                shouldExitManipulate = hasEnteredCloseRange && !_armUIInputIsInsideEnterPlane;
+            }
+            else
+            {
+                shouldExitManipulate = hasEnteredCloseRange && distance > activeSeparationThreshold;
+            }
+
+            if (shouldExitManipulate)
             {
                 modeSelect = true;
                 motorSelected = false;
@@ -1275,9 +1291,9 @@ public class ModeSwitching : MonoBehaviour
 
     private void SyncArmUIProxyStateFromCanonical(bool isArmUIPlaneActive)
     {
-        armUIProxyModeSelect = isArmUIPlaneActive && _armUIInputIsInsideEnterPlane;
-        armUIProxyModeManipulate = isArmUIPlaneActive && !armUIProxyModeSelect && confirmedMotorID != 0;
-        armUIProxyCurrentTouchedMotorID = armUIProxyModeSelect && armUIProxyRejectedMotorID == 0
+        armUIProxyModeSelect = isArmUIPlaneActive && modeSelect;
+        armUIProxyModeManipulate = isArmUIPlaneActive && modeManipulate;
+        armUIProxyCurrentTouchedMotorID = armUIProxyModeSelect && _armUIInputIsInsideEnterPlane && armUIProxyRejectedMotorID == 0
             ? _armUIInputTouchedMotorID
             : 0;
         armUIProxyCurrentRedMotorID = currentRedMotorID;

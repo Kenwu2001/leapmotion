@@ -398,6 +398,8 @@ public class DebugAngle : MonoBehaviour
 
       return "\n[Arm UI Collider]\n" +
         "Enter Arm UI Plane isTouched: " + armUIPlaneController.enterArmUIPlaneButton.isTouched + "\n" +
+        "armModeSelect: " + armUIPlaneController.armModeSelect + "\n" +
+        "armModeManipulate: " + armUIPlaneController.armModeManipulate + "\n" +
         "Touched Button: " + armUIPlaneController.currentTouchedButton + "\n" +
         "Touched Collider: " + armUIPlaneController.currentTouchedCollider + "\n" +
         "Interaction: " + armUIPlaneController.interactionDebug + "\n" +
@@ -408,8 +410,7 @@ public class DebugAngle : MonoBehaviour
         "Confirmed Fingertip: " + armUIPlaneController.armConfirmedFingertipID + "\n" +
         "Rejected Motor: " + armUIPlaneController.armRejectedMotorID + "\n" +
         "Reject Reason: " + armUIPlaneController.armRejectReason + "\n" +
-        "Proxy Debug: " + armUIPlaneController.armUIProxyDebug + "\n" +
-        "History:\n" + armUIPlaneController.armUIProxyHistory + "\n";
+        "Proxy Debug: " + armUIPlaneController.armUIProxyDebug + "\n";
     }
 
     private string BuildAllJointLocalEulerText()
