@@ -522,6 +522,7 @@ public class SelectMotorCollider : MonoBehaviour
         if (IsArmUIPlaneActive())
         {
             ClearSelectionStateForArmUIPlane();
+            UpdateFreezeColors();
             return;
         }
         

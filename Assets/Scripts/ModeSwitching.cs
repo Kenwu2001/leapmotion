@@ -184,6 +184,31 @@ public class ModeSwitching : MonoBehaviour
     [Tooltip("Mirror of _suppressThumbPaxiniGroupUnfreeze for runtime debugging")]
     public bool debugSuppressThumbPaxiniGroupUnfreeze = false;
 
+    [Header("Arm UI Proxy State")]
+    public bool armUIProxyModeSelect = true;
+    public bool armUIProxyModeManipulate = false;
+    public int armUIProxyCurrentTouchedMotorID = 0;
+    public int armUIProxyCurrentRedMotorID = 0;
+    public int armUIProxyConfirmedMotorID = 0;
+    public int armUIProxyConfirmedFingertipID = 0;
+    public bool[] armUIProxySingleMotorFrozen = new bool[12];
+    public bool armUIProxyThumbPaxiniOn = false;
+    public bool armUIProxyIndexPaxiniOn = false;
+    public bool armUIProxyMiddlePaxiniOn = false;
+    public int armUIProxyRejectedMotorID = 0;
+    public string armUIProxyRejectReason = "None";
+
+    private bool _armUIInputIsInsideEnterPlane = false;
+    private int _armUIInputTouchedMotorID = 0;
+    private bool _armUIWasInsideEnterPlane = false;
+    private int _armUILastTouchedMotorID = 0;
+    private float _armUITouchStartTime = 0f;
+    private bool _armUIIsConfirmed = false;
+    private bool _armUIIsUnfreezing = false;
+    private int _armUIUnfreezeTargetMotorID = 0;
+    private bool _armUIJustFrozeWhileHolding = false;
+    private int _armUIJustFrozeMotorID = 0;
+
     public enum SelectionPhase
     {
         SelectingFingertip,   // Phase 1: Selecting fingertip (4, 8, 12)
@@ -262,6 +287,7 @@ public class ModeSwitching : MonoBehaviour
     {
         UpdateCurrentHandSeparationDistance();
         float activeSeparationThreshold = GetActiveSeparationThreshold();
+        bool isArmUIPlaneActive = IsArmUIPlaneActive();
 
         // Capture baseline once when entering modeSelect.
         if (modeSelect && !_wasModeSelectLastFrame)
@@ -270,19 +296,31 @@ public class ModeSwitching : MonoBehaviour
         }
         _wasModeSelectLastFrame = modeSelect;
 
-        if (IsArmUIPlaneActive())
+        if (isArmUIPlaneActive)
         {
-            ClearSelectionStateForArmUIPlane();
             if (SelectMotorCollider != null)
             {
                 SelectMotorCollider.ClearSelectionStateForArmUIPlane();
             }
-            return;
+
+            if (_armUIWasInsideEnterPlane != _armUIInputIsInsideEnterPlane)
+            {
+                if (_armUIInputIsInsideEnterPlane)
+                {
+                    ResetTransientSelectionStateForArmUIPlane();
+                    CaptureModeSelectBaseline();
+                }
+
+                _armUIWasInsideEnterPlane = _armUIInputIsInsideEnterPlane;
+            }
+
+            modeSelect = true;
+            modeManipulate = false;
         }
 
-        if (modeSelect && SelectMotorCollider != null)
+        if (modeSelect)
         {
-            int currentMotorID = SelectMotorCollider.currentTouchedMotorID;
+            int currentMotorID = GetCurrentTouchedMotorIDForSelection(isArmUIPlaneActive);
 
             // Motor switched
             if (currentMotorID != lastTouchedMotorID)
@@ -711,6 +749,10 @@ public class ModeSwitching : MonoBehaviour
         {
             canEnterManipulate = false;
         }
+        if (isArmUIPlaneActive)
+        {
+            canEnterManipulate = false;
+        }
         // Block manipulate while single-motor freeze is building up (red→yellow lerp in progress)
         if (_singleFreezeInProgress)
         {
@@ -942,6 +984,8 @@ public class ModeSwitching : MonoBehaviour
             if (SelectMotorCollider.middleFreezeEnabled && !_pendingMiddleAutoOff)
                 for (int m = 9; m <= 12; m++) SetMotorColorDirect(m, singleFrozenColor);
         }
+
+        SyncArmUIProxyStateFromCanonical(isArmUIPlaneActive);
     }
 
     private void UpdateCurrentHandSeparationDistance()
@@ -972,6 +1016,19 @@ public class ModeSwitching : MonoBehaviour
     private bool IsArmUIPlaneActive()
     {
         return armUIPlaneController != null && armUIPlaneController.useArmUIPlane;
+    }
+
+    public void ReceiveArmUIInput(bool isInsideEnterPlane, int touchedMotorID)
+    {
+        _armUIInputIsInsideEnterPlane = isInsideEnterPlane;
+        _armUIInputTouchedMotorID = touchedMotorID;
+    }
+
+    public void ClearArmUIInput()
+    {
+        _armUIInputIsInsideEnterPlane = false;
+        _armUIInputTouchedMotorID = 0;
+        ResetArmUIProxyState();
     }
 
     private void ClearSelectionStateForArmUIPlane()
@@ -1009,6 +1066,562 @@ public class ModeSwitching : MonoBehaviour
         }
 
         UpdateMotorColors();
+    }
+
+    private void ResetTransientSelectionStateForArmUIPlane()
+    {
+        lastTouchedMotorID = 0;
+        currentRedMotorID = 0;
+        confirmedMotorID = 0;
+        motorSelected = false;
+        isConfirmed = false;
+        touchStartTime = 0f;
+        _isUnfreezing = false;
+        _unfreezeTargetMotorID = 0;
+        _justFrozeWhileHolding = false;
+        _justFrozeMotorID = 0;
+        _singleFreezeInProgress = false;
+        hasEnteredCloseRange = false;
+        hasSetManipulateColors = false;
+
+        if (useFingertipFirst)
+        {
+            currentPhase = SelectionPhase.SelectingFingertip;
+            confirmedFingertipID = 0;
+            if (SelectMotorCollider != null)
+            {
+                SelectMotorCollider.ResetFingertipConfirmation();
+                SelectMotorCollider.ReleaseFrozenLine();
+            }
+        }
+
+        if (SelectMotorCollider != null)
+        {
+            SelectMotorCollider.RestoreDebugVisuals();
+        }
+
+        UpdateMotorColors();
+    }
+
+    private int GetCurrentTouchedMotorIDForSelection(bool isArmUIPlaneActive)
+    {
+        armUIProxyRejectedMotorID = 0;
+        armUIProxyRejectReason = "None";
+
+        if (!isArmUIPlaneActive)
+        {
+            return SelectMotorCollider != null ? SelectMotorCollider.currentTouchedMotorID : 0;
+        }
+
+        if (!_armUIInputIsInsideEnterPlane)
+        {
+            return 0;
+        }
+
+        if (IsMotorSelectableForCurrentState(_armUIInputTouchedMotorID))
+        {
+            return _armUIInputTouchedMotorID;
+        }
+
+        armUIProxyRejectedMotorID = _armUIInputTouchedMotorID;
+        armUIProxyRejectReason = GetMotorRejectReasonForCurrentState(_armUIInputTouchedMotorID);
+        return 0;
+    }
+
+    private bool IsMotorSelectableForCurrentState(int motorID)
+    {
+        if (motorID == 0)
+        {
+            return false;
+        }
+
+        if (!useFingertipFirst)
+        {
+            return true;
+        }
+
+        if (motorID == 4 || motorID == 8 || motorID == 12)
+        {
+            return true;
+        }
+
+        if (confirmedFingertipID == 0)
+        {
+            return false;
+        }
+
+        switch (confirmedFingertipID)
+        {
+            case 4:
+                return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID;
+            case 8:
+                return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID;
+            case 12:
+                return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID;
+            default:
+                return false;
+        }
+    }
+
+    private string GetMotorRejectReasonForCurrentState(int motorID)
+    {
+        if (motorID == 0)
+        {
+            return "No raw touched motor";
+        }
+
+        if (!useFingertipFirst)
+        {
+            return "Selectable";
+        }
+
+        if (motorID == 4 || motorID == 8 || motorID == 12)
+        {
+            return "Selectable fingertip";
+        }
+
+        if (confirmedFingertipID == 0)
+        {
+            return "Blocked by fingertip-first: confirm 4/8/12 first";
+        }
+
+        switch (confirmedFingertipID)
+        {
+            case 4:
+                return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID
+                    ? "Selectable in thumb group"
+                    : "Blocked by fingertip-first: thumb group only";
+            case 8:
+                return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID
+                    ? "Selectable in index group"
+                    : "Blocked by fingertip-first: index group only";
+            case 12:
+                return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID
+                    ? "Selectable in middle group"
+                    : "Blocked by fingertip-first: middle group only";
+            default:
+                return "Blocked: invalid confirmed fingertip state";
+        }
+    }
+
+    private bool IsCanonicalPaxiniOnForMotor(int motorID)
+    {
+        if (SelectMotorCollider == null)
+        {
+            return false;
+        }
+
+        if (motorID >= 1 && motorID <= 4) return SelectMotorCollider.thumbFreezeEnabled;
+        if (motorID >= 5 && motorID <= 8) return SelectMotorCollider.indexFreezeEnabled;
+        if (motorID >= 9 && motorID <= 12) return SelectMotorCollider.middleFreezeEnabled;
+        if (motorID == ThumbPaxiniMotorID) return SelectMotorCollider.thumbFreezeEnabled;
+        if (motorID == IndexPaxiniMotorID) return SelectMotorCollider.indexFreezeEnabled;
+        if (motorID == MiddlePaxiniMotorID) return SelectMotorCollider.middleFreezeEnabled;
+        return false;
+    }
+
+    private void SyncArmUIProxyStateFromCanonical(bool isArmUIPlaneActive)
+    {
+        armUIProxyModeSelect = isArmUIPlaneActive && _armUIInputIsInsideEnterPlane;
+        armUIProxyModeManipulate = isArmUIPlaneActive && !armUIProxyModeSelect && confirmedMotorID != 0;
+        armUIProxyCurrentTouchedMotorID = armUIProxyModeSelect && armUIProxyRejectedMotorID == 0
+            ? _armUIInputTouchedMotorID
+            : 0;
+        armUIProxyCurrentRedMotorID = currentRedMotorID;
+        armUIProxyConfirmedMotorID = confirmedMotorID;
+        armUIProxyConfirmedFingertipID = confirmedFingertipID;
+        armUIProxyThumbPaxiniOn = SelectMotorCollider != null && SelectMotorCollider.thumbFreezeEnabled;
+        armUIProxyIndexPaxiniOn = SelectMotorCollider != null && SelectMotorCollider.indexFreezeEnabled;
+        armUIProxyMiddlePaxiniOn = SelectMotorCollider != null && SelectMotorCollider.middleFreezeEnabled;
+
+        if (armUIProxySingleMotorFrozen == null || armUIProxySingleMotorFrozen.Length != 12)
+        {
+            armUIProxySingleMotorFrozen = new bool[12];
+        }
+
+        System.Array.Copy(singleMotorFrozen, armUIProxySingleMotorFrozen, 12);
+    }
+
+    private void UpdateArmUIProxyState()
+    {
+        armUIProxyModeSelect = _armUIInputIsInsideEnterPlane;
+        armUIProxyModeManipulate = !_armUIInputIsInsideEnterPlane && armUIProxyConfirmedMotorID != 0;
+        armUIProxyCurrentTouchedMotorID = armUIProxyModeSelect ? _armUIInputTouchedMotorID : 0;
+
+        if (_armUIWasInsideEnterPlane != _armUIInputIsInsideEnterPlane)
+        {
+            if (_armUIInputIsInsideEnterPlane)
+            {
+                armUIProxyModeManipulate = false;
+                armUIProxyCurrentRedMotorID = 0;
+                armUIProxyConfirmedMotorID = 0;
+                armUIProxyConfirmedFingertipID = 0;
+                _armUIIsConfirmed = false;
+                _armUITouchStartTime = 0f;
+                _armUILastTouchedMotorID = 0;
+                _armUIIsUnfreezing = false;
+                _armUIUnfreezeTargetMotorID = 0;
+                _armUIJustFrozeWhileHolding = false;
+                _armUIJustFrozeMotorID = 0;
+            }
+
+            _armUIWasInsideEnterPlane = _armUIInputIsInsideEnterPlane;
+        }
+
+        if (armUIProxyModeSelect)
+        {
+            ProcessArmUIProxySelectionState();
+        }
+
+        ApplyArmUIProxyOutputs();
+    }
+
+    private void ProcessArmUIProxySelectionState()
+    {
+        bool isSelectable = IsArmUIProxyMotorSelectable(_armUIInputTouchedMotorID);
+        int currentMotorID = isSelectable ? _armUIInputTouchedMotorID : 0;
+        armUIProxyRejectedMotorID = isSelectable ? 0 : _armUIInputTouchedMotorID;
+        armUIProxyRejectReason = GetArmUIProxyRejectReason(_armUIInputTouchedMotorID);
+
+        if (currentMotorID != _armUILastTouchedMotorID)
+        {
+            _armUIJustFrozeWhileHolding = false;
+            _armUIJustFrozeMotorID = 0;
+
+            if (currentMotorID != 0)
+            {
+                bool isFrozenMotor = currentMotorID >= 1 && currentMotorID <= 12
+                                    && (armUIProxySingleMotorFrozen[currentMotorID - 1] || IsArmUIProxyPaxiniOnForMotor(currentMotorID));
+
+                if (isFrozenMotor)
+                {
+                    _armUIIsUnfreezing = true;
+                    _armUIUnfreezeTargetMotorID = currentMotorID;
+                    _armUITouchStartTime = Time.time;
+                    _armUIIsConfirmed = false;
+                    armUIProxyCurrentRedMotorID = currentMotorID;
+                }
+                else
+                {
+                    _armUIIsUnfreezing = false;
+                    _armUIUnfreezeTargetMotorID = 0;
+                    _armUITouchStartTime = Time.time;
+                    _armUIIsConfirmed = false;
+                    armUIProxyCurrentRedMotorID = currentMotorID;
+                }
+            }
+            else
+            {
+                _armUIIsUnfreezing = false;
+                _armUIUnfreezeTargetMotorID = 0;
+                armUIProxyCurrentRedMotorID = 0;
+            }
+
+            _armUILastTouchedMotorID = currentMotorID;
+            return;
+        }
+
+        if (currentMotorID == 0)
+        {
+            return;
+        }
+
+        if (_armUIJustFrozeWhileHolding && currentMotorID == _armUIJustFrozeMotorID)
+        {
+            return;
+        }
+
+        if (_armUIIsUnfreezing)
+        {
+            if (!_armUIIsConfirmed && (Time.time - _armUITouchStartTime) >= unfreezeConfirmationTime)
+            {
+                CommitArmUIProxyUnfreeze(_armUIUnfreezeTargetMotorID);
+            }
+            return;
+        }
+
+        bool isCrossFingerSwitch = armUIProxyConfirmedMotorID != 0 && !IsSameFingerGroup(armUIProxyConfirmedMotorID, currentMotorID);
+        float requiredConfirmTime = isCrossFingerSwitch ? fingertipConfirmationTime : confirmationTime;
+        if (!_armUIIsConfirmed && (Time.time - _armUITouchStartTime) >= requiredConfirmTime)
+        {
+            _armUIIsConfirmed = true;
+            CommitArmUIProxyConfirmation(currentMotorID);
+        }
+
+        if (_armUIIsConfirmed && armUIProxyConfirmedMotorID >= 1 && armUIProxyConfirmedMotorID <= 12
+            && currentMotorID == armUIProxyConfirmedMotorID)
+        {
+            float elapsed = Time.time - _armUITouchStartTime - confirmationTime;
+            if (elapsed >= singleMotorFreezeTime && !armUIProxySingleMotorFrozen[armUIProxyConfirmedMotorID - 1])
+            {
+                int frozenID = armUIProxyConfirmedMotorID;
+                armUIProxySingleMotorFrozen[frozenID - 1] = true;
+                armUIProxyConfirmedMotorID = 0;
+                armUIProxyCurrentRedMotorID = 0;
+                _armUIIsConfirmed = false;
+                _armUIIsUnfreezing = false;
+                _armUIJustFrozeWhileHolding = true;
+                _armUIJustFrozeMotorID = frozenID;
+                CheckAndAutoEnableArmUIProxyPaxini(frozenID);
+            }
+        }
+    }
+
+    private void CommitArmUIProxyConfirmation(int motorID)
+    {
+        if (IsPaxiniMotor(motorID))
+        {
+            ToggleArmUIProxyPaxini(motorID);
+            armUIProxyConfirmedMotorID = 0;
+            armUIProxyCurrentRedMotorID = 0;
+            _armUIIsConfirmed = false;
+            return;
+        }
+
+        if (useFingertipFirst)
+        {
+            if (motorID == 4 || motorID == 8 || motorID == 12)
+            {
+                armUIProxyConfirmedFingertipID = motorID;
+                armUIProxyConfirmedMotorID = motorID;
+            }
+            else
+            {
+                armUIProxyConfirmedMotorID = motorID;
+            }
+        }
+        else
+        {
+            armUIProxyConfirmedMotorID = motorID;
+        }
+    }
+
+    private void CommitArmUIProxyUnfreeze(int motorID)
+    {
+        if (motorID < 1 || motorID > 12)
+        {
+            return;
+        }
+
+        armUIProxySingleMotorFrozen[motorID - 1] = false;
+        ClearArmUIProxyPaxiniForMotorGroup(motorID);
+        _armUIIsUnfreezing = false;
+        _armUIUnfreezeTargetMotorID = 0;
+        armUIProxyCurrentRedMotorID = 0;
+        armUIProxyConfirmedMotorID = 0;
+        _armUIIsConfirmed = false;
+    }
+
+    private bool IsArmUIProxyMotorSelectable(int motorID)
+    {
+        if (motorID == 0)
+        {
+            return false;
+        }
+
+        if (!useFingertipFirst)
+        {
+            return true;
+        }
+
+        if (motorID == 4 || motorID == 8 || motorID == 12)
+        {
+            return true;
+        }
+
+        if (armUIProxyConfirmedFingertipID == 0)
+        {
+            return false;
+        }
+
+        switch (armUIProxyConfirmedFingertipID)
+        {
+            case 4:
+                return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID;
+            case 8:
+                return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID;
+            case 12:
+                return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID;
+            default:
+                return false;
+        }
+    }
+
+    private string GetArmUIProxyRejectReason(int motorID)
+    {
+        if (motorID == 0)
+        {
+            return "No raw touched motor";
+        }
+
+        if (!useFingertipFirst)
+        {
+            return "Selectable";
+        }
+
+        if (motorID == 4 || motorID == 8 || motorID == 12)
+        {
+            return "Selectable fingertip";
+        }
+
+        if (armUIProxyConfirmedFingertipID == 0)
+        {
+            return "Blocked by fingertip-first: confirm 4/8/12 first";
+        }
+
+        switch (armUIProxyConfirmedFingertipID)
+        {
+            case 4:
+                return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID
+                    ? "Selectable in thumb group"
+                    : "Blocked by fingertip-first: thumb group only";
+            case 8:
+                return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID
+                    ? "Selectable in index group"
+                    : "Blocked by fingertip-first: index group only";
+            case 12:
+                return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID
+                    ? "Selectable in middle group"
+                    : "Blocked by fingertip-first: middle group only";
+            default:
+                return "Blocked: invalid confirmed fingertip state";
+        }
+    }
+
+    private bool IsArmUIProxyPaxiniOnForMotor(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4) return armUIProxyThumbPaxiniOn;
+        if (motorID >= 5 && motorID <= 8) return armUIProxyIndexPaxiniOn;
+        if (motorID >= 9 && motorID <= 12) return armUIProxyMiddlePaxiniOn;
+        if (motorID == ThumbPaxiniMotorID) return armUIProxyThumbPaxiniOn;
+        if (motorID == IndexPaxiniMotorID) return armUIProxyIndexPaxiniOn;
+        if (motorID == MiddlePaxiniMotorID) return armUIProxyMiddlePaxiniOn;
+        return false;
+    }
+
+    private void ToggleArmUIProxyPaxini(int motorID)
+    {
+        if (motorID == ThumbPaxiniMotorID)
+        {
+            armUIProxyThumbPaxiniOn = !armUIProxyThumbPaxiniOn;
+            ApplyArmUIProxyPaxiniToGroup(1, 4, armUIProxyThumbPaxiniOn);
+        }
+        else if (motorID == IndexPaxiniMotorID)
+        {
+            armUIProxyIndexPaxiniOn = !armUIProxyIndexPaxiniOn;
+            ApplyArmUIProxyPaxiniToGroup(5, 8, armUIProxyIndexPaxiniOn);
+        }
+        else if (motorID == MiddlePaxiniMotorID)
+        {
+            armUIProxyMiddlePaxiniOn = !armUIProxyMiddlePaxiniOn;
+            ApplyArmUIProxyPaxiniToGroup(9, 12, armUIProxyMiddlePaxiniOn);
+        }
+    }
+
+    private void ApplyArmUIProxyPaxiniToGroup(int startMotorID, int endMotorID, bool isOn)
+    {
+        for (int motorID = startMotorID; motorID <= endMotorID; motorID++)
+        {
+            armUIProxySingleMotorFrozen[motorID - 1] = isOn;
+        }
+    }
+
+    private void ClearArmUIProxyPaxiniForMotorGroup(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4) armUIProxyThumbPaxiniOn = false;
+        else if (motorID >= 5 && motorID <= 8) armUIProxyIndexPaxiniOn = false;
+        else if (motorID >= 9 && motorID <= 12) armUIProxyMiddlePaxiniOn = false;
+    }
+
+    private void CheckAndAutoEnableArmUIProxyPaxini(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4 && IsArmUIProxyGroupAllFrozen(1, 4)) armUIProxyThumbPaxiniOn = true;
+        else if (motorID >= 5 && motorID <= 8 && IsArmUIProxyGroupAllFrozen(5, 8)) armUIProxyIndexPaxiniOn = true;
+        else if (motorID >= 9 && motorID <= 12 && IsArmUIProxyGroupAllFrozen(9, 12)) armUIProxyMiddlePaxiniOn = true;
+    }
+
+    private bool IsArmUIProxyGroupAllFrozen(int startMotorID, int endMotorID)
+    {
+        for (int motorID = startMotorID; motorID <= endMotorID; motorID++)
+        {
+            if (!armUIProxySingleMotorFrozen[motorID - 1])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void ApplyArmUIProxyOutputs()
+    {
+        SyncArmUIProxyStateFromCanonical(IsArmUIPlaneActive());
+    }
+
+    public Color GetArmUIProxyMotorDisplayColor(int motorID, Color fallbackOriginalColor)
+    {
+        if (_isUnfreezing && motorID == _unfreezeTargetMotorID)
+        {
+            return unfreezeHintColor;
+        }
+
+        if (confirmedMotorID == motorID)
+            return darkRedColor;
+
+        if (currentRedMotorID == motorID && currentRedMotorID != confirmedMotorID)
+            return isConfirmed ? darkRedColor : lightRedColor;
+
+        Color baseColor = fallbackOriginalColor;
+        if (motorID >= 1 && motorID <= 12)
+        {
+            if (useFingertipFirst && grayMode)
+            {
+                if (confirmedFingertipID == 0)
+                {
+                    baseColor = (motorID == 4 || motorID == 8 || motorID == 12) ? fallbackOriginalColor : grayColor;
+                }
+                else if (!IsMotorSelectableForCurrentState(motorID))
+                {
+                    baseColor = grayColor;
+                }
+            }
+
+            if (singleMotorFrozen[motorID - 1] || IsCanonicalPaxiniOnForMotor(motorID))
+                return singleFrozenColor;
+
+            return baseColor;
+        }
+
+        if (IsPaxiniMotor(motorID))
+        {
+            return IsCanonicalPaxiniOnForMotor(motorID) ? singleFrozenColor : fallbackOriginalColor;
+        }
+
+        return baseColor;
+    }
+
+    private void ResetArmUIProxyState()
+    {
+        armUIProxyModeSelect = false;
+        armUIProxyModeManipulate = false;
+        armUIProxyCurrentTouchedMotorID = 0;
+        armUIProxyRejectedMotorID = 0;
+        armUIProxyRejectReason = "None";
+        _armUIWasInsideEnterPlane = false;
+
+        if (armUIProxySingleMotorFrozen == null || armUIProxySingleMotorFrozen.Length != 12)
+        {
+            armUIProxySingleMotorFrozen = new bool[12];
+            return;
+        }
+
+        System.Array.Copy(singleMotorFrozen, armUIProxySingleMotorFrozen, 12);
+        armUIProxyCurrentRedMotorID = currentRedMotorID;
+        armUIProxyConfirmedMotorID = confirmedMotorID;
+        armUIProxyConfirmedFingertipID = confirmedFingertipID;
+        armUIProxyThumbPaxiniOn = SelectMotorCollider != null && SelectMotorCollider.thumbFreezeEnabled;
+        armUIProxyIndexPaxiniOn = SelectMotorCollider != null && SelectMotorCollider.indexFreezeEnabled;
+        armUIProxyMiddlePaxiniOn = SelectMotorCollider != null && SelectMotorCollider.middleFreezeEnabled;
     }
 
     private void CaptureModeSelectBaseline()
@@ -1718,52 +2331,49 @@ public class ModeSwitching : MonoBehaviour
         if (middlePaxiniRenderer != null) middlePaxiniRenderer.material.color = middlePaxiniOriginalColor;
     }
 
-    public Color GetPaxiniDisplayColor(int motorID, Color fallbackOriginalColor)
+    public void ResetExternalMotorColors()
     {
-        // Single frozen motors (1-12): return frozen color
-        if (motorID >= 1 && motorID <= 12 && singleMotorFrozen[motorID - 1])
-            return singleFrozenColor;
+        ResetAllColors();
+    }
 
-        // Paxini renderers (13/14/15): always return original color.
-        // Yellow is handled by the showFreezeColor path in TriggerRight*Tip (bypasses this function).
-        // Gray/red must never affect Paxini — they are not part of the 1-12 motor selection system.
+    public void ApplyExternalMotorColor(int motorID, Color color)
+    {
+        SetMotorColorDirect(motorID, color);
+    }
+
+    public Color GetDefaultMotorColor(int motorID)
+    {
         switch (motorID)
         {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+                return originalColor;
             case ThumbPaxiniMotorID:
-                return thumbPaxiniRenderer != null ? thumbPaxiniOriginalColor : fallbackOriginalColor;
+                return thumbPaxiniOriginalColor;
             case IndexPaxiniMotorID:
-                return indexPaxiniRenderer != null ? indexPaxiniOriginalColor : fallbackOriginalColor;
+                return indexPaxiniOriginalColor;
             case MiddlePaxiniMotorID:
-                return middlePaxiniRenderer != null ? middlePaxiniOriginalColor : fallbackOriginalColor;
+                return middlePaxiniOriginalColor;
+            default:
+                return originalColor;
         }
+    }
 
-        // Motors 1-12: apply gray/red logic as normal
-        Color baseColor = fallbackOriginalColor;
-
-        if (useFingertipFirst && grayMode)
+    public Color GetMotorDisplayColor(int motorID, Color fallbackOriginalColor)
+    {
+        if (_isUnfreezing && motorID == _unfreezeTargetMotorID && currentRedMotorID == motorID)
         {
-            if (currentPhase == SelectionPhase.SelectingFingertip)
-            {
-                baseColor = grayColor;
-            }
-            else
-            {
-                switch (confirmedFingertipID)
-                {
-                    case 4:
-                        baseColor = (motorID >= 1 && motorID <= 4) ? fallbackOriginalColor : grayColor;
-                        break;
-                    case 8:
-                        baseColor = (motorID >= 5 && motorID <= 8) ? fallbackOriginalColor : grayColor;
-                        break;
-                    case 12:
-                        baseColor = (motorID >= 9 && motorID <= 12) ? fallbackOriginalColor : grayColor;
-                        break;
-                    default:
-                        baseColor = grayColor;
-                        break;
-                }
-            }
+            return unfreezeHintColor;
         }
 
         if (confirmedMotorID == motorID)
@@ -1772,7 +2382,91 @@ public class ModeSwitching : MonoBehaviour
         if (currentRedMotorID == motorID && currentRedMotorID != confirmedMotorID)
             return isConfirmed ? darkRedColor : lightRedColor;
 
+        Color baseColor = fallbackOriginalColor;
+
+        if (motorID >= 1 && motorID <= 12)
+        {
+            if (useFingertipFirst && grayMode)
+            {
+                if (currentPhase == SelectionPhase.SelectingFingertip)
+                {
+                    baseColor = grayColor;
+                }
+                else
+                {
+                    switch (confirmedFingertipID)
+                    {
+                        case 4:
+                            baseColor = (motorID >= 1 && motorID <= 4) ? fallbackOriginalColor : grayColor;
+                            break;
+                        case 8:
+                            baseColor = (motorID >= 5 && motorID <= 8) ? fallbackOriginalColor : grayColor;
+                            break;
+                        case 12:
+                            baseColor = (motorID >= 9 && motorID <= 12) ? fallbackOriginalColor : grayColor;
+                            break;
+                        default:
+                            baseColor = grayColor;
+                            break;
+                    }
+                }
+            }
+
+            bool suppress = (motorID <= 4 && _suppressThumbGroupYellow)
+                         || (motorID >= 5 && motorID <= 8 && _suppressIndexGroupYellow)
+                         || (motorID >= 9 && _suppressMiddleGroupYellow);
+            if (singleMotorFrozen[motorID - 1] && !suppress)
+                return singleFrozenColor;
+
+            if (SelectMotorCollider != null)
+            {
+                if (motorID <= 4 && SelectMotorCollider.thumbFreezeEnabled && !_pendingThumbAutoOff)
+                    return singleFrozenColor;
+                if (motorID >= 5 && motorID <= 8 && SelectMotorCollider.indexFreezeEnabled && !_pendingIndexAutoOff)
+                    return singleFrozenColor;
+                if (motorID >= 9 && motorID <= 12 && SelectMotorCollider.middleFreezeEnabled && !_pendingMiddleAutoOff)
+                    return singleFrozenColor;
+            }
+
+            return baseColor;
+        }
+
+        if (motorID == ThumbPaxiniMotorID || motorID == IndexPaxiniMotorID || motorID == MiddlePaxiniMotorID)
+        {
+            if (SelectMotorCollider != null)
+            {
+                if (motorID == ThumbPaxiniMotorID)
+                {
+                    if (SelectMotorCollider.thumbPaxiniForceOriginal)
+                        return fallbackOriginalColor;
+                    if (SelectMotorCollider.thumbPaxiniForceYellow || SelectMotorCollider.thumbFreezeEnabled)
+                        return singleFrozenColor;
+                }
+                else if (motorID == IndexPaxiniMotorID)
+                {
+                    if (SelectMotorCollider.indexPaxiniForceOriginal)
+                        return fallbackOriginalColor;
+                    if (SelectMotorCollider.indexPaxiniForceYellow || SelectMotorCollider.indexFreezeEnabled)
+                        return singleFrozenColor;
+                }
+                else
+                {
+                    if (SelectMotorCollider.middlePaxiniForceOriginal)
+                        return fallbackOriginalColor;
+                    if (SelectMotorCollider.middlePaxiniForceYellow || SelectMotorCollider.middleFreezeEnabled)
+                        return singleFrozenColor;
+                }
+            }
+
+            return fallbackOriginalColor;
+        }
+
         return baseColor;
+    }
+
+    public Color GetPaxiniDisplayColor(int motorID, Color fallbackOriginalColor)
+    {
+        return GetMotorDisplayColor(motorID, fallbackOriginalColor);
     }
 
     private void ApplyModeSelectBaseColors()
