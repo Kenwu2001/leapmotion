@@ -57,6 +57,9 @@ public class ArmUIPlaneController : MonoBehaviour
         }
     }
 
+    [Header("Enter Arm UI Plane Collider")]
+    public ButtonBinding enterArmUIPlaneButton = new ButtonBinding { buttonName = "Enter Arm UI Plane Button" };
+
     [Header("Arm UI Buttons")]
     public ButtonBinding directAngleButton = new ButtonBinding { buttonName = "Direct Angle Button" };
     public ButtonBinding maxMinAngleButton = new ButtonBinding { buttonName = "Max Min Angle Button" };
@@ -81,10 +84,12 @@ public class ArmUIPlaneController : MonoBehaviour
     public string interactionDebug = "No Arm UI button touched";
 
     private readonly List<ButtonBinding> _allButtons = new List<ButtonBinding>();
+    private readonly HashSet<Collider> _collidersInside = new HashSet<Collider>();
 
     private void Awake()
     {
         BuildButtonList();
+        InitializeButton(enterArmUIPlaneButton);
         for (int i = 0; i < _allButtons.Count; i++)
         {
             InitializeButton(_allButtons[i]);
@@ -93,6 +98,14 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        _collidersInside.Add(other);
+        if (!enterArmUIPlaneButton.isTouched)
+        {
+            enterArmUIPlaneButton.isTouched = true;
+            interactionDebug = "Touch enter: " + enterArmUIPlaneButton.buttonName;
+            enterArmUIPlaneButton.onEnter?.Invoke();
+        }
+
         for (int i = 0; i < _allButtons.Count; i++)
         {
             if (TryHandleEnter(_allButtons[i], other))
@@ -104,6 +117,14 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        _collidersInside.Remove(other);
+        if (_collidersInside.Count == 0 && enterArmUIPlaneButton.isTouched)
+        {
+            enterArmUIPlaneButton.isTouched = false;
+            interactionDebug = "Touch exit: " + enterArmUIPlaneButton.buttonName;
+            enterArmUIPlaneButton.onExit?.Invoke();
+        }
+
         for (int i = 0; i < _allButtons.Count; i++)
         {
             if (TryHandleExit(_allButtons[i], other))
@@ -125,6 +146,7 @@ public class ArmUIPlaneController : MonoBehaviour
     private void BuildButtonList()
     {
         _allButtons.Clear();
+        // enterArmUIPlaneButton is handled separately via _collidersInside
         AddButtonIfValid(directAngleButton);
         AddButtonIfValid(maxMinAngleButton);
         AddButtonsIfValid(thumbMotorIdButtons);

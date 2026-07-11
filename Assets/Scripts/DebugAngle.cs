@@ -397,6 +397,7 @@ public class DebugAngle : MonoBehaviour
       }
 
       return "\n[Arm UI Collider]\n" +
+        "Enter Arm UI Plane isTouched: " + armUIPlaneController.enterArmUIPlaneButton.isTouched + "\n" +
         "Touched Button: " + armUIPlaneController.currentTouchedButton + "\n" +
         "Touched Collider: " + armUIPlaneController.currentTouchedCollider + "\n" +
         "Interaction: " + armUIPlaneController.interactionDebug + "\n";
