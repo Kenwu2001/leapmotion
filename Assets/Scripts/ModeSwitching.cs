@@ -288,6 +288,8 @@ public class ModeSwitching : MonoBehaviour
         UpdateCurrentHandSeparationDistance();
         float activeSeparationThreshold = GetActiveSeparationThreshold();
         bool isArmUIPlaneActive = IsArmUIPlaneActive();
+        bool isRoundAway = (!isArmUIPlaneActive && currentHandSeparationDistance > activeSeparationThreshold)
+                        || (isArmUIPlaneActive && (!_armUIInputIsInsideEnterPlane || _armUIInputTouchedMotorID == 0));
 
         // Capture baseline once when entering modeSelect.
         if (modeSelect && !_wasModeSelectLastFrame)
@@ -598,7 +600,7 @@ public class ModeSwitching : MonoBehaviour
 
         // For Paxini pseudo motors (13/14/15): never enter manipulate mode.
         // When hands separate, return to base select state but keep freeze (yellow) handled by TriggerRight*Tip.
-        if (modeSelect && motorSelected && isConfirmedPaxiniMotor)
+        if (!isArmUIPlaneActive && modeSelect && motorSelected && isConfirmedPaxiniMotor)
         {
             float distance = currentHandSeparationDistance;
             if (distance > activeSeparationThreshold)
@@ -626,7 +628,7 @@ public class ModeSwitching : MonoBehaviour
 
             if (hasAnyFrozen || hasPendingPaxini)
             {
-                if (currentHandSeparationDistance > activeSeparationThreshold)
+                if (isRoundAway)
                 {
                     if (!_frozenBaselineCaptured)
                     {
@@ -729,7 +731,7 @@ public class ModeSwitching : MonoBehaviour
                 // currently frozen, capture a fresh baseline when the hand moves away.
                 // Without this, the stale frozen baseline would incorrectly re-freeze
                 // the unfrozen motor the next time a different motor is confirmed.
-                if (_roundChangedMotorID != 0 && currentHandSeparationDistance > activeSeparationThreshold)
+                if (_roundChangedMotorID != 0 && isRoundAway)
                 {
                     if (!_noFreezeRoundBaselineCaptured)
                     {
@@ -979,7 +981,7 @@ public class ModeSwitching : MonoBehaviour
             // Skip when auto-OFF is pending (those groups must NOT be force-frozen here).
             if (modeSelect)
             {
-                bool shouldCommitPaxiniFreeze = currentHandSeparationDistance > activeSeparationThreshold;
+                bool shouldCommitPaxiniFreeze = isRoundAway;
                 if (shouldCommitPaxiniFreeze && SelectMotorCollider.thumbFreezeEnabled && !_pendingThumbAutoOff)
                     for (int m = 1; m <= 4; m++) singleMotorFrozen[m - 1] = true;
                 if (shouldCommitPaxiniFreeze && SelectMotorCollider.indexFreezeEnabled && !_pendingIndexAutoOff)
@@ -1637,18 +1639,78 @@ public class ModeSwitching : MonoBehaviour
                 }
             }
 
-            if (singleMotorFrozen[motorID - 1] || IsCanonicalPaxiniOnForMotor(motorID))
+            bool suppressGroupYellow = (motorID <= 4 && _suppressThumbGroupYellow)
+                                     || (motorID >= 5 && motorID <= 8 && _suppressIndexGroupYellow)
+                                     || (motorID >= 9 && _suppressMiddleGroupYellow);
+
+            if (singleMotorFrozen[motorID - 1] && !suppressGroupYellow)
+            {
                 return singleFrozenColor;
+            }
+
+            if (SelectMotorCollider != null)
+            {
+                bool shouldForceGroupYellow = (motorID <= 4 && SelectMotorCollider.thumbFreezeEnabled && !_pendingThumbAutoOff)
+                                           || (motorID >= 5 && motorID <= 8 && SelectMotorCollider.indexFreezeEnabled && !_pendingIndexAutoOff)
+                                           || (motorID >= 9 && SelectMotorCollider.middleFreezeEnabled && !_pendingMiddleAutoOff);
+
+                if (shouldForceGroupYellow && !suppressGroupYellow)
+                {
+                    return singleFrozenColor;
+                }
+            }
 
             return baseColor;
         }
 
-        if (IsPaxiniMotor(motorID))
+        if (motorID == ThumbPaxiniMotorID)
         {
-            return IsCanonicalPaxiniOnForMotor(motorID) ? singleFrozenColor : fallbackOriginalColor;
+            return GetCanonicalPaxiniDisplayColor(
+                SelectMotorCollider != null ? SelectMotorCollider.thumbFreezeEnabled : false,
+                SelectMotorCollider != null ? SelectMotorCollider.thumbPaxiniForceYellow : false,
+                SelectMotorCollider != null ? SelectMotorCollider.thumbPaxiniForceOriginal : false,
+                fallbackOriginalColor);
+        }
+
+        if (motorID == IndexPaxiniMotorID)
+        {
+            return GetCanonicalPaxiniDisplayColor(
+                SelectMotorCollider != null ? SelectMotorCollider.indexFreezeEnabled : false,
+                SelectMotorCollider != null ? SelectMotorCollider.indexPaxiniForceYellow : false,
+                SelectMotorCollider != null ? SelectMotorCollider.indexPaxiniForceOriginal : false,
+                fallbackOriginalColor);
+        }
+
+        if (motorID == MiddlePaxiniMotorID)
+        {
+            return GetCanonicalPaxiniDisplayColor(
+                SelectMotorCollider != null ? SelectMotorCollider.middleFreezeEnabled : false,
+                SelectMotorCollider != null ? SelectMotorCollider.middlePaxiniForceYellow : false,
+                SelectMotorCollider != null ? SelectMotorCollider.middlePaxiniForceOriginal : false,
+                fallbackOriginalColor);
         }
 
         return baseColor;
+    }
+
+    private Color GetCanonicalPaxiniDisplayColor(bool isFreezeEnabled, bool forceYellow, bool forceOriginal, Color originalColor)
+    {
+        if (forceYellow)
+        {
+            return singleFrozenColor;
+        }
+
+        if (forceOriginal)
+        {
+            return originalColor;
+        }
+
+        if (isFreezeEnabled)
+        {
+                return singleFrozenColor;
+        }
+
+        return originalColor;
     }
 
     private void ResetArmUIProxyState()

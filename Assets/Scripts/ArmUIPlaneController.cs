@@ -193,7 +193,9 @@ public class ArmUIPlaneController : MonoBehaviour
                 " Confirmed=" + armConfirmedMotorID +
                 " Tip=" + armConfirmedFingertipID +
                 " Rejected=" + armRejectedMotorID +
-                " Reason=" + armRejectReason;
+                " Reason=" + armRejectReason +
+                " | MotorState=" + BuildMotorIDStateSnapshot() +
+                " | ArmMotorState=" + BuildArmMotorIDStateSnapshot();
             RecordArmUIHistoryIfChanged();
         }
 
@@ -216,6 +218,130 @@ public class ArmUIPlaneController : MonoBehaviour
         }
 
         armUIProxyHistory = string.Join("\n", _armUIHistoryEntries.ToArray());
+    }
+
+    private string BuildMotorIDStateSnapshot()
+    {
+        if (modeSwitching == null)
+        {
+            return "N/A";
+        }
+
+        int touchedMotorID = selectMotorCollider != null ? selectMotorCollider.currentTouchedMotorID : 0;
+        int redMotorID = modeSwitching.currentRedMotorID;
+        int confirmedMotorID = modeSwitching.confirmedMotorID;
+        int confirmedFingertipID = modeSwitching.confirmedFingertipID;
+        bool[] frozen = modeSwitching.singleMotorFrozen;
+        bool thumbPaxiniOn = selectMotorCollider != null && selectMotorCollider.thumbFreezeEnabled;
+        bool indexPaxiniOn = selectMotorCollider != null && selectMotorCollider.indexFreezeEnabled;
+        bool middlePaxiniOn = selectMotorCollider != null && selectMotorCollider.middleFreezeEnabled;
+
+        return BuildStateSnapshot(
+            touchedMotorID,
+            redMotorID,
+            confirmedMotorID,
+            confirmedFingertipID,
+            frozen,
+            thumbPaxiniOn,
+            indexPaxiniOn,
+            middlePaxiniOn
+        );
+    }
+
+    private string BuildArmMotorIDStateSnapshot()
+    {
+        return BuildStateSnapshot(
+            armRawTouchedMotorID,
+            armCurrentRedMotorID,
+            armConfirmedMotorID,
+            armConfirmedFingertipID,
+            armSingleMotorFrozen,
+            armThumbPaxiniOn,
+            armIndexPaxiniOn,
+            armMiddlePaxiniOn
+        );
+    }
+
+    private string BuildStateSnapshot(
+        int touchedMotorID,
+        int redMotorID,
+        int confirmedMotorID,
+        int confirmedFingertipID,
+        bool[] frozen,
+        bool thumbPaxiniOn,
+        bool indexPaxiniOn,
+        bool middlePaxiniOn)
+    {
+        string[] states = new string[15];
+        for (int motorID = 1; motorID <= 15; motorID++)
+        {
+            states[motorID - 1] = motorID + ":" + BuildMotorStateToken(
+                motorID,
+                touchedMotorID,
+                redMotorID,
+                confirmedMotorID,
+                confirmedFingertipID,
+                frozen,
+                thumbPaxiniOn,
+                indexPaxiniOn,
+                middlePaxiniOn);
+        }
+
+        return "[" + string.Join(",", states) + "]";
+    }
+
+    private string BuildMotorStateToken(
+        int motorID,
+        int touchedMotorID,
+        int redMotorID,
+        int confirmedMotorID,
+        int confirmedFingertipID,
+        bool[] frozen,
+        bool thumbPaxiniOn,
+        bool indexPaxiniOn,
+        bool middlePaxiniOn)
+    {
+        string token = "0";
+
+        if (motorID >= 1 && motorID <= 12 && frozen != null && frozen.Length >= 12 && frozen[motorID - 1])
+        {
+            token = "F";
+        }
+
+        if (motorID == ThumbPaxiniMotorID && thumbPaxiniOn)
+        {
+            token = "P";
+        }
+        else if (motorID == IndexPaxiniMotorID && indexPaxiniOn)
+        {
+            token = "P";
+        }
+        else if (motorID == MiddlePaxiniMotorID && middlePaxiniOn)
+        {
+            token = "P";
+        }
+
+        if (confirmedFingertipID == motorID)
+        {
+            token = "T";
+        }
+
+        if (redMotorID == motorID)
+        {
+            token = "R";
+        }
+
+        if (confirmedMotorID == motorID)
+        {
+            token = "C";
+        }
+
+        if (touchedMotorID == motorID)
+        {
+            token = token == "0" ? "H" : token + "H";
+        }
+
+        return token;
     }
 
     private void OnTriggerEnter(Collider other)
