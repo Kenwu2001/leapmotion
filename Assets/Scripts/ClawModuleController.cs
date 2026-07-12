@@ -676,6 +676,14 @@ public class ClawModuleController : MonoBehaviour
         return armUIPlaneController != null && armUIPlaneController.IsDirectAngleMotorTarget(motorID);
     }
 
+    private bool IsArmUIDirectAngleOverrideActive()
+    {
+        return armUIPlaneController != null &&
+               armUIPlaneController.useArmUIPlane &&
+               armUIPlaneController.directAngleButton != null &&
+               armUIPlaneController.directAngleButton.isOn;
+    }
+
     void Start()
     {
         // --- Initialize Thumb ---
@@ -892,6 +900,16 @@ public class ClawModuleController : MonoBehaviour
         if (useKeyboardControl)
         {
             HandleKeyboardControl();
+        }
+
+        // In Arm UI direct-angle mode, motor rotations must only be driven by ArmUIPlane slider write-back.
+        // Skip all joint-angle-based finger updates to prevent overwriting slider-controlled angles.
+        if (IsArmUIDirectAngleOverrideActive())
+        {
+            isFingerTipTriggered = false;
+            isAnyMotorTriggered = false;
+            isAnyMotor4Triggered = false;
+            return;
         }
 
         #region UpdateFingers
