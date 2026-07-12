@@ -504,6 +504,11 @@ public class ArmUIPlaneController : MonoBehaviour
         return useArmUIPlane && armModeManipulate && directAngleButton != null && directAngleButton.isOn;
     }
 
+    public bool IsMaxMinAngleModeActive()
+    {
+        return useArmUIPlane && armModeManipulate && maxMinAngleButton != null && maxMinAngleButton.isOn;
+    }
+
     public bool IsDirectAngleMotorTarget(int motorID)
     {
         return IsDirectAngleModeActive() && armConfirmedMotorID == motorID;

@@ -15,6 +15,8 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         public Collider handleCollider;
         public bool useVerticalAxis = true;
         public bool invertAxis = false;
+        [Range(0f, 1f)] public float minNormalizedValue = 0f;
+        [Range(0f, 1f)] public float maxNormalizedValue = 1f;
 
         [HideInInspector] public bool touchingFill;
         [HideInInspector] public bool touchingHandle;
@@ -24,10 +26,14 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     public SliderBinding thumbSlider = new SliderBinding { bindingName = "Thumb" };
     public SliderBinding indexSlider = new SliderBinding { bindingName = "Index" };
     public SliderBinding middleSlider = new SliderBinding { bindingName = "Middle" };
+    public SliderBinding thumbMaxSlider = new SliderBinding { bindingName = "ThumbMax", maxNormalizedValue = 0.5f };
+    public SliderBinding thumbMinSlider = new SliderBinding { bindingName = "ThumbMin", minNormalizedValue = 0.5f, maxNormalizedValue = 1f };
 
     [Header("Arm UI State")]
     public ArmUIPlaneController armUIPlaneController;
     public bool requireDirectAngleMode = true;
+    public bool requireMaxMinModeForThumbMax = true;
+    public bool requireMaxMinModeForThumbMin = true;
 
     [Header("Interaction")]
     public Transform fingerTipSource;
@@ -50,6 +56,10 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     [SerializeField] private bool debugIndexTouchingHandle;
     [SerializeField] private bool debugMiddleTouchingFill;
     [SerializeField] private bool debugMiddleTouchingHandle;
+    [SerializeField] private bool debugThumbMaxTouchingFill;
+    [SerializeField] private bool debugThumbMaxTouchingHandle;
+    [SerializeField] private bool debugThumbMinTouchingFill;
+    [SerializeField] private bool debugThumbMinTouchingHandle;
     [TextArea(6, 24)] [SerializeField] private string runtimeHistory = "";
 
     private readonly Queue<string> _historyLines = new Queue<string>();
@@ -119,6 +129,8 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         CacheBindingReferences(thumbSlider);
         CacheBindingReferences(indexSlider);
         CacheBindingReferences(middleSlider);
+        CacheBindingReferences(thumbMaxSlider);
+        CacheBindingReferences(thumbMinSlider);
 
         if (armUIPlaneController == null)
         {
@@ -168,6 +180,8 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         if (MatchesBindingCollider(thumbSlider, other)) return thumbSlider;
         if (MatchesBindingCollider(indexSlider, other)) return indexSlider;
         if (MatchesBindingCollider(middleSlider, other)) return middleSlider;
+        if (MatchesBindingCollider(thumbMaxSlider, other)) return thumbMaxSlider;
+        if (MatchesBindingCollider(thumbMinSlider, other)) return thumbMinSlider;
         return null;
     }
 
@@ -222,7 +236,21 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
             return;
         }
 
-        if (requireDirectAngleMode && armUIPlaneController != null && !armUIPlaneController.IsDirectAngleModeActive())
+        if (binding == thumbMaxSlider && requireMaxMinModeForThumbMax)
+        {
+            if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
+            {
+                return;
+            }
+        }
+        else if (binding == thumbMinSlider && requireMaxMinModeForThumbMin)
+        {
+            if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
+            {
+                return;
+            }
+        }
+        else if (requireDirectAngleMode && armUIPlaneController != null && !armUIPlaneController.IsDirectAngleModeActive())
         {
             return;
         }
@@ -245,7 +273,9 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
             normalizedValue = 1f - normalizedValue;
         }
 
-        normalizedValue = Mathf.Clamp01(normalizedValue);
+        float normalizedMin = Mathf.Clamp01(Mathf.Min(binding.minNormalizedValue, binding.maxNormalizedValue));
+        float normalizedMax = Mathf.Clamp01(Mathf.Max(binding.minNormalizedValue, binding.maxNormalizedValue));
+        normalizedValue = Mathf.Clamp(normalizedValue, normalizedMin, normalizedMax);
         float newValue = Mathf.Lerp(binding.targetSlider.minValue, binding.targetSlider.maxValue, normalizedValue);
 
         debugLastBinding = binding.bindingName;
@@ -313,6 +343,10 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         debugIndexTouchingHandle = indexSlider != null && indexSlider.touchingHandle;
         debugMiddleTouchingFill = middleSlider != null && middleSlider.touchingFill;
         debugMiddleTouchingHandle = middleSlider != null && middleSlider.touchingHandle;
+        debugThumbMaxTouchingFill = thumbMaxSlider != null && thumbMaxSlider.touchingFill;
+        debugThumbMaxTouchingHandle = thumbMaxSlider != null && thumbMaxSlider.touchingHandle;
+        debugThumbMinTouchingFill = thumbMinSlider != null && thumbMinSlider.touchingFill;
+        debugThumbMinTouchingHandle = thumbMinSlider != null && thumbMinSlider.touchingHandle;
     }
 
     private void AppendHistory(
