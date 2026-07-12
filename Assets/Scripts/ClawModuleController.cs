@@ -25,6 +25,10 @@ public class ClawModuleController : MonoBehaviour
 
     public PaxiniValue paxiniValue;
 
+    [Header("Arm UI Direct Override Debug")]
+    public bool debugArmUIDirectOverrideActive = false;
+    public string debugArmUIOverrideSource = "None";
+
     // public FingerSnapManager fingerSnapManager;
 
     // ==============================
@@ -673,15 +677,37 @@ public class ClawModuleController : MonoBehaviour
 
     private bool IsDirectAngleMotorTarget(int motorID)
     {
-        return armUIPlaneController != null && armUIPlaneController.IsDirectAngleMotorTarget(motorID);
+        ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+        return activeArmUI != null && activeArmUI.IsDirectAngleMotorTarget(motorID);
     }
 
     private bool IsArmUIDirectAngleOverrideActive()
     {
-        return armUIPlaneController != null &&
-               armUIPlaneController.useArmUIPlane &&
-               armUIPlaneController.directAngleButton != null &&
-               armUIPlaneController.directAngleButton.isOn;
+        ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+        bool isActive = activeArmUI != null &&
+                        activeArmUI.useArmUIPlane &&
+                        activeArmUI.directAngleButton != null &&
+                        activeArmUI.directAngleButton.isOn;
+
+        debugArmUIDirectOverrideActive = isActive;
+        debugArmUIOverrideSource = activeArmUI != null ? activeArmUI.name : "None";
+        return isActive;
+    }
+
+    private ArmUIPlaneController GetActiveArmUIPlaneController()
+    {
+        if (modeSwitching != null && modeSwitching.armUIPlaneController != null)
+        {
+            return modeSwitching.armUIPlaneController;
+        }
+
+        if (armUIPlaneController != null)
+        {
+            return armUIPlaneController;
+        }
+
+        armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
+        return armUIPlaneController;
     }
 
     void Start()
