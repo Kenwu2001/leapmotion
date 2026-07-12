@@ -164,6 +164,7 @@ public class ArmUIPlaneController : MonoBehaviour
         }
 
         CacheAndConfigureSliders();
+        BindSliderEvents();
 
         BuildButtonList();
         ConfigureArmModeButtonDefaults();
@@ -232,6 +233,11 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncArmModeButtonColors();
         SyncDirectAngleSliderValue();
         _lastArmModeManipulate = armModeManipulate;
+    }
+
+    private void OnDestroy()
+    {
+        UnbindSliderEvents();
     }
 
     private void ConfigureArmModeButtonDefaults()
@@ -397,6 +403,183 @@ public class ArmUIPlaneController : MonoBehaviour
         slider.minValue = 0f;
         slider.maxValue = 180f;
         slider.wholeNumbers = false;
+    }
+
+    private void BindSliderEvents()
+    {
+        BindSliderEvent(_thumbSlider, HandleThumbSliderValueChanged);
+        BindSliderEvent(_indexSlider, HandleIndexSliderValueChanged);
+        BindSliderEvent(_middleSlider, HandleMiddleSliderValueChanged);
+    }
+
+    private void UnbindSliderEvents()
+    {
+        UnbindSliderEvent(_thumbSlider, HandleThumbSliderValueChanged);
+        UnbindSliderEvent(_indexSlider, HandleIndexSliderValueChanged);
+        UnbindSliderEvent(_middleSlider, HandleMiddleSliderValueChanged);
+    }
+
+    private void BindSliderEvent(Slider slider, UnityAction<float> handler)
+    {
+        if (slider == null || handler == null)
+        {
+            return;
+        }
+
+        slider.onValueChanged.RemoveListener(handler);
+        slider.onValueChanged.AddListener(handler);
+    }
+
+    private void UnbindSliderEvent(Slider slider, UnityAction<float> handler)
+    {
+        if (slider == null || handler == null)
+        {
+            return;
+        }
+
+        slider.onValueChanged.RemoveListener(handler);
+    }
+
+    public bool IsDirectAngleModeActive()
+    {
+        return useArmUIPlane && armModeManipulate && directAngleButton != null && directAngleButton.isOn;
+    }
+
+    public bool IsDirectAngleMotorTarget(int motorID)
+    {
+        return IsDirectAngleModeActive() && armConfirmedMotorID == motorID;
+    }
+
+    private void HandleThumbSliderValueChanged(float value)
+    {
+        ApplyDirectAngleSliderValue(value, 1, 4);
+    }
+
+    private void HandleIndexSliderValueChanged(float value)
+    {
+        ApplyDirectAngleSliderValue(value, 5, 8);
+    }
+
+    private void HandleMiddleSliderValueChanged(float value)
+    {
+        ApplyDirectAngleSliderValue(value, 9, 12);
+    }
+
+    private void ApplyDirectAngleSliderValue(float sliderValue, int minMotorID, int maxMotorID)
+    {
+        if (!IsDirectAngleModeActive())
+        {
+            return;
+        }
+
+        if (armConfirmedMotorID < minMotorID || armConfirmedMotorID > maxMotorID)
+        {
+            return;
+        }
+
+        ApplyDirectAngleToMotor(armConfirmedMotorID, sliderValue);
+    }
+
+    private void ApplyDirectAngleToMotor(int motorID, float sliderValue)
+    {
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        Transform targetTransform = GetMotorTransform(motorID);
+        if (targetTransform == null)
+        {
+            return;
+        }
+
+        bool descendingSegments = IsDescendingSegmentMotor(motorID);
+        float rawAngle = MapSliderValueToWrappedAngle(sliderValue, descendingSegments);
+        Vector3 euler = targetTransform.localRotation.eulerAngles;
+
+        switch (motorID)
+        {
+            case 1:
+            case 5:
+            case 9:
+                euler.y = rawAngle;
+                break;
+            case 2:
+            case 6:
+            case 10:
+                euler.z = rawAngle;
+                break;
+            default:
+                euler.x = rawAngle;
+                break;
+        }
+
+        targetTransform.localRotation = Quaternion.Euler(euler.x, euler.y, euler.z);
+    }
+
+    private bool IsDescendingSegmentMotor(int motorID)
+    {
+        return motorID == 1 || motorID == 2 || motorID == 5 || motorID == 6 || motorID == 9 || motorID == 10;
+    }
+
+    private Transform GetMotorTransform(int motorID)
+    {
+        if (clawModuleController == null)
+        {
+            return null;
+        }
+
+        switch (motorID)
+        {
+            case 1:
+                return clawModuleController.ThumbAngle1Center;
+            case 2:
+                return clawModuleController.ThumbAngle2Center;
+            case 3:
+                return clawModuleController.ThumbAngle3Center;
+            case 4:
+                return clawModuleController.ThumbAngle4Center;
+            case 5:
+                return clawModuleController.IndexAngle1Center;
+            case 6:
+                return clawModuleController.IndexAngle2Center;
+            case 7:
+                return clawModuleController.IndexAngle3Center;
+            case 8:
+                return clawModuleController.IndexAngle4Center;
+            case 9:
+                return clawModuleController.MiddleAngle1Center;
+            case 10:
+                return clawModuleController.MiddleAngle2Center;
+            case 11:
+                return clawModuleController.MiddleAngle3Center;
+            case 12:
+                return clawModuleController.MiddleAngle4Center;
+            default:
+                return null;
+        }
+    }
+
+    private float MapSliderValueToWrappedAngle(float sliderValue, bool descendingSegments)
+    {
+        float value = Mathf.Clamp(sliderValue, 0f, 180f);
+
+        if (descendingSegments)
+        {
+            if (value <= 90f)
+            {
+                return 90f - value;
+            }
+
+            return 450f - value;
+        }
+
+        if (value <= 90f)
+        {
+            return 270f + value;
+        }
+
+        return value - 90f;
     }
 
     private void SyncDirectAngleSliderValue()

@@ -20,6 +20,7 @@ public class ClawModuleController : MonoBehaviour
     // public TriggerMiddleInnerExtension triggerMiddleInnerExtension;
 
     public ModeSwitching modeSwitching;
+    public ArmUIPlaneController armUIPlaneController;
     public TcpSender tcpSender;
 
     public PaxiniValue paxiniValue;
@@ -625,6 +626,11 @@ public class ClawModuleController : MonoBehaviour
 
         InitializeMotorArrowMappings();
 
+        if (armUIPlaneController == null)
+        {
+            armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
+        }
+
         if (useKeyboardControl && modeSwitching != null)
         {
             modeSwitching.enabled = false;
@@ -663,6 +669,11 @@ public class ClawModuleController : MonoBehaviour
         {
             downArrow.SetActive(downActive);
         }
+    }
+
+    private bool IsDirectAngleMotorTarget(int motorID)
+    {
+        return armUIPlaneController != null && armUIPlaneController.IsDirectAngleMotorTarget(motorID);
     }
 
     void Start()
@@ -1500,6 +1511,14 @@ public class ClawModuleController : MonoBehaviour
             thumb3LeftLeftArrow.SetActive(false);
         }
 
+        if (IsDirectAngleMotorTarget(2))
+        {
+            isThumb2Triggered = false;
+            canRotateThumbAbductionThisTouch = false;
+            hasThumbAbductionDirection = false;
+            return;
+        }
+
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched && jointAngle.isPlaneActive
             && !isAnyMotor4Triggered && !isThumb1Triggered && canControlThumb2 && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 2)
         {
@@ -1879,6 +1898,14 @@ public class ClawModuleController : MonoBehaviour
             index3RightLeftArrow.SetActive(false);
             index3LeftRightArrow.SetActive(false);
             index3LeftLeftArrow.SetActive(false);
+        }
+
+        if (IsDirectAngleMotorTarget(6))
+        {
+            isIndex2Triggered = false;
+            canRotateIndexAbductionThisTouch = false;
+            hasIndexAbductionDirection = false;
+            return;
         }
 
         if (!isFingerTipTriggered && triggerRightIndexTip.isRightIndexTipTouched
@@ -2261,6 +2288,14 @@ public class ClawModuleController : MonoBehaviour
             middle3RightLeftArrow.SetActive(false);
             middle3LeftRightArrow.SetActive(false);
             middle3LeftLeftArrow.SetActive(false);
+        }
+
+        if (IsDirectAngleMotorTarget(10))
+        {
+            isMiddle2Triggered = false;
+            canRotateMiddleAbductionThisTouch = false;
+            hasMiddleAbductionDirection = false;
+            return;
         }
 
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
@@ -2648,6 +2683,14 @@ public class ClawModuleController : MonoBehaviour
             thumb4LeftLeftArrow.SetActive(false);
         }
 
+        if (IsDirectAngleMotorTarget(1))
+        {
+            isThumb1Triggered = false;
+            canRotateThumbPronationThisTouch = false;
+            hasThumbPronationFirstDirection = false;
+            return;
+        }
+
         if (!isFingerTipTriggered && triggerRightThumbTip.isRightThumbTipTouched
              && !isAnyMotor4Triggered && !isThumb2Triggered && canControlThumb1
              && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 1)
@@ -2994,6 +3037,14 @@ public class ClawModuleController : MonoBehaviour
             index4LeftRightArrow.SetActive(false);
             index4RightLeftArrow.SetActive(false);
             index4RightRightArrow.SetActive(false);
+        }
+
+        if (IsDirectAngleMotorTarget(5))
+        {
+            isIndex1Triggered = false;
+            canRotateIndexPronationThisTouch = false;
+            hasIndexPronationFirstDirection = false;
+            return;
         }
 
         if (!fingerTipTouchDurations.ContainsKey("IndexTwistY"))
@@ -3567,6 +3618,14 @@ public class ClawModuleController : MonoBehaviour
             middle4RightRightArrow.SetActive(false);
         }
 
+        if (IsDirectAngleMotorTarget(9))
+        {
+            isMiddle1Triggered = false;
+            canRotateMiddlePronationThisTouch = false;
+            hasMiddlePronationFirstDirection = false;
+            return;
+        }
+
         if (!isFingerTipTriggered && triggerRightMiddleTip.isRightMiddleTipTouched
              && jointAngle.isPlaneActive && !isAnyMotor4Triggered && canControlMiddle1 && !isIndex1Triggered
             && modeSwitching.modeManipulate && modeSwitching.confirmedMotorID == 9)
@@ -3871,6 +3930,13 @@ public class ClawModuleController : MonoBehaviour
         if (!fingerTipActivated.ContainsKey(jointName))
         {
             fingerTipActivated[jointName] = false;
+        }
+
+        if (IsDirectAngleMotorTarget(expectedMotorID))
+        {
+            relatedMotorTriggered = false;
+            SetMotorArrowState(expectedMotorID, false, false);
+            return;
         }
 
         // Track joint angles when tip is first touched (initialize once)
