@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class ArmUIPlaneController : MonoBehaviour
 {
@@ -109,6 +110,7 @@ public class ArmUIPlaneController : MonoBehaviour
     [Header("Arm UI Integration")]
     public ModeSwitching modeSwitching;
     public SelectMotorCollider selectMotorCollider;
+    public ClawModuleController clawModuleController;
 
     [Header("Arm UI Mode")]
     public bool armModeSelect = true;
@@ -140,6 +142,9 @@ public class ArmUIPlaneController : MonoBehaviour
     private bool _indexSliderVisible;
     private bool _middleSliderVisible;
     private bool _lastArmModeManipulate;
+    private Slider _thumbSlider;
+    private Slider _indexSlider;
+    private Slider _middleSlider;
 
     private void Awake()
     {
@@ -153,7 +158,15 @@ public class ArmUIPlaneController : MonoBehaviour
             selectMotorCollider = FindObjectOfType<SelectMotorCollider>();
         }
 
+        if (clawModuleController == null)
+        {
+            clawModuleController = FindObjectOfType<ClawModuleController>();
+        }
+
+        CacheAndConfigureSliders();
+
         BuildButtonList();
+        ConfigureArmModeButtonDefaults();
         InitializeButton(enterArmUIPlaneButton);
         InitializeButton(directAngleButton);
         InitializeButton(maxMinAngleButton);
@@ -215,7 +228,73 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncSliderVisibility();
         SyncMotorButtonVisibility();
         SyncMotorButtonColors();
+        EnsureArmModeButtonSelectionIntegrity();
+        SyncArmModeButtonColors();
+        SyncDirectAngleSliderValue();
         _lastArmModeManipulate = armModeManipulate;
+    }
+
+    private void ConfigureArmModeButtonDefaults()
+    {
+        if (directAngleButton == null || maxMinAngleButton == null)
+        {
+            return;
+        }
+
+        directAngleButton.isOn = true;
+        maxMinAngleButton.isOn = false;
+    }
+
+    private void EnsureArmModeButtonSelectionIntegrity()
+    {
+        if (directAngleButton == null || maxMinAngleButton == null)
+        {
+            return;
+        }
+
+        if (!directAngleButton.isOn && !maxMinAngleButton.isOn)
+        {
+            directAngleButton.isOn = true;
+        }
+        else if (directAngleButton.isOn && maxMinAngleButton.isOn)
+        {
+            maxMinAngleButton.isOn = false;
+        }
+    }
+
+    private void SyncArmModeButtonColors()
+    {
+        if (directAngleButton != null)
+        {
+            directAngleButton.ApplyCurrentColor();
+        }
+
+        if (maxMinAngleButton != null)
+        {
+            maxMinAngleButton.ApplyCurrentColor();
+        }
+    }
+
+    private bool IsArmModeButton(ButtonBinding button)
+    {
+        return button == directAngleButton || button == maxMinAngleButton;
+    }
+
+    private void SetArmModeButtonSelection(ButtonBinding selectedButton)
+    {
+        if (selectedButton == directAngleButton)
+        {
+            directAngleButton.isOn = true;
+            maxMinAngleButton.isOn = false;
+        }
+        else if (selectedButton == maxMinAngleButton)
+        {
+            maxMinAngleButton.isOn = true;
+            directAngleButton.isOn = false;
+        }
+
+        EnsureArmModeButtonSelectionIntegrity();
+        SyncArmModeButtonColors();
     }
 
     private void SyncSliderVisibility()
@@ -279,6 +358,223 @@ public class ArmUIPlaneController : MonoBehaviour
 
         sliderObject.SetActive(shouldBeVisible);
         currentState = shouldBeVisible;
+    }
+
+    private void CacheAndConfigureSliders()
+    {
+        _thumbSlider = FindSliderComponent(thumbSliderObject);
+        _indexSlider = FindSliderComponent(indexSliderObject);
+        _middleSlider = FindSliderComponent(middleSliderObject);
+
+        ConfigureSliderRange(_thumbSlider);
+        ConfigureSliderRange(_indexSlider);
+        ConfigureSliderRange(_middleSlider);
+    }
+
+    private Slider FindSliderComponent(GameObject sliderObject)
+    {
+        if (sliderObject == null)
+        {
+            return null;
+        }
+
+        Slider slider = sliderObject.GetComponent<Slider>();
+        if (slider == null)
+        {
+            slider = sliderObject.GetComponentInChildren<Slider>(true);
+        }
+
+        return slider;
+    }
+
+    private void ConfigureSliderRange(Slider slider)
+    {
+        if (slider == null)
+        {
+            return;
+        }
+
+        slider.minValue = 0f;
+        slider.maxValue = 180f;
+        slider.wholeNumbers = false;
+    }
+
+    private void SyncDirectAngleSliderValue()
+    {
+        if (!useArmUIPlane || !armModeManipulate)
+        {
+            return;
+        }
+
+        if (!directAngleButton.isOn)
+        {
+            return;
+        }
+
+        if (armConfirmedMotorID < 1 || armConfirmedMotorID > 12)
+        {
+            return;
+        }
+
+        if (!TryGetSliderValueFromMotor(armConfirmedMotorID, out float sliderValue))
+        {
+            return;
+        }
+
+        Slider targetSlider = GetSliderForMotor(armConfirmedMotorID);
+        if (targetSlider == null)
+        {
+            return;
+        }
+
+        ConfigureSliderRange(targetSlider);
+        if (!Mathf.Approximately(targetSlider.value, sliderValue))
+        {
+            targetSlider.SetValueWithoutNotify(sliderValue);
+        }
+    }
+
+    private Slider GetSliderForMotor(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4)
+        {
+            return _thumbSlider;
+        }
+
+        if (motorID >= 5 && motorID <= 8)
+        {
+            return _indexSlider;
+        }
+
+        if (motorID >= 9 && motorID <= 12)
+        {
+            return _middleSlider;
+        }
+
+        return null;
+    }
+
+    private bool TryGetSliderValueFromMotor(int motorID, out float sliderValue)
+    {
+        sliderValue = 0f;
+        if (clawModuleController == null)
+        {
+            return false;
+        }
+
+        Transform targetTransform = null;
+        float rawAngle = 0f;
+        bool descendingSegments = false;
+
+        switch (motorID)
+        {
+            case 1:
+                targetTransform = clawModuleController.ThumbAngle1Center;
+                descendingSegments = true;
+                break;
+            case 2:
+                targetTransform = clawModuleController.ThumbAngle2Center;
+                descendingSegments = true;
+                break;
+            case 3:
+                targetTransform = clawModuleController.ThumbAngle3Center;
+                descendingSegments = false;
+                break;
+            case 4:
+                targetTransform = clawModuleController.ThumbAngle4Center;
+                descendingSegments = false;
+                break;
+            case 5:
+                targetTransform = clawModuleController.IndexAngle1Center;
+                descendingSegments = true;
+                break;
+            case 6:
+                targetTransform = clawModuleController.IndexAngle2Center;
+                descendingSegments = true;
+                break;
+            case 7:
+                targetTransform = clawModuleController.IndexAngle3Center;
+                descendingSegments = false;
+                break;
+            case 8:
+                targetTransform = clawModuleController.IndexAngle4Center;
+                descendingSegments = false;
+                break;
+            case 9:
+                targetTransform = clawModuleController.MiddleAngle1Center;
+                descendingSegments = true;
+                break;
+            case 10:
+                targetTransform = clawModuleController.MiddleAngle2Center;
+                descendingSegments = true;
+                break;
+            case 11:
+                targetTransform = clawModuleController.MiddleAngle3Center;
+                descendingSegments = false;
+                break;
+            case 12:
+                targetTransform = clawModuleController.MiddleAngle4Center;
+                descendingSegments = false;
+                break;
+        }
+
+        if (targetTransform == null)
+        {
+            return false;
+        }
+
+        Vector3 euler = targetTransform.localRotation.eulerAngles;
+        switch (motorID)
+        {
+            case 1:
+            case 5:
+            case 9:
+                rawAngle = euler.y;
+                break;
+            case 2:
+            case 6:
+            case 10:
+                rawAngle = euler.z;
+                break;
+            default:
+                rawAngle = euler.x;
+                break;
+        }
+
+        sliderValue = MapWrappedAngleToSliderValue(rawAngle, descendingSegments);
+        return true;
+    }
+
+    private float MapWrappedAngleToSliderValue(float rawAngle, bool descendingSegments)
+    {
+        float angle = Mathf.Repeat(rawAngle, 360f);
+
+        if (descendingSegments)
+        {
+            if (angle <= 90f)
+            {
+                return 90f - angle;
+            }
+
+            if (angle >= 270f)
+            {
+                return 450f - angle;
+            }
+
+            return angle < 180f ? 0f : 180f;
+        }
+
+        if (angle >= 270f)
+        {
+            return angle - 270f;
+        }
+
+        if (angle <= 90f)
+        {
+            return angle + 90f;
+        }
+
+        return angle < 180f ? 180f : 0f;
     }
 
     private void SyncMotorButtonVisibility()
@@ -599,6 +895,21 @@ public class ArmUIPlaneController : MonoBehaviour
             return;
         }
 
+        if (IsArmModeButton(button))
+        {
+            if (!button.isTouched)
+            {
+                button.isTouched = true;
+                currentTouchedButton = button.buttonName;
+                currentTouchedCollider = other.name;
+                interactionDebug = "Touch enter: " + button.buttonName + " (" + currentTouchedCollider + ")";
+                button.onEnter?.Invoke();
+            }
+
+            SetArmModeButtonSelection(button);
+            return;
+        }
+
         if (!button.isTouched)
         {
             button.isTouched = true;
@@ -624,6 +935,18 @@ public class ArmUIPlaneController : MonoBehaviour
                 enterArmUIPlaneButton.isTouched = false;
                 interactionDebug = "Touch exit: " + enterArmUIPlaneButton.buttonName + " (" + other.name + ")";
                 enterArmUIPlaneButton.onExit?.Invoke();
+            }
+
+            return;
+        }
+
+        if (IsArmModeButton(button))
+        {
+            if (button.isTouched)
+            {
+                button.isTouched = false;
+                interactionDebug = "Touch exit: " + button.buttonName + " (" + other.name + ")";
+                button.onExit?.Invoke();
             }
 
             return;

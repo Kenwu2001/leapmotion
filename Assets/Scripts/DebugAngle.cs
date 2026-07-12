@@ -280,7 +280,7 @@ public class DebugAngle : MonoBehaviour
 
       //TODO: print here
       angleText.text =
-        // allJointLocalEulerText +
+        allJointLocalEulerText +
         // mappedMotorAngleText +
         // touchSnappedText +
         // tcpSenderDebugText +
