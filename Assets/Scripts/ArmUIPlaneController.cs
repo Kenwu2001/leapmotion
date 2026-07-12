@@ -107,6 +107,12 @@ public class ArmUIPlaneController : MonoBehaviour
     [Tooltip("When enabled, motor selection/highlight logic is suppressed so the Arm UI plane can take over interaction.")]
     public bool useArmUIPlane = false;
 
+    [Header("Arm UI Plane Visual Root")]
+    [Tooltip("Optional external ArmUIPlane root. When useArmUIPlane is false, this root will be moved far away instead of being deactivated.")]
+    public GameObject armUIPlaneVisualRoot;
+    [Tooltip("Local-space offset applied to armUIPlaneVisualRoot while useArmUIPlane is false.")]
+    public Vector3 armUIPlaneHiddenOffset = new Vector3(100f, 100f, 100f);
+
     [Header("Arm UI Integration")]
     public ModeSwitching modeSwitching;
     public SelectMotorCollider selectMotorCollider;
@@ -145,6 +151,12 @@ public class ArmUIPlaneController : MonoBehaviour
     private Slider _thumbSlider;
     private Slider _indexSlider;
     private Slider _middleSlider;
+    private GameObject _cachedArmUIPlaneVisualRoot;
+    private bool _armUIPlaneOriginalPositionCached;
+    private Vector3 _armUIPlaneOriginalLocalPosition;
+    private Quaternion _armUIPlaneOriginalLocalRotation;
+    private Vector3 _armUIPlaneOriginalLocalScale;
+    private bool _armUIPlaneOffsetApplied;
 
     private void Awake()
     {
@@ -179,6 +191,8 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void Update()
     {
+        SyncArmUIPlaneVisualRootPosition(!useArmUIPlane);
+
         if (!useArmUIPlane)
         {
             if (modeSwitching != null)
@@ -233,6 +247,51 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncArmModeButtonColors();
         SyncDirectAngleSliderValue();
         _lastArmModeManipulate = armModeManipulate;
+    }
+
+    private void SyncArmUIPlaneVisualRootPosition(bool shouldHide)
+    {
+        if (armUIPlaneVisualRoot == null)
+        {
+            return;
+        }
+
+        if (_cachedArmUIPlaneVisualRoot != armUIPlaneVisualRoot)
+        {
+            _cachedArmUIPlaneVisualRoot = armUIPlaneVisualRoot;
+            _armUIPlaneOriginalPositionCached = false;
+            _armUIPlaneOffsetApplied = false;
+        }
+
+        Transform rootTransform = armUIPlaneVisualRoot.transform;
+
+        if (!_armUIPlaneOriginalPositionCached || (!shouldHide && !_armUIPlaneOffsetApplied))
+        {
+            _armUIPlaneOriginalLocalPosition = rootTransform.localPosition;
+            _armUIPlaneOriginalLocalRotation = rootTransform.localRotation;
+            _armUIPlaneOriginalLocalScale = rootTransform.localScale;
+            _armUIPlaneOriginalPositionCached = true;
+        }
+
+        if (shouldHide)
+        {
+            if (_armUIPlaneOffsetApplied)
+            {
+                return;
+            }
+
+            rootTransform.localPosition = _armUIPlaneOriginalLocalPosition + armUIPlaneHiddenOffset;
+            _armUIPlaneOffsetApplied = true;
+            return;
+        }
+
+        if (_armUIPlaneOffsetApplied)
+        {
+            rootTransform.localPosition = _armUIPlaneOriginalLocalPosition;
+            rootTransform.localRotation = _armUIPlaneOriginalLocalRotation;
+            rootTransform.localScale = _armUIPlaneOriginalLocalScale;
+            _armUIPlaneOffsetApplied = false;
+        }
     }
 
     private void OnDestroy()
