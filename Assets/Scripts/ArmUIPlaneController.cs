@@ -102,6 +102,12 @@ public class ArmUIPlaneController : MonoBehaviour
     public GameObject indexExtensionSliderObject;
     public GameObject middleExtensionSliderObject;
 
+    [Header("Max/Min Slider Segment Mapping")]
+    [Tooltip("Upper normalized bound for Max slider segment. 0.4 means 0%-40%.")]
+    [Range(0.05f, 0.95f)] public float maxSliderUpperNormalized = 0.4f;
+    [Tooltip("Lower normalized bound for Min slider segment. 0.6 means 60%-100%.")]
+    [Range(0.05f, 0.95f)] public float minSliderLowerNormalized = 0.6f;
+
     [Header("Arm Motor Id Buttons")]
     [Tooltip("Thumb motor id buttons (count is flexible, e.g. 5).")]
     public List<ButtonBinding> thumbMotorIdButtons = new List<ButtonBinding>();
@@ -662,6 +668,24 @@ public class ArmUIPlaneController : MonoBehaviour
         return IsDirectAngleModeActive() && armConfirmedMotorID == motorID;
     }
 
+    public float MaxSliderUpperNormalizedForInspector
+    {
+        get
+        {
+            GetMaxMinSliderSegmentBoundsNormalized(out float maxUpper, out _);
+            return maxUpper;
+        }
+    }
+
+    public float MinSliderLowerNormalizedForInspector
+    {
+        get
+        {
+            GetMaxMinSliderSegmentBoundsNormalized(out _, out float minLower);
+            return minLower;
+        }
+    }
+
     private void HandleThumbSliderValueChanged(float value)
     {
         ApplyDirectAngleSliderValue(value, 1, 4);
@@ -749,6 +773,8 @@ public class ArmUIPlaneController : MonoBehaviour
             return;
         }
 
+        GetMaxMinSliderSegmentBoundsValues(out float maxSliderUpperValue, out float minSliderLowerValue);
+
         if (armConfirmedMotorID == 1)
         {
             // Motor1: Thumb Y Max/Min
@@ -756,8 +782,8 @@ public class ArmUIPlaneController : MonoBehaviour
             {
                 EnsureThumbYMinDefaultForMaxMinControl();
 
-                float t = Mathf.InverseLerp(0f, 90f, Mathf.Clamp(sliderValue, 0f, 90f));
-                // Max slider (0%~50%): 0 -> -90deg, 90 -> 0deg
+                float t = Mathf.InverseLerp(0f, maxSliderUpperValue, Mathf.Clamp(sliderValue, 0f, maxSliderUpperValue));
+                // Max slider segment: 0% -> -90deg, configured upper bound -> 0deg
                 clawModuleController.currentThumbRotationYMax = Mathf.Lerp(-90f, 0f, t);
 
                 Vector3 maxVec = clawModuleController.thumbGripperJoint1MaxRotationVector;
@@ -769,7 +795,7 @@ public class ArmUIPlaneController : MonoBehaviour
             }
             else
             {
-                float t = Mathf.InverseLerp(90f, 180f, Mathf.Clamp(sliderValue, 90f, 180f));
+                float t = Mathf.InverseLerp(minSliderLowerValue, 180f, Mathf.Clamp(sliderValue, minSliderLowerValue, 180f));
                 clawModuleController.currentThumbRotationYMin = Mathf.Lerp(0f, 90f, t);
 
                 Vector3 minVec = clawModuleController.thumbGripperJoint1MinRotationVector;
@@ -783,8 +809,8 @@ public class ArmUIPlaneController : MonoBehaviour
             // Motor2: Thumb Z Max/Min
             if (isMaxSlider)
             {
-                float t = Mathf.InverseLerp(0f, 90f, Mathf.Clamp(sliderValue, 0f, 90f));
-                // Max slider (0%~50%): 0 -> -90deg, 90 -> 0deg
+                float t = Mathf.InverseLerp(0f, maxSliderUpperValue, Mathf.Clamp(sliderValue, 0f, maxSliderUpperValue));
+                // Max slider segment: 0% -> -90deg, configured upper bound -> 0deg
                 clawModuleController.currentThumbRotationZMax = Mathf.Lerp(-90f, 0f, t);
 
                 Vector3 maxVec = clawModuleController.thumbGripperJoint2MaxRotationVector;
@@ -796,7 +822,7 @@ public class ArmUIPlaneController : MonoBehaviour
             }
             else
             {
-                float t = Mathf.InverseLerp(90f, 180f, Mathf.Clamp(sliderValue, 90f, 180f));
+                float t = Mathf.InverseLerp(minSliderLowerValue, 180f, Mathf.Clamp(sliderValue, minSliderLowerValue, 180f));
                 clawModuleController.currentThumbRotationZMin = Mathf.Lerp(0f, 90f, t);
 
                 Vector3 minVec = clawModuleController.thumbGripperJoint2MinRotationVector;
@@ -814,7 +840,7 @@ public class ArmUIPlaneController : MonoBehaviour
             {
                 EnsureIndexYMinDefaultForMaxMinControl();
 
-                float t = Mathf.InverseLerp(0f, 90f, Mathf.Clamp(sliderValue, 0f, 90f));
+                float t = Mathf.InverseLerp(0f, maxSliderUpperValue, Mathf.Clamp(sliderValue, 0f, maxSliderUpperValue));
                 clawModuleController.currentIndexRotationYMax = Mathf.Lerp(-90f, 0f, t);
 
                 Vector3 maxVec = clawModuleController.indexGripperJoint1MaxRotationVector;
@@ -825,7 +851,7 @@ public class ArmUIPlaneController : MonoBehaviour
             }
             else
             {
-                float t = Mathf.InverseLerp(90f, 180f, Mathf.Clamp(sliderValue, 90f, 180f));
+                float t = Mathf.InverseLerp(minSliderLowerValue, 180f, Mathf.Clamp(sliderValue, minSliderLowerValue, 180f));
                 clawModuleController.currentIndexRotationYMin = Mathf.Lerp(0f, 90f, t);
 
                 Vector3 minVec = clawModuleController.indexGripperJoint1MinRotationVector;
@@ -838,7 +864,7 @@ public class ArmUIPlaneController : MonoBehaviour
             // Motor6: Index Z Max/Min
             if (isMaxSlider)
             {
-                float t = Mathf.InverseLerp(0f, 90f, Mathf.Clamp(sliderValue, 0f, 90f));
+                float t = Mathf.InverseLerp(0f, maxSliderUpperValue, Mathf.Clamp(sliderValue, 0f, maxSliderUpperValue));
                 clawModuleController.currentIndexRotationZMax = Mathf.Lerp(-90f, 0f, t);
 
                 Vector3 maxVec = clawModuleController.indexGripperJoint2MaxRotationVector;
@@ -849,7 +875,7 @@ public class ArmUIPlaneController : MonoBehaviour
             }
             else
             {
-                float t = Mathf.InverseLerp(90f, 180f, Mathf.Clamp(sliderValue, 90f, 180f));
+                float t = Mathf.InverseLerp(minSliderLowerValue, 180f, Mathf.Clamp(sliderValue, minSliderLowerValue, 180f));
                 clawModuleController.currentIndexRotationZMin = Mathf.Lerp(0f, 90f, t);
 
                 Vector3 minVec = clawModuleController.indexGripperJoint2MinRotationVector;
@@ -862,7 +888,7 @@ public class ArmUIPlaneController : MonoBehaviour
             // Motor9: Middle Y Max/Min
             if (isMaxSlider)
             {
-                float t = Mathf.InverseLerp(0f, 90f, Mathf.Clamp(sliderValue, 0f, 90f));
+                float t = Mathf.InverseLerp(0f, maxSliderUpperValue, Mathf.Clamp(sliderValue, 0f, maxSliderUpperValue));
                 clawModuleController.currentMiddleRotationYMax = Mathf.Lerp(-90f, 0f, t);
 
                 Vector3 maxVec = clawModuleController.middleGripperJoint1MaxRotationVector;
@@ -873,7 +899,7 @@ public class ArmUIPlaneController : MonoBehaviour
             }
             else
             {
-                float t = Mathf.InverseLerp(90f, 180f, Mathf.Clamp(sliderValue, 90f, 180f));
+                float t = Mathf.InverseLerp(minSliderLowerValue, 180f, Mathf.Clamp(sliderValue, minSliderLowerValue, 180f));
                 clawModuleController.currentMiddleRotationYMin = Mathf.Lerp(0f, 90f, t);
 
                 Vector3 minVec = clawModuleController.middleGripperJoint1MinRotationVector;
@@ -886,7 +912,7 @@ public class ArmUIPlaneController : MonoBehaviour
             // Motor10: Middle Z Max/Min
             if (isMaxSlider)
             {
-                float t = Mathf.InverseLerp(0f, 90f, Mathf.Clamp(sliderValue, 0f, 90f));
+                float t = Mathf.InverseLerp(0f, maxSliderUpperValue, Mathf.Clamp(sliderValue, 0f, maxSliderUpperValue));
                 clawModuleController.currentMiddleRotationZMax = Mathf.Lerp(-90f, 0f, t);
 
                 Vector3 maxVec = clawModuleController.middleGripperJoint2MaxRotationVector;
@@ -897,7 +923,7 @@ public class ArmUIPlaneController : MonoBehaviour
             }
             else
             {
-                float t = Mathf.InverseLerp(90f, 180f, Mathf.Clamp(sliderValue, 90f, 180f));
+                float t = Mathf.InverseLerp(minSliderLowerValue, 180f, Mathf.Clamp(sliderValue, minSliderLowerValue, 180f));
                 clawModuleController.currentMiddleRotationZMin = Mathf.Lerp(0f, 90f, t);
 
                 Vector3 minVec = clawModuleController.middleGripperJoint2MinRotationVector;
@@ -1163,6 +1189,8 @@ public class ArmUIPlaneController : MonoBehaviour
             return;
         }
 
+        GetMaxMinSliderSegmentBoundsValues(out float maxSliderUpperValue, out float minSliderLowerValue);
+
         Slider maxSlider;
         Slider minSlider;
         float maxAngle;
@@ -1292,8 +1320,8 @@ public class ArmUIPlaneController : MonoBehaviour
         ConfigureSliderRange(maxSlider);
         ConfigureSliderRange(minSlider);
 
-        float maxSliderValue = Mathf.Lerp(0f, 90f, Mathf.InverseLerp(-90f, 0f, maxAngle));
-        float minSliderValue = Mathf.Lerp(90f, 180f, Mathf.InverseLerp(0f, 90f, minAngle));
+        float maxSliderValue = Mathf.Lerp(0f, maxSliderUpperValue, Mathf.InverseLerp(-90f, 0f, maxAngle));
+        float minSliderValue = Mathf.Lerp(minSliderLowerValue, 180f, Mathf.InverseLerp(0f, 90f, minAngle));
 
         if (!Mathf.Approximately(maxSlider.value, maxSliderValue))
         {
@@ -1408,6 +1436,36 @@ public class ArmUIPlaneController : MonoBehaviour
     private float GetMiddleTipExtensionForUI()
     {
         return Mathf.Clamp(clawModuleController.currentMiddleTipRotationZ, -90f, 90f);
+    }
+
+    private void GetMaxMinSliderSegmentBoundsNormalized(out float maxUpperNormalized, out float minLowerNormalized)
+    {
+        float maxUpper = Mathf.Clamp(maxSliderUpperNormalized, 0f, 1f);
+        float minLower = Mathf.Clamp(minSliderLowerNormalized, 0f, 1f);
+
+        const float minGap = 0.01f;
+        if (minLower <= maxUpper + minGap)
+        {
+            float center = Mathf.Clamp01((maxUpper + minLower) * 0.5f);
+            maxUpper = Mathf.Clamp01(center - (minGap * 0.5f));
+            minLower = Mathf.Clamp01(center + (minGap * 0.5f));
+
+            if (minLower <= maxUpper)
+            {
+                maxUpper = Mathf.Clamp01(maxUpper - minGap);
+                minLower = Mathf.Clamp01(maxUpper + minGap);
+            }
+        }
+
+        maxUpperNormalized = maxUpper;
+        minLowerNormalized = minLower;
+    }
+
+    private void GetMaxMinSliderSegmentBoundsValues(out float maxSliderUpperValue, out float minSliderLowerValue)
+    {
+        GetMaxMinSliderSegmentBoundsNormalized(out float maxUpperNormalized, out float minLowerNormalized);
+        maxSliderUpperValue = Mathf.Lerp(0f, 180f, maxUpperNormalized);
+        minSliderLowerValue = Mathf.Lerp(0f, 180f, minLowerNormalized);
     }
 
     private float NormalizeAngleForArmUI(float angle)

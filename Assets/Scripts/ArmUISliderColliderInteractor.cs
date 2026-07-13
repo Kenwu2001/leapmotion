@@ -48,6 +48,8 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     public bool requireMaxMinModeForThumbExtension = true;
     public bool requireMaxMinModeForIndexExtension = true;
     public bool requireMaxMinModeForMiddleExtension = true;
+    [Tooltip("When enabled, max/min slider draggable segments are synced from ArmUIPlaneController max/min segment settings.")]
+    public bool syncMaxMinSegmentsFromController = true;
 
     [Header("Interaction")]
     public Transform fingerTipSource;
@@ -96,6 +98,12 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     private void Awake()
     {
         CacheReferences();
+        SyncMaxMinBindingRanges();
+    }
+
+    private void Update()
+    {
+        SyncMaxMinBindingRanges();
     }
 
     private void Reset()
@@ -452,6 +460,36 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         debugIndexExtensionTouchingHandle = indexExtensionSlider != null && indexExtensionSlider.touchingHandle;
         debugMiddleExtensionTouchingFill = middleExtensionSlider != null && middleExtensionSlider.touchingFill;
         debugMiddleExtensionTouchingHandle = middleExtensionSlider != null && middleExtensionSlider.touchingHandle;
+    }
+
+    private void SyncMaxMinBindingRanges()
+    {
+        if (!syncMaxMinSegmentsFromController || armUIPlaneController == null)
+        {
+            return;
+        }
+
+        float maxUpper = armUIPlaneController.MaxSliderUpperNormalizedForInspector;
+        float minLower = armUIPlaneController.MinSliderLowerNormalizedForInspector;
+
+        ApplySegmentBounds(thumbMaxSlider, 0f, maxUpper);
+        ApplySegmentBounds(indexMaxSlider, 0f, maxUpper);
+        ApplySegmentBounds(middleMaxSlider, 0f, maxUpper);
+
+        ApplySegmentBounds(thumbMinSlider, minLower, 1f);
+        ApplySegmentBounds(indexMinSlider, minLower, 1f);
+        ApplySegmentBounds(middleMinSlider, minLower, 1f);
+    }
+
+    private void ApplySegmentBounds(SliderBinding binding, float min, float max)
+    {
+        if (binding == null)
+        {
+            return;
+        }
+
+        binding.minNormalizedValue = Mathf.Clamp01(min);
+        binding.maxNormalizedValue = Mathf.Clamp01(max);
     }
 
     private void AppendHistory(
