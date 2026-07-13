@@ -98,6 +98,9 @@ public class ArmUIPlaneController : MonoBehaviour
     public GameObject indexMinSliderObject;
     public GameObject middleMaxSliderObject;
     public GameObject middleMinSliderObject;
+    public GameObject thumbExtensionSliderObject;
+    public GameObject indexExtensionSliderObject;
+    public GameObject middleExtensionSliderObject;
 
     [Header("Arm Motor Id Buttons")]
     [Tooltip("Thumb motor id buttons (count is flexible, e.g. 5).")]
@@ -159,6 +162,9 @@ public class ArmUIPlaneController : MonoBehaviour
     private bool _indexMinSliderVisible;
     private bool _middleMaxSliderVisible;
     private bool _middleMinSliderVisible;
+    private bool _thumbExtensionSliderVisible;
+    private bool _indexExtensionSliderVisible;
+    private bool _middleExtensionSliderVisible;
     private bool _lastArmModeManipulate;
     private Slider _thumbSlider;
     private Slider _indexSlider;
@@ -169,6 +175,9 @@ public class ArmUIPlaneController : MonoBehaviour
     private Slider _indexMinSlider;
     private Slider _middleMaxSlider;
     private Slider _middleMinSlider;
+    private Slider _thumbExtensionSlider;
+    private Slider _indexExtensionSlider;
+    private Slider _middleExtensionSlider;
     private GameObject _cachedArmUIPlaneVisualRoot;
     private bool _armUIPlaneOriginalPositionCached;
     private Vector3 _armUIPlaneOriginalLocalPosition;
@@ -392,6 +401,9 @@ public class ArmUIPlaneController : MonoBehaviour
         bool showIndexMin = _indexMinSliderVisible;
         bool showMiddleMax = _middleMaxSliderVisible;
         bool showMiddleMin = _middleMinSliderVisible;
+        bool showThumbExtension = _thumbExtensionSliderVisible;
+        bool showIndexExtension = _indexExtensionSliderVisible;
+        bool showMiddleExtension = _middleExtensionSliderVisible;
 
         if (!useArmUIPlane)
         {
@@ -404,6 +416,9 @@ public class ArmUIPlaneController : MonoBehaviour
             showIndexMin = false;
             showMiddleMax = false;
             showMiddleMin = false;
+            showThumbExtension = false;
+            showIndexExtension = false;
+            showMiddleExtension = false;
         }
         else if (armModeManipulate)
         {
@@ -418,6 +433,9 @@ public class ArmUIPlaneController : MonoBehaviour
             showIndexMin = false;
             showMiddleMax = false;
             showMiddleMin = false;
+            showThumbExtension = false;
+            showIndexExtension = false;
+            showMiddleExtension = false;
 
             if (directAngleButton != null && directAngleButton.isOn)
             {
@@ -451,6 +469,18 @@ public class ArmUIPlaneController : MonoBehaviour
                     showMiddleMax = true;
                     showMiddleMin = true;
                 }
+                else if (confirmedMotorID == 3 || confirmedMotorID == 4)
+                {
+                    showThumbExtension = true;
+                }
+                else if (confirmedMotorID == 7 || confirmedMotorID == 8)
+                {
+                    showIndexExtension = true;
+                }
+                else if (confirmedMotorID == 11 || confirmedMotorID == 12)
+                {
+                    showMiddleExtension = true;
+                }
             }
         }
         else if (armModeSelect)
@@ -471,6 +501,9 @@ public class ArmUIPlaneController : MonoBehaviour
                 showIndexMin = false;
                 showMiddleMax = false;
                 showMiddleMin = false;
+                showThumbExtension = false;
+                showIndexExtension = false;
+                showMiddleExtension = false;
             }
         }
 
@@ -483,6 +516,9 @@ public class ArmUIPlaneController : MonoBehaviour
         SetSliderActive(indexMinSliderObject, showIndexMin, ref _indexMinSliderVisible);
         SetSliderActive(middleMaxSliderObject, showMiddleMax, ref _middleMaxSliderVisible);
         SetSliderActive(middleMinSliderObject, showMiddleMin, ref _middleMinSliderVisible);
+        SetSliderActive(thumbExtensionSliderObject, showThumbExtension, ref _thumbExtensionSliderVisible);
+        SetSliderActive(indexExtensionSliderObject, showIndexExtension, ref _indexExtensionSliderVisible);
+        SetSliderActive(middleExtensionSliderObject, showMiddleExtension, ref _middleExtensionSliderVisible);
     }
 
     private void SetSliderActive(GameObject sliderObject, bool shouldBeVisible, ref bool currentState)
@@ -512,6 +548,9 @@ public class ArmUIPlaneController : MonoBehaviour
         _indexMinSlider = FindSliderComponent(indexMinSliderObject);
         _middleMaxSlider = FindSliderComponent(middleMaxSliderObject);
         _middleMinSlider = FindSliderComponent(middleMinSliderObject);
+        _thumbExtensionSlider = FindSliderComponent(thumbExtensionSliderObject);
+        _indexExtensionSlider = FindSliderComponent(indexExtensionSliderObject);
+        _middleExtensionSlider = FindSliderComponent(middleExtensionSliderObject);
 
         ConfigureSliderRange(_thumbSlider);
         ConfigureSliderRange(_indexSlider);
@@ -522,6 +561,9 @@ public class ArmUIPlaneController : MonoBehaviour
         ConfigureSliderRange(_indexMinSlider);
         ConfigureSliderRange(_middleMaxSlider);
         ConfigureSliderRange(_middleMinSlider);
+        ConfigureSliderRange(_thumbExtensionSlider);
+        ConfigureSliderRange(_indexExtensionSlider);
+        ConfigureSliderRange(_middleExtensionSlider);
     }
 
     private Slider FindSliderComponent(GameObject sliderObject)
@@ -563,6 +605,9 @@ public class ArmUIPlaneController : MonoBehaviour
         BindSliderEvent(_indexMinSlider, HandleIndexMinSliderValueChanged);
         BindSliderEvent(_middleMaxSlider, HandleMiddleMaxSliderValueChanged);
         BindSliderEvent(_middleMinSlider, HandleMiddleMinSliderValueChanged);
+        BindSliderEvent(_thumbExtensionSlider, HandleThumbExtensionSliderValueChanged);
+        BindSliderEvent(_indexExtensionSlider, HandleIndexExtensionSliderValueChanged);
+        BindSliderEvent(_middleExtensionSlider, HandleMiddleExtensionSliderValueChanged);
     }
 
     private void UnbindSliderEvents()
@@ -576,6 +621,9 @@ public class ArmUIPlaneController : MonoBehaviour
         UnbindSliderEvent(_indexMinSlider, HandleIndexMinSliderValueChanged);
         UnbindSliderEvent(_middleMaxSlider, HandleMiddleMaxSliderValueChanged);
         UnbindSliderEvent(_middleMinSlider, HandleMiddleMinSliderValueChanged);
+        UnbindSliderEvent(_thumbExtensionSlider, HandleThumbExtensionSliderValueChanged);
+        UnbindSliderEvent(_indexExtensionSlider, HandleIndexExtensionSliderValueChanged);
+        UnbindSliderEvent(_middleExtensionSlider, HandleMiddleExtensionSliderValueChanged);
     }
 
     private void BindSliderEvent(Slider slider, UnityAction<float> handler)
@@ -657,6 +705,21 @@ public class ArmUIPlaneController : MonoBehaviour
     private void HandleMiddleMinSliderValueChanged(float value)
     {
         ApplyMaxMinSliderValue(value, false);
+    }
+
+    private void HandleThumbExtensionSliderValueChanged(float value)
+    {
+        ApplyExtensionSliderValue(value, _thumbExtensionSlider);
+    }
+
+    private void HandleIndexExtensionSliderValueChanged(float value)
+    {
+        ApplyExtensionSliderValue(value, _indexExtensionSlider);
+    }
+
+    private void HandleMiddleExtensionSliderValueChanged(float value)
+    {
+        ApplyExtensionSliderValue(value, _middleExtensionSlider);
     }
 
     private void ApplyDirectAngleSliderValue(float sliderValue, int minMotorID, int maxMotorID)
@@ -841,6 +904,65 @@ public class ArmUIPlaneController : MonoBehaviour
                 minVec.z = Mathf.Repeat(clawModuleController.currentMiddleRotationZMin, 360f);
                 clawModuleController.middleGripperJoint2MinRotationVector = minVec;
             }
+        }
+    }
+
+    private void ApplyExtensionSliderValue(float sliderValue, Slider sourceSlider)
+    {
+        if (!IsMaxMinAngleModeActive())
+        {
+            return;
+        }
+
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        if (sourceSlider == null)
+        {
+            return;
+        }
+
+        int confirmedMotorID = armConfirmedMotorID;
+        if ((confirmedMotorID == 3 || confirmedMotorID == 4) && sourceSlider != _thumbExtensionSlider)
+        {
+            return;
+        }
+
+        if ((confirmedMotorID == 7 || confirmedMotorID == 8) && sourceSlider != _indexExtensionSlider)
+        {
+            return;
+        }
+
+        if ((confirmedMotorID == 11 || confirmedMotorID == 12) && sourceSlider != _middleExtensionSlider)
+        {
+            return;
+        }
+
+        float clampedValue = Mathf.Clamp(sliderValue, 0f, 180f);
+        float extensionRotation = Mathf.Lerp(90f, -90f, clampedValue / 180f);
+
+        switch (confirmedMotorID)
+        {
+            case 3:
+                clawModuleController.currentThumbInnerExtensionRotationZ = extensionRotation;
+                break;
+            case 4:
+                clawModuleController.currentThumbTipRotationZ = extensionRotation;
+                break;
+            case 7:
+                clawModuleController.currentIndexInnerExtensionRotationZ = extensionRotation;
+                break;
+            case 8:
+                clawModuleController.currentIndexTipRotationZ = extensionRotation;
+                break;
+            case 11:
+                clawModuleController.currentMiddleInnerExtensionRotationZ = extensionRotation;
+                break;
+            case 12:
+                clawModuleController.currentMiddleTipRotationZ = extensionRotation;
+                break;
         }
     }
 
@@ -1045,6 +1167,8 @@ public class ArmUIPlaneController : MonoBehaviour
         Slider minSlider;
         float maxAngle;
         float minAngle;
+        Slider extensionSlider;
+        float extensionAngle;
 
         switch (armConfirmedMotorID)
         {
@@ -1053,39 +1177,111 @@ public class ArmUIPlaneController : MonoBehaviour
                 minSlider = _thumbMinSlider;
                 maxAngle = GetThumbYMaxForUI();
                 minAngle = GetThumbYMinDisplayValue();
+                extensionSlider = null;
+                extensionAngle = 0f;
                 break;
             case 2:
                 maxSlider = _thumbMaxSlider;
                 minSlider = _thumbMinSlider;
                 maxAngle = GetThumbZMaxForUI();
                 minAngle = GetThumbZMinForUI();
+                extensionSlider = null;
+                extensionAngle = 0f;
+                break;
+            case 3:
+                maxSlider = null;
+                minSlider = null;
+                maxAngle = 0f;
+                minAngle = 0f;
+                extensionSlider = _thumbExtensionSlider;
+                extensionAngle = GetThumbInnerExtensionForUI();
+                break;
+            case 4:
+                maxSlider = null;
+                minSlider = null;
+                maxAngle = 0f;
+                minAngle = 0f;
+                extensionSlider = _thumbExtensionSlider;
+                extensionAngle = GetThumbTipExtensionForUI();
                 break;
             case 5:
                 maxSlider = _indexMaxSlider;
                 minSlider = _indexMinSlider;
                 maxAngle = GetIndexYMaxForUI();
                 minAngle = GetIndexYMinDisplayValue();
+                extensionSlider = null;
+                extensionAngle = 0f;
                 break;
             case 6:
                 maxSlider = _indexMaxSlider;
                 minSlider = _indexMinSlider;
                 maxAngle = GetIndexZMaxForUI();
                 minAngle = GetIndexZMinForUI();
+                extensionSlider = null;
+                extensionAngle = 0f;
+                break;
+            case 7:
+                maxSlider = null;
+                minSlider = null;
+                maxAngle = 0f;
+                minAngle = 0f;
+                extensionSlider = _indexExtensionSlider;
+                extensionAngle = GetIndexInnerExtensionForUI();
+                break;
+            case 8:
+                maxSlider = null;
+                minSlider = null;
+                maxAngle = 0f;
+                minAngle = 0f;
+                extensionSlider = _indexExtensionSlider;
+                extensionAngle = GetIndexTipExtensionForUI();
                 break;
             case 9:
                 maxSlider = _middleMaxSlider;
                 minSlider = _middleMinSlider;
                 maxAngle = GetMiddleYMaxForUI();
                 minAngle = GetMiddleYMinForUI();
+                extensionSlider = null;
+                extensionAngle = 0f;
                 break;
             case 10:
                 maxSlider = _middleMaxSlider;
                 minSlider = _middleMinSlider;
                 maxAngle = GetMiddleZMaxForUI();
                 minAngle = GetMiddleZMinForUI();
+                extensionSlider = null;
+                extensionAngle = 0f;
+                break;
+            case 11:
+                maxSlider = null;
+                minSlider = null;
+                maxAngle = 0f;
+                minAngle = 0f;
+                extensionSlider = _middleExtensionSlider;
+                extensionAngle = GetMiddleInnerExtensionForUI();
+                break;
+            case 12:
+                maxSlider = null;
+                minSlider = null;
+                maxAngle = 0f;
+                minAngle = 0f;
+                extensionSlider = _middleExtensionSlider;
+                extensionAngle = GetMiddleTipExtensionForUI();
                 break;
             default:
                 return;
+        }
+
+        if (extensionSlider != null)
+        {
+            ConfigureSliderRange(extensionSlider);
+            float extensionSliderValue = Mathf.Lerp(0f, 180f, Mathf.InverseLerp(90f, -90f, extensionAngle));
+            if (!Mathf.Approximately(extensionSlider.value, extensionSliderValue))
+            {
+                extensionSlider.SetValueWithoutNotify(extensionSliderValue);
+            }
+
+            return;
         }
 
         if (maxSlider == null || minSlider == null)
@@ -1182,6 +1378,36 @@ public class ArmUIPlaneController : MonoBehaviour
     private float GetMiddleZMinForUI()
     {
         return Mathf.Clamp(clawModuleController.currentMiddleRotationZMin, 0f, 90f);
+    }
+
+    private float GetThumbInnerExtensionForUI()
+    {
+        return Mathf.Clamp(clawModuleController.currentThumbInnerExtensionRotationZ, -90f, 90f);
+    }
+
+    private float GetThumbTipExtensionForUI()
+    {
+        return Mathf.Clamp(clawModuleController.currentThumbTipRotationZ, -90f, 90f);
+    }
+
+    private float GetIndexInnerExtensionForUI()
+    {
+        return Mathf.Clamp(clawModuleController.currentIndexInnerExtensionRotationZ, -90f, 90f);
+    }
+
+    private float GetIndexTipExtensionForUI()
+    {
+        return Mathf.Clamp(clawModuleController.currentIndexTipRotationZ, -90f, 90f);
+    }
+
+    private float GetMiddleInnerExtensionForUI()
+    {
+        return Mathf.Clamp(clawModuleController.currentMiddleInnerExtensionRotationZ, -90f, 90f);
+    }
+
+    private float GetMiddleTipExtensionForUI()
+    {
+        return Mathf.Clamp(clawModuleController.currentMiddleTipRotationZ, -90f, 90f);
     }
 
     private float NormalizeAngleForArmUI(float angle)
@@ -1352,17 +1578,17 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private bool ShouldHideMotorButtonForActiveSlider(int motorID)
     {
-        if (_thumbSliderVisible || _thumbMaxSliderVisible || _thumbMinSliderVisible)
+        if (_thumbSliderVisible || _thumbMaxSliderVisible || _thumbMinSliderVisible || _thumbExtensionSliderVisible)
         {
             return (motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID;
         }
 
-        if (_indexSliderVisible || _indexMaxSliderVisible || _indexMinSliderVisible)
+        if (_indexSliderVisible || _indexMaxSliderVisible || _indexMinSliderVisible || _indexExtensionSliderVisible)
         {
             return (motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID;
         }
 
-        if (_middleSliderVisible || _middleMaxSliderVisible || _middleMinSliderVisible)
+        if (_middleSliderVisible || _middleMaxSliderVisible || _middleMinSliderVisible || _middleExtensionSliderVisible)
         {
             return (motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID;
         }

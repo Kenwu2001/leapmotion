@@ -275,6 +275,7 @@ public class DebugAngle : MonoBehaviour
       string allJointLocalEulerText = BuildAllJointLocalEulerText();
       string mappedMotorAngleText = BuildMappedMotorAngleText();
       string rotationMaxMinDebugText = BuildRotationMaxMinDebugText();
+      string extensionMaxMinDebugText = BuildExtensionMaxMinDebugText();
       string touchSnappedText = BuildTouchSnappedText();
       string tcpSenderDebugText = BuildTcpSenderDebugText();
       string armUiColliderDebugText = BuildArmUIColliderDebugText();
@@ -283,6 +284,7 @@ public class DebugAngle : MonoBehaviour
       angleText.text =
         allJointLocalEulerText +
         rotationMaxMinDebugText +
+        extensionMaxMinDebugText +
         // mappedMotorAngleText +
         // touchSnappedText +
         // tcpSenderDebugText +
@@ -476,6 +478,22 @@ public class DebugAngle : MonoBehaviour
         "Index Z Max/Min: " + FormatAngle(clawModuleController.currentIndexRotationZMax) + " / " + FormatAngle(clawModuleController.currentIndexRotationZMin) + "\n" +
         "Middle Y Max/Min: " + FormatAngle(clawModuleController.currentMiddleRotationYMax) + " / " + FormatAngle(clawModuleController.currentMiddleRotationYMin) + "\n" +
         "Middle Z Max/Min: " + FormatAngle(clawModuleController.currentMiddleRotationZMax) + " / " + FormatAngle(clawModuleController.currentMiddleRotationZMin) + "\n";
+    }
+
+    private string BuildExtensionMaxMinDebugText()
+    {
+      if (clawModuleController == null)
+      {
+        return "\n[Extension currentTipRotation]\nClawModuleController: N/A\n";
+      }
+
+      return "\n[Extension currentTipRotation]\n" +
+        "Motor3 currentTipRotation: " + FormatAngle(clawModuleController.currentThumbInnerExtensionRotationZ) + "\n" +
+        "Motor4 currentTipRotation: " + FormatAngle(clawModuleController.currentThumbTipRotationZ) + "\n" +
+        "Motor7 currentTipRotation: " + FormatAngle(clawModuleController.currentIndexInnerExtensionRotationZ) + "\n" +
+        "Motor8 currentTipRotation: " + FormatAngle(clawModuleController.currentIndexTipRotationZ) + "\n" +
+        "Motor11 currentTipRotation: " + FormatAngle(clawModuleController.currentMiddleInnerExtensionRotationZ) + "\n" +
+        "Motor12 currentTipRotation: " + FormatAngle(clawModuleController.currentMiddleTipRotationZ) + "\n";
     }
 
     private float GetDisplayYMinWithFallback(float currentYMin, float minRotationVectorY)

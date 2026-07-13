@@ -3964,16 +3964,23 @@ public class ClawModuleController : MonoBehaviour
         // Initialize rotation based on jointAngleValue for the base angle
         Quaternion targetRotation = Quaternion.Euler(jointAngleValue + currentTipRotation, 0f, 0f);
 
+        string trackingKey = jointName + "_m" + expectedMotorID;
+        string minKey = trackingKey + "_min";
+        string maxKey = trackingKey + "_max";
+        string prevKey = trackingKey + "_prev";
+        string increasingKey = trackingKey + "_isIncreasing";
+        string decreasingKey = trackingKey + "_isDecreasing";
+
         // Initialize touch duration if not already present
-        if (!fingerTipTouchDurations.ContainsKey(jointName))
+        if (!fingerTipTouchDurations.ContainsKey(trackingKey))
         {
-            fingerTipTouchDurations[jointName] = 0f;
+            fingerTipTouchDurations[trackingKey] = 0f;
         }
 
         // Initialize activation state if not already present
-        if (!fingerTipActivated.ContainsKey(jointName))
+        if (!fingerTipActivated.ContainsKey(trackingKey))
         {
-            fingerTipActivated[jointName] = false;
+            fingerTipActivated[trackingKey] = false;
         }
 
         if (IsDirectAngleMotorTarget(expectedMotorID))
@@ -3984,24 +3991,24 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // Track joint angles when tip is first touched (initialize once)
-        if (isTipTouched && !previousJointAngles.ContainsKey(jointName))
+        if (isTipTouched && !previousJointAngles.ContainsKey(trackingKey))
         {
             // Initialize tracking - all joints use same approach
-            previousJointAngles[jointName] = jointAngle.joints[jointName].localRotation.eulerAngles.z;
-            accumulatedJointChanges[jointName] = 0f;
+            previousJointAngles[trackingKey] = jointAngle.joints[jointName].localRotation.eulerAngles.z;
+            accumulatedJointChanges[trackingKey] = 0f;
 
-            previousMidJointAngles[jointName] = !string.IsNullOrEmpty(midJointName) ?
+            previousMidJointAngles[trackingKey] = !string.IsNullOrEmpty(midJointName) ?
                 jointAngle.joints[midJointName].localRotation.eulerAngles.z : 0f;
-            accumulatedMidJointChanges[jointName] = 0f;
+            accumulatedMidJointChanges[trackingKey] = 0f;
 
-            previousBaseJointAngles[jointName] = jointAngle.joints[baseJointName].localRotation.eulerAngles.z;
-            accumulatedBaseJointChanges[jointName] = 0f;
+            previousBaseJointAngles[trackingKey] = jointAngle.joints[baseJointName].localRotation.eulerAngles.z;
+            accumulatedBaseJointChanges[trackingKey] = 0f;
 
             // for thumb
             if (additionalAngle.HasValue)
             {
-                previousAdditionalAngles[jointName] = additionalAngle.Value;
-                accumulatedAdditionalChanges[jointName] = 0f;
+                previousAdditionalAngles[trackingKey] = additionalAngle.Value;
+                accumulatedAdditionalChanges[trackingKey] = 0f;
             }
         }
 
@@ -4009,26 +4016,26 @@ public class ClawModuleController : MonoBehaviour
         float localTotalAngleChange = 0f;
 
         // Initialize min/max tracking and previous value if not exists
-        if (!accumulatedJointChanges.ContainsKey(jointName + "_min"))
+        if (!accumulatedJointChanges.ContainsKey(minKey))
         {
-            accumulatedJointChanges[jointName + "_min"] = 0f;
-            accumulatedJointChanges[jointName + "_max"] = 0f;
-            accumulatedJointChanges[jointName + "_prev"] = 0f;
+            accumulatedJointChanges[minKey] = 0f;
+            accumulatedJointChanges[maxKey] = 0f;
+            accumulatedJointChanges[prevKey] = 0f;
         }
 
-        float localMinAngle = accumulatedJointChanges[jointName + "_min"];
-        float localMaxAngle = accumulatedJointChanges[jointName + "_max"];
-        float previousTotalAngleChange = accumulatedJointChanges[jointName + "_prev"];
+        float localMinAngle = accumulatedJointChanges[minKey];
+        float localMaxAngle = accumulatedJointChanges[maxKey];
+        float previousTotalAngleChange = accumulatedJointChanges[prevKey];
 
-        if (isTipTouched && previousJointAngles.ContainsKey(jointName))
+        if (isTipTouched && previousJointAngles.ContainsKey(trackingKey))
         {
             // Process jointName with wrap-around
             float currentJointAngle = jointAngle.joints[jointName].localRotation.eulerAngles.z;
-            float deltaJoint = currentJointAngle - previousJointAngles[jointName];
+            float deltaJoint = currentJointAngle - previousJointAngles[trackingKey];
             if (deltaJoint < -180f) deltaJoint += 360f;
             else if (deltaJoint > 180f) deltaJoint -= 360f;
-            accumulatedJointChanges[jointName] += deltaJoint;
-            previousJointAngles[jointName] = currentJointAngle;
+            accumulatedJointChanges[trackingKey] += deltaJoint;
+            previousJointAngles[trackingKey] = currentJointAngle;
             // Debug.Log("accumulatedJointChanges[" + jointName + "] = " + accumulatedJointChanges[jointName]);
 
             // Process midJoint with wrap-around (same logic for all)
@@ -4036,39 +4043,39 @@ public class ClawModuleController : MonoBehaviour
             if (!string.IsNullOrEmpty(midJointName))
             {
                 float currentMidAngle = jointAngle.joints[midJointName].localRotation.eulerAngles.z;
-                deltaMid = currentMidAngle - previousMidJointAngles[jointName];
+                deltaMid = currentMidAngle - previousMidJointAngles[trackingKey];
                 if (deltaMid < -180f) deltaMid += 360f;
                 else if (deltaMid > 180f) deltaMid -= 360f;
-                accumulatedMidJointChanges[jointName] += deltaMid;
-                previousMidJointAngles[jointName] = currentMidAngle;
+                accumulatedMidJointChanges[trackingKey] += deltaMid;
+                previousMidJointAngles[trackingKey] = currentMidAngle;
             }
 
             // Process baseJoint with wrap-around (same logic for all)
             float currentBaseAngle = jointAngle.joints[baseJointName].localRotation.eulerAngles.z;
-            float deltaBase = currentBaseAngle - previousBaseJointAngles[jointName];
+            float deltaBase = currentBaseAngle - previousBaseJointAngles[trackingKey];
             if (deltaBase < -180f) deltaBase += 360f;
             else if (deltaBase > 180f) deltaBase -= 360f;
-            accumulatedBaseJointChanges[jointName] += deltaBase;
-            previousBaseJointAngles[jointName] = currentBaseAngle;
+            accumulatedBaseJointChanges[trackingKey] += deltaBase;
+            previousBaseJointAngles[trackingKey] = currentBaseAngle;
 
             // Process additional angle if provided (reversed direction: previous - current)
-            if (additionalAngle.HasValue && previousAdditionalAngles.ContainsKey(jointName))
+            if (additionalAngle.HasValue && previousAdditionalAngles.ContainsKey(trackingKey))
             {
                 float currentAdditional = additionalAngle.Value;
-                float deltaAdditional = previousAdditionalAngles[jointName] - currentAdditional;  // Reversed: previous - current
-                accumulatedAdditionalChanges[jointName] += deltaAdditional;
-                previousAdditionalAngles[jointName] = currentAdditional;
+                float deltaAdditional = previousAdditionalAngles[trackingKey] - currentAdditional;  // Reversed: previous - current
+                accumulatedAdditionalChanges[trackingKey] += deltaAdditional;
+                previousAdditionalAngles[trackingKey] = currentAdditional;
             }
 
             // Calculate total angle change WITHOUT abs (keep sign for direction)
-            localTotalAngleChange = accumulatedJointChanges[jointName] +
-                               accumulatedMidJointChanges[jointName] +
-                               accumulatedBaseJointChanges[jointName];
+            localTotalAngleChange = accumulatedJointChanges[trackingKey] +
+                               accumulatedMidJointChanges[trackingKey] +
+                               accumulatedBaseJointChanges[trackingKey];
 
             // Add additional angle change if available
-            if (additionalAngle.HasValue && accumulatedAdditionalChanges.ContainsKey(jointName))
+            if (additionalAngle.HasValue && accumulatedAdditionalChanges.ContainsKey(trackingKey))
             {
-                localTotalAngleChange += accumulatedAdditionalChanges[jointName];
+                localTotalAngleChange += accumulatedAdditionalChanges[trackingKey];
             }
 
             // Update min/max with 10 degree threshold
@@ -4081,7 +4088,7 @@ public class ClawModuleController : MonoBehaviour
                 if (localTotalAngleChange - localMinAngle >= 10f)
                 {
                     localMaxAngle = localTotalAngleChange;
-                    accumulatedJointChanges[jointName + "_max"] = localMaxAngle;
+                    accumulatedJointChanges[maxKey] = localMaxAngle;
                 }
             }
             else if (isDecreasing)
@@ -4090,16 +4097,16 @@ public class ClawModuleController : MonoBehaviour
                 if (localMaxAngle - localTotalAngleChange >= 10f)
                 {
                     localMinAngle = localTotalAngleChange;
-                    accumulatedJointChanges[jointName + "_min"] = localMinAngle;
+                    accumulatedJointChanges[minKey] = localMinAngle;
                 }
             }
 
             // Store direction flags for rotation control
-            accumulatedJointChanges[jointName + "_isIncreasing"] = isIncreasing ? 1f : 0f;
-            accumulatedJointChanges[jointName + "_isDecreasing"] = isDecreasing ? 1f : 0f;
+            accumulatedJointChanges[increasingKey] = isIncreasing ? 1f : 0f;
+            accumulatedJointChanges[decreasingKey] = isDecreasing ? 1f : 0f;
 
             // Store current value as previous for next frame
-            accumulatedJointChanges[jointName + "_prev"] = localTotalAngleChange;
+            accumulatedJointChanges[prevKey] = localTotalAngleChange;
         }
         else
         {
@@ -4113,24 +4120,24 @@ public class ClawModuleController : MonoBehaviour
         // Reset tracking when not touched
         if (!isTipTouched)
         {
-            if (previousJointAngles.ContainsKey(jointName))
+            if (previousJointAngles.ContainsKey(trackingKey))
             {
-                previousJointAngles.Remove(jointName);
-                previousMidJointAngles.Remove(jointName);
-                previousBaseJointAngles.Remove(jointName);
-                accumulatedJointChanges.Remove(jointName);
-                accumulatedMidJointChanges.Remove(jointName);
-                accumulatedBaseJointChanges.Remove(jointName);
-                accumulatedJointChanges.Remove(jointName + "_min");
-                accumulatedJointChanges.Remove(jointName + "_max");
-                accumulatedJointChanges.Remove(jointName + "_prev");
-                accumulatedJointChanges.Remove(jointName + "_isIncreasing");
-                accumulatedJointChanges.Remove(jointName + "_isDecreasing");
-                previousAdditionalAngles.Remove(jointName);
-                accumulatedAdditionalChanges.Remove(jointName);
+                previousJointAngles.Remove(trackingKey);
+                previousMidJointAngles.Remove(trackingKey);
+                previousBaseJointAngles.Remove(trackingKey);
+                accumulatedJointChanges.Remove(trackingKey);
+                accumulatedMidJointChanges.Remove(trackingKey);
+                accumulatedBaseJointChanges.Remove(trackingKey);
+                accumulatedJointChanges.Remove(minKey);
+                accumulatedJointChanges.Remove(maxKey);
+                accumulatedJointChanges.Remove(prevKey);
+                accumulatedJointChanges.Remove(increasingKey);
+                accumulatedJointChanges.Remove(decreasingKey);
+                previousAdditionalAngles.Remove(trackingKey);
+                accumulatedAdditionalChanges.Remove(trackingKey);
             }
-            fingerTipTouchDurations[jointName] = 0f;
-            fingerTipActivated[jointName] = false;
+            fingerTipTouchDurations[trackingKey] = 0f;
+            fingerTipActivated[trackingKey] = false;
             // jointRenderer.material.color = inactiveColor;
             relatedMotorTriggered = false;
         }
@@ -4143,21 +4150,21 @@ public class ClawModuleController : MonoBehaviour
             float angleRange = localMaxAngle - localMinAngle;
             bool initialConditionMet = isTipTouched && angleRange > angleThreshold && !shouldPreventActivation && motorIDMatches;
 
-            bool conditionMet = fingerTipActivated[jointName] ? isTipTouched : initialConditionMet; // Once activated, only check if still touched
+            bool conditionMet = fingerTipActivated[trackingKey] ? isTipTouched : initialConditionMet; // Once activated, only check if still touched
 
             if (conditionMet)
             {
-                fingerTipTouchDurations[jointName] += Time.deltaTime;
+                fingerTipTouchDurations[trackingKey] += Time.deltaTime;
 
                 // Activate immediately when initial condition is met
                 if (initialConditionMet)
                 {
-                    fingerTipActivated[jointName] = true;
+                    fingerTipActivated[trackingKey] = true;
                     // jointRenderer.material.color = activeColor;
                     relatedMotorTriggered = true;
                     isFingerTipTriggered = true;
                 }
-                else if (fingerTipActivated[jointName])
+                else if (fingerTipActivated[trackingKey])
                 {
                     // Keep triggering while activated
                     isFingerTipTriggered = true;
@@ -4166,18 +4173,18 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // Apply rotation immediately when activated
-        if (fingerTipActivated[jointName] && motorID == expectedMotorID)
+        if (fingerTipActivated[trackingKey] && motorID == expectedMotorID)
         {
             // Get latest min/max values from dictionary
-            float currentMinAngle = accumulatedJointChanges.ContainsKey(jointName + "_min") ?
-                                    accumulatedJointChanges[jointName + "_min"] : 0f;
-            float currentMaxAngle = accumulatedJointChanges.ContainsKey(jointName + "_max") ?
-                                    accumulatedJointChanges[jointName + "_max"] : 0f;
+            float currentMinAngle = accumulatedJointChanges.ContainsKey(minKey) ?
+                                    accumulatedJointChanges[minKey] : 0f;
+            float currentMaxAngle = accumulatedJointChanges.ContainsKey(maxKey) ?
+                                    accumulatedJointChanges[maxKey] : 0f;
             float angleRange = currentMaxAngle - currentMinAngle;
 
             // Get current total angle change
-            float currentTotalAngle = accumulatedJointChanges.ContainsKey(jointName + "_prev") ?
-                                      accumulatedJointChanges[jointName + "_prev"] : 0f;
+            float currentTotalAngle = accumulatedJointChanges.ContainsKey(prevKey) ?
+                                      accumulatedJointChanges[prevKey] : 0f;
 
             // Calculate distance from min and max
             float distanceFromMin = Mathf.Abs(currentTotalAngle - currentMinAngle);
