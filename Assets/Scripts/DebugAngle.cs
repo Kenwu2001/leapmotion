@@ -274,6 +274,7 @@ public class DebugAngle : MonoBehaviour
 
       string allJointLocalEulerText = BuildAllJointLocalEulerText();
       string mappedMotorAngleText = BuildMappedMotorAngleText();
+      string rotationMaxMinDebugText = BuildRotationMaxMinDebugText();
       string touchSnappedText = BuildTouchSnappedText();
       string tcpSenderDebugText = BuildTcpSenderDebugText();
       string armUiColliderDebugText = BuildArmUIColliderDebugText();
@@ -281,6 +282,7 @@ public class DebugAngle : MonoBehaviour
       //TODO: print here
       angleText.text =
         allJointLocalEulerText +
+        rotationMaxMinDebugText +
         // mappedMotorAngleText +
         // touchSnappedText +
         // tcpSenderDebugText +
@@ -446,6 +448,46 @@ public class DebugAngle : MonoBehaviour
         "Thumb1 mapped Y: " + FormatAngle(clawModuleController.thumbMappedYDebug) + "\n" +
         "Index1 mapped Y: " + FormatAngle(clawModuleController.indexMappedYDebug) + "\n" +
         "Middle1 mapped Y: " + FormatAngle(clawModuleController.middleMappedYDebug) + "\n";
+    }
+
+    private string BuildRotationMaxMinDebugText()
+    {
+      if (clawModuleController == null)
+      {
+        return "\n[Rotation Max/Min]\nClawModuleController: N/A\n";
+      }
+
+      float thumbYMax = clawModuleController.currentThumbRotationYMax;
+      float thumbYMin = clawModuleController.currentThumbRotationYMin;
+      float indexYMax = clawModuleController.currentIndexRotationYMax;
+      float indexYMin = clawModuleController.currentIndexRotationYMin;
+
+      float displayedThumbYMin = GetDisplayYMinWithFallback(
+        thumbYMin,
+        clawModuleController.thumbGripperJoint1MinRotationVector.y);
+      float displayedIndexYMin = GetDisplayYMinWithFallback(
+        indexYMin,
+        clawModuleController.indexGripperJoint1MinRotationVector.y);
+
+      return "\n[Rotation Max/Min]\n" +
+        "Thumb Y Max/Min: " + FormatAngle(thumbYMax) + " / " + FormatAngle(displayedThumbYMin) + "\n" +
+        "Thumb Z Max/Min: " + FormatAngle(clawModuleController.currentThumbRotationZMax) + " / " + FormatAngle(clawModuleController.currentThumbRotationZMin) + "\n" +
+        "Index Y Max/Min: " + FormatAngle(indexYMax) + " / " + FormatAngle(displayedIndexYMin) + "\n" +
+        "Index Z Max/Min: " + FormatAngle(clawModuleController.currentIndexRotationZMax) + " / " + FormatAngle(clawModuleController.currentIndexRotationZMin) + "\n" +
+        "Middle Y Max/Min: " + FormatAngle(clawModuleController.currentMiddleRotationYMax) + " / " + FormatAngle(clawModuleController.currentMiddleRotationYMin) + "\n" +
+        "Middle Z Max/Min: " + FormatAngle(clawModuleController.currentMiddleRotationZMax) + " / " + FormatAngle(clawModuleController.currentMiddleRotationZMin) + "\n";
+    }
+
+    private float GetDisplayYMinWithFallback(float currentYMin, float minRotationVectorY)
+    {
+      if (!Mathf.Approximately(currentYMin, 0f))
+      {
+        return currentYMin;
+      }
+
+      float wrappedY = Mathf.Repeat(minRotationVectorY, 360f);
+      bool isStillAtDefaultMin = Mathf.Abs(wrappedY - 60f) <= 0.5f;
+      return isStillAtDefaultMin ? 60f : currentYMin;
     }
 
     private string GetLocalEulerText(string label, Transform t)

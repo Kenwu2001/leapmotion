@@ -43327,6 +43327,8 @@ MonoBehaviour:
   thumbSliderObject: {fileID: 606058042}
   indexSliderObject: {fileID: 1137782456}
   middleSliderObject: {fileID: 2126165197}
+  thumbMaxSliderObject: {fileID: 242247187}
+  thumbMinSliderObject: {fileID: 1307259182}
   thumbMotorIdButtons:
   - buttonName: Arm Motor 13
     motorID: 0
