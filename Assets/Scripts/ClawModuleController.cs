@@ -4478,6 +4478,22 @@ public class ClawModuleController : MonoBehaviour
         isThumbMiddle180SnappingEnabled = false;
         is120SnappingEnabled = false;
 
+        // Reset Arm UI state preference to max/min mode while keeping Arm UI plane disabled.
+        ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+        if (activeArmUI != null)
+        {
+            activeArmUI.useArmUIPlane = false;
+            if (activeArmUI.directAngleButton != null)
+            {
+                activeArmUI.directAngleButton.isOn = false;
+            }
+
+            if (activeArmUI.maxMinAngleButton != null)
+            {
+                activeArmUI.maxMinAngleButton.isOn = true;
+            }
+        }
+
         SetEmbodimentInitialColors();
         ForceAllPaxiniOffAndRestoreColor();
         tt = 0f;

@@ -340,8 +340,8 @@ public class ArmUIPlaneController : MonoBehaviour
             return;
         }
 
-        directAngleButton.isOn = true;
-        maxMinAngleButton.isOn = false;
+        directAngleButton.isOn = false;
+        maxMinAngleButton.isOn = true;
     }
 
     private void EnsureArmModeButtonSelectionIntegrity()
@@ -353,11 +353,11 @@ public class ArmUIPlaneController : MonoBehaviour
 
         if (!directAngleButton.isOn && !maxMinAngleButton.isOn)
         {
-            directAngleButton.isOn = true;
+            maxMinAngleButton.isOn = true;
         }
         else if (directAngleButton.isOn && maxMinAngleButton.isOn)
         {
-            maxMinAngleButton.isOn = false;
+            directAngleButton.isOn = false;
         }
     }
 
