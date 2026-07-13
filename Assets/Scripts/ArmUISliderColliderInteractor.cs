@@ -28,12 +28,20 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     public SliderBinding middleSlider = new SliderBinding { bindingName = "Middle" };
     public SliderBinding thumbMaxSlider = new SliderBinding { bindingName = "ThumbMax", maxNormalizedValue = 0.5f };
     public SliderBinding thumbMinSlider = new SliderBinding { bindingName = "ThumbMin", minNormalizedValue = 0.5f, maxNormalizedValue = 1f };
+    public SliderBinding indexMaxSlider = new SliderBinding { bindingName = "IndexMax", maxNormalizedValue = 0.5f };
+    public SliderBinding indexMinSlider = new SliderBinding { bindingName = "IndexMin", minNormalizedValue = 0.5f, maxNormalizedValue = 1f };
+    public SliderBinding middleMaxSlider = new SliderBinding { bindingName = "MiddleMax", maxNormalizedValue = 0.5f };
+    public SliderBinding middleMinSlider = new SliderBinding { bindingName = "MiddleMin", minNormalizedValue = 0.5f, maxNormalizedValue = 1f };
 
     [Header("Arm UI State")]
     public ArmUIPlaneController armUIPlaneController;
     public bool requireDirectAngleMode = true;
     public bool requireMaxMinModeForThumbMax = true;
     public bool requireMaxMinModeForThumbMin = true;
+    public bool requireMaxMinModeForIndexMax = true;
+    public bool requireMaxMinModeForIndexMin = true;
+    public bool requireMaxMinModeForMiddleMax = true;
+    public bool requireMaxMinModeForMiddleMin = true;
 
     [Header("Interaction")]
     public Transform fingerTipSource;
@@ -60,6 +68,14 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     [SerializeField] private bool debugThumbMaxTouchingHandle;
     [SerializeField] private bool debugThumbMinTouchingFill;
     [SerializeField] private bool debugThumbMinTouchingHandle;
+    [SerializeField] private bool debugIndexMaxTouchingFill;
+    [SerializeField] private bool debugIndexMaxTouchingHandle;
+    [SerializeField] private bool debugIndexMinTouchingFill;
+    [SerializeField] private bool debugIndexMinTouchingHandle;
+    [SerializeField] private bool debugMiddleMaxTouchingFill;
+    [SerializeField] private bool debugMiddleMaxTouchingHandle;
+    [SerializeField] private bool debugMiddleMinTouchingFill;
+    [SerializeField] private bool debugMiddleMinTouchingHandle;
     [TextArea(6, 24)] [SerializeField] private string runtimeHistory = "";
 
     private readonly Queue<string> _historyLines = new Queue<string>();
@@ -131,6 +147,10 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         CacheBindingReferences(middleSlider);
         CacheBindingReferences(thumbMaxSlider);
         CacheBindingReferences(thumbMinSlider);
+        CacheBindingReferences(indexMaxSlider);
+        CacheBindingReferences(indexMinSlider);
+        CacheBindingReferences(middleMaxSlider);
+        CacheBindingReferences(middleMinSlider);
 
         if (armUIPlaneController == null)
         {
@@ -182,6 +202,10 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         if (MatchesBindingCollider(middleSlider, other)) return middleSlider;
         if (MatchesBindingCollider(thumbMaxSlider, other)) return thumbMaxSlider;
         if (MatchesBindingCollider(thumbMinSlider, other)) return thumbMinSlider;
+        if (MatchesBindingCollider(indexMaxSlider, other)) return indexMaxSlider;
+        if (MatchesBindingCollider(indexMinSlider, other)) return indexMinSlider;
+        if (MatchesBindingCollider(middleMaxSlider, other)) return middleMaxSlider;
+        if (MatchesBindingCollider(middleMinSlider, other)) return middleMinSlider;
         return null;
     }
 
@@ -244,6 +268,34 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
             }
         }
         else if (binding == thumbMinSlider && requireMaxMinModeForThumbMin)
+        {
+            if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
+            {
+                return;
+            }
+        }
+        else if (binding == indexMaxSlider && requireMaxMinModeForIndexMax)
+        {
+            if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
+            {
+                return;
+            }
+        }
+        else if (binding == indexMinSlider && requireMaxMinModeForIndexMin)
+        {
+            if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
+            {
+                return;
+            }
+        }
+        else if (binding == middleMaxSlider && requireMaxMinModeForMiddleMax)
+        {
+            if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
+            {
+                return;
+            }
+        }
+        else if (binding == middleMinSlider && requireMaxMinModeForMiddleMin)
         {
             if (armUIPlaneController == null || !armUIPlaneController.IsMaxMinAngleModeActive())
             {
@@ -347,6 +399,14 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
         debugThumbMaxTouchingHandle = thumbMaxSlider != null && thumbMaxSlider.touchingHandle;
         debugThumbMinTouchingFill = thumbMinSlider != null && thumbMinSlider.touchingFill;
         debugThumbMinTouchingHandle = thumbMinSlider != null && thumbMinSlider.touchingHandle;
+        debugIndexMaxTouchingFill = indexMaxSlider != null && indexMaxSlider.touchingFill;
+        debugIndexMaxTouchingHandle = indexMaxSlider != null && indexMaxSlider.touchingHandle;
+        debugIndexMinTouchingFill = indexMinSlider != null && indexMinSlider.touchingFill;
+        debugIndexMinTouchingHandle = indexMinSlider != null && indexMinSlider.touchingHandle;
+        debugMiddleMaxTouchingFill = middleMaxSlider != null && middleMaxSlider.touchingFill;
+        debugMiddleMaxTouchingHandle = middleMaxSlider != null && middleMaxSlider.touchingHandle;
+        debugMiddleMinTouchingFill = middleMinSlider != null && middleMinSlider.touchingFill;
+        debugMiddleMinTouchingHandle = middleMinSlider != null && middleMinSlider.touchingHandle;
     }
 
     private void AppendHistory(
