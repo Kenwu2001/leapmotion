@@ -3399,13 +3399,13 @@ public class ClawModuleController : MonoBehaviour
         switch (ResolveCurrentSnappingMode())
         {
             case SnappingMode.Full120:
-                return "120snapping";
+                return "120 snapping";
             case SnappingMode.ThumbMiddle:
-                return "thumbMiddle180Snapping";
+                return "Thumb\nMiddle\nSnapping";
             case SnappingMode.ThumbIndex:
-                return "thumbIndex180Snapping";
+                return "Thumb\nIndex\nSnapping";
             case SnappingMode.IndexMiddle:
-                return "indexMiddle180Snapping";
+                return "Index\nMiddle\nSnapping";
             default:
                 return string.Empty;
         }
