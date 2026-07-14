@@ -1,6 +1,7 @@
 using TMPro; // Import TextMeshPro namespace
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.XR;
 
 public class DebugAngle : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class DebugAngle : MonoBehaviour
     public TriggerRightWrist triggerRightWrist;
     public ControllerLocatorLeft controllerLocatorLeft;
     public ArmUIPlaneController armUIPlaneController;
+    public ArmUIPlaneCollider armUIPlaneCollider;
     // public VirtualLeftHandButtonInteractor virtualLeftHandButtonInteractor;
 
     public GameObject r_wrist;
@@ -279,6 +281,8 @@ public class DebugAngle : MonoBehaviour
       string touchSnappedText = BuildTouchSnappedText();
       string tcpSenderDebugText = BuildTcpSenderDebugText();
       string armUiColliderDebugText = BuildArmUIColliderDebugText();
+      string controllerPositionDebugText = BuildControllerPositionDebugText();
+      string armUiAreaStateDebugText = BuildArmUIAreaStateDebugText();
 
       //TODO: print here
       angleText.text =
@@ -291,7 +295,9 @@ public class DebugAngle : MonoBehaviour
         // "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Albow Button: " + albowButtonStateText + "\n" +
-        BuildMotorFreezeStateText();
+        BuildMotorFreezeStateText() +
+        controllerPositionDebugText +
+        armUiAreaStateDebugText;
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
         // BuildFreezeEdgeDebugText() +
@@ -415,6 +421,49 @@ public class DebugAngle : MonoBehaviour
         "Rejected Motor: " + armUIPlaneController.armRejectedMotorID + "\n" +
         "Reject Reason: " + armUIPlaneController.armRejectReason + "\n" +
         "Proxy Debug: " + armUIPlaneController.armUIProxyDebug + "\n";
+    }
+
+    private string BuildControllerPositionDebugText()
+    {
+      bool hasLeftController = TryGetControllerPosition(XRNode.LeftHand, out Vector3 leftControllerPos);
+      bool hasRightController = TryGetControllerPosition(XRNode.RightHand, out Vector3 rightControllerPos);
+
+      string leftText = hasLeftController
+        ? "(" + leftControllerPos.x.ToString("F3") + ", " + leftControllerPos.y.ToString("F3") + ", " + leftControllerPos.z.ToString("F3") + ")"
+        : "N/A";
+
+      string rightText = hasRightController
+        ? "(" + rightControllerPos.x.ToString("F3") + ", " + rightControllerPos.y.ToString("F3") + ", " + rightControllerPos.z.ToString("F3") + ")"
+        : "N/A";
+
+      return "\n[Controller Position]\n" +
+        "Left  (x,y,z): " + leftText + "\n" +
+        "Right (x,y,z): " + rightText + "\n";
+    }
+
+    private string BuildArmUIAreaStateDebugText()
+    {
+      if (armUIPlaneCollider == null)
+      {
+        return "\n[Arm UI Area]\nArmUIPlaneCollider: N/A\n";
+      }
+
+      return "\n[Arm UI Area]\n" +
+        "inArmUIArea: " + armUIPlaneCollider.inArmUIArea + "\n" +
+        "buttonTouched: " + (armUIPlaneCollider.armUIAreaButton != null && armUIPlaneCollider.armUIAreaButton.isTouched) + "\n" +
+        "lastTouchedCollider: " + armUIPlaneCollider.lastTouchedColliderName + "\n";
+    }
+
+    private bool TryGetControllerPosition(XRNode node, out Vector3 position)
+    {
+      position = Vector3.zero;
+      InputDevice device = InputDevices.GetDeviceAtXRNode(node);
+      if (!device.isValid)
+      {
+        return false;
+      }
+
+      return device.TryGetFeatureValue(CommonUsages.devicePosition, out position);
     }
 
     private string BuildAllJointLocalEulerText()
