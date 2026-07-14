@@ -288,8 +288,11 @@ public class ModeSwitching : MonoBehaviour
         UpdateCurrentHandSeparationDistance();
         float activeSeparationThreshold = GetActiveSeparationThreshold();
         bool isArmUIPlaneActive = IsArmUIPlaneActive();
+        // Arm UI parity with claw selecting:
+        // "away" means leaving EnterPlane only. Merely not touching a motor button
+        // while still inside EnterPlane must remain in the same selecting round.
         bool isRoundAway = (!isArmUIPlaneActive && currentHandSeparationDistance > activeSeparationThreshold)
-                        || (isArmUIPlaneActive && (!_armUIInputIsInsideEnterPlane || _armUIInputTouchedMotorID == 0));
+                || (isArmUIPlaneActive && !_armUIInputIsInsideEnterPlane);
 
         // Capture baseline once when entering modeSelect.
         if (modeSelect && !_wasModeSelectLastFrame)

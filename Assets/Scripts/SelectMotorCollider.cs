@@ -522,7 +522,10 @@ public class SelectMotorCollider : MonoBehaviour
         if (IsArmUIPlaneActive())
         {
             ClearSelectionStateForArmUIPlane();
-            UpdateFreezeColors();
+            // Arm UI uses ModeSwitching as the single source of truth for selecting/freeze rounds.
+            // Do not run projection freeze-zone logic here, otherwise legacy paths may mutate
+            // thumb/index/middleFreezeEnabled before leaving EnterPlane.
+            suppressManipulateTransition = false;
             return;
         }
         
