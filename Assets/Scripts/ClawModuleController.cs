@@ -612,6 +612,14 @@ public class ClawModuleController : MonoBehaviour
     private bool[]       _singleMotorFrozenWas = new bool[12];       // previous-frame state for rising-edge detection
     private Quaternion[] _singleMotorFrozenRot = new Quaternion[12]; // captured joint rotation per motor
 
+    // Selecting-round lock baseline: while inside threshold during modeSelect,
+    // angle lock follows this snapshot and ignores in-round freeze toggles.
+    private bool _wasSelectingInsideThreshold = false;
+    private bool _roundBaselineThumbGroupLocked = false;
+    private bool _roundBaselineIndexGroupLocked = false;
+    private bool _roundBaselineMiddleGroupLocked = false;
+    private bool[] _roundBaselineSingleMotorLocked = new bool[12];
+
     /// <summary>
     /// Awake runs before ALL Start() calls.
     /// Save originalColor here (before any Start() can change material colors).
@@ -1200,13 +1208,17 @@ public class ClawModuleController : MonoBehaviour
     /// </summary>
     private void ApplySingleMotorFreezeOverrides()
     {
+        UpdateSelectingRoundFreezeBaselineSnapshots();
+
         if (modeSwitching == null) return;
         bool[] frozen = modeSwitching.singleMotorFrozen;
         if (frozen == null || frozen.Length < 12) return;
 
+        bool useRoundBaselineLocks = IsSelectingWithinThreshold();
+
         for (int i = 0; i < 12; i++)
         {
-            bool isFrozen = frozen[i];
+            bool isFrozen = useRoundBaselineLocks ? _roundBaselineSingleMotorLocked[i] : frozen[i];
             Transform t = GetMotorTransform(i + 1);
             if (t == null) { _singleMotorFrozenWas[i] = isFrozen; continue; }
 
@@ -1252,6 +1264,8 @@ public class ClawModuleController : MonoBehaviour
     /// </summary>
     private void ApplySMCFreezeMotors()
     {
+        UpdateSelectingRoundFreezeBaselineSnapshots();
+
         if (modeSwitching == null || modeSwitching.SelectMotorCollider == null) return;
         SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
         bool allowAnySMCFreeze = smc.enableFreezeMotorFeature || smc.allowManualFreezeWhenFeatureDisabled;
@@ -1263,8 +1277,10 @@ public class ClawModuleController : MonoBehaviour
             return;
         }
 
+        bool useRoundBaselineLocks = IsSelectingWithinThreshold();
+
         // ── Thumb ──────────────────────────────────────────────────────────────────
-        bool thumbFreeze = smc.thumbFreezeEnabled;
+        bool thumbFreeze = useRoundBaselineLocks ? _roundBaselineThumbGroupLocked : smc.thumbFreezeEnabled;
         if (thumbFreeze && !_smcThumbFreezeWasEnabled)
         {
             if (ThumbAngle1Center != null) _smcFrozenThumbM1 = ThumbAngle1Center.localRotation;
@@ -1282,7 +1298,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // ── Index ──────────────────────────────────────────────────────────────────
-        bool indexFreeze = smc.indexFreezeEnabled;
+        bool indexFreeze = useRoundBaselineLocks ? _roundBaselineIndexGroupLocked : smc.indexFreezeEnabled;
         if (indexFreeze && !_smcIndexFreezeWasEnabled)
         {
             if (IndexAngle1Center != null) _smcFrozenIndexM1 = IndexAngle1Center.localRotation;
@@ -1300,7 +1316,7 @@ public class ClawModuleController : MonoBehaviour
         }
 
         // ── Middle ─────────────────────────────────────────────────────────────────
-        bool middleFreeze = smc.middleFreezeEnabled;
+        bool middleFreeze = useRoundBaselineLocks ? _roundBaselineMiddleGroupLocked : smc.middleFreezeEnabled;
         if (middleFreeze && !_smcMiddleFreezeWasEnabled)
         {
             if (MiddleAngle1Center != null) _smcFrozenMiddleM1 = MiddleAngle1Center.localRotation;
@@ -1316,6 +1332,57 @@ public class ClawModuleController : MonoBehaviour
             if (MiddleAngle3Center != null) MiddleAngle3Center.localRotation = _smcFrozenMiddleM3;
             if (MiddleAngle4Center != null) MiddleAngle4Center.localRotation = _smcFrozenMiddleM4;
         }
+    }
+
+    /// <summary>
+    /// While selecting and inside threshold, angle lock must follow this round's baseline snapshot.
+    /// New freeze toggles in the round affect color/state only and are committed after leaving threshold.
+    /// </summary>
+    private void UpdateSelectingRoundFreezeBaselineSnapshots()
+    {
+        if (modeSwitching == null)
+        {
+            _wasSelectingInsideThreshold = false;
+            return;
+        }
+
+        bool selectingInside = IsSelectingWithinThreshold();
+        if (selectingInside && !_wasSelectingInsideThreshold)
+        {
+            bool[] frozen = modeSwitching.singleMotorFrozen;
+            for (int i = 0; i < _roundBaselineSingleMotorLocked.Length; i++)
+                _roundBaselineSingleMotorLocked[i] = (frozen != null && frozen.Length > i) ? frozen[i] : false;
+
+            if (modeSwitching.SelectMotorCollider != null)
+            {
+                _roundBaselineThumbGroupLocked = modeSwitching.SelectMotorCollider.thumbFreezeEnabled;
+                _roundBaselineIndexGroupLocked = modeSwitching.SelectMotorCollider.indexFreezeEnabled;
+                _roundBaselineMiddleGroupLocked = modeSwitching.SelectMotorCollider.middleFreezeEnabled;
+            }
+            else
+            {
+                _roundBaselineThumbGroupLocked = false;
+                _roundBaselineIndexGroupLocked = false;
+                _roundBaselineMiddleGroupLocked = false;
+            }
+        }
+
+        _wasSelectingInsideThreshold = selectingInside;
+    }
+
+    private bool IsSelectingWithinThreshold()
+    {
+        if (modeSwitching == null)
+            return false;
+
+        if (!modeSwitching.modeSelect)
+            return false;
+
+        float threshold = modeSwitching.useControllerSeperationDistance
+            ? modeSwitching.controllerSeparationThreshold
+            : modeSwitching.handSeparationThreshold;
+
+        return modeSwitching.currentHandSeparationDistance <= threshold;
     }
 
     // #region @ThumbAbduction
