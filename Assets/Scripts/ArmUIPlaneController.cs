@@ -132,6 +132,7 @@ public class ArmUIPlaneController : MonoBehaviour
     public ModeSwitching modeSwitching;
     public SelectMotorCollider selectMotorCollider;
     public ClawModuleController clawModuleController;
+    public ArmUIPlaneCollider armUIPlaneCollider;
 
     [Header("Arm UI Mode")]
     public bool armModeSelect = true;
@@ -190,6 +191,7 @@ public class ArmUIPlaneController : MonoBehaviour
     private Quaternion _armUIPlaneOriginalLocalRotation;
     private Vector3 _armUIPlaneOriginalLocalScale;
     private bool _armUIPlaneOffsetApplied;
+    private bool _wasUseArmUIPlaneLastFrame;
 
     private void Awake()
     {
@@ -208,6 +210,11 @@ public class ArmUIPlaneController : MonoBehaviour
             clawModuleController = FindObjectOfType<ClawModuleController>();
         }
 
+        if (armUIPlaneCollider == null)
+        {
+            armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
+        }
+
         CacheAndConfigureSliders();
         BindSliderEvents();
 
@@ -224,28 +231,32 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void Update()
     {
+        // Arm UI enable state is fully driven by arm-area touch state.
+        useArmUIPlane = armUIPlaneCollider != null && armUIPlaneCollider.inArmUIArea;
+        bool justEnteredArmUIArea = useArmUIPlane && !_wasUseArmUIPlaneLastFrame;
+
         SyncArmUIPlaneVisualRootPosition(!useArmUIPlane);
 
         if (!useArmUIPlane)
         {
-            if (modeSwitching != null)
-            {
-                modeSwitching.ClearArmUIInput();
-            }
-            armModeManipulate = false;
-            armModeSelect = true;
             SyncSliderVisibility();
             SyncMotorButtonVisibility();
             SyncMotorButtonColors();
+            _wasUseArmUIPlaneLastFrame = useArmUIPlane;
             return;
         }
 
         if (modeSwitching != null)
         {
             armRawTouchedMotorID = GetRawTouchedArmMotorID();
+            // Mode transitions are driven by enterArmUIPlaneButton touch state.
             modeSwitching.ReceiveArmUIInput(enterArmUIPlaneButton.isTouched, armRawTouchedMotorID);
-            armModeSelect = modeSwitching.armUIProxyModeSelect;
-            armModeManipulate = modeSwitching.armUIProxyModeManipulate;
+            // Avoid one-frame flicker from stale proxy state on the inArmUIArea rising edge.
+            if (!justEnteredArmUIArea)
+            {
+                armModeSelect = modeSwitching.armUIProxyModeSelect;
+                armModeManipulate = modeSwitching.armUIProxyModeManipulate;
+            }
             armCurrentTouchedMotorID = modeSwitching.armUIProxyCurrentTouchedMotorID;
             armCurrentRedMotorID = modeSwitching.armUIProxyCurrentRedMotorID;
             armConfirmedMotorID = modeSwitching.armUIProxyConfirmedMotorID;
@@ -281,6 +292,7 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncDirectAngleSliderValue();
         SyncMaxMinSliderValue();
         _lastArmModeManipulate = armModeManipulate;
+        _wasUseArmUIPlaneLastFrame = useArmUIPlane;
     }
 
     private void SyncArmUIPlaneVisualRootPosition(bool shouldHide)

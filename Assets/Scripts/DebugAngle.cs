@@ -283,6 +283,7 @@ public class DebugAngle : MonoBehaviour
       string armUiColliderDebugText = BuildArmUIColliderDebugText();
       string controllerPositionDebugText = BuildControllerPositionDebugText();
       string armUiAreaStateDebugText = BuildArmUIAreaStateDebugText();
+      string modeStateDebugText = BuildModeStateDebugText();
 
       //TODO: print here
       angleText.text =
@@ -297,7 +298,8 @@ public class DebugAngle : MonoBehaviour
         // "Albow Button: " + albowButtonStateText + "\n" +
         BuildMotorFreezeStateText() +
         controllerPositionDebugText +
-        armUiAreaStateDebugText;
+        armUiAreaStateDebugText +
+        modeStateDebugText;
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
         // BuildFreezeEdgeDebugText() +
@@ -452,6 +454,20 @@ public class DebugAngle : MonoBehaviour
         "inArmUIArea: " + armUIPlaneCollider.inArmUIArea + "\n" +
         "buttonTouched: " + (armUIPlaneCollider.armUIAreaButton != null && armUIPlaneCollider.armUIAreaButton.isTouched) + "\n" +
         "lastTouchedCollider: " + armUIPlaneCollider.lastTouchedColliderName + "\n";
+    }
+
+    private string BuildModeStateDebugText()
+    {
+      string modeSelectText = modeSwitching != null ? modeSwitching.modeSelect.ToString() : "N/A";
+      string modeManipulateText = modeSwitching != null ? modeSwitching.modeManipulate.ToString() : "N/A";
+      string armModeSelectText = armUIPlaneController != null ? armUIPlaneController.armModeSelect.ToString() : "N/A";
+      string armModeManipulateText = armUIPlaneController != null ? armUIPlaneController.armModeManipulate.ToString() : "N/A";
+
+      return "\n[Mode State]\n" +
+        "modeSelect: " + modeSelectText + "\n" +
+        "modeManipulate: " + modeManipulateText + "\n" +
+        "armModeSelect: " + armModeSelectText + "\n" +
+        "armModeManipulate: " + armModeManipulateText + "\n";
     }
 
     private bool TryGetControllerPosition(XRNode node, out Vector3 position)
