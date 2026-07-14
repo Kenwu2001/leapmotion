@@ -449,8 +449,9 @@ public class ModeSwitching : MonoBehaviour
                         {
                             // Selecting (confirming) a new motor is ALWAYS allowed.
                             // If a DIFFERENT motor already has a committed change this round, revert it first.
-                            if (currentMotorID >= 1 && currentMotorID <= 12
-                                && _roundChangedMotorID != 0 && _roundChangedMotorID != currentMotorID)
+                            // Applies to all selectable motors, including Paxini (13/14/15),
+                            // so each selecting round differs from baseline by at most ONE state.
+                            if (_roundChangedMotorID != 0 && _roundChangedMotorID != currentMotorID)
                             {
                                 RevertMotorToBaseline(_roundChangedMotorID);
                                 _roundChangedMotorID = 0;

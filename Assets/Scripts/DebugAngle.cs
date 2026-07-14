@@ -282,22 +282,22 @@ public class DebugAngle : MonoBehaviour
 
       //TODO: print here
       angleText.text =
-        allJointLocalEulerText +
-        rotationMaxMinDebugText +
-        extensionMaxMinDebugText +
+        // allJointLocalEulerText +
+        // rotationMaxMinDebugText +
+        // extensionMaxMinDebugText +
         // mappedMotorAngleText +
         // touchSnappedText +
         // tcpSenderDebugText +
         // "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Albow Button: " + albowButtonStateText + "\n" +
-        BuildMotorFreezeStateText() +
+        BuildMotorFreezeStateText();
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
         // BuildFreezeEdgeDebugText() +
         // BuildThumbFreezeCompareDebugText() +
         // BuildSuppressThumbPaxiniDebugText() +
-        armUiColliderDebugText;
+        // armUiColliderDebugText;
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Clockwise Raw: " + clockwiseRaw + "\n" +
         // "Rotation Direction: " + rotationDirection + "\n";
