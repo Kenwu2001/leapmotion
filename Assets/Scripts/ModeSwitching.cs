@@ -419,7 +419,7 @@ public class ModeSwitching : MonoBehaviour
                         singleMotorFrozen[fm - 1] = false;
                         // Track round change only if net state differs from baseline
                         if (fm >= 1 && fm <= 12)
-                            _roundChangedMotorID = _singleMotorFrozenBaseline[fm - 1] ? fm : 0;
+                            _roundChangedMotorID = IsBaselineFrozenForMotor(fm) ? fm : 0;
                         _isUnfreezing = false;
                         _unfreezeTargetMotorID = 0;
                         currentRedMotorID = 0;
@@ -511,7 +511,7 @@ public class ModeSwitching : MonoBehaviour
                         singleMotorFrozen[frozenID - 1] = true;
                         // Track round change only if net state differs from baseline
                         if (frozenID >= 1 && frozenID <= 12)
-                            _roundChangedMotorID = !_singleMotorFrozenBaseline[frozenID - 1] ? frozenID : 0;
+                            _roundChangedMotorID = !IsBaselineFrozenForMotor(frozenID) ? frozenID : 0;
                         confirmedMotorID = 0;
                         motorSelected = false;
                         currentRedMotorID = 0;
@@ -1036,7 +1036,13 @@ public class ModeSwitching : MonoBehaviour
 
                 // Keep state/color aligned in the same frame at threshold crossing.
                 if (committedStateChanged)
+                {
+                    // Round-away Paxini commit changed authoritative state.
+                    // Re-capture baseline in the same frame so next selecting round
+                    // still has exactly one diff against baseline.
+                    CaptureModeSelectBaseline();
                     UpdateMotorColors();
+                }
             }
             // Color sync intentionally removed:
             // Paxini immediate color affects only Paxini motor (13/14/15).
@@ -1657,6 +1663,19 @@ public class ModeSwitching : MonoBehaviour
 
     public Color GetArmUIProxyMotorDisplayColor(int motorID, Color fallbackOriginalColor)
     {
+        if (motorID == ThumbPaxiniMotorID || motorID == IndexPaxiniMotorID || motorID == MiddlePaxiniMotorID)
+        {
+            return GetCanonicalPaxiniDisplayColor(
+                IsCanonicalPaxiniOnForMotor(motorID),
+                (SelectMotorCollider != null && motorID == ThumbPaxiniMotorID && SelectMotorCollider.thumbPaxiniForceYellow)
+                    || (SelectMotorCollider != null && motorID == IndexPaxiniMotorID && SelectMotorCollider.indexPaxiniForceYellow)
+                    || (SelectMotorCollider != null && motorID == MiddlePaxiniMotorID && SelectMotorCollider.middlePaxiniForceYellow),
+                (SelectMotorCollider != null && motorID == ThumbPaxiniMotorID && SelectMotorCollider.thumbPaxiniForceOriginal)
+                    || (SelectMotorCollider != null && motorID == IndexPaxiniMotorID && SelectMotorCollider.indexPaxiniForceOriginal)
+                    || (SelectMotorCollider != null && motorID == MiddlePaxiniMotorID && SelectMotorCollider.middlePaxiniForceOriginal),
+                fallbackOriginalColor);
+        }
+
         if (_isUnfreezing && motorID == _unfreezeTargetMotorID)
         {
             return unfreezeHintColor;
@@ -1692,17 +1711,8 @@ public class ModeSwitching : MonoBehaviour
                 return singleFrozenColor;
             }
 
-            if (SelectMotorCollider != null)
-            {
-                bool shouldForceGroupYellow = (motorID <= 4 && SelectMotorCollider.thumbFreezeEnabled && !_pendingThumbAutoOff)
-                                           || (motorID >= 5 && motorID <= 8 && SelectMotorCollider.indexFreezeEnabled && !_pendingIndexAutoOff)
-                                           || (motorID >= 9 && SelectMotorCollider.middleFreezeEnabled && !_pendingMiddleAutoOff);
-
-                if (shouldForceGroupYellow && !suppressGroupYellow)
-                {
-                    return singleFrozenColor;
-                }
-            }
+            // Do not force group yellow from Paxini state during selecting.
+            // Group motor colors follow singleMotorFrozen and commit at round-away.
 
             return baseColor;
         }
@@ -1800,8 +1810,26 @@ public class ModeSwitching : MonoBehaviour
         // Motors in the baseline will NOT be cleared by ClearSingleFrozenMotorInGroup.
         System.Array.Copy(singleMotorFrozen, _singleMotorFrozenBaseline, 12);
 
+        // Paxini ON in baseline means the entire finger group is baseline-frozen.
+        // This keeps one-change-per-round comparisons/reverts consistent even when
+        // singleMotorFrozen was not yet expanded to all 4 motors in earlier frames.
+        if (_thumbBaselinePaxiniOn)
+            for (int m = 1; m <= 4; m++) _singleMotorFrozenBaseline[m - 1] = true;
+        if (_indexBaselinePaxiniOn)
+            for (int m = 5; m <= 8; m++) _singleMotorFrozenBaseline[m - 1] = true;
+        if (_middleBaselinePaxiniOn)
+            for (int m = 9; m <= 12; m++) _singleMotorFrozenBaseline[m - 1] = true;
+
         // New round — reset the one-motor-per-round change tracker
         _roundChangedMotorID = 0;
+    }
+
+    private bool IsBaselineFrozenForMotor(int motorID)
+    {
+        if (motorID < 1 || motorID > 12)
+            return false;
+
+        return _singleMotorFrozenBaseline[motorID - 1];
     }
 
     private void EnforceGroupBaselineForConfirmedMotor(int motorID)
@@ -1863,13 +1891,13 @@ public class ModeSwitching : MonoBehaviour
         }
 
         // If there is a confirmed motor, show it in dark red
-        if (confirmedMotorID != 0)
+        if (confirmedMotorID != 0 && !IsPaxiniMotor(confirmedMotorID))
         {
             SetMotorColorDirect(confirmedMotorID, darkRedColor);
         }
 
         // If the currently touched motor is not the confirmed one, show it in light red
-        if (currentRedMotorID != 0 && currentRedMotorID != confirmedMotorID)
+        if (currentRedMotorID != 0 && currentRedMotorID != confirmedMotorID && !IsPaxiniMotor(currentRedMotorID))
         {
             // Skip normal color for the motor being unfrozen (per-frame lerp handles yellow→original)
             if (_isUnfreezing && currentRedMotorID == _unfreezeTargetMotorID)
@@ -2329,10 +2357,11 @@ public class ModeSwitching : MonoBehaviour
         for (int m = gStart; m <= gEnd; m++)
             if (!singleMotorFrozen[m - 1]) return; // not all frozen yet
 
-        // All 4 frozen — show Paxini yellow visually (pending, state stays freeze-OFF).
-        if (gStart == 1)      { _pendingThumbAutoOn  = true; SelectMotorCollider.thumbPaxiniForceYellow   = true; SelectMotorCollider.thumbPaxiniForceOriginal   = false; }
-        else if (gStart == 5) { _pendingIndexAutoOn  = true; SelectMotorCollider.indexPaxiniForceYellow   = true; SelectMotorCollider.indexPaxiniForceOriginal   = false; }
-        else                  { _pendingMiddleAutoOn = true; SelectMotorCollider.middlePaxiniForceYellow  = true; SelectMotorCollider.middlePaxiniForceOriginal  = false; }
+        // All 4 frozen — mark pending auto-ON only.
+        // Paxini color/state are committed when hand moves away (> threshold).
+        if (gStart == 1)      { _pendingThumbAutoOn  = true; SelectMotorCollider.thumbPaxiniForceYellow   = false; SelectMotorCollider.thumbPaxiniForceOriginal   = false; }
+        else if (gStart == 5) { _pendingIndexAutoOn  = true; SelectMotorCollider.indexPaxiniForceYellow   = false; SelectMotorCollider.indexPaxiniForceOriginal   = false; }
+        else                  { _pendingMiddleAutoOn = true; SelectMotorCollider.middlePaxiniForceYellow  = false; SelectMotorCollider.middlePaxiniForceOriginal  = false; }
     }
 
     /// <summary>
@@ -2355,10 +2384,11 @@ public class ModeSwitching : MonoBehaviour
 
         if (paxiniOn)
         {
-            // Paxini was committed ON — show original colour (pending, state stays freeze-ON).
-            if (gStart == 1)      { _pendingThumbAutoOff  = true; SelectMotorCollider.thumbPaxiniForceOriginal   = true; SelectMotorCollider.thumbPaxiniForceYellow   = false; }
-            else if (gStart == 5) { _pendingIndexAutoOff  = true; SelectMotorCollider.indexPaxiniForceOriginal   = true; SelectMotorCollider.indexPaxiniForceYellow   = false; }
-            else                  { _pendingMiddleAutoOff = true; SelectMotorCollider.middlePaxiniForceOriginal  = true; SelectMotorCollider.middlePaxiniForceYellow  = false; }
+            // Paxini was committed ON — mark pending auto-OFF only.
+            // Paxini color/state are committed when hand moves away (> threshold).
+            if (gStart == 1)      { _pendingThumbAutoOff  = true; SelectMotorCollider.thumbPaxiniForceOriginal   = false; SelectMotorCollider.thumbPaxiniForceYellow   = false; }
+            else if (gStart == 5) { _pendingIndexAutoOff  = true; SelectMotorCollider.indexPaxiniForceOriginal   = false; SelectMotorCollider.indexPaxiniForceYellow   = false; }
+            else                  { _pendingMiddleAutoOff = true; SelectMotorCollider.middlePaxiniForceOriginal  = false; SelectMotorCollider.middlePaxiniForceYellow  = false; }
         }
         else
         {
@@ -2514,6 +2544,36 @@ public class ModeSwitching : MonoBehaviour
 
     public Color GetMotorDisplayColor(int motorID, Color fallbackOriginalColor)
     {
+        if (motorID == ThumbPaxiniMotorID || motorID == IndexPaxiniMotorID || motorID == MiddlePaxiniMotorID)
+        {
+            if (SelectMotorCollider != null)
+            {
+                if (motorID == ThumbPaxiniMotorID)
+                {
+                    if (SelectMotorCollider.thumbPaxiniForceOriginal)
+                        return fallbackOriginalColor;
+                    if (SelectMotorCollider.thumbPaxiniForceYellow || SelectMotorCollider.thumbFreezeEnabled)
+                        return singleFrozenColor;
+                }
+                else if (motorID == IndexPaxiniMotorID)
+                {
+                    if (SelectMotorCollider.indexPaxiniForceOriginal)
+                        return fallbackOriginalColor;
+                    if (SelectMotorCollider.indexPaxiniForceYellow || SelectMotorCollider.indexFreezeEnabled)
+                        return singleFrozenColor;
+                }
+                else
+                {
+                    if (SelectMotorCollider.middlePaxiniForceOriginal)
+                        return fallbackOriginalColor;
+                    if (SelectMotorCollider.middlePaxiniForceYellow || SelectMotorCollider.middleFreezeEnabled)
+                        return singleFrozenColor;
+                }
+            }
+
+            return fallbackOriginalColor;
+        }
+
         if (_isUnfreezing && motorID == _unfreezeTargetMotorID && currentRedMotorID == motorID)
         {
             return unfreezeHintColor;
@@ -2562,36 +2622,6 @@ public class ModeSwitching : MonoBehaviour
                 return singleFrozenColor;
 
             return baseColor;
-        }
-
-        if (motorID == ThumbPaxiniMotorID || motorID == IndexPaxiniMotorID || motorID == MiddlePaxiniMotorID)
-        {
-            if (SelectMotorCollider != null)
-            {
-                if (motorID == ThumbPaxiniMotorID)
-                {
-                    if (SelectMotorCollider.thumbPaxiniForceOriginal)
-                        return fallbackOriginalColor;
-                    if (SelectMotorCollider.thumbPaxiniForceYellow || SelectMotorCollider.thumbFreezeEnabled)
-                        return singleFrozenColor;
-                }
-                else if (motorID == IndexPaxiniMotorID)
-                {
-                    if (SelectMotorCollider.indexPaxiniForceOriginal)
-                        return fallbackOriginalColor;
-                    if (SelectMotorCollider.indexPaxiniForceYellow || SelectMotorCollider.indexFreezeEnabled)
-                        return singleFrozenColor;
-                }
-                else
-                {
-                    if (SelectMotorCollider.middlePaxiniForceOriginal)
-                        return fallbackOriginalColor;
-                    if (SelectMotorCollider.middlePaxiniForceYellow || SelectMotorCollider.middleFreezeEnabled)
-                        return singleFrozenColor;
-                }
-            }
-
-            return fallbackOriginalColor;
         }
 
         return baseColor;
