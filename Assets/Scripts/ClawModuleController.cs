@@ -1413,6 +1413,15 @@ public class ClawModuleController : MonoBehaviour
         if (!modeSwitching.modeSelect)
             return false;
 
+        // ArmUI parity: while still touching EnterPlane, treat as "inside threshold"
+        // so new Paxini ON/OFF changes affect color/state only in this round and do not
+        // immediately lock all 4 motors. Locks apply after leaving EnterPlane (round-away).
+        ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+        if (activeArmUI != null && activeArmUI.useArmUIPlane)
+        {
+            return activeArmUI.IsPointerInsideEnterArmUIPlane();
+        }
+
         float threshold = modeSwitching.useControllerSeperationDistance
             ? modeSwitching.controllerSeparationThreshold
             : modeSwitching.handSeparationThreshold;
