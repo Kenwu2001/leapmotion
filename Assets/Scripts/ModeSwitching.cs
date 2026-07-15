@@ -12,6 +12,10 @@ public class ModeSwitching : MonoBehaviour
     public SelectMotorCollider SelectMotorCollider;
     public ArmUIPlaneController armUIPlaneController;
 
+    [Header("Input Priority")]
+    [Tooltip("When enabled, projection motor touching can still select motors even while ArmUI plane is active.")]
+    public bool allowProjectionSelectionWhenArmUIPlaneActive = true;
+
     public Renderer thumbJoint1Renderer;
     public Renderer thumbJoint2Renderer;
     public Renderer thumbJoint3Renderer;
@@ -307,7 +311,7 @@ public class ModeSwitching : MonoBehaviour
 
         if (isArmUIPlaneActive)
         {
-            if (SelectMotorCollider != null)
+            if (SelectMotorCollider != null && !allowProjectionSelectionWhenArmUIPlaneActive)
             {
                 SelectMotorCollider.ClearSelectionStateForArmUIPlane();
             }
@@ -1269,6 +1273,16 @@ public class ModeSwitching : MonoBehaviour
         if (!isArmUIPlaneActive)
         {
             return SelectMotorCollider != null ? SelectMotorCollider.currentTouchedMotorID : 0;
+        }
+
+        // Projection can remain selectable while ArmUI plane is active.
+        if (allowProjectionSelectionWhenArmUIPlaneActive && SelectMotorCollider != null)
+        {
+            int projectionMotorID = SelectMotorCollider.currentTouchedMotorID;
+            if (projectionMotorID != 0 && IsMotorSelectableForCurrentState(projectionMotorID))
+            {
+                return projectionMotorID;
+            }
         }
 
         if (!_armUIInputIsInsideEnterPlane)

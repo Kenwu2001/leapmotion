@@ -519,7 +519,7 @@ public class SelectMotorCollider : MonoBehaviour
             return;
         }
 
-        if (IsArmUIPlaneActive())
+        if (ShouldSuppressProjectionForArmUIPlane())
         {
             ClearSelectionStateForArmUIPlane();
             // Arm UI uses ModeSwitching as the single source of truth for selecting/freeze rounds.
@@ -769,6 +769,23 @@ public class SelectMotorCollider : MonoBehaviour
     private bool IsArmUIPlaneActive()
     {
         return armUIPlaneController != null && armUIPlaneController.useArmUIPlane;
+    }
+
+    private bool ShouldSuppressProjectionForArmUIPlane()
+    {
+        if (!IsArmUIPlaneActive())
+        {
+            return false;
+        }
+
+        // When enabled in ModeSwitching, projection should remain selectable
+        // even while ArmUI plane is active.
+        if (modeSwitching != null && modeSwitching.allowProjectionSelectionWhenArmUIPlaneActive)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void ClearSelectionStateForManipulate()
