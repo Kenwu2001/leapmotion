@@ -661,6 +661,7 @@ public class ModeSwitching : MonoBehaviour
 
                             _pendingSingleMotorFreeze[i] = false;
                             singleMotorFrozen[i] = true;
+                            CheckAndAutoEnablePaxini(i + 1);
                         }
 
                         // Commit pending single-motor unfreeze only after round-away.
@@ -1428,7 +1429,10 @@ public class ModeSwitching : MonoBehaviour
             armUIProxySingleMotorFrozen = new bool[12];
         }
 
-        System.Array.Copy(singleMotorFrozen, armUIProxySingleMotorFrozen, 12);
+        for (int i = 0; i < 12; i++)
+        {
+            armUIProxySingleMotorFrozen[i] = singleMotorFrozen[i] || _pendingSingleMotorFreeze[i];
+        }
     }
 
     private void UpdateArmUIProxyState()
@@ -1767,12 +1771,6 @@ public class ModeSwitching : MonoBehaviour
             return unfreezeHintColor;
         }
 
-        if (confirmedMotorID == motorID)
-            return darkRedColor;
-
-        if (currentRedMotorID == motorID && currentRedMotorID != confirmedMotorID)
-            return isConfirmed ? darkRedColor : lightRedColor;
-
         Color baseColor = fallbackOriginalColor;
         if (motorID >= 1 && motorID <= 12)
         {
@@ -1786,6 +1784,15 @@ public class ModeSwitching : MonoBehaviour
                 return baseColor;
             }
 
+            bool suppressGroupYellow = (motorID <= 4 && _suppressThumbGroupYellow)
+                                     || (motorID >= 5 && motorID <= 8 && _suppressIndexGroupYellow)
+                                     || (motorID >= 9 && _suppressMiddleGroupYellow);
+
+            if (singleMotorFrozen[motorID - 1] && !suppressGroupYellow)
+            {
+                return singleFrozenColor;
+            }
+
             if (useFingertipFirst && grayMode)
             {
                 if (confirmedFingertipID == 0)
@@ -1797,19 +1804,16 @@ public class ModeSwitching : MonoBehaviour
                     baseColor = grayColor;
                 }
             }
+        }
 
-            bool suppressGroupYellow = (motorID <= 4 && _suppressThumbGroupYellow)
-                                     || (motorID >= 5 && motorID <= 8 && _suppressIndexGroupYellow)
-                                     || (motorID >= 9 && _suppressMiddleGroupYellow);
+        if (confirmedMotorID == motorID)
+            return darkRedColor;
 
-            if (singleMotorFrozen[motorID - 1] && !suppressGroupYellow)
-            {
-                return singleFrozenColor;
-            }
+        if (currentRedMotorID == motorID && currentRedMotorID != confirmedMotorID)
+            return isConfirmed ? darkRedColor : lightRedColor;
 
-            // Do not force group yellow from Paxini state during selecting.
-            // Group motor colors follow singleMotorFrozen and commit at round-away.
-
+        if (motorID >= 1 && motorID <= 12)
+        {
             return baseColor;
         }
 
@@ -2555,8 +2559,14 @@ public class ModeSwitching : MonoBehaviour
         else if (frozenMotorID >= 5 && frozenMotorID <= 8)  { gStart = 5; gEnd = 8; }
         else if (frozenMotorID >= 9 && frozenMotorID <= 12) { gStart = 9; gEnd = 12; }
         else return;
+
         for (int m = gStart; m <= gEnd; m++)
-            if (!singleMotorFrozen[m - 1]) return; // not all frozen yet
+        {
+            int idx = m - 1;
+            bool effectiveFrozen = (singleMotorFrozen[idx] || _pendingSingleMotorFreeze[idx])
+                                && !_pendingSingleMotorUnfreeze[idx];
+            if (!effectiveFrozen) return; // not all frozen yet
+        }
 
         // All 4 frozen — mark pending auto-ON only.
         // Paxini color/state are committed when hand moves away (> threshold).

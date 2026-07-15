@@ -286,6 +286,16 @@ public class ArmUIPlaneController : MonoBehaviour
                 armSingleMotorFrozen = new bool[12];
             }
             System.Array.Copy(modeSwitching.armUIProxySingleMotorFrozen, armSingleMotorFrozen, 12);
+
+            if (armConfirmedMotorID >= 1 && armConfirmedMotorID <= 12 && armSingleMotorFrozen[armConfirmedMotorID - 1])
+            {
+                armModeManipulate = false;
+                if (!enterArmUIPlaneButton.isTouched)
+                {
+                    armModeSelect = true;
+                }
+            }
+
             armUIProxyDebug = "Enter=" + enterArmUIPlaneButton.isTouched +
                 " Raw=" + armRawTouchedMotorID +
                 " ProxyTouched=" + armCurrentTouchedMotorID +
