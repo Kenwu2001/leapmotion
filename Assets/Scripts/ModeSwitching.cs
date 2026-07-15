@@ -116,6 +116,7 @@ public class ModeSwitching : MonoBehaviour
     private bool _justFrozeWhileHolding = false; // true when motor just froze while finger still held
     private int  _justFrozeMotorID = 0;          // which motor just froze while held
     private bool _singleFreezeInProgress = false;// true during red→yellow lerp (blocks manipulate)
+    private bool[] _pendingSingleMotorFreeze = new bool[12];
     private bool[] _pendingSingleMotorUnfreeze = new bool[12];
 
     // One-motor-per-round constraint: tracks which motor 1-12 changed mode this round.
@@ -270,6 +271,7 @@ public class ModeSwitching : MonoBehaviour
         _singleFreezeInProgress = false;
         _roundChangedMotorID = 0;
         _singleMotorFrozenBaseline = new bool[12];
+        _pendingSingleMotorFreeze = new bool[12];
         _pendingSingleMotorUnfreeze = new bool[12];
         _frozenBaselineCaptured = false;
 
@@ -499,7 +501,7 @@ public class ModeSwitching : MonoBehaviour
                         SetMotorColorDirect(confirmedMotorID, singleFrozenColor);
                     }
 
-                    if (!isStillBuildingFreeze && !singleMotorFrozen[confirmedMotorID - 1])
+                    if (!isStillBuildingFreeze && !singleMotorFrozen[confirmedMotorID - 1] && !_pendingSingleMotorFreeze[confirmedMotorID - 1])
                     {
                         int frozenID = confirmedMotorID;
                         // If a DIFFERENT motor already has a committed change, revert it first.
@@ -509,8 +511,13 @@ public class ModeSwitching : MonoBehaviour
                             RevertMotorToBaseline(_roundChangedMotorID);
                             _roundChangedMotorID = 0;
                         }
-                        // Motor is now frozen!
-                        singleMotorFrozen[frozenID - 1] = true;
+                        // Mark pending freeze for this round; state commits at round-away.
+                        _pendingSingleMotorFreeze[frozenID - 1] = true;
+                        _pendingSingleMotorUnfreeze[frozenID - 1] = false;
+                        if (armUIPlaneController != null && armUIPlaneController.clawModuleController != null)
+                        {
+                            armUIPlaneController.clawModuleController.CaptureSingleMotorFreezeSnapshot(frozenID);
+                        }
                         // Track round change only if net state differs from baseline
                         if (frozenID >= 1 && frozenID <= 12)
                             _roundChangedMotorID = !IsBaselineFrozenForMotor(frozenID) ? frozenID : 0;
@@ -626,6 +633,9 @@ public class ModeSwitching : MonoBehaviour
             bool hasAnyFrozen = false;
             for (int i = 0; i < 12; i++) { if (singleMotorFrozen[i]) { hasAnyFrozen = true; break; } }
 
+            bool hasPendingSingleFreeze = false;
+            for (int i = 0; i < 12; i++) { if (_pendingSingleMotorFreeze[i]) { hasPendingSingleFreeze = true; break; } }
+
             bool hasPendingSingleUnfreeze = false;
             for (int i = 0; i < 12; i++) { if (_pendingSingleMotorUnfreeze[i]) { hasPendingSingleUnfreeze = true; break; } }
 
@@ -633,13 +643,25 @@ public class ModeSwitching : MonoBehaviour
                                  || _pendingThumbAutoOff || _pendingIndexAutoOff || _pendingMiddleAutoOff
                                  || _pendingThumbDirectOff || _pendingIndexDirectOff || _pendingMiddleDirectOff;
 
-            if (hasAnyFrozen || hasPendingPaxini || hasPendingSingleUnfreeze)
+            if (hasAnyFrozen || hasPendingPaxini || hasPendingSingleFreeze || hasPendingSingleUnfreeze)
             {
                 if (isRoundAway)
                 {
                     if (!_frozenBaselineCaptured)
                     {
                         _frozenBaselineCaptured = true;
+
+                        // Commit pending single-motor freeze only after round-away.
+                        for (int i = 0; i < 12; i++)
+                        {
+                            if (!_pendingSingleMotorFreeze[i])
+                            {
+                                continue;
+                            }
+
+                            _pendingSingleMotorFreeze[i] = false;
+                            singleMotorFrozen[i] = true;
+                        }
 
                         // Commit pending single-motor unfreeze only after round-away.
                         for (int i = 0; i < 12; i++)
@@ -1101,7 +1123,12 @@ public class ModeSwitching : MonoBehaviour
             _roundChangedMotorID = 0;
         }
 
-        singleMotorFrozen[motorID - 1] = true;
+        _pendingSingleMotorFreeze[motorID - 1] = true;
+        _pendingSingleMotorUnfreeze[motorID - 1] = false;
+        if (armUIPlaneController != null && armUIPlaneController.clawModuleController != null)
+        {
+            armUIPlaneController.clawModuleController.CaptureSingleMotorFreezeSnapshot(motorID);
+        }
         _roundChangedMotorID = !IsBaselineFrozenForMotor(motorID) ? motorID : 0;
         _frozenBaselineCaptured = false;
         _noFreezeRoundBaselineCaptured = false;
@@ -1749,6 +1776,11 @@ public class ModeSwitching : MonoBehaviour
         Color baseColor = fallbackOriginalColor;
         if (motorID >= 1 && motorID <= 12)
         {
+            if (_pendingSingleMotorFreeze[motorID - 1])
+            {
+                return singleFrozenColor;
+            }
+
             if (_pendingSingleMotorUnfreeze[motorID - 1])
             {
                 return baseColor;
@@ -1996,6 +2028,10 @@ public class ModeSwitching : MonoBehaviour
                 if (!suppress)
                     SetMotorColorDirect(mID, singleFrozenColor);
             }
+            else if (_pendingSingleMotorFreeze[i])
+            {
+                SetMotorColorDirect(i + 1, singleFrozenColor);
+            }
         }
 
         // Do not force group yellow from Paxini ON during selecting.
@@ -2127,7 +2163,12 @@ public class ModeSwitching : MonoBehaviour
         if (motorID >= 1 && motorID <= 12)
         {
             bool baselineFrozen = _singleMotorFrozenBaseline[motorID - 1];
+            _pendingSingleMotorFreeze[motorID - 1] = false;
             _pendingSingleMotorUnfreeze[motorID - 1] = false;
+            if (armUIPlaneController != null && armUIPlaneController.clawModuleController != null)
+            {
+                armUIPlaneController.clawModuleController.ClearSingleMotorFreezeSnapshot(motorID);
+            }
             singleMotorFrozen[motorID - 1] = baselineFrozen;
             SetMotorColorDirect(motorID, baselineFrozen ? singleFrozenColor : originalColor);
             // Check whether the group's pending auto states are still valid after this revert.
@@ -2294,9 +2335,10 @@ public class ModeSwitching : MonoBehaviour
         for (int motorID = 1; motorID <= 12; motorID++)
         {
             bool baselineFrozen = _singleMotorFrozenBaseline[motorID - 1];
+            bool pendingFreezeDiff = _pendingSingleMotorFreeze[motorID - 1];
             bool stateDiff = singleMotorFrozen[motorID - 1] != baselineFrozen;
             bool pendingUnfreezeDiff = _pendingSingleMotorUnfreeze[motorID - 1];
-            if (stateDiff || pendingUnfreezeDiff)
+            if (pendingFreezeDiff || stateDiff || pendingUnfreezeDiff)
             {
                 diffs.Add(motorID);
             }
@@ -2846,6 +2888,8 @@ public class ModeSwitching : MonoBehaviour
             System.Array.Clear(singleMotorFrozen, 0, singleMotorFrozen.Length);
         if (_singleMotorFrozenBaseline != null)
             System.Array.Clear(_singleMotorFrozenBaseline, 0, _singleMotorFrozenBaseline.Length);
+        if (_pendingSingleMotorFreeze != null)
+            System.Array.Clear(_pendingSingleMotorFreeze, 0, _pendingSingleMotorFreeze.Length);
         if (_pendingSingleMotorUnfreeze != null)
             System.Array.Clear(_pendingSingleMotorUnfreeze, 0, _pendingSingleMotorUnfreeze.Length);
 

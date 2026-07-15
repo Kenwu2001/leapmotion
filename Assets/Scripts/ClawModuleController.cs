@@ -611,6 +611,7 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     private bool[]       _singleMotorFrozenWas = new bool[12];       // previous-frame state for rising-edge detection
     private Quaternion[] _singleMotorFrozenRot = new Quaternion[12]; // captured joint rotation per motor
+    private bool[]       _singleMotorFrozenInjected = new bool[12];  // pre-captured snapshot to use on next freeze rising-edge
 
     // Selecting-round lock baseline: while inside threshold during modeSelect,
     // angle lock follows this snapshot and ignores in-round freeze toggles.
@@ -1221,7 +1222,16 @@ public class ClawModuleController : MonoBehaviour
 
             // Rising edge: capture current rotation
             if (isFrozen && !_singleMotorFrozenWas[i])
-                _singleMotorFrozenRot[i] = t.localRotation;
+            {
+                if (_singleMotorFrozenInjected[i])
+                {
+                    _singleMotorFrozenInjected[i] = false;
+                }
+                else
+                {
+                    _singleMotorFrozenRot[i] = t.localRotation;
+                }
+            }
 
             // While frozen: lock to captured rotation
             if (isFrozen)
@@ -1229,6 +1239,34 @@ public class ClawModuleController : MonoBehaviour
 
             _singleMotorFrozenWas[i] = isFrozen;
         }
+    }
+
+    public void CaptureSingleMotorFreezeSnapshot(int motorID)
+    {
+        if (motorID < 1 || motorID > 12)
+        {
+            return;
+        }
+
+        Transform t = GetMotorTransform(motorID);
+        if (t == null)
+        {
+            return;
+        }
+
+        int index = motorID - 1;
+        _singleMotorFrozenRot[index] = t.localRotation;
+        _singleMotorFrozenInjected[index] = true;
+    }
+
+    public void ClearSingleMotorFreezeSnapshot(int motorID)
+    {
+        if (motorID < 1 || motorID > 12)
+        {
+            return;
+        }
+
+        _singleMotorFrozenInjected[motorID - 1] = false;
     }
 
     /// <summary>Returns the joint Transform for motor IDs 1-12.</summary>
@@ -4573,6 +4611,7 @@ public class ClawModuleController : MonoBehaviour
         _smcThumbFreezeWasEnabled = false;
         _smcIndexFreezeWasEnabled = false;
         _smcMiddleFreezeWasEnabled = false;
+        System.Array.Clear(_singleMotorFrozenInjected, 0, _singleMotorFrozenInjected.Length);
 
         if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
         {
