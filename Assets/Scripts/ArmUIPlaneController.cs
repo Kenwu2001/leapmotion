@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using System.Text;
 
 public class ArmUIPlaneController : MonoBehaviour
 {
@@ -168,11 +169,17 @@ public class ArmUIPlaneController : MonoBehaviour
     public int armRejectedMotorID = 0;
     public string armRejectReason = "None";
     public string armUIProxyDebug = "N/A";
-    // [TextArea(6, 16)] public string armUIProxyHistory = "N/A";
+
+    [Header("Debug History")]
+    [Tooltip("Enable/disable ArmUI debug history recording.")]
+    public bool logArmUIDebugHistory = true;
+    [Tooltip("How many recent history lines are kept.")]
+    [Range(10, 400)] public int armUIDebugHistoryMaxLines = 120;
+    [TextArea(10, 36)] public string armUIDebugHistory = "N/A";
 
     private readonly List<ButtonBinding> _motorButtons = new List<ButtonBinding>();
-    // private readonly Queue<string> _armUIHistoryEntries = new Queue<string>();
-    // private string _lastArmUIProxyDebugSnapshot = string.Empty;
+    private readonly Queue<string> _armUIHistoryEntries = new Queue<string>();
+    private string _lastHistoryStateSummary = string.Empty;
     private bool _thumbSliderVisible;
     private bool _indexSliderVisible;
     private bool _middleSliderVisible;
@@ -250,6 +257,15 @@ public class ArmUIPlaneController : MonoBehaviour
         useArmUIPlane = armUIPlaneCollider != null && armUIPlaneCollider.inArmUIArea;
         bool justEnteredArmUIArea = useArmUIPlane && !_wasUseArmUIPlaneLastFrame;
 
+        if (justEnteredArmUIArea)
+        {
+            AppendArmUIDebugHistory("AREA enter ArmUI area");
+        }
+        else if (!useArmUIPlane && _wasUseArmUIPlaneLastFrame)
+        {
+            AppendArmUIDebugHistory("AREA exit ArmUI area");
+        }
+
         SyncArmUIPlaneVisualRootPosition(!useArmUIPlane);
 
         if (!useArmUIPlane)
@@ -306,7 +322,7 @@ public class ArmUIPlaneController : MonoBehaviour
                 " Reason=" + armRejectReason +
                 " | MotorState=" + BuildMotorIDStateSnapshot() +
                 " | ArmMotorState=" + BuildArmMotorIDStateSnapshot();
-            // RecordArmUIHistoryIfChanged();
+            RecordArmUIHistoryIfChanged();
         }
 
         SyncSliderVisibility();
@@ -318,6 +334,35 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncMaxMinSliderValue();
         _lastArmModeManipulate = armModeManipulate;
         _wasUseArmUIPlaneLastFrame = useArmUIPlane;
+    }
+
+    [ContextMenu("ArmUI Debug/Copy Payload To Clipboard")]
+    private void CopyArmUIDebugPayloadToClipboard()
+    {
+        string payload = BuildArmUIDebugPayload();
+        GUIUtility.systemCopyBuffer = payload;
+        AppendArmUIDebugHistory("ACTION copied ArmUI debug payload to clipboard");
+    }
+
+    [ContextMenu("ArmUI Debug/Clear History")]
+    private void ClearArmUIDebugHistory()
+    {
+        _armUIHistoryEntries.Clear();
+        armUIDebugHistory = "N/A";
+        _lastHistoryStateSummary = string.Empty;
+    }
+
+    public string BuildArmUIDebugPayload()
+    {
+        StringBuilder builder = new StringBuilder(2048);
+        builder.AppendLine("=== ArmUI Debug Payload ===");
+        builder.AppendLine("frame=" + Time.frameCount + " time=" + Time.time.ToString("F3"));
+        builder.AppendLine("interaction=" + interactionDebug);
+        builder.AppendLine("proxy=" + armUIProxyDebug);
+        builder.AppendLine("currentTouchedButton=" + currentTouchedButton + " currentTouchedCollider=" + currentTouchedCollider);
+        builder.AppendLine("history:");
+        builder.AppendLine(armUIDebugHistory);
+        return builder.ToString();
     }
 
     private void SyncArmUIPlaneVisualRootPosition(bool shouldHide)
@@ -1764,23 +1809,49 @@ public class ArmUIPlaneController : MonoBehaviour
         }
     }
 
-    // private void RecordArmUIHistoryIfChanged()
-    // {
-    //     if (armUIProxyDebug == _lastArmUIProxyDebugSnapshot)
-    //     {
-    //         return;
-    //     }
+    private void RecordArmUIHistoryIfChanged()
+    {
+        if (!logArmUIDebugHistory)
+        {
+            return;
+        }
 
-    //     _lastArmUIProxyDebugSnapshot = armUIProxyDebug;
-    //     string historyLine = "f=" + Time.frameCount + " t=" + Time.time.ToString("F3") + " " + armUIProxyDebug;
-    //     _armUIHistoryEntries.Enqueue(historyLine);
-    //     while (_armUIHistoryEntries.Count > 12)
-    //     {
-    //         _armUIHistoryEntries.Dequeue();
-    //     }
+        string stateSummary =
+            "Enter=" + enterArmUIPlaneButton.isTouched +
+            " Raw=" + armRawTouchedMotorID +
+            " ProxyTouched=" + armCurrentTouchedMotorID +
+            " Red=" + armCurrentRedMotorID +
+            " Confirmed=" + armConfirmedMotorID +
+            " Rejected=" + armRejectedMotorID +
+            " Reason=" + armRejectReason;
 
-    //     armUIProxyHistory = string.Join("\n", _armUIHistoryEntries.ToArray());
-    // }
+        if (stateSummary == _lastHistoryStateSummary)
+        {
+            return;
+        }
+
+        _lastHistoryStateSummary = stateSummary;
+        AppendArmUIDebugHistory("STATE " + stateSummary + " | ArmMotorState=" + BuildArmMotorIDStateSnapshot());
+    }
+
+    private void AppendArmUIDebugHistory(string message)
+    {
+        if (!logArmUIDebugHistory || string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        string historyLine = "f=" + Time.frameCount + " t=" + Time.time.ToString("F3") + " " + message;
+        _armUIHistoryEntries.Enqueue(historyLine);
+
+        int targetCount = Mathf.Max(10, armUIDebugHistoryMaxLines);
+        while (_armUIHistoryEntries.Count > targetCount)
+        {
+            _armUIHistoryEntries.Dequeue();
+        }
+
+        armUIDebugHistory = string.Join("\n", _armUIHistoryEntries.ToArray());
+    }
 
     private string BuildMotorIDStateSnapshot()
     {
@@ -1998,6 +2069,7 @@ public class ArmUIPlaneController : MonoBehaviour
                 enterArmUIPlaneButton.isTouched = true;
                 interactionDebug = "Touch enter: " + enterArmUIPlaneButton.buttonName + " (" + other.name + ")";
                 currentTouchedCollider = other.name;
+                AppendArmUIDebugHistory("EVENT enter " + enterArmUIPlaneButton.buttonName + " collider=" + other.name);
                 enterArmUIPlaneButton.onEnter?.Invoke();
             }
 
@@ -2012,6 +2084,7 @@ public class ArmUIPlaneController : MonoBehaviour
                 currentTouchedButton = button.buttonName;
                 currentTouchedCollider = other.name;
                 interactionDebug = "Touch enter: " + button.buttonName + " (" + currentTouchedCollider + ")";
+                AppendArmUIDebugHistory("EVENT enter " + button.buttonName + " collider=" + other.name);
                 button.onEnter?.Invoke();
             }
             return;
@@ -2023,6 +2096,7 @@ public class ArmUIPlaneController : MonoBehaviour
             currentTouchedButton = button.buttonName;
             currentTouchedCollider = other.name;
             interactionDebug = "Touch enter: " + button.buttonName + " (" + currentTouchedCollider + ")";
+            AppendArmUIDebugHistory("EVENT enter " + button.buttonName + " motor=" + button.resolvedMotorID + " collider=" + other.name);
             button.onEnter?.Invoke();
             RefreshActiveArmMotor();
         }
@@ -2041,6 +2115,7 @@ public class ArmUIPlaneController : MonoBehaviour
             {
                 enterArmUIPlaneButton.isTouched = false;
                 interactionDebug = "Touch exit: " + enterArmUIPlaneButton.buttonName + " (" + other.name + ")";
+                AppendArmUIDebugHistory("EVENT exit " + enterArmUIPlaneButton.buttonName + " collider=" + other.name);
                 enterArmUIPlaneButton.onExit?.Invoke();
             }
 
@@ -2053,6 +2128,7 @@ public class ArmUIPlaneController : MonoBehaviour
             {
                 button.isTouched = false;
                 interactionDebug = "Touch exit: " + button.buttonName + " (" + other.name + ")";
+                AppendArmUIDebugHistory("EVENT exit " + button.buttonName + " collider=" + other.name);
                 button.onExit?.Invoke();
             }
 
@@ -2063,6 +2139,7 @@ public class ArmUIPlaneController : MonoBehaviour
         {
             button.isTouched = false;
             interactionDebug = "Touch exit: " + button.buttonName + " (" + other.name + ")";
+            AppendArmUIDebugHistory("EVENT exit " + button.buttonName + " motor=" + button.resolvedMotorID + " collider=" + other.name);
             button.onExit?.Invoke();
         }
 
@@ -2240,10 +2317,17 @@ public class ArmUIPlaneController : MonoBehaviour
 
 internal class ArmUIButtonTriggerDetector : MonoBehaviour
 {
+    private const float ExitGraceSeconds = 0.08f;
+    private const float StayTimeoutSeconds = 0.22f;
+
     private ArmUIPlaneController _controller;
     private ArmUIPlaneController.ButtonBinding _button;
     private int _touchCount = 0;
     private bool _isActive = false;
+    private float _pendingExitAt = -1f;
+    private Collider _pendingExitCollider;
+    private float _lastSeenTouchTime = -1f;
+    private Collider _lastSeenCollider;
 
     public void Initialize(ArmUIPlaneController controller, ArmUIPlaneController.ButtonBinding button)
     {
@@ -2251,11 +2335,45 @@ internal class ArmUIButtonTriggerDetector : MonoBehaviour
         _button = button;
         _touchCount = 0;
         _isActive = false;
+        _pendingExitAt = -1f;
+        _pendingExitCollider = null;
+        _lastSeenTouchTime = -1f;
+        _lastSeenCollider = null;
+    }
+
+    private void Update()
+    {
+        if (_controller == null || !_isActive)
+        {
+            return;
+        }
+
+        if (_touchCount == 0)
+        {
+            if (_pendingExitAt > 0f && Time.time >= _pendingExitAt)
+            {
+                ForceExit(_pendingExitCollider);
+            }
+            return;
+        }
+
+        _pendingExitAt = -1f;
+
+        // If a touch gets stuck active without stay heartbeats, force release.
+        if (_lastSeenTouchTime > 0f && (Time.time - _lastSeenTouchTime) > StayTimeoutSeconds)
+        {
+            _touchCount = 0;
+            ForceExit(_lastSeenCollider);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
         _touchCount++;
+        _lastSeenTouchTime = Time.time;
+        _lastSeenCollider = other;
+        _pendingExitAt = -1f;
+        _pendingExitCollider = null;
         if (_controller != null && !_isActive)
         {
             _isActive = true;
@@ -2265,6 +2383,9 @@ internal class ArmUIButtonTriggerDetector : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        _lastSeenTouchTime = Time.time;
+        _lastSeenCollider = other;
+
         if (_controller != null && _isActive && _button != null && _button == _controller.enterArmUIPlaneButton)
         {
             _controller.currentTouchedCollider = other.name;
@@ -2276,8 +2397,22 @@ internal class ArmUIButtonTriggerDetector : MonoBehaviour
         _touchCount = Mathf.Max(0, _touchCount - 1);
         if (_controller != null && _isActive && _touchCount == 0)
         {
-            _isActive = false;
-            _controller.OnButtonTriggerExit(_button, other);
+            _pendingExitAt = Time.time + ExitGraceSeconds;
+            _pendingExitCollider = other;
         }
+    }
+
+    private void ForceExit(Collider other)
+    {
+        if (_controller == null || !_isActive)
+        {
+            return;
+        }
+
+        _isActive = false;
+        _pendingExitAt = -1f;
+        _pendingExitCollider = null;
+        _touchCount = 0;
+        _controller.OnButtonTriggerExit(_button, other != null ? other : _lastSeenCollider);
     }
 }

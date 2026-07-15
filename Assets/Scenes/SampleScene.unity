@@ -32806,8 +32806,8 @@ Transform:
   m_GameObject: {fileID: 856718600}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.96}
-  m_LocalScale: {x: 1.28, y: 1.28, z: 1.28}
+  m_LocalPosition: {x: 0, y: -0, z: -1.39}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2076058760}
@@ -43868,6 +43868,7 @@ MonoBehaviour:
   armUIProxyMiddlePaxiniOn: 0
   armUIProxyRejectedMotorID: 0
   armUIProxyRejectReason: None
+  armUITouchLossGraceTime: 0.12
 --- !u!4 &951283615
 Transform:
   m_ObjectHideFlags: 0
@@ -45141,8 +45142,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.01, y: 0.01, z: 0.01}
-  m_Center: {x: 0.11, y: 0.015, z: 0.035}
+  m_Size: {x: 0.002624413, y: 0.0029068768, z: 0.0026716874}
+  m_Center: {x: 0.10948727, y: 0.015663631, z: 0.035204995}
 --- !u!54 &1016481710
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -45312,6 +45313,7 @@ MonoBehaviour:
         m_Calls: []
     originalColor: {r: 0, g: 0, b: 0, a: 0}
     resolvedMotorID: 0
+  sliderMode: 2
   thumbSliderObject: {fileID: 606058042}
   indexSliderObject: {fileID: 1137782456}
   middleSliderObject: {fileID: 2126165197}
