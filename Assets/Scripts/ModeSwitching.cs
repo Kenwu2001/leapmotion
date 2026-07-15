@@ -116,6 +116,7 @@ public class ModeSwitching : MonoBehaviour
     private bool _justFrozeWhileHolding = false; // true when motor just froze while finger still held
     private int  _justFrozeMotorID = 0;          // which motor just froze while held
     private bool _singleFreezeInProgress = false;// true during red→yellow lerp (blocks manipulate)
+    private bool[] _pendingSingleMotorUnfreeze = new bool[12];
 
     // One-motor-per-round constraint: tracks which motor 1-12 changed mode this round.
     // Once set, no OTHER motor 1-12 may confirm or unfreeze until a new round begins.
@@ -269,6 +270,7 @@ public class ModeSwitching : MonoBehaviour
         _singleFreezeInProgress = false;
         _roundChangedMotorID = 0;
         _singleMotorFrozenBaseline = new bool[12];
+        _pendingSingleMotorUnfreeze = new bool[12];
         _frozenBaselineCaptured = false;
 
         // Reset: grayMode off, all motors off, all Paxini freeze off
@@ -419,18 +421,15 @@ public class ModeSwitching : MonoBehaviour
                             _roundChangedMotorID = 0;
                         }
                         isConfirmed = true;
-                        singleMotorFrozen[fm - 1] = false;
-                        // Track round change only if net state differs from baseline
-                        if (fm >= 1 && fm <= 12)
-                            _roundChangedMotorID = IsBaselineFrozenForMotor(fm) ? fm : 0;
+                        _pendingSingleMotorUnfreeze[fm - 1] = true;
+                        _roundChangedMotorID = fm;
+                        _frozenBaselineCaptured = false;
+                        _noFreezeRoundBaselineCaptured = false;
                         _isUnfreezing = false;
                         _unfreezeTargetMotorID = 0;
                         currentRedMotorID = 0;
                         motorSelected = false;
                         confirmedMotorID = 0;
-                        // Auto-disable Paxini BEFORE UpdateMotorColors so the visual sync
-                        // sees thumbFreezeEnabled=false and does not repaint the unfrozen motor yellow.
-                        CheckAndAutoDisablePaxini(fm);
                         UpdateMotorColors();
                     }
                     // else: still holding on the frozen motor; per-frame section keeps it pink
@@ -522,6 +521,8 @@ public class ModeSwitching : MonoBehaviour
                         _singleFreezeInProgress = false;
                         _justFrozeWhileHolding = true;
                         _justFrozeMotorID = frozenID;
+                        _frozenBaselineCaptured = false;
+                        _noFreezeRoundBaselineCaptured = false;
                         SetMotorColorDirect(frozenID, singleFrozenColor);
                         UpdateMotorColors(); // Refresh reverted motor color
                         // Auto-enable Paxini if all 4 motors in this group are now frozen
@@ -625,17 +626,34 @@ public class ModeSwitching : MonoBehaviour
             bool hasAnyFrozen = false;
             for (int i = 0; i < 12; i++) { if (singleMotorFrozen[i]) { hasAnyFrozen = true; break; } }
 
+            bool hasPendingSingleUnfreeze = false;
+            for (int i = 0; i < 12; i++) { if (_pendingSingleMotorUnfreeze[i]) { hasPendingSingleUnfreeze = true; break; } }
+
             bool hasPendingPaxini = _pendingThumbAutoOn || _pendingIndexAutoOn || _pendingMiddleAutoOn
                                  || _pendingThumbAutoOff || _pendingIndexAutoOff || _pendingMiddleAutoOff
                                  || _pendingThumbDirectOff || _pendingIndexDirectOff || _pendingMiddleDirectOff;
 
-            if (hasAnyFrozen || hasPendingPaxini)
+            if (hasAnyFrozen || hasPendingPaxini || hasPendingSingleUnfreeze)
             {
                 if (isRoundAway)
                 {
                     if (!_frozenBaselineCaptured)
                     {
                         _frozenBaselineCaptured = true;
+
+                        // Commit pending single-motor unfreeze only after round-away.
+                        for (int i = 0; i < 12; i++)
+                        {
+                            if (!_pendingSingleMotorUnfreeze[i])
+                            {
+                                continue;
+                            }
+
+                            _pendingSingleMotorUnfreeze[i] = false;
+                            int unfrozenMotorID = i + 1;
+                            singleMotorFrozen[i] = false;
+                            CheckAndAutoDisablePaxini(unfrozenMotorID);
+                        }
 
                         // ── Commit pending Paxini auto-ON (all-4-frozen → Paxini freeze-on) ──────────
                         if (_pendingThumbAutoOn && SelectMotorCollider != null)
@@ -1085,6 +1103,8 @@ public class ModeSwitching : MonoBehaviour
 
         singleMotorFrozen[motorID - 1] = true;
         _roundChangedMotorID = !IsBaselineFrozenForMotor(motorID) ? motorID : 0;
+        _frozenBaselineCaptured = false;
+        _noFreezeRoundBaselineCaptured = false;
 
         SetMotorColorDirect(motorID, singleFrozenColor);
         CheckAndAutoEnablePaxini(motorID);
@@ -1729,6 +1749,11 @@ public class ModeSwitching : MonoBehaviour
         Color baseColor = fallbackOriginalColor;
         if (motorID >= 1 && motorID <= 12)
         {
+            if (_pendingSingleMotorUnfreeze[motorID - 1])
+            {
+                return baseColor;
+            }
+
             if (useFingertipFirst && grayMode)
             {
                 if (confirmedFingertipID == 0)
@@ -1959,6 +1984,11 @@ public class ModeSwitching : MonoBehaviour
         {
             if (singleMotorFrozen[i])
             {
+                if (_pendingSingleMotorUnfreeze[i])
+                {
+                    continue;
+                }
+
                 int mID = i + 1;
                 bool suppress = (mID <= 4 && _suppressThumbGroupYellow)
                              || (mID >= 5 && mID <= 8 && _suppressIndexGroupYellow)
@@ -2097,6 +2127,7 @@ public class ModeSwitching : MonoBehaviour
         if (motorID >= 1 && motorID <= 12)
         {
             bool baselineFrozen = _singleMotorFrozenBaseline[motorID - 1];
+            _pendingSingleMotorUnfreeze[motorID - 1] = false;
             singleMotorFrozen[motorID - 1] = baselineFrozen;
             SetMotorColorDirect(motorID, baselineFrozen ? singleFrozenColor : originalColor);
             // Check whether the group's pending auto states are still valid after this revert.
@@ -2263,7 +2294,9 @@ public class ModeSwitching : MonoBehaviour
         for (int motorID = 1; motorID <= 12; motorID++)
         {
             bool baselineFrozen = _singleMotorFrozenBaseline[motorID - 1];
-            if (singleMotorFrozen[motorID - 1] != baselineFrozen)
+            bool stateDiff = singleMotorFrozen[motorID - 1] != baselineFrozen;
+            bool pendingUnfreezeDiff = _pendingSingleMotorUnfreeze[motorID - 1];
+            if (stateDiff || pendingUnfreezeDiff)
             {
                 diffs.Add(motorID);
             }
@@ -2813,6 +2846,8 @@ public class ModeSwitching : MonoBehaviour
             System.Array.Clear(singleMotorFrozen, 0, singleMotorFrozen.Length);
         if (_singleMotorFrozenBaseline != null)
             System.Array.Clear(_singleMotorFrozenBaseline, 0, _singleMotorFrozenBaseline.Length);
+        if (_pendingSingleMotorUnfreeze != null)
+            System.Array.Clear(_pendingSingleMotorUnfreeze, 0, _pendingSingleMotorUnfreeze.Length);
 
         if (SelectMotorCollider != null)
         {
