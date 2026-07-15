@@ -543,6 +543,8 @@ public class ModeSwitching : MonoBehaviour
             {
                 SetMotorColorDirect(_unfreezeTargetMotorID, unfreezeHintColor);
             }
+
+            EnforceSingleRoundDifferenceInvariant();
         }
 
         bool isConfirmedPaxiniMotor = IsPaxiniMotor(confirmedMotorID);
@@ -952,6 +954,8 @@ public class ModeSwitching : MonoBehaviour
 
             if (shouldExitManipulate)
             {
+                AutoFreezeConfirmedMotorAfterArmUIManipulate();
+
                 modeSelect = true;
                 motorSelected = false;
                 modeManipulate = false;
@@ -1053,6 +1057,38 @@ public class ModeSwitching : MonoBehaviour
         }
 
         SyncArmUIProxyStateFromCanonical(isArmUIPlaneActive);
+    }
+
+    private void AutoFreezeConfirmedMotorAfterArmUIManipulate()
+    {
+        if (!IsArmUIPlaneActive() || armUIPlaneController == null)
+        {
+            return;
+        }
+
+        if (!armUIPlaneController.ShouldAutoFreezeConfirmedMotorOnManipulateExit())
+        {
+            return;
+        }
+
+        int motorID = confirmedMotorID;
+        if (motorID < 1 || motorID > 12)
+        {
+            return;
+        }
+
+        if (_roundChangedMotorID != 0 && _roundChangedMotorID != motorID)
+        {
+            RevertMotorToBaseline(_roundChangedMotorID);
+            _roundChangedMotorID = 0;
+        }
+
+        singleMotorFrozen[motorID - 1] = true;
+        _roundChangedMotorID = !IsBaselineFrozenForMotor(motorID) ? motorID : 0;
+
+        SetMotorColorDirect(motorID, singleFrozenColor);
+        CheckAndAutoEnablePaxini(motorID);
+        UpdateMotorColors();
     }
 
     private void UpdateCurrentHandSeparationDistance()
@@ -2213,6 +2249,93 @@ public class ModeSwitching : MonoBehaviour
         if (motorID == MiddlePaxiniMotorID) return 2;
 
         return -1;
+    }
+
+    private void EnforceSingleRoundDifferenceInvariant()
+    {
+        if (!modeSelect)
+        {
+            return;
+        }
+
+        List<int> diffs = new List<int>(15);
+
+        for (int motorID = 1; motorID <= 12; motorID++)
+        {
+            bool baselineFrozen = _singleMotorFrozenBaseline[motorID - 1];
+            if (singleMotorFrozen[motorID - 1] != baselineFrozen)
+            {
+                diffs.Add(motorID);
+            }
+        }
+
+        if (SelectMotorCollider != null)
+        {
+            if (SelectMotorCollider.thumbFreezeEnabled != _thumbBaselinePaxiniOn)
+            {
+                diffs.Add(ThumbPaxiniMotorID);
+            }
+
+            if (SelectMotorCollider.indexFreezeEnabled != _indexBaselinePaxiniOn)
+            {
+                diffs.Add(IndexPaxiniMotorID);
+            }
+
+            if (SelectMotorCollider.middleFreezeEnabled != _middleBaselinePaxiniOn)
+            {
+                diffs.Add(MiddlePaxiniMotorID);
+            }
+        }
+
+        if (diffs.Count <= 1)
+        {
+            _roundChangedMotorID = diffs.Count == 1 ? diffs[0] : 0;
+            return;
+        }
+
+        int keeper = _roundChangedMotorID;
+        bool keeperFound = false;
+        for (int i = 0; i < diffs.Count; i++)
+        {
+            if (diffs[i] == keeper)
+            {
+                keeperFound = true;
+                break;
+            }
+        }
+
+        if (!keeperFound)
+        {
+            int preferredMotorID = currentRedMotorID != 0 ? currentRedMotorID : lastTouchedMotorID;
+            for (int i = 0; i < diffs.Count; i++)
+            {
+                if (diffs[i] == preferredMotorID)
+                {
+                    keeper = preferredMotorID;
+                    keeperFound = true;
+                    break;
+                }
+            }
+        }
+
+        if (!keeperFound)
+        {
+            keeper = diffs[diffs.Count - 1];
+        }
+
+        for (int i = 0; i < diffs.Count; i++)
+        {
+            int diffMotorID = diffs[i];
+            if (diffMotorID == keeper)
+            {
+                continue;
+            }
+
+            RevertMotorToBaseline(diffMotorID);
+        }
+
+        _roundChangedMotorID = keeper;
+        UpdateMotorColors();
     }
 
     /// <summary>

@@ -16,6 +16,13 @@ public class ArmUIPlaneController : MonoBehaviour
         MotorConfirmed
     }
 
+    public enum ArmUISliderMode
+    {
+        DirectAngle,
+        MinMaxAngle,
+        OneMotorDirectAngle
+    }
+
     [System.Serializable]
     public class ButtonBinding
     {
@@ -84,9 +91,15 @@ public class ArmUIPlaneController : MonoBehaviour
     [Header("Enter Arm UI Plane Collider")]
     public ButtonBinding enterArmUIPlaneButton = new ButtonBinding { buttonName = "Enter Arm UI Plane Button" };
 
-    [Header("Arm UI Buttons")]
+    [Header("Arm UI Buttons (Legacy)")]
+    [Tooltip("Legacy plane mode button. Runtime mode now comes from sliderMode in inspector.")]
     public ButtonBinding directAngleButton = new ButtonBinding { buttonName = "Direct Angle Button" };
+    [Tooltip("Legacy plane mode button. Runtime mode now comes from sliderMode in inspector.")]
     public ButtonBinding maxMinAngleButton = new ButtonBinding { buttonName = "Max Min Angle Button" };
+
+    [Header("Arm UI Slider Mode")]
+    [Tooltip("Inspector-driven slider mode. Plane mode buttons are disabled.")]
+    public ArmUISliderMode sliderMode = ArmUISliderMode.OneMotorDirectAngle;
 
     [Header("Arm Sliders")]
     public GameObject thumbSliderObject;
@@ -192,6 +205,7 @@ public class ArmUIPlaneController : MonoBehaviour
     private Vector3 _armUIPlaneOriginalLocalScale;
     private bool _armUIPlaneOffsetApplied;
     private bool _wasUseArmUIPlaneLastFrame;
+    private bool _legacyModeButtonsHidden;
 
     private void Awake()
     {
@@ -223,6 +237,7 @@ public class ArmUIPlaneController : MonoBehaviour
         InitializeButton(enterArmUIPlaneButton);
         InitializeButton(directAngleButton);
         InitializeButton(maxMinAngleButton);
+        HideLegacyArmModeButtons();
         for (int i = 0; i < _motorButtons.Count; i++)
         {
             InitializeButton(_motorButtons[i]);
@@ -287,8 +302,8 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncSliderVisibility();
         SyncMotorButtonVisibility();
         SyncMotorButtonColors();
-        EnsureArmModeButtonSelectionIntegrity();
-        SyncArmModeButtonColors();
+        SyncLegacyModeButtonStateFromInspector();
+        HideLegacyArmModeButtons();
         SyncDirectAngleSliderValue();
         SyncMaxMinSliderValue();
         _lastArmModeManipulate = armModeManipulate;
@@ -347,65 +362,81 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void ConfigureArmModeButtonDefaults()
     {
-        if (directAngleButton == null || maxMinAngleButton == null)
-        {
-            return;
-        }
-
-        directAngleButton.isOn = false;
-        maxMinAngleButton.isOn = true;
+        SyncLegacyModeButtonStateFromInspector();
     }
 
-    private void EnsureArmModeButtonSelectionIntegrity()
+    private void SyncLegacyModeButtonStateFromInspector()
     {
         if (directAngleButton == null || maxMinAngleButton == null)
         {
             return;
         }
 
-        if (!directAngleButton.isOn && !maxMinAngleButton.isOn)
-        {
-            maxMinAngleButton.isOn = true;
-        }
-        else if (directAngleButton.isOn && maxMinAngleButton.isOn)
+        if (sliderMode == ArmUISliderMode.MinMaxAngle)
         {
             directAngleButton.isOn = false;
+            maxMinAngleButton.isOn = true;
         }
+        else
+        {
+            directAngleButton.isOn = true;
+            maxMinAngleButton.isOn = false;
+        }
+
+        directAngleButton.ApplyCurrentColor();
+        maxMinAngleButton.ApplyCurrentColor();
     }
 
-    private void SyncArmModeButtonColors()
+    private void HideLegacyArmModeButtons()
     {
-        if (directAngleButton != null)
+        if (_legacyModeButtonsHidden)
         {
-            directAngleButton.ApplyCurrentColor();
+            return;
         }
 
-        if (maxMinAngleButton != null)
+        DisableLegacyModeButton(directAngleButton);
+        DisableLegacyModeButton(maxMinAngleButton);
+        _legacyModeButtonsHidden = true;
+    }
+
+    private void DisableLegacyModeButton(ButtonBinding button)
+    {
+        if (button == null)
         {
-            maxMinAngleButton.ApplyCurrentColor();
+            return;
+        }
+
+        button.isTouched = false;
+
+        if (button.buttonCollider != null)
+        {
+            button.buttonCollider.enabled = false;
+        }
+
+        if (button.buttonRenderer != null)
+        {
+            button.buttonRenderer.enabled = false;
+        }
+
+        if (button.buttonObject != null)
+        {
+            Collider[] colliders = button.buttonObject.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                colliders[i].enabled = false;
+            }
+
+            Renderer[] renderers = button.buttonObject.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].enabled = false;
+            }
         }
     }
 
     private bool IsArmModeButton(ButtonBinding button)
     {
         return button == directAngleButton || button == maxMinAngleButton;
-    }
-
-    private void SetArmModeButtonSelection(ButtonBinding selectedButton)
-    {
-        if (selectedButton == directAngleButton)
-        {
-            directAngleButton.isOn = true;
-            maxMinAngleButton.isOn = false;
-        }
-        else if (selectedButton == maxMinAngleButton)
-        {
-            maxMinAngleButton.isOn = true;
-            directAngleButton.isOn = false;
-        }
-
-        EnsureArmModeButtonSelectionIntegrity();
-        SyncArmModeButtonColors();
     }
 
     private void SyncSliderVisibility()
@@ -455,7 +486,7 @@ public class ArmUIPlaneController : MonoBehaviour
             showIndexExtension = false;
             showMiddleExtension = false;
 
-            if (directAngleButton != null && directAngleButton.isOn)
+            if (IsDirectAngleModeActive())
             {
                 if (confirmedMotorID >= 1 && confirmedMotorID <= 4)
                 {
@@ -470,7 +501,7 @@ public class ArmUIPlaneController : MonoBehaviour
                     showMiddle = true;
                 }
             }
-            else if (maxMinAngleButton != null && maxMinAngleButton.isOn)
+            else if (IsMaxMinAngleModeActive())
             {
                 if (confirmedMotorID == 1 || confirmedMotorID == 2)
                 {
@@ -667,12 +698,34 @@ public class ArmUIPlaneController : MonoBehaviour
 
     public bool IsDirectAngleModeActive()
     {
-        return useArmUIPlane && armModeManipulate && directAngleButton != null && directAngleButton.isOn;
+        return useArmUIPlane && armModeManipulate
+            && (sliderMode == ArmUISliderMode.DirectAngle || sliderMode == ArmUISliderMode.OneMotorDirectAngle);
     }
 
     public bool IsMaxMinAngleModeActive()
     {
-        return useArmUIPlane && armModeManipulate && maxMinAngleButton != null && maxMinAngleButton.isOn;
+        return useArmUIPlane && armModeManipulate && sliderMode == ArmUISliderMode.MinMaxAngle;
+    }
+
+    public bool IsOneMotorDirectAngleModeActive()
+    {
+        return useArmUIPlane && armModeManipulate && sliderMode == ArmUISliderMode.OneMotorDirectAngle;
+    }
+
+    public bool IsWholeHandDirectAngleModeActive()
+    {
+        return useArmUIPlane && armModeManipulate && sliderMode == ArmUISliderMode.DirectAngle;
+    }
+
+    public bool ShouldAutoFreezeConfirmedMotorOnManipulateExit()
+    {
+        return useArmUIPlane && sliderMode == ArmUISliderMode.OneMotorDirectAngle;
+    }
+
+    public void SetSliderMode(ArmUISliderMode mode)
+    {
+        sliderMode = mode;
+        SyncLegacyModeButtonStateFromInspector();
     }
 
     public bool IsDirectAngleMotorTarget(int motorID)
@@ -1161,12 +1214,7 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void SyncDirectAngleSliderValue()
     {
-        if (!useArmUIPlane || !armModeManipulate)
-        {
-            return;
-        }
-
-        if (!directAngleButton.isOn)
+        if (!IsDirectAngleModeActive())
         {
             return;
         }
@@ -1956,8 +2004,6 @@ public class ArmUIPlaneController : MonoBehaviour
                 interactionDebug = "Touch enter: " + button.buttonName + " (" + currentTouchedCollider + ")";
                 button.onEnter?.Invoke();
             }
-
-            SetArmModeButtonSelection(button);
             return;
         }
 

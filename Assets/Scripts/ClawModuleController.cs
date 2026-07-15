@@ -692,10 +692,7 @@ public class ClawModuleController : MonoBehaviour
     private bool IsArmUIDirectAngleOverrideActive()
     {
         ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
-        bool isActive = activeArmUI != null &&
-                        activeArmUI.useArmUIPlane &&
-                        activeArmUI.directAngleButton != null &&
-                        activeArmUI.directAngleButton.isOn;
+        bool isActive = activeArmUI != null && activeArmUI.IsWholeHandDirectAngleModeActive();
 
         debugArmUIDirectOverrideActive = isActive;
         debugArmUIOverrideSource = activeArmUI != null ? activeArmUI.name : "None";
@@ -4545,20 +4542,12 @@ public class ClawModuleController : MonoBehaviour
         isThumbMiddle180SnappingEnabled = false;
         is120SnappingEnabled = false;
 
-        // Reset Arm UI state preference to max/min mode while keeping Arm UI plane disabled.
+        // Reset Arm UI state preference while keeping Arm UI plane disabled.
         ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
         if (activeArmUI != null)
         {
             activeArmUI.useArmUIPlane = false;
-            if (activeArmUI.directAngleButton != null)
-            {
-                activeArmUI.directAngleButton.isOn = false;
-            }
-
-            if (activeArmUI.maxMinAngleButton != null)
-            {
-                activeArmUI.maxMinAngleButton.isOn = true;
-            }
+            activeArmUI.SetSliderMode(ArmUIPlaneController.ArmUISliderMode.OneMotorDirectAngle);
         }
 
         SetEmbodimentInitialColors();
