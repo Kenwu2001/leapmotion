@@ -284,6 +284,7 @@ public class DebugAngle : MonoBehaviour
       string controllerPositionDebugText = BuildControllerPositionDebugText();
       string armUiAreaStateDebugText = BuildArmUIAreaStateDebugText();
       string modeStateDebugText = BuildModeStateDebugText();
+      string armUiTouchedMotorDebugText = BuildArmUITouchedMotorDebugText();
 
       //TODO: print here
       angleText.text =
@@ -296,10 +297,11 @@ public class DebugAngle : MonoBehaviour
         // "L_index_c -> Index2 Distance: " + lIndexToIndex2DistanceText + "\n" +
         // "L/R Controller Distance: " + controllerDistanceText + "\n" +
         // "Albow Button: " + albowButtonStateText + "\n" +
-        BuildMotorFreezeStateText() +
-        controllerPositionDebugText +
+        // BuildMotorFreezeStateText() +
+        // controllerPositionDebugText +
         armUiAreaStateDebugText +
-        modeStateDebugText;
+        modeStateDebugText +
+        armUiTouchedMotorDebugText;
         // BuildFingertipFirstDebugText() +
         // BuildPaxiniGroupSyncDebugText() +
         // BuildFreezeEdgeDebugText() +
@@ -468,6 +470,47 @@ public class DebugAngle : MonoBehaviour
         "modeManipulate: " + modeManipulateText + "\n" +
         "armModeSelect: " + armModeSelectText + "\n" +
         "armModeManipulate: " + armModeManipulateText + "\n";
+    }
+
+    private string BuildArmUITouchedMotorDebugText()
+    {
+      if (armUIPlaneController == null)
+      {
+        return "\n[ArmUI Current Motor]\nArmUIPlaneController: N/A\n";
+      }
+
+      int rawMotorID = armUIPlaneController.GetRawTouchedArmMotorID();
+      int proxyMotorID = armUIPlaneController.armCurrentTouchedMotorID;
+      int displayMotorID = rawMotorID != 0 ? rawMotorID : proxyMotorID;
+
+      return "\n[ArmUI Current Motor]\n" +
+        "Current Pressed Motor (1-15): " + displayMotorID + " (" + GetMotorDisplayName(displayMotorID) + ")\n" +
+        "Raw Touched Motor: " + rawMotorID + "\n" +
+        "Proxy Touched Motor: " + proxyMotorID + "\n" +
+        "Touched Button: " + armUIPlaneController.currentTouchedButton + "\n";
+    }
+
+    private string GetMotorDisplayName(int motorID)
+    {
+      return motorID switch
+      {
+        1 => "Thumb M1",
+        2 => "Thumb M2",
+        3 => "Thumb M3",
+        4 => "Thumb M4",
+        5 => "Index M5",
+        6 => "Index M6",
+        7 => "Index M7",
+        8 => "Index M8",
+        9 => "Middle M9",
+        10 => "Middle M10",
+        11 => "Middle M11",
+        12 => "Middle M12",
+        13 => "Thumb Paxini M13",
+        14 => "Index Paxini M14",
+        15 => "Middle Paxini M15",
+        _ => "None"
+      };
     }
 
     private bool TryGetControllerPosition(XRNode node, out Vector3 position)

@@ -323,6 +323,13 @@ public class ModeSwitching : MonoBehaviour
                 _armUIWasInsideEnterPlane = _armUIInputIsInsideEnterPlane;
             }
         }
+        else
+        {
+            // Ensure ArmUI stale input never leaks into projection-driven selection/manipulation.
+            _armUIInputIsInsideEnterPlane = false;
+            _armUIInputTouchedMotorID = 0;
+            _armUIWasInsideEnterPlane = false;
+        }
 
         if (modeSelect)
         {

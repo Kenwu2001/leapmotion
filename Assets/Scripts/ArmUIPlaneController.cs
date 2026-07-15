@@ -2402,6 +2402,24 @@ internal class ArmUIButtonTriggerDetector : MonoBehaviour
         }
     }
 
+    // private void OnDisable()
+    // {
+    //     // If this collider or its GameObject gets disabled mid-touch,
+    //     // Unity may skip OnTriggerExit. Force a cleanup to avoid stale red/touch state.
+    //     if (_isActive)
+    //     {
+    //         ForceExit(_lastSeenCollider);
+    //     }
+    // }
+
+    // private void OnDestroy()
+    // {
+    //     if (_isActive)
+    //     {
+    //         ForceExit(_lastSeenCollider);
+    //     }
+    // }
+
     private void ForceExit(Collider other)
     {
         if (_controller == null || !_isActive)

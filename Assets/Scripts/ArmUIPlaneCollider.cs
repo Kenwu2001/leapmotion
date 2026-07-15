@@ -5,6 +5,8 @@ using UnityEngine.Events;
 
 public class ArmUIPlaneCollider : MonoBehaviour
 {
+    private const float AreaStayTimeoutSeconds = 0.25f;
+
     [System.Serializable]
     public class ButtonBinding
     {
@@ -31,6 +33,8 @@ public class ArmUIPlaneCollider : MonoBehaviour
     public string interactionDebug = "No button touched";
     public string lastTouchedColliderName = "None";
 
+    private float _lastAreaTouchTime = -1f;
+
     private void Reset()
     {
         Collider selfCollider = GetComponent<Collider>();
@@ -51,14 +55,55 @@ public class ArmUIPlaneCollider : MonoBehaviour
         SyncAreaState();
     }
 
+    private void Update()
+    {
+        if (armUIAreaButton == null || !armUIAreaButton.isTouched)
+        {
+            return;
+        }
+
+        // If enter/exit events are missed and no stay heartbeat is received,
+        // force clear to prevent sticky inArmUIArea state.
+        if (_lastAreaTouchTime > 0f && (Time.time - _lastAreaTouchTime) > AreaStayTimeoutSeconds)
+        {
+            ForceClearAreaTouch("Touch timeout");
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         TryHandleEnter(armUIAreaButton, other);
     }
 
+    private void OnTriggerStay(Collider other)
+    {
+        if (armUIAreaButton == null || armUIAreaButton.buttonCollider == null)
+        {
+            return;
+        }
+
+        if (other != armUIAreaButton.buttonCollider)
+        {
+            return;
+        }
+
+        _lastAreaTouchTime = Time.time;
+        lastTouchedColliderName = other.name;
+    }
+
     private void OnTriggerExit(Collider other)
     {
         TryHandleExit(armUIAreaButton, other);
+    }
+
+    private void OnDisable()
+    {
+        ForceClearAreaTouch("Collider disabled");
+    }
+
+    private void OnDestroy()
+    {
+        ForceClearAreaTouch("Collider destroyed");
     }
 
     private void InitializeButton(ButtonBinding button)
@@ -81,6 +126,7 @@ public class ArmUIPlaneCollider : MonoBehaviour
         if (!button.isTouched)
         {
             button.isTouched = true;
+            _lastAreaTouchTime = Time.time;
             currentTouchedButton = button.buttonName;
             lastTouchedColliderName = other.name;
             interactionDebug = "Touch enter: " + button.buttonName;
@@ -101,6 +147,7 @@ public class ArmUIPlaneCollider : MonoBehaviour
         if (button.isTouched)
         {
             button.isTouched = false;
+            _lastAreaTouchTime = -1f;
             interactionDebug = "Touch exit: " + button.buttonName;
             button.onExit?.Invoke();
             SyncAreaState();
@@ -127,5 +174,27 @@ public class ArmUIPlaneCollider : MonoBehaviour
         }
 
         interactionDebug = "No button touched";
+    }
+
+    private void ForceClearAreaTouch(string reason)
+    {
+        if (armUIAreaButton == null)
+        {
+            inArmUIArea = false;
+            return;
+        }
+
+        if (!armUIAreaButton.isTouched)
+        {
+            inArmUIArea = false;
+            _lastAreaTouchTime = -1f;
+            return;
+        }
+
+        armUIAreaButton.isTouched = false;
+        _lastAreaTouchTime = -1f;
+        interactionDebug = "Force clear: " + reason;
+        armUIAreaButton.onExit?.Invoke();
+        SyncAreaState();
     }
 }
