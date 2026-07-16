@@ -525,10 +525,6 @@ public class ModeSwitching : MonoBehaviour
                         // Mark pending freeze for this round; state commits at round-away.
                         _pendingSingleMotorFreeze[frozenID - 1] = true;
                         _pendingSingleMotorUnfreeze[frozenID - 1] = false;
-                        if (armUIPlaneController != null && armUIPlaneController.clawModuleController != null)
-                        {
-                            armUIPlaneController.clawModuleController.CaptureSingleMotorFreezeSnapshot(frozenID);
-                        }
                         // Track round change only if net state differs from baseline
                         if (frozenID >= 1 && frozenID <= 12)
                             _roundChangedMotorID = !IsBaselineFrozenForMotor(frozenID) ? frozenID : 0;
@@ -670,6 +666,10 @@ public class ModeSwitching : MonoBehaviour
                                 continue;
                             }
 
+                            if (armUIPlaneController != null && armUIPlaneController.clawModuleController != null)
+                            {
+                                armUIPlaneController.clawModuleController.CaptureSingleMotorFreezeSnapshot(i + 1);
+                            }
                             _pendingSingleMotorFreeze[i] = false;
                             singleMotorFrozen[i] = true;
                             CheckAndAutoEnablePaxini(i + 1);
@@ -1137,10 +1137,6 @@ public class ModeSwitching : MonoBehaviour
 
         _pendingSingleMotorFreeze[motorID - 1] = true;
         _pendingSingleMotorUnfreeze[motorID - 1] = false;
-        if (armUIPlaneController != null && armUIPlaneController.clawModuleController != null)
-        {
-            armUIPlaneController.clawModuleController.CaptureSingleMotorFreezeSnapshot(motorID);
-        }
         _roundChangedMotorID = !IsBaselineFrozenForMotor(motorID) ? motorID : 0;
         _frozenBaselineCaptured = false;
         _noFreezeRoundBaselineCaptured = false;
