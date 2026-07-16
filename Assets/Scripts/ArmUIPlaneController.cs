@@ -2552,6 +2552,17 @@ internal class ArmUIButtonTriggerDetector : MonoBehaviour
         _lastSeenTouchTime = Time.time;
         _lastSeenCollider = other;
 
+        // Recovery path: when colliders start overlapped or Enter is skipped,
+        // Stay can be the first callback. Promote it to an active touch.
+        if (_controller != null && !_isActive)
+        {
+            _isActive = true;
+            _touchCount = Mathf.Max(1, _touchCount);
+            _pendingExitAt = -1f;
+            _pendingExitCollider = null;
+            _controller.OnButtonTriggerEnter(_button, other);
+        }
+
         if (_controller != null && _isActive && _button != null && _button == _controller.enterArmUIPlaneButton)
         {
             _controller.currentTouchedCollider = other.name;
