@@ -36,6 +36,9 @@ public class ControllerLocatorLeft : MonoBehaviour
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
 
+    [Header("Arm UI")]
+    public ArmUIPlaneCollider armUIPlaneCollider;
+
     [Header("Fingertip Distance Thresholds")]
     [Tooltip("ON: use fingertip distance and fingertip thresholds for left-hand hide/fallback logic. OFF: use controller distance thresholds.")]
     public bool distanceThresholdByFingertips = false;
@@ -87,6 +90,11 @@ public class ControllerLocatorLeft : MonoBehaviour
             }
         }
 
+        if (armUIPlaneCollider == null)
+        {
+            armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
+        }
+
         if (canvasPlane == null)
         {
             return;
@@ -109,10 +117,16 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     void Update()
     {
+        if (armUIPlaneCollider == null)
+        {
+            armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
+        }
+
         RefreshControllerSeparationState();
         RefreshFingertipSeparationState();
         RefreshLeftHandSeparationHideState();
         UpdateLeftHandVisualsHiddenState();
+        UpdateCanvasLinkedObjectsVisibility();
 
         if (alwaysAllowToyHandAndCanvas)
         {
@@ -600,31 +614,54 @@ public class ControllerLocatorLeft : MonoBehaviour
         {
             canvasPlane.SetActive(isVisible);
         }
+    }
 
+    private void UpdateCanvasLinkedObjectsVisibility()
+    {
         if (canvasLinkedObjects == null)
         {
             return;
         }
+
+        bool shouldShowToyHand = ShouldShowToyHand();
 
         for (int i = 0; i < canvasLinkedObjects.Length; i++)
         {
             GameObject linkedObject = canvasLinkedObjects[i];
             if (linkedObject != null)
             {
-                bool shouldStayVisibleForArmUI = ShouldKeepLinkedObjectVisibleForArmUI(linkedObject);
-                linkedObject.SetActive(isVisible || shouldStayVisibleForArmUI);
+                linkedObject.SetActive(shouldShowToyHand);
             }
         }
     }
 
-    private bool ShouldKeepLinkedObjectVisibleForArmUI(GameObject linkedObject)
+    private bool ShouldShowToyHand()
     {
-        if (linkedObject == null)
+        if (alwaysAllowToyHandAndCanvas)
+        {
+            return true;
+        }
+
+        if (IsArmUIAreaActive())
+        {
+            return true;
+        }
+
+        if (!distanceThresholdByFingertips)
         {
             return false;
         }
 
-        ArmUIPlaneController armUIPlaneController = linkedObject.GetComponentInParent<ArmUIPlaneController>(true);
-        return armUIPlaneController != null && armUIPlaneController.useArmUIPlane;
+        return ShouldUseFallbackVisuals();
+    }
+
+    private bool IsArmUIAreaActive()
+    {
+        if (armUIPlaneCollider == null)
+        {
+            return false;
+        }
+
+        return armUIPlaneCollider.inArmUIArea;
     }
 }

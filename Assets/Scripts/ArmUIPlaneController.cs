@@ -89,7 +89,7 @@ public class ArmUIPlaneController : MonoBehaviour
         }
     }
 
-    [Header("Enter Arm UI Plane Collider")]
+    [Header("Enter Arm UI Plane Collider")] // the smaller zone which is very close to the plane
     public ButtonBinding enterArmUIPlaneButton = new ButtonBinding { buttonName = "Enter Arm UI Plane Button" };
 
     [Header("Arm UI Buttons (Legacy)")]

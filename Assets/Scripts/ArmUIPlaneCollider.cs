@@ -26,7 +26,7 @@ public class ArmUIPlaneCollider : MonoBehaviour
     public ButtonBinding armUIAreaButton = new ButtonBinding { buttonName = "armUIAreaButton" };
 
     [Header("State")]
-    public bool inArmUIArea = false;
+    public bool inArmUIArea = false; // the bigger zone, judging if the hand is in the arm UI area, if so, the toyhand should appear, otherwise, the toyhand should disappear.
 
     [Header("Debug")]
     public string currentTouchedButton = "None";
