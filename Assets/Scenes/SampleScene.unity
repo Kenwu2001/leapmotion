@@ -12174,7 +12174,7 @@ Transform:
   m_GameObject: {fileID: 244625487}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.5, y: 0, z: 3.14}
+  m_LocalPosition: {x: 2.35, y: -0.41, z: 3.14}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -43934,7 +43934,7 @@ MonoBehaviour:
   singleMotorFreezeTime: 1
   singleFrozenColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   unfreezeConfirmationTime: 1.5
-  unfreezeHintColor: {r: 1, g: 0.4, b: 0.7, a: 1}
+  unfreezeHintColor: {r: 0.9843137, g: 0.68235296, b: 0.68235296, a: 1}
   singleMotorFrozen: 000000000000000000000000
   debugEnteredFreezeGroupMotors: 0
   debugEnteredUnfreezeGroupMotors: 0
@@ -46858,7 +46858,7 @@ Transform:
   m_GameObject: {fileID: 1063346832}
   serializedVersion: 2
   m_LocalRotation: {x: 0.22565024, y: -0.058354035, z: -0.013541835, w: 0.97236484}
-  m_LocalPosition: {x: -0.0187, y: -0.1064, z: 0.0982}
+  m_LocalPosition: {x: -0.0124, y: -0.1067, z: 0.0989}
   m_LocalScale: {x: 0.007, y: 0.009, z: 0.011}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -46895,7 +46895,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1063346832}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -77395,7 +77395,7 @@ Transform:
   m_GameObject: {fileID: 2076058759}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.5, y: 0, z: 3.14}
+  m_LocalPosition: {x: -1.09, y: -1.46, z: 3.14}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -79786,8 +79786,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.16843781, y: 0.11770163, z: 0.12899707}
-  m_Center: {x: 0.06315434, y: 0.031303767, z: 0.092702806}
+  m_Size: {x: 0.34057817, y: 0.19161496, z: 0.15969399}
+  m_Center: {x: 0.29609847, y: 0.06810377, z: 0.14332741}
 --- !u!114 &2468996038092723762
 MonoBehaviour:
   m_ObjectHideFlags: 0
