@@ -213,6 +213,7 @@ public class ArmUIPlaneController : MonoBehaviour
     private bool _armUIPlaneOffsetApplied;
     private bool _wasUseArmUIPlaneLastFrame;
     private bool _legacyModeButtonsHidden;
+    private int _armSelectVisibleGroupIndex = -1;
 
     private void Awake()
     {
@@ -270,6 +271,7 @@ public class ArmUIPlaneController : MonoBehaviour
 
         if (!useArmUIPlane)
         {
+            UpdateArmSelectVisibleGroupLatch();
             SyncSliderVisibility();
             SyncMotorButtonVisibility();
             SyncMotorButtonColors();
@@ -325,6 +327,7 @@ public class ArmUIPlaneController : MonoBehaviour
             RecordArmUIHistoryIfChanged();
         }
 
+        UpdateArmSelectVisibleGroupLatch();
         SyncSliderVisibility();
         SyncMotorButtonVisibility();
         SyncMotorButtonColors();
@@ -1741,12 +1744,25 @@ public class ArmUIPlaneController : MonoBehaviour
                 continue;
             }
 
-            bool shouldHide = ShouldHideMotorButtonForActiveSlider(button.resolvedMotorID);
+            bool shouldHide = ShouldHideAllMotorButtonsForManipulate();
+            if (!shouldHide)
+            {
+                shouldHide = ShouldHideMotorButtonForActiveSlider(button.resolvedMotorID);
+            }
+            if (!shouldHide && ShouldRestrictArmSelectMotorVisibility())
+            {
+                shouldHide = !ShouldShowMotorButtonInArmSelect(button.resolvedMotorID);
+            }
             SetMotorButtonVisible(button, !shouldHide);
         }
 
         RefreshActiveArmMotor();
         RefreshCurrentTouchedButton();
+    }
+
+    private bool ShouldHideAllMotorButtonsForManipulate()
+    {
+        return useArmUIPlane && armModeManipulate;
     }
 
     private bool ShouldHideMotorButtonForActiveSlider(int motorID)
@@ -1767,6 +1783,156 @@ public class ArmUIPlaneController : MonoBehaviour
         }
 
         return false;
+    }
+
+    private bool ShouldRestrictArmSelectMotorVisibility()
+    {
+        return useArmUIPlane && armModeSelect && !armModeManipulate;
+    }
+
+    private bool ShouldShowMotorButtonInArmSelect(int motorID)
+    {
+        if (IsArmSelectAnchorMotor(motorID))
+        {
+            return true;
+        }
+
+        int activeGroupIndex = GetActiveArmSelectGroupIndex();
+        if (activeGroupIndex < 0)
+        {
+            return false;
+        }
+
+        return IsArmSelectExtraMotorInGroup(motorID, activeGroupIndex);
+    }
+
+    private bool IsArmSelectAnchorMotor(int motorID)
+    {
+        return motorID == 4 || motorID == 8 || motorID == 12;
+    }
+
+    private int GetActiveArmSelectGroupIndex()
+    {
+        return _armSelectVisibleGroupIndex;
+    }
+
+    private int GetArmSelectVisibilitySourceMotorID()
+    {
+        int[] candidates =
+        {
+            armRawTouchedMotorID,
+            armCurrentTouchedMotorID,
+            armCurrentRedMotorID,
+            armConfirmedMotorID
+        };
+
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            int groupIndex = GetArmGroupIndexFromMotorID(candidates[i]);
+            if (groupIndex >= 0)
+            {
+                return candidates[i];
+            }
+        }
+
+        return 0;
+    }
+
+    private int GetArmGroupIndexFromMotorID(int motorID)
+    {
+        if ((motorID >= 1 && motorID <= 4) || motorID == ThumbPaxiniMotorID)
+        {
+            return 0;
+        }
+
+        if ((motorID >= 5 && motorID <= 8) || motorID == IndexPaxiniMotorID)
+        {
+            return 1;
+        }
+
+        if ((motorID >= 9 && motorID <= 12) || motorID == MiddlePaxiniMotorID)
+        {
+            return 2;
+        }
+
+        return -1;
+    }
+
+    private bool IsArmSelectExtraMotorInGroup(int motorID, int groupIndex)
+    {
+        switch (groupIndex)
+        {
+            case 0:
+                return motorID == 1 || motorID == 2 || motorID == 3 || motorID == ThumbPaxiniMotorID;
+            case 1:
+                return motorID == 5 || motorID == 6 || motorID == 7 || motorID == IndexPaxiniMotorID;
+            case 2:
+                return motorID == 9 || motorID == 10 || motorID == 11 || motorID == MiddlePaxiniMotorID;
+            default:
+                return false;
+        }
+    }
+
+    private void UpdateArmSelectVisibleGroupLatch()
+    {
+        if (!useArmUIPlane)
+        {
+            _armSelectVisibleGroupIndex = -1;
+            return;
+        }
+
+        if (armModeManipulate)
+        {
+            // User requested collapse when entering manipulate.
+            _armSelectVisibleGroupIndex = -1;
+            return;
+        }
+
+        if (!armModeSelect)
+        {
+            return;
+        }
+
+        // Leaving the enter plane marks a new selecting round; show anchors only.
+        if (!enterArmUIPlaneButton.isTouched)
+        {
+            _armSelectVisibleGroupIndex = -1;
+            return;
+        }
+
+        int anchorTouchedGroupIndex = GetAnchorTouchedGroupIndex();
+
+        // Switching fingertip anchors (4/8/12) changes expanded group.
+        if (anchorTouchedGroupIndex >= 0)
+        {
+            _armSelectVisibleGroupIndex = anchorTouchedGroupIndex;
+        }
+    }
+
+    private int GetAnchorTouchedGroupIndex()
+    {
+        int[] candidates =
+        {
+            armRawTouchedMotorID,
+            armCurrentTouchedMotorID,
+            armCurrentRedMotorID
+        };
+
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (!IsArmSelectAnchorMotor(candidates[i]))
+            {
+                continue;
+            }
+
+            int groupIndex = GetArmGroupIndexFromMotorID(candidates[i]);
+            if (groupIndex >= 0)
+            {
+                return groupIndex;
+            }
+        }
+
+        return -1;
     }
 
     private void SetMotorButtonVisible(ButtonBinding button, bool shouldBeVisible)
