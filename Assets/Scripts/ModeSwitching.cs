@@ -1135,8 +1135,15 @@ public class ModeSwitching : MonoBehaviour
             _roundChangedMotorID = 0;
         }
 
-        _pendingSingleMotorFreeze[motorID - 1] = true;
+        // Commit freeze immediately on manipulate-exit so the final adjusted angle is preserved.
+        if (armUIPlaneController.clawModuleController != null)
+        {
+            armUIPlaneController.clawModuleController.CaptureSingleMotorFreezeSnapshot(motorID);
+        }
+
+        _pendingSingleMotorFreeze[motorID - 1] = false;
         _pendingSingleMotorUnfreeze[motorID - 1] = false;
+        singleMotorFrozen[motorID - 1] = true;
         _roundChangedMotorID = !IsBaselineFrozenForMotor(motorID) ? motorID : 0;
         _frozenBaselineCaptured = false;
         _noFreezeRoundBaselineCaptured = false;

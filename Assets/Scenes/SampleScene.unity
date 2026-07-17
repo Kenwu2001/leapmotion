@@ -46647,6 +46647,109 @@ MonoBehaviour:
   thumbExtensionSliderObject: {fileID: 334310245}
   indexExtensionSliderObject: {fileID: 1573919154}
   middleExtensionSliderObject: {fileID: 422353197}
+  thumbAngleDownButton:
+    buttonName: ThumbAngleDownButton
+    motorID: 0
+    buttonObject: {fileID: 231846319}
+    buttonCollider: {fileID: 231846321}
+    buttonRenderer: {fileID: 0}
+    toggledColor: {r: 0, g: 1, b: 0, a: 1}
+    isTouched: 0
+    isOn: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
+    originalColor: {r: 0, g: 0, b: 0, a: 0}
+    resolvedMotorID: 0
+  thumbAngleUpButton:
+    buttonName: ThumbAngleUpButton
+    motorID: 0
+    buttonObject: {fileID: 580240503}
+    buttonCollider: {fileID: 580240505}
+    buttonRenderer: {fileID: 0}
+    toggledColor: {r: 0, g: 1, b: 0, a: 1}
+    isTouched: 0
+    isOn: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
+    originalColor: {r: 0, g: 0, b: 0, a: 0}
+    resolvedMotorID: 0
+  indexAngleDownButton:
+    buttonName: IndexAngleDownButton
+    motorID: 0
+    buttonObject: {fileID: 255579968}
+    buttonCollider: {fileID: 255579970}
+    buttonRenderer: {fileID: 0}
+    toggledColor: {r: 0, g: 1, b: 0, a: 1}
+    isTouched: 0
+    isOn: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
+    originalColor: {r: 0, g: 0, b: 0, a: 0}
+    resolvedMotorID: 0
+  indexAngleUpButton:
+    buttonName: IndexAngleUpButton
+    motorID: 0
+    buttonObject: {fileID: 241095980}
+    buttonCollider: {fileID: 241095982}
+    buttonRenderer: {fileID: 0}
+    toggledColor: {r: 0, g: 1, b: 0, a: 1}
+    isTouched: 0
+    isOn: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
+    originalColor: {r: 0, g: 0, b: 0, a: 0}
+    resolvedMotorID: 0
+  middleAngleDownButton:
+    buttonName: MiddleAngleDownButton
+    motorID: 0
+    buttonObject: {fileID: 2087930609}
+    buttonCollider: {fileID: 2087930611}
+    buttonRenderer: {fileID: 0}
+    toggledColor: {r: 0, g: 1, b: 0, a: 1}
+    isTouched: 0
+    isOn: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
+    originalColor: {r: 0, g: 0, b: 0, a: 0}
+    resolvedMotorID: 0
+  middleAngleUpButton:
+    buttonName: MiddleAngleUpButton
+    motorID: 0
+    buttonObject: {fileID: 299677076}
+    buttonCollider: {fileID: 299677078}
+    buttonRenderer: {fileID: 0}
+    toggledColor: {r: 0, g: 1, b: 0, a: 1}
+    isTouched: 0
+    isOn: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
+    originalColor: {r: 0, g: 0, b: 0, a: 0}
+    resolvedMotorID: 0
+  directAngleButtonStepPerSecond: 18
   maxSliderUpperNormalized: 0.4
   minSliderLowerNormalized: 0.6
   thumbMotorIdButtons:
@@ -47088,6 +47191,7 @@ MonoBehaviour:
   requireMaxMinModeForIndexExtension: 1
   requireMaxMinModeForMiddleExtension: 1
   syncMaxMinSegmentsFromController: 1
+  disableDirectAngleSliderColliderInput: 1
   fingerTipSource: {fileID: 1016481708}
   fingerTipCollider: {fileID: 1016481709}
   debugLogTransitions: 1

@@ -116,6 +116,16 @@ public class ArmUIPlaneController : MonoBehaviour
     public GameObject indexExtensionSliderObject;
     public GameObject middleExtensionSliderObject;
 
+    [Header("Direct Angle Adjust Buttons")]
+    public ButtonBinding thumbAngleDownButton = new ButtonBinding { buttonName = "ThumbAngleDownButton" };
+    public ButtonBinding thumbAngleUpButton = new ButtonBinding { buttonName = "ThumbAngleUpButton" };
+    public ButtonBinding indexAngleDownButton = new ButtonBinding { buttonName = "IndexAngleDownButton" };
+    public ButtonBinding indexAngleUpButton = new ButtonBinding { buttonName = "IndexAngleUpButton" };
+    public ButtonBinding middleAngleDownButton = new ButtonBinding { buttonName = "MiddleAngleDownButton" };
+    public ButtonBinding middleAngleUpButton = new ButtonBinding { buttonName = "MiddleAngleUpButton" };
+    [Tooltip("Direct-angle slider step speed in slider units/second while holding an up/down button collider.")]
+    public float directAngleButtonStepPerSecond = 18f;
+
     [Header("Max/Min Slider Segment Mapping")]
     [Tooltip("Upper normalized bound for Max slider segment. 0.4 means 0%-40%.")]
     [Range(0.05f, 0.95f)] public float maxSliderUpperNormalized = 0.4f;
@@ -245,6 +255,12 @@ public class ArmUIPlaneController : MonoBehaviour
         InitializeButton(enterArmUIPlaneButton);
         InitializeButton(directAngleButton);
         InitializeButton(maxMinAngleButton);
+        InitializeButton(thumbAngleDownButton);
+        InitializeButton(thumbAngleUpButton);
+        InitializeButton(indexAngleDownButton);
+        InitializeButton(indexAngleUpButton);
+        InitializeButton(middleAngleDownButton);
+        InitializeButton(middleAngleUpButton);
         HideLegacyArmModeButtons();
         for (int i = 0; i < _motorButtons.Count; i++)
         {
@@ -333,6 +349,7 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncMotorButtonColors();
         SyncLegacyModeButtonStateFromInspector();
         HideLegacyArmModeButtons();
+        ApplyContinuousDirectAngleButtonInput();
         SyncDirectAngleSliderValue();
         SyncMaxMinSliderValue();
         _lastArmModeManipulate = armModeManipulate;
@@ -614,6 +631,8 @@ public class ArmUIPlaneController : MonoBehaviour
             }
         }
 
+        SyncDirectAngleAdjustButtonVisibility(showThumb, showIndex, showMiddle);
+
         SetSliderActive(thumbSliderObject, showThumb, ref _thumbSliderVisible);
         SetSliderActive(indexSliderObject, showIndex, ref _indexSliderVisible);
         SetSliderActive(middleSliderObject, showMiddle, ref _middleSliderVisible);
@@ -626,6 +645,115 @@ public class ArmUIPlaneController : MonoBehaviour
         SetSliderActive(thumbExtensionSliderObject, showThumbExtension, ref _thumbExtensionSliderVisible);
         SetSliderActive(indexExtensionSliderObject, showIndexExtension, ref _indexExtensionSliderVisible);
         SetSliderActive(middleExtensionSliderObject, showMiddleExtension, ref _middleExtensionSliderVisible);
+    }
+
+    private void SyncDirectAngleAdjustButtonVisibility(bool showThumb, bool showIndex, bool showMiddle)
+    {
+        SetAuxButtonVisible(thumbAngleDownButton, showThumb);
+        SetAuxButtonVisible(thumbAngleUpButton, showThumb);
+        SetAuxButtonVisible(indexAngleDownButton, showIndex);
+        SetAuxButtonVisible(indexAngleUpButton, showIndex);
+        SetAuxButtonVisible(middleAngleDownButton, showMiddle);
+        SetAuxButtonVisible(middleAngleUpButton, showMiddle);
+    }
+
+    private void SetAuxButtonVisible(ButtonBinding button, bool shouldBeVisible)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        if (button.buttonCollider != null)
+        {
+            button.buttonCollider.enabled = shouldBeVisible;
+        }
+
+        if (button.buttonRenderer != null)
+        {
+            button.buttonRenderer.enabled = shouldBeVisible;
+        }
+
+        if (button.buttonObject != null)
+        {
+            Collider[] colliders = button.buttonObject.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                colliders[i].enabled = shouldBeVisible;
+            }
+
+            Renderer[] renderers = button.buttonObject.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].enabled = shouldBeVisible;
+            }
+        }
+
+        if (!shouldBeVisible && button.isTouched)
+        {
+            button.isTouched = false;
+            button.ApplyCurrentColor();
+        }
+    }
+
+    private void ApplyContinuousDirectAngleButtonInput()
+    {
+        if (!IsDirectAngleModeActive())
+        {
+            return;
+        }
+
+        float speed = Mathf.Max(0f, directAngleButtonStepPerSecond);
+        if (speed <= 0f)
+        {
+            return;
+        }
+
+        float delta = speed * Time.deltaTime;
+
+        if (_thumbSliderVisible)
+        {
+            bool down = thumbAngleDownButton != null && thumbAngleDownButton.isTouched;
+            bool up = thumbAngleUpButton != null && thumbAngleUpButton.isTouched;
+            StepDirectAngleSlider(_thumbSlider, 1, 4, down, up, delta);
+        }
+
+        if (_indexSliderVisible)
+        {
+            bool down = indexAngleDownButton != null && indexAngleDownButton.isTouched;
+            bool up = indexAngleUpButton != null && indexAngleUpButton.isTouched;
+            StepDirectAngleSlider(_indexSlider, 5, 8, down, up, delta);
+        }
+
+        if (_middleSliderVisible)
+        {
+            bool down = middleAngleDownButton != null && middleAngleDownButton.isTouched;
+            bool up = middleAngleUpButton != null && middleAngleUpButton.isTouched;
+            StepDirectAngleSlider(_middleSlider, 9, 12, down, up, delta);
+        }
+    }
+
+    private void StepDirectAngleSlider(Slider slider, int minMotorID, int maxMotorID, bool moveDown, bool moveUp, float delta)
+    {
+        if (slider == null)
+        {
+            return;
+        }
+
+        if (moveDown == moveUp)
+        {
+            return;
+        }
+
+        float direction = moveUp ? 1f : -1f;
+        float nextValue = Mathf.Clamp(slider.value + (direction * delta), 0f, 180f);
+        if (Mathf.Approximately(slider.value, nextValue))
+        {
+            return;
+        }
+
+        slider.SetValueWithoutNotify(nextValue);
+        ApplyDirectAngleSliderValue(nextValue, minMotorID, maxMotorID);
     }
 
     private void SetSliderActive(GameObject sliderObject, bool shouldBeVisible, ref bool currentState)
@@ -2256,6 +2384,22 @@ public class ArmUIPlaneController : MonoBehaviour
             return;
         }
 
+        if (IsAngleAdjustButton(button))
+        {
+            if (!button.isTouched)
+            {
+                button.isTouched = true;
+                button.ApplyColor(Color.green);
+                currentTouchedButton = button.buttonName;
+                currentTouchedCollider = other.name;
+                interactionDebug = "Touch enter: " + button.buttonName + " (" + currentTouchedCollider + ")";
+                AppendArmUIDebugHistory("EVENT enter " + button.buttonName + " collider=" + other.name);
+                button.onEnter?.Invoke();
+            }
+
+            return;
+        }
+
         if (!button.isTouched)
         {
             button.isTouched = true;
@@ -2301,6 +2445,21 @@ public class ArmUIPlaneController : MonoBehaviour
             return;
         }
 
+        if (IsAngleAdjustButton(button))
+        {
+            if (button.isTouched)
+            {
+                button.isTouched = false;
+                button.ApplyCurrentColor();
+                interactionDebug = "Touch exit: " + button.buttonName + " (" + other.name + ")";
+                AppendArmUIDebugHistory("EVENT exit " + button.buttonName + " collider=" + other.name);
+                button.onExit?.Invoke();
+            }
+
+            RefreshCurrentTouchedButton();
+            return;
+        }
+
         if (button.isTouched)
         {
             button.isTouched = false;
@@ -2311,6 +2470,33 @@ public class ArmUIPlaneController : MonoBehaviour
 
         RefreshActiveArmMotor();
         RefreshCurrentTouchedButton();
+    }
+
+    internal void OnButtonTriggerStay(ButtonBinding button, Collider other)
+    {
+        if (button == null || other == null)
+        {
+            return;
+        }
+
+        if (button == enterArmUIPlaneButton)
+        {
+            currentTouchedCollider = other.name;
+            return;
+        }
+
+        if (IsAngleAdjustButton(button))
+        {
+            if (!button.isTouched)
+            {
+                button.isTouched = true;
+                button.ApplyColor(Color.green);
+            }
+
+            currentTouchedButton = button.buttonName;
+            currentTouchedCollider = other.name;
+            interactionDebug = "Touch stay: " + button.buttonName;
+        }
     }
 
     private bool TryHandleEnter(ButtonBinding button, Collider other)
@@ -2354,6 +2540,28 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void RefreshCurrentTouchedButton()
     {
+        ButtonBinding[] angleButtons =
+        {
+            thumbAngleDownButton,
+            thumbAngleUpButton,
+            indexAngleDownButton,
+            indexAngleUpButton,
+            middleAngleDownButton,
+            middleAngleUpButton
+        };
+
+        for (int i = 0; i < angleButtons.Length; i++)
+        {
+            ButtonBinding button = angleButtons[i];
+            if (button != null && button.isTouched)
+            {
+                currentTouchedButton = button.buttonName;
+                currentTouchedCollider = button.buttonCollider != null ? button.buttonCollider.name : "None";
+                interactionDebug = "Touch stay: " + currentTouchedButton;
+                return;
+            }
+        }
+
         for (int i = _motorButtons.Count - 1; i >= 0; i--)
         {
             ButtonBinding button = _motorButtons[i];
@@ -2425,6 +2633,40 @@ public class ArmUIPlaneController : MonoBehaviour
                 button.ApplyCurrentColor();
             }
         }
+
+        SyncAngleAdjustButtonColor(thumbAngleDownButton);
+        SyncAngleAdjustButtonColor(thumbAngleUpButton);
+        SyncAngleAdjustButtonColor(indexAngleDownButton);
+        SyncAngleAdjustButtonColor(indexAngleUpButton);
+        SyncAngleAdjustButtonColor(middleAngleDownButton);
+        SyncAngleAdjustButtonColor(middleAngleUpButton);
+    }
+
+    private void SyncAngleAdjustButtonColor(ButtonBinding button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        if (button.isTouched)
+        {
+            button.ApplyColor(Color.green);
+        }
+        else
+        {
+            button.ApplyCurrentColor();
+        }
+    }
+
+    private bool IsAngleAdjustButton(ButtonBinding button)
+    {
+        return button == thumbAngleDownButton ||
+               button == thumbAngleUpButton ||
+               button == indexAngleDownButton ||
+               button == indexAngleUpButton ||
+               button == middleAngleDownButton ||
+               button == middleAngleUpButton;
     }
 
     private int ResolveMotorID(ButtonBinding button)
@@ -2563,9 +2805,9 @@ internal class ArmUIButtonTriggerDetector : MonoBehaviour
             _controller.OnButtonTriggerEnter(_button, other);
         }
 
-        if (_controller != null && _isActive && _button != null && _button == _controller.enterArmUIPlaneButton)
+        if (_controller != null && _isActive)
         {
-            _controller.currentTouchedCollider = other.name;
+            _controller.OnButtonTriggerStay(_button, other);
         }
     }
 

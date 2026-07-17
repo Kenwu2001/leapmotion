@@ -50,6 +50,8 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     public bool requireMaxMinModeForMiddleExtension = true;
     [Tooltip("When enabled, max/min slider draggable segments are synced from ArmUIPlaneController max/min segment settings.")]
     public bool syncMaxMinSegmentsFromController = true;
+    [Tooltip("When enabled, thumb/index/middle direct-angle sliders ignore collider drag input and stay display-only.")]
+    public bool disableDirectAngleSliderColliderInput = true;
 
     [Header("Interaction")]
     public Transform fingerTipSource;
@@ -282,6 +284,12 @@ public class ArmUISliderColliderInteractor : MonoBehaviour
     private void TryUpdateSlider(SliderBinding binding)
     {
         if (binding == null || binding.targetSlider == null || binding.sliderRectTransform == null)
+        {
+            return;
+        }
+
+        if (disableDirectAngleSliderColliderInput &&
+            (binding == thumbSlider || binding == indexSlider || binding == middleSlider))
         {
             return;
         }
