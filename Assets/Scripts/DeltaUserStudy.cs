@@ -22,6 +22,12 @@ public class DeltaUserStudy : MonoBehaviour
     public Renderer thumbJoint3Renderer;
     public Renderer thumbJoint4Renderer;
 
+    [Header("Thumb Cube Renderers (Color Sync)")]
+    public Renderer thumbCube1Renderer;
+    public Renderer thumbCube2Renderer;
+    public Renderer thumbCube3Renderer;
+    public Renderer thumbCube4Renderer;
+
     public Transform IndexAngle1Center;
     public Transform IndexAngle2Center;
     public Transform IndexAngle3Center;
@@ -31,6 +37,12 @@ public class DeltaUserStudy : MonoBehaviour
     public Renderer indexJoint3Renderer;
     public Renderer indexJoint4Renderer;
 
+    [Header("Index Cube Renderers (Color Sync)")]
+    public Renderer indexCube1Renderer;
+    public Renderer indexCube2Renderer;
+    public Renderer indexCube3Renderer;
+    public Renderer indexCube4Renderer;
+
     public Transform MiddleAngle1Center;
     public Transform MiddleAngle2Center;
     public Transform MiddleAngle3Center;
@@ -39,6 +51,12 @@ public class DeltaUserStudy : MonoBehaviour
     public Renderer middleJoint2Renderer;
     public Renderer middleJoint3Renderer;
     public Renderer middleJoint4Renderer;
+
+    [Header("Middle Cube Renderers (Color Sync)")]
+    public Renderer middleCube1Renderer;
+    public Renderer middleCube2Renderer;
+    public Renderer middleCube3Renderer;
+    public Renderer middleCube4Renderer;
 
     Transform[,] motorArray;
     Renderer[,] rendererArray;
@@ -210,6 +228,11 @@ public class DeltaUserStudy : MonoBehaviour
 
         // if (MiddleAngle4Center != null)
         //     MiddleAngle4Center.localRotation = Quaternion.Euler(jointAngle.middleAngle2, 0f, 0f);
+    }
+
+    void LateUpdate()
+    {
+        SyncCubeRendererColors();
     }
     
     void HandleNavigation()
@@ -501,5 +524,40 @@ public class DeltaUserStudy : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void SyncCubeRendererColors()
+    {
+        SyncRendererColor(thumbJoint1Renderer, thumbCube1Renderer);
+        SyncRendererColor(thumbJoint2Renderer, thumbCube2Renderer);
+        SyncRendererColor(thumbJoint3Renderer, thumbCube3Renderer);
+        SyncRendererColor(thumbJoint4Renderer, thumbCube4Renderer);
+
+        SyncRendererColor(indexJoint1Renderer, indexCube1Renderer);
+        SyncRendererColor(indexJoint2Renderer, indexCube2Renderer);
+        SyncRendererColor(indexJoint3Renderer, indexCube3Renderer);
+        SyncRendererColor(indexJoint4Renderer, indexCube4Renderer);
+
+        SyncRendererColor(middleJoint1Renderer, middleCube1Renderer);
+        SyncRendererColor(middleJoint2Renderer, middleCube2Renderer);
+        SyncRendererColor(middleJoint3Renderer, middleCube3Renderer);
+        SyncRendererColor(middleJoint4Renderer, middleCube4Renderer);
+    }
+
+    private static void SyncRendererColor(Renderer sourceRenderer, Renderer targetRenderer)
+    {
+        if (sourceRenderer == null || targetRenderer == null)
+        {
+            return;
+        }
+
+        Material sourceMaterial = sourceRenderer.material;
+        Material targetMaterial = targetRenderer.material;
+        if (sourceMaterial == null || targetMaterial == null)
+        {
+            return;
+        }
+
+        targetMaterial.color = sourceMaterial.color;
     }
 }
