@@ -19,7 +19,7 @@ public class DeltaUserStudy : MonoBehaviour
     public Transform ThumbAngle4Center;
     public Renderer thumbJoint1Renderer;
     public Renderer thumbJoint2Renderer;
-    public Renderer thumbJointˇRenderer;
+    public Renderer thumbJoint3Renderer;
     public Renderer thumbJoint4Renderer;
 
     public Transform IndexAngle1Center;
@@ -92,7 +92,7 @@ public class DeltaUserStudy : MonoBehaviour
         rendererArray = new Renderer[ROWS, COLS] {
             {thumbJoint1Renderer, indexJoint1Renderer, middleJoint1Renderer},
             {thumbJoint2Renderer, indexJoint2Renderer, middleJoint2Renderer},
-            {thumbJointˇRenderer, indexJoint3Renderer, middleJoint3Renderer},
+            {thumbJoint3Renderer, indexJoint3Renderer, middleJoint3Renderer},
             {thumbJoint4Renderer, indexJoint4Renderer, middleJoint4Renderer}
         };
         
