@@ -702,6 +702,99 @@ public class ClawModuleController : MonoBehaviour
         }
     }
 
+    private void SetHorizontalMotorArrowState(
+        GameObject leftLeftArrow,
+        GameObject leftRightArrow,
+        GameObject rightLeftArrow,
+        GameObject rightRightArrow,
+        bool useLeftSide,
+        float deltaSign)
+    {
+        bool showLeftLeft = useLeftSide && deltaSign < 0f;
+        bool showLeftRight = useLeftSide && deltaSign > 0f;
+        bool showRightLeft = !useLeftSide && deltaSign < 0f;
+        bool showRightRight = !useLeftSide && deltaSign > 0f;
+
+        if (leftLeftArrow != null) leftLeftArrow.SetActive(showLeftLeft);
+        if (leftRightArrow != null) leftRightArrow.SetActive(showLeftRight);
+        if (rightLeftArrow != null) rightLeftArrow.SetActive(showRightLeft);
+        if (rightRightArrow != null) rightRightArrow.SetActive(showRightRight);
+    }
+
+    private void ClearHorizontalMotorArrows()
+    {
+        SetHorizontalMotorArrowState(thumb3LeftLeftArrow, thumb3LeftRightArrow, thumb3RightLeftArrow, thumb3RightRightArrow, true, 0f);
+        SetHorizontalMotorArrowState(index3LeftLeftArrow, index3LeftRightArrow, index3RightLeftArrow, index3RightRightArrow, true, 0f);
+        SetHorizontalMotorArrowState(middle3LeftLeftArrow, middle3LeftRightArrow, middle3RightLeftArrow, middle3RightRightArrow, true, 0f);
+        SetHorizontalMotorArrowState(thumb4LeftLeftArrow, thumb4LeftRightArrow, thumb4RightLeftArrow, thumb4RightRightArrow, true, 0f);
+        SetHorizontalMotorArrowState(index4LeftLeftArrow, index4LeftRightArrow, index4RightLeftArrow, index4RightRightArrow, true, 0f);
+        SetHorizontalMotorArrowState(middle4LeftLeftArrow, middle4LeftRightArrow, middle4RightLeftArrow, middle4RightRightArrow, true, 0f);
+    }
+
+    public void ClearArmUIDirectAngleArrowState()
+    {
+        SetMotorArrowState(3, false, false);
+        SetMotorArrowState(4, false, false);
+        SetMotorArrowState(7, false, false);
+        SetMotorArrowState(8, false, false);
+        SetMotorArrowState(11, false, false);
+        SetMotorArrowState(12, false, false);
+        ClearHorizontalMotorArrows();
+    }
+
+    private void SetFixedArmUIHorizontalArrow(GameObject leftLeftArrow, GameObject rightRightArrow, float rawDeltaSign)
+    {
+        if (leftLeftArrow != null)
+        {
+            leftLeftArrow.SetActive(rawDeltaSign < 0f);
+        }
+
+        if (rightRightArrow != null)
+        {
+            rightRightArrow.SetActive(rawDeltaSign > 0f);
+        }
+    }
+
+    public void SyncArmUIDirectAngleArrowState(int motorID, float rawDeltaSign)
+    {
+        ClearArmUIDirectAngleArrowState();
+
+        if (Mathf.Abs(rawDeltaSign) <= 0.0001f)
+        {
+            return;
+        }
+
+        switch (motorID)
+        {
+            case 1:
+                SetFixedArmUIHorizontalArrow(thumb4LeftLeftArrow, thumb4RightRightArrow, rawDeltaSign);
+                break;
+            case 2:
+                SetFixedArmUIHorizontalArrow(thumb3LeftLeftArrow, thumb3RightRightArrow, rawDeltaSign);
+                break;
+            case 3:
+            case 4:
+            case 7:
+            case 8:
+            case 11:
+            case 12:
+                SetMotorArrowState(motorID, rawDeltaSign < 0f, rawDeltaSign > 0f);
+                break;
+            case 5:
+                SetFixedArmUIHorizontalArrow(index4LeftLeftArrow, index4RightRightArrow, rawDeltaSign);
+                break;
+            case 6:
+                SetFixedArmUIHorizontalArrow(index3LeftLeftArrow, index3RightRightArrow, rawDeltaSign);
+                break;
+            case 9:
+                SetFixedArmUIHorizontalArrow(middle4LeftLeftArrow, middle4RightRightArrow, rawDeltaSign);
+                break;
+            case 10:
+                SetFixedArmUIHorizontalArrow(middle3LeftLeftArrow, middle3RightRightArrow, rawDeltaSign);
+                break;
+        }
+    }
+
     private bool IsDirectAngleMotorTarget(int motorID)
     {
         ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();

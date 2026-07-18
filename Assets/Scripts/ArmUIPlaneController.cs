@@ -700,60 +700,97 @@ public class ArmUIPlaneController : MonoBehaviour
     {
         if (!IsDirectAngleModeActive())
         {
+            if (clawModuleController != null)
+            {
+                clawModuleController.ClearArmUIDirectAngleArrowState();
+            }
             return;
         }
 
         float speed = Mathf.Max(0f, directAngleButtonStepPerSecond);
         if (speed <= 0f)
         {
+            if (clawModuleController != null)
+            {
+                clawModuleController.ClearArmUIDirectAngleArrowState();
+            }
             return;
         }
 
         float delta = speed * Time.deltaTime;
+        bool movedAnyMotor = false;
 
         if (_thumbSliderVisible)
         {
             bool down = thumbAngleDownButton != null && thumbAngleDownButton.isTouched;
             bool up = thumbAngleUpButton != null && thumbAngleUpButton.isTouched;
-            StepDirectAngleSlider(_thumbSlider, 1, 4, down, up, delta);
+            movedAnyMotor |= StepDirectAngleSlider(_thumbSlider, 1, 4, down, up, delta);
         }
 
         if (_indexSliderVisible)
         {
             bool down = indexAngleDownButton != null && indexAngleDownButton.isTouched;
             bool up = indexAngleUpButton != null && indexAngleUpButton.isTouched;
-            StepDirectAngleSlider(_indexSlider, 5, 8, down, up, delta);
+            movedAnyMotor |= StepDirectAngleSlider(_indexSlider, 5, 8, down, up, delta);
         }
 
         if (_middleSliderVisible)
         {
             bool down = middleAngleDownButton != null && middleAngleDownButton.isTouched;
             bool up = middleAngleUpButton != null && middleAngleUpButton.isTouched;
-            StepDirectAngleSlider(_middleSlider, 9, 12, down, up, delta);
+            movedAnyMotor |= StepDirectAngleSlider(_middleSlider, 9, 12, down, up, delta);
+        }
+
+        if (!movedAnyMotor && clawModuleController != null)
+        {
+            clawModuleController.ClearArmUIDirectAngleArrowState();
         }
     }
 
-    private void StepDirectAngleSlider(Slider slider, int minMotorID, int maxMotorID, bool moveDown, bool moveUp, float delta)
+    private bool StepDirectAngleSlider(Slider slider, int minMotorID, int maxMotorID, bool moveDown, bool moveUp, float delta)
     {
         if (slider == null)
         {
-            return;
+            return false;
         }
 
         if (moveDown == moveUp)
         {
-            return;
+            return false;
         }
 
         float direction = moveUp ? 1f : -1f;
+        float previousValue = slider.value;
         float nextValue = Mathf.Clamp(slider.value + (direction * delta), 0f, 180f);
-        if (Mathf.Approximately(slider.value, nextValue))
+        if (Mathf.Approximately(previousValue, nextValue))
         {
-            return;
+            return false;
         }
 
         slider.SetValueWithoutNotify(nextValue);
         ApplyDirectAngleSliderValue(nextValue, minMotorID, maxMotorID);
+        SyncDirectAngleButtonArrow(minMotorID, maxMotorID, direction);
+        return true;
+    }
+
+    private void SyncDirectAngleButtonArrow(int minMotorID, int maxMotorID, float sliderDirection)
+    {
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        if (armConfirmedMotorID < minMotorID || armConfirmedMotorID > maxMotorID)
+        {
+            clawModuleController.ClearArmUIDirectAngleArrowState();
+            return;
+        }
+
+        float rawDeltaSign = IsDescendingSegmentMotor(armConfirmedMotorID)
+            ? -sliderDirection
+            : sliderDirection;
+
+        clawModuleController.SyncArmUIDirectAngleArrowState(armConfirmedMotorID, rawDeltaSign);
     }
 
     private void SetSliderActive(GameObject sliderObject, bool shouldBeVisible, ref bool currentState)
