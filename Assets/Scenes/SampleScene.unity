@@ -35978,6 +35978,9 @@ MonoBehaviour:
   leftIndexTipName: ToyHand
   isRightWristTouched: 0
   indicatorQuad: {fileID: 550822876}
+  wristTouchRenderer: {fileID: 550822879}
+  wristTouchedMaterial: {fileID: 2100000, guid: 474ebbc99f81ac846a3a0b649d812ed5, type: 2}
+  wristNotTouchedMaterial: {fileID: 2100000, guid: c332f8a4d3f76774f813e11888fb50d2, type: 2}
   toggleCooldownSeconds: 0.35
 --- !u!65 &902935579
 BoxCollider:
@@ -84283,6 +84286,9 @@ MonoBehaviour:
   leftIndexTipName: ToyHand
   isRightWristTouched: 0
   indicatorQuad: {fileID: 668308670}
+  wristTouchRenderer: {fileID: 0}
+  wristTouchedMaterial: {fileID: 0}
+  wristNotTouchedMaterial: {fileID: 0}
   toggleCooldownSeconds: 0.35
 --- !u!4 &2468996038922426834 stripped
 Transform:

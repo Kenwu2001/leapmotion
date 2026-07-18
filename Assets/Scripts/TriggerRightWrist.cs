@@ -10,6 +10,10 @@ public class TriggerRightWrist : MonoBehaviour
     public string leftIndexTipName = "ToyHand";
     public bool isRightWristTouched = false;
     public GameObject indicatorQuad; // The quad to show/hide
+    [Header("Wrist Touch Visual")]
+    public Renderer wristTouchRenderer;
+    public Material wristTouchedMaterial;
+    public Material wristNotTouchedMaterial;
     [Tooltip("Minimum interval between engagement toggles to resist tracking jitter.")]
     public float toggleCooldownSeconds = 0.35f;
 
@@ -27,11 +31,13 @@ public class TriggerRightWrist : MonoBehaviour
     private void Start()
     {
         SyncIndicatorWithSender();
+        SyncWristTouchMaterial();
     }
 
     private void Update()
     {
         SyncIndicatorWithSender();
+        SyncWristTouchMaterial();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -47,6 +53,7 @@ public class TriggerRightWrist : MonoBehaviour
         }
 
         isRightWristTouched = touchingIndexColliders.Count > 0;
+        SyncWristTouchMaterial();
 
         // Only toggle on the first collider entering, not every collider fragment.
         if (touchingIndexColliders.Count == 1)
@@ -64,6 +71,7 @@ public class TriggerRightWrist : MonoBehaviour
 
         touchingIndexColliders.Remove(other);
         isRightWristTouched = touchingIndexColliders.Count > 0;
+        SyncWristTouchMaterial();
     }
 
     private void TryToggleEngagement()
@@ -85,15 +93,34 @@ public class TriggerRightWrist : MonoBehaviour
 
     private void SyncIndicatorWithSender()
     {
-        if (indicatorQuad == null)
+        bool engaged = tcpSender != null && tcpSender.isSending;
+
+        // if (indicatorQuad != null && indicatorQuad.activeSelf != engaged)
+        // {
+        //     indicatorQuad.SetActive(engaged);
+        // }
+
+        SyncWristTouchMaterial(engaged);
+    }
+
+    private void SyncWristTouchMaterial()
+    {
+        SyncWristTouchMaterial(tcpSender != null && tcpSender.isSending);
+    }
+
+    private void SyncWristTouchMaterial(bool engaged)
+    {
+        if (wristTouchRenderer == null)
         {
             return;
         }
 
-        bool engaged = tcpSender != null && tcpSender.isSending;
-        if (indicatorQuad.activeSelf != engaged)
+        Material targetMaterial = engaged ? wristTouchedMaterial : wristNotTouchedMaterial;
+        if (targetMaterial == null || wristTouchRenderer.sharedMaterial == targetMaterial)
         {
-            indicatorQuad.SetActive(engaged);
+            return;
         }
+
+        wristTouchRenderer.material = targetMaterial;
     }
 }
