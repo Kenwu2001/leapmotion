@@ -13123,6 +13123,16 @@ MonoBehaviour:
     onExit:
       m_PersistentCalls:
         m_Calls: []
+  openArmUIAreaButton:
+    buttonName: openArmUIAreaButton
+    buttonCollider: {fileID: 1569657769}
+    isTouched: 0
+    onEnter:
+      m_PersistentCalls:
+        m_Calls: []
+    onExit:
+      m_PersistentCalls:
+        m_Calls: []
   inArmUIArea: 0
   currentTouchedButton: None
   interactionDebug: No button touched
@@ -20277,7 +20287,6 @@ GameObject:
   - component: {fileID: 582545766}
   - component: {fileID: 582545767}
   - component: {fileID: 582545768}
-  - component: {fileID: 582545769}
   m_Layer: 0
   m_Name: ControllerLocator
   m_TagString: Untagged
@@ -20298,6 +20307,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1569657768}
   - {fileID: 902935577}
   - {fileID: 1387796499}
   - {fileID: 1063346833}
@@ -20332,27 +20342,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   which: 5
---- !u!65 &582545769
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 582545765}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 0.6627486, y: 0.4611125, z: 0.4252587}
-  m_Center: {x: -0.033489585, y: 0.031365275, z: -0.037371665}
 --- !u!1 &583336427
 GameObject:
   m_ObjectHideFlags: 0
@@ -63256,6 +63245,59 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1761231161}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1569657767
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1569657768}
+  - component: {fileID: 1569657769}
+  m_Layer: 0
+  m_Name: OpenArmUIArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1569657768
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1569657767}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.22565024, y: -0.058354035, z: -0.013541835, w: 0.97236484}
+  m_LocalPosition: {x: -0.0124, y: -0.1067, z: 0.089}
+  m_LocalScale: {x: 0.007, y: 0.009, z: 0.011}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 582545766}
+  m_LocalEulerAnglesHint: {x: 25.928, y: -7.642, z: -3.357}
+--- !u!65 &1569657769
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1569657767}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 65.290375, y: 27.08821, z: 15.383915}
+  m_Center: {x: -27.64499, y: 3.3331337, z: -11.493099}
 --- !u!1 &1573919154
 GameObject:
   m_ObjectHideFlags: 0

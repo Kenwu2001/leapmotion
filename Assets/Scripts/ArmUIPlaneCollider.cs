@@ -25,6 +25,8 @@ public class ArmUIPlaneCollider : MonoBehaviour
     [Header("Button Setup")]
     public ButtonBinding armUIAreaButton = new ButtonBinding { buttonName = "armUIAreaButton" };
 
+    public ButtonBinding openArmUIAreaButton = new ButtonBinding { buttonName = "openArmUIAreaButton" };
+
     [Header("State")]
     public bool inArmUIArea = false; // the bigger zone, judging if the hand is in the arm UI area, if so, the toyhand should appear, otherwise, the toyhand should disappear.
 
@@ -34,6 +36,7 @@ public class ArmUIPlaneCollider : MonoBehaviour
     public string lastTouchedColliderName = "None";
 
     private float _lastAreaTouchTime = -1f;
+    private bool _openAreaLatched;
 
     private void Reset()
     {
@@ -51,7 +54,13 @@ public class ArmUIPlaneCollider : MonoBehaviour
             armUIAreaButton.buttonName = "armUIAreaButton";
         }
 
+        if (openArmUIAreaButton.buttonName == "Button")
+        {
+            openArmUIAreaButton.buttonName = "openArmUIAreaButton";
+        }
+
         InitializeButton(armUIAreaButton);
+        InitializeButton(openArmUIAreaButton);
         SyncAreaState();
     }
 
@@ -73,27 +82,28 @@ public class ArmUIPlaneCollider : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         TryHandleEnter(armUIAreaButton, other);
+        TryHandleEnter(openArmUIAreaButton, other);
     }
 
     private void OnTriggerStay(Collider other)
     {
-        if (armUIAreaButton == null || armUIAreaButton.buttonCollider == null)
+        if (armUIAreaButton != null && armUIAreaButton.buttonCollider != null && other == armUIAreaButton.buttonCollider)
         {
+            _lastAreaTouchTime = Time.time;
+            lastTouchedColliderName = other.name;
             return;
         }
 
-        if (other != armUIAreaButton.buttonCollider)
+        if (openArmUIAreaButton != null && openArmUIAreaButton.buttonCollider != null && other == openArmUIAreaButton.buttonCollider)
         {
-            return;
+            lastTouchedColliderName = other.name;
         }
-
-        _lastAreaTouchTime = Time.time;
-        lastTouchedColliderName = other.name;
     }
 
     private void OnTriggerExit(Collider other)
     {
         TryHandleExit(armUIAreaButton, other);
+        TryHandleExit(openArmUIAreaButton, other);
     }
 
     private void OnDisable()
@@ -131,6 +141,17 @@ public class ArmUIPlaneCollider : MonoBehaviour
             lastTouchedColliderName = other.name;
             interactionDebug = "Touch enter: " + button.buttonName;
             button.onEnter?.Invoke();
+
+            if (button == openArmUIAreaButton && IsButtonTouched(armUIAreaButton))
+            {
+                _openAreaLatched = true;
+            }
+            else if (button == armUIAreaButton && IsButtonTouched(openArmUIAreaButton))
+            {
+                // Handle possible event ordering where open enter arrives before area enter.
+                _openAreaLatched = true;
+            }
+
             SyncAreaState();
         }
 
@@ -158,43 +179,71 @@ public class ArmUIPlaneCollider : MonoBehaviour
 
     private void SyncAreaState()
     {
-        inArmUIArea = armUIAreaButton != null && armUIAreaButton.isTouched;
+        bool areaTouched = IsButtonTouched(armUIAreaButton);
+        if (!areaTouched)
+        {
+            _openAreaLatched = false;
+            inArmUIArea = false;
+            currentTouchedButton = "None";
+            lastTouchedColliderName = "None";
+            if (interactionDebug.StartsWith("Touch"))
+            {
+                return;
+            }
+
+            interactionDebug = "No button touched";
+            return;
+        }
+
+        if (!_openAreaLatched && IsButtonTouched(openArmUIAreaButton))
+        {
+            _openAreaLatched = true;
+        }
+
+        inArmUIArea = _openAreaLatched;
 
         if (inArmUIArea)
         {
-            currentTouchedButton = armUIAreaButton.buttonName;
+            currentTouchedButton = openArmUIAreaButton != null && openArmUIAreaButton.isTouched
+                ? openArmUIAreaButton.buttonName
+                : armUIAreaButton.buttonName;
             return;
         }
 
-        currentTouchedButton = "None";
-        lastTouchedColliderName = "None";
-        if (interactionDebug.StartsWith("Touch"))
-        {
-            return;
-        }
-
-        interactionDebug = "No button touched";
+        currentTouchedButton = armUIAreaButton.buttonName + " (waiting " +
+            (openArmUIAreaButton != null ? openArmUIAreaButton.buttonName : "open") + ")";
     }
 
     private void ForceClearAreaTouch(string reason)
     {
-        if (armUIAreaButton == null)
+        bool wasTouched = false;
+
+        if (armUIAreaButton != null && armUIAreaButton.isTouched)
         {
-            inArmUIArea = false;
-            return;
+            armUIAreaButton.isTouched = false;
+            armUIAreaButton.onExit?.Invoke();
+            wasTouched = true;
         }
 
-        if (!armUIAreaButton.isTouched)
+        if (openArmUIAreaButton != null && openArmUIAreaButton.isTouched)
         {
-            inArmUIArea = false;
-            _lastAreaTouchTime = -1f;
-            return;
+            openArmUIAreaButton.isTouched = false;
+            openArmUIAreaButton.onExit?.Invoke();
+            wasTouched = true;
         }
 
-        armUIAreaButton.isTouched = false;
+        _openAreaLatched = false;
         _lastAreaTouchTime = -1f;
-        interactionDebug = "Force clear: " + reason;
-        armUIAreaButton.onExit?.Invoke();
+        if (wasTouched)
+        {
+            interactionDebug = "Force clear: " + reason;
+        }
+
         SyncAreaState();
+    }
+
+    private bool IsButtonTouched(ButtonBinding button)
+    {
+        return button != null && button.isTouched;
     }
 }
