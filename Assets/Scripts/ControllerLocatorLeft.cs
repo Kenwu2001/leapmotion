@@ -273,6 +273,7 @@ public class ControllerLocatorLeft : MonoBehaviour
             return;
         }
 
+        // Keep fallback hand visuals on their original distance-based logic.
         bool shouldUseFallbackVisuals = ShouldUseFallbackVisuals();
 
         if (shouldUseFallbackVisuals)
@@ -281,20 +282,28 @@ public class ControllerLocatorLeft : MonoBehaviour
             {
                 isFallbackVisualsActive = true;
                 ShowFallbackVisuals();
+            }
+        }
+        else if (isFallbackVisualsActive)
+        {
+            isFallbackVisualsActive = false;
+            HideFallbackVisuals();
+        }
+
+        if (leftCanvasStateIsOn)
+        {
+            if (!canvasPlane.activeSelf || !isCanvasFrozenInWorld)
+            {
                 ShowCanvasPlaneFollowingRightHand();
             }
 
-            // Keep linked fallback objects visible even if another script toggled them off.
             SetCanvasVisibility(true);
-
             UpdateCanvasPlaneFollowingRightHandPose();
             return;
         }
 
-        if (isFallbackVisualsActive)
+        if (canvasPlane.activeSelf || isCanvasFrozenInWorld)
         {
-            isFallbackVisualsActive = false;
-            HideFallbackVisuals();
             HideCanvasPlane();
         }
     }
@@ -481,52 +490,12 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void KeepCanvasPlaneAttachedForPreview(bool restoreInitialTransform)
     {
-        if (canvasPlane == null)
-        {
-            return;
-        }
-
-        Transform canvasTransform = canvasPlane.transform;
-        if (canvasOriginalParent != null && canvasTransform.parent != canvasOriginalParent)
-        {
-            canvasTransform.SetParent(canvasOriginalParent, false);
-        }
-
-        if (restoreInitialTransform)
-        {
-            canvasTransform.localPosition = canvasInitialLocalPosition;
-            canvasTransform.localRotation = canvasInitialLocalRotation;
-            canvasTransform.localScale = canvasInitialLocalScale;
-        }
-
-        SetCanvasVisibility(true);
-        isCanvasFrozenInWorld = false;
-        leftHandHiddenTimer = 0f;
+        UpdateCanvasPlaneVisibility();
     }
 
     private void ShowCanvasPlaneAttached(bool restoreInitialTransform)
     {
-        if (canvasPlane == null)
-        {
-            return;
-        }
-
-        Transform canvasTransform = canvasPlane.transform;
-        if (canvasOriginalParent != null && canvasTransform.parent != canvasOriginalParent)
-        {
-            canvasTransform.SetParent(canvasOriginalParent, false);
-        }
-
-        if (restoreInitialTransform)
-        {
-            canvasTransform.localPosition = canvasInitialLocalPosition;
-            canvasTransform.localRotation = canvasInitialLocalRotation;
-            canvasTransform.localScale = canvasInitialLocalScale;
-        }
-
-        SetCanvasVisibility(true);
-        isCanvasFrozenInWorld = false;
-        leftHandHiddenTimer = 0f;
+        UpdateCanvasPlaneVisibility();
     }
 
     private void ShowCanvasPlaneFollowingRightHand()
@@ -540,7 +509,7 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateCanvasPlaneFollowingRightHandPose()
     {
-        if (!isFallbackVisualsActive || canvasPlane == null)
+        if (!leftCanvasStateIsOn || canvasPlane == null)
         {
             return;
         }
@@ -735,6 +704,7 @@ public class ControllerLocatorLeft : MonoBehaviour
     {
         leftCanvasStateIsOn = isOn;
         UpdateLeftCanvasStateMaterial();
+        UpdateCanvasPlaneVisibility();
     }
 
     private void UpdateLeftCanvasStateMaterial()
