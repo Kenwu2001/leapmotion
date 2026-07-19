@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.XR;
+using System.Collections.Generic;
 
 public class ControllerLocatorLeft : MonoBehaviour
 {
@@ -15,6 +16,13 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject leftHandOriginalSkin;
     public GameObject leftQuad;
     public GameObject canvasPlane;
+    public GameObject LeftCanvasStateArea;
+    public Renderer LeftCanvasStateRenderer;
+    public Material leftCanvasOnMaterial;
+    public Material leftCanvasOffMaterial;
+    public bool leftCanvasStateIsOn = false;
+    [Tooltip("Tag of the collider that can toggle left canvas state")]
+    public string leftCanvasStateAreaTag = "LeftCanvasStateArea";
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
     public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
@@ -70,6 +78,7 @@ public class ControllerLocatorLeft : MonoBehaviour
     private float leftHandHiddenTimer;
     private bool isFallbackVisualsActive;
     private bool shouldHideLeftHandByDistance;
+    private readonly HashSet<Collider> touchingCanvasStateColliders = new HashSet<Collider>();
 
     void Awake()
     {
@@ -97,6 +106,8 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         if (canvasPlane == null)
         {
+            EnsureLeftCanvasStateRenderer();
+            SetLeftCanvasState(false);
             return;
         }
 
@@ -113,6 +124,9 @@ public class ControllerLocatorLeft : MonoBehaviour
         {
             SetCanvasVisibility(false);
         }
+
+        EnsureLeftCanvasStateRenderer();
+        SetLeftCanvasState(false);
     }
 
     void Update()
@@ -663,5 +677,79 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         return armUIPlaneCollider.inArmUIArea;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!IsLeftCanvasStateAreaCollider(other))
+        {
+            return;
+        }
+
+        if (!touchingCanvasStateColliders.Add(other))
+        {
+            return;
+        }
+
+        if (touchingCanvasStateColliders.Count == 1)
+        {
+            SetLeftCanvasState(!leftCanvasStateIsOn);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (!IsLeftCanvasStateAreaCollider(other))
+        {
+            return;
+        }
+
+        touchingCanvasStateColliders.Remove(other);
+    }
+
+    private bool IsLeftCanvasStateAreaCollider(Collider other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        if (LeftCanvasStateArea != null)
+        {
+            Transform areaTransform = LeftCanvasStateArea.transform;
+            return other.transform == areaTransform || other.transform.IsChildOf(areaTransform);
+        }
+
+        return !string.IsNullOrEmpty(leftCanvasStateAreaTag) && other.CompareTag(leftCanvasStateAreaTag);
+    }
+
+    private void EnsureLeftCanvasStateRenderer()
+    {
+        if (LeftCanvasStateRenderer == null && LeftCanvasStateArea != null)
+        {
+            LeftCanvasStateRenderer = LeftCanvasStateArea.GetComponent<Renderer>();
+        }
+    }
+
+    private void SetLeftCanvasState(bool isOn)
+    {
+        leftCanvasStateIsOn = isOn;
+        UpdateLeftCanvasStateMaterial();
+    }
+
+    private void UpdateLeftCanvasStateMaterial()
+    {
+        if (LeftCanvasStateRenderer == null)
+        {
+            return;
+        }
+
+        Material targetMaterial = leftCanvasStateIsOn ? leftCanvasOnMaterial : leftCanvasOffMaterial;
+        if (targetMaterial == null || LeftCanvasStateRenderer.sharedMaterial == targetMaterial)
+        {
+            return;
+        }
+
+        LeftCanvasStateRenderer.material = targetMaterial;
     }
 }
