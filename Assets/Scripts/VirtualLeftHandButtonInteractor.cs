@@ -101,6 +101,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
     public ButtonBinding button3 = new ButtonBinding { buttonName = "Button 3" };
     [FormerlySerializedAs("buttonSnapping")]
     public ButtonBinding buttonSnapping = new ButtonBinding { buttonName = "Snapping Button" };
+    public bool enableLegacySnappingButton = false;
     // public ButtonBinding buttonAlbow = new ButtonBinding { buttonName = "Albow Button" };
 
     [Header("State Sources")]
@@ -116,7 +117,14 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         InitializeButton(button1);
         InitializeButton(button2);
         InitializeButton(button3);
-        InitializeButton(buttonSnapping);
+        if (enableLegacySnappingButton)
+        {
+            InitializeButton(buttonSnapping);
+        }
+        else
+        {
+            buttonSnapping.SetVisible(false);
+        }
         // InitializeButton(buttonAlbow);
         SyncButtonStates();
     }
@@ -140,7 +148,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (TryHandleEnter(button1, other)) return;
         if (TryHandleEnter(button2, other)) return;
         if (TryHandleEnter(button3, other)) return;
-        if (TryHandleEnter(buttonSnapping, other)) return;
+        if (enableLegacySnappingButton && TryHandleEnter(buttonSnapping, other)) return;
         // TryHandleEnter(buttonAlbow, other);
     }
 
@@ -149,7 +157,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         if (TryHandleExit(button1, other)) return;
         if (TryHandleExit(button2, other)) return;
         if (TryHandleExit(button3, other)) return;
-        if (TryHandleExit(buttonSnapping, other)) return;
+        if (enableLegacySnappingButton && TryHandleExit(buttonSnapping, other)) return;
         // TryHandleExit(buttonAlbow, other);
     }
 
@@ -212,7 +220,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
-        if (buttonSnapping.isTouched)
+        if (enableLegacySnappingButton && buttonSnapping.isTouched)
         {
             currentTouchedButton = buttonSnapping.buttonName;
             interactionDebug = "Touch stay: " + buttonSnapping.buttonName;
@@ -248,9 +256,16 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             button2.SetVisible(!clawModuleController.IsResetState);
             SetButtonState(button2, clawModuleController.IsResetState);
             SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
-            buttonSnapping.SetVisible(clawModuleController.hasAnySnappingVisible);
-            SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
-            buttonSnapping.SetText(clawModuleController.GetCurrentSnappingText());
+            if (enableLegacySnappingButton)
+            {
+                buttonSnapping.SetVisible(clawModuleController.hasAnySnappingVisible);
+                SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
+                buttonSnapping.SetText(clawModuleController.GetCurrentSnappingText());
+            }
+            else
+            {
+                buttonSnapping.SetVisible(false);
+            }
         }
 
         // Albow button logic is temporarily disabled.
@@ -285,7 +300,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             button3.buttonName = "IndexMiddleIndividual";
         }
 
-        if (buttonSnapping.buttonName == "180 Snapping Button" || buttonSnapping.buttonName == "Snapping Button")
+        if (enableLegacySnappingButton && (buttonSnapping.buttonName == "180 Snapping Button" || buttonSnapping.buttonName == "Snapping Button"))
         {
             buttonSnapping.buttonName = "snapping";
         }
@@ -333,7 +348,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
-        if (button == buttonSnapping)
+        if (enableLegacySnappingButton && button == buttonSnapping)
         {
             clawModuleController.ToggleCurrentSnapping();
             SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
