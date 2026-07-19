@@ -165,6 +165,7 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Snapping types
     // ==============================
+    public bool isSnappingEnabled = false;
     public bool isIndexMiddle180SnappingEnabled = false;
     public bool isThumbIndex180SnappingEnabled = false;
     public bool isThumbMiddle180SnappingEnabled = false;
@@ -3150,8 +3151,8 @@ public class ClawModuleController : MonoBehaviour
         bool thumbMiddle180ByRange = (thumbMiddleInThumbRange && thumbMiddleInMiddleRange);
         bool thumbIndex180ByRange = (thumbIndexInThumbRange && thumbIndexInIndexRange);
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool thumbMiddle180ByForce = isThumbMiddle180SnappingEnabled && thumbMiddle180ByRange;
-        bool thumbIndex180ByForce = isThumbIndex180SnappingEnabled && thumbIndex180ByRange;
+        bool thumbMiddle180ByForce = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddle180ByRange;
+        bool thumbIndex180ByForce = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRange;
 
         thumbMiddle180ByRangeActive = thumbMiddle180ByRange;
         thumbIndex180ByRangeActive = thumbIndex180ByRange;
@@ -3506,8 +3507,8 @@ public class ClawModuleController : MonoBehaviour
 
         bool indexMiddle180ByRange = (indexMiddleInIndexRange && indexMiddleInMiddleRange);
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool indexMiddle180ByForce = isIndexMiddle180SnappingEnabled && indexMiddle180ByRange;
-        bool thumbIndex180OnIndexByForce = isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
+        bool indexMiddle180ByForce = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddle180ByRange;
+        bool thumbIndex180OnIndexByForce = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
 
         indexMiddle180ByRangeActive = indexMiddle180ByRange;
         Update180SnappingText();
@@ -3565,18 +3566,19 @@ public class ClawModuleController : MonoBehaviour
 
     private void Update180SnappingText()
     {
-        if (!hasAnySnappingVisible)
+        if (!hasAnySnappingVisible && !isSnappingEnabled)
         {
             current180SnappingText = string.Empty;
             return;
         }
 
-        current180SnappingText = GetCurrentSnappingText();
+        current180SnappingText = "snapping";
     }
 
     private bool ShouldApplyFull120SnapNow()
     {
-        return is120SnappingEnabled &&
+         return isSnappingEnabled &&
+             is120SnappingEnabled &&
                thumb120DegreeSnappingActive &&
                index120DegreeSnappingActive &&
                middle120DegreeSnappingActive;
@@ -3605,9 +3607,9 @@ public class ClawModuleController : MonoBehaviour
         indexMiddle180ByRangeActive = indexMiddleInIndexRange && indexMiddleInMiddleRange;
 
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool thumbMiddleSnapNow = isThumbMiddle180SnappingEnabled && thumbMiddle180ByRangeActive;
-        bool thumbIndexSnapNow = isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
-        bool indexMiddleSnapNow = isIndexMiddle180SnappingEnabled && indexMiddle180ByRangeActive;
+        bool thumbMiddleSnapNow = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddle180ByRangeActive;
+        bool thumbIndexSnapNow = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
+        bool indexMiddleSnapNow = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddle180ByRangeActive;
 
         if (full120SnapNow)
         {
@@ -3658,78 +3660,37 @@ public class ClawModuleController : MonoBehaviour
 
     public string GetCurrentSnappingText()
     {
-        switch (ResolveCurrentSnappingMode())
-        {
-            case SnappingMode.Full120:
-                return "120 snapping";
-            case SnappingMode.ThumbMiddle:
-                return "Thumb\nMiddle\nSnapping";
-            case SnappingMode.ThumbIndex:
-                return "Thumb\nIndex\nSnapping";
-            case SnappingMode.IndexMiddle:
-                return "Index\nMiddle\nSnapping";
-            default:
-                return string.Empty;
-        }
+        return (hasAnySnappingVisible || isSnappingEnabled) ? "snapping" : string.Empty;
     }
 
     public bool IsCurrentSnappingEnabled()
     {
-        switch (ResolveCurrentSnappingMode())
-        {
-            case SnappingMode.Full120:
-                return is120SnappingEnabled;
-            case SnappingMode.ThumbMiddle:
-                return isThumbMiddle180SnappingEnabled;
-            case SnappingMode.ThumbIndex:
-                return isThumbIndex180SnappingEnabled;
-            case SnappingMode.IndexMiddle:
-                return isIndexMiddle180SnappingEnabled;
-            default:
-                return false;
-        }
+        return isSnappingEnabled;
     }
 
     public void ToggleCurrentSnapping()
     {
-        SnappingMode mode = ResolveCurrentSnappingMode();
-        if (mode == SnappingMode.None)
-        {
-            return;
-        }
-
-        bool nextState = !IsCurrentSnappingEnabled();
-        SetOnly180SnappingModeEnabled(mode, nextState);
+        SetSnappingEnabled(!isSnappingEnabled);
         Update180SnappingText();
     }
 
-    private void SetOnly180SnappingModeEnabled(SnappingMode mode, bool enabled)
+    private void SetSnappingEnabled(bool enabled)
     {
+        isSnappingEnabled = enabled;
+
         if (!enabled)
         {
-            switch (mode)
-            {
-                case SnappingMode.Full120:
-                    is120SnappingEnabled = false;
-                    break;
-                case SnappingMode.ThumbMiddle:
-                    isThumbMiddle180SnappingEnabled = false;
-                    break;
-                case SnappingMode.ThumbIndex:
-                    isThumbIndex180SnappingEnabled = false;
-                    break;
-                case SnappingMode.IndexMiddle:
-                    isIndexMiddle180SnappingEnabled = false;
-                    break;
-            }
-
+            is120SnappingEnabled = false;
+            isThumbMiddle180SnappingEnabled = false;
+            isThumbIndex180SnappingEnabled = false;
+            isIndexMiddle180SnappingEnabled = false;
             return;
         }
 
-        is120SnappingEnabled = mode == SnappingMode.Full120;
-        isThumbMiddle180SnappingEnabled = mode == SnappingMode.ThumbMiddle;
-        isThumbIndex180SnappingEnabled = mode == SnappingMode.ThumbIndex;
-        isIndexMiddle180SnappingEnabled = mode == SnappingMode.IndexMiddle;
+        is120SnappingEnabled = true;
+        isThumbMiddle180SnappingEnabled = true;
+        isThumbIndex180SnappingEnabled = true;
+        isIndexMiddle180SnappingEnabled = true;
     }
 
     private SnappingMode ResolveCurrentSnappingMode()
@@ -4071,8 +4032,8 @@ public class ClawModuleController : MonoBehaviour
         middle120DegreeSnappingActive = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 10f) || IsAngleInRange(targetRotation.eulerAngles.y, 350f, 360f);
 
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool indexMiddle180OnMiddleByForce = isIndexMiddle180SnappingEnabled && indexMiddleInIndexRange && indexMiddleInMiddleRange;
-        bool thumbMiddle180OnMiddleByForce = isThumbMiddle180SnappingEnabled && thumbMiddleInThumbRange && thumbMiddleInMiddleRange;
+        bool indexMiddle180OnMiddleByForce = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddleInIndexRange && indexMiddleInMiddleRange;
+        bool thumbMiddle180OnMiddleByForce = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddleInThumbRange && thumbMiddleInMiddleRange;
 
         // Only enabled flags latch motors. Range flags are for visibility/text only.
         if (full120SnapNow)
@@ -4739,6 +4700,7 @@ public class ClawModuleController : MonoBehaviour
         isThumbIndex180SnappingEnabled = false;
         isThumbMiddle180SnappingEnabled = false;
         is120SnappingEnabled = false;
+        isSnappingEnabled = false;
 
         // Reset Arm UI state preference while keeping Arm UI plane disabled.
         ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
