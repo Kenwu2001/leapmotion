@@ -41,6 +41,12 @@ public class ControllerLocatorLeft : MonoBehaviour
     [Tooltip("Fixed world Euler rotation (X/Y/Z) for fallback canvas while following right-hand position")]
     public Vector3 rightHandCanvasRotationOffsetEuler;
 
+    [Header("Head Follow")]
+    [Tooltip("Optional head transform used for the canvas Y position. If null, XRNode.Head or the main camera will be used.")]
+    public Transform headTransform;
+    [Tooltip("Extra Y offset applied from the headset/head position when positioning the canvas plane")]
+    public float headCanvasYOffset = 0f;
+
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
 
@@ -520,17 +526,49 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         Transform canvasTransform = canvasPlane.transform;
-        Vector3 localOffset = new Vector3(
-            rightHandCanvasXOffset,
-            rightHandCanvasYOffset,
-            rightHandCanvasZOffset
+        Vector3 worldPosition = new Vector3(
+            rightHandWorldPosition.x + rightHandCanvasXOffset,
+            rightHandWorldPosition.y,
+            rightHandWorldPosition.z + rightHandCanvasZOffset
         );
+        if (TryGetHeadWorldPosition(out Vector3 headWorldPosition))
+        {
+            worldPosition.y = headWorldPosition.y + headCanvasYOffset;
+        }
+        else
+        {
+            worldPosition.y += rightHandCanvasYOffset;
+        }
 
-        Vector3 worldPosition = rightHandWorldPosition + (rightHandWorldRotation * localOffset);
         Quaternion worldRotation = Quaternion.Euler(rightHandCanvasRotationOffsetEuler);
 
         canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
         canvasTransform.localScale = canvasInitialLocalScale;
+    }
+
+    private bool TryGetHeadWorldPosition(out Vector3 headWorldPosition)
+    {
+        if (headTransform != null)
+        {
+            headWorldPosition = headTransform.position;
+            return true;
+        }
+
+        InputDevice headDevice = InputDevices.GetDeviceAtXRNode(XRNode.Head);
+        if (headDevice.isValid &&
+            headDevice.TryGetFeatureValue(CommonUsages.devicePosition, out headWorldPosition))
+        {
+            return true;
+        }
+
+        if (Camera.main != null)
+        {
+            headWorldPosition = Camera.main.transform.position;
+            return true;
+        }
+
+        headWorldPosition = Vector3.zero;
+        return false;
     }
 
     private bool TryGetRightHandControllerWorldPose(out Vector3 rightHandWorldPosition, out Quaternion rightHandWorldRotation)

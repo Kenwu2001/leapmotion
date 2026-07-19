@@ -3923,7 +3923,7 @@ public class ClawModuleController : MonoBehaviour
 
     public string GetCurrentSnappingText()
     {
-        return (hasAnySnappingVisible || isSnappingEnabled) ? "snapping" : string.Empty;
+        return (hasAnySnappingVisible || isSnappingEnabled) ? "Snapping" : string.Empty;
     }
 
     public bool IsCurrentSnappingEnabled()

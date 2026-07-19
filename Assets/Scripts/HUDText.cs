@@ -26,21 +26,22 @@ public class HUDText : MonoBehaviour
         bool showSnapping = clawModuleController.hasAnySnappingVisible;
         bool currentSnappingEnabled = clawModuleController.IsCurrentSnappingEnabled();
         string currentSnappingText = clawModuleController.GetCurrentSnappingText();
-        string fullRangeText = isFullRangeMapping ? "Full Range Mapping" : "Small Range Mapping";
-        string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : "Index Middle Coupled";
+        string fullRangeText = isFullRangeMapping ? "" : "Small Range Mapping"; // "Full Range Mapping"
+        string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : ""; // "Index Middle Coupled"
         string engagementText = isEngaged ? "Engagement" : "Disengagement";
         string currentSnappingColor = currentSnappingEnabled ? "green" : "white";
         string fullRangeColor = isFullRangeMapping ? "white" : "green";
         string resetColor = isReset ? "green" : "white";
         string individualColor = isIndexMiddleIndividual ? "green" : "white";
-        string engagementColor = isEngaged ? "green" : "white";
+        string engagementColor = isEngaged ? "green" : "red";
 
         textMesh.text =
             $"<color={engagementColor}>{engagementText}</color>\n" +
-            $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
-            $"<color={individualColor}>{indexMiddleText}</color>\n" +
-            (showSnapping
+                        (showSnapping
                 ? $"<color={currentSnappingColor}>{currentSnappingText}</color>\n"
-                : string.Empty);
+                : string.Empty) +
+            $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
+            $"<color={individualColor}>{indexMiddleText}</color>\n";
+
     }
 }
