@@ -3842,6 +3842,8 @@ public class ClawModuleController : MonoBehaviour
 
     private void RefreshLiveSnappingStateAndApplyLocks()
     {
+        bool isManipulating = modeSwitching != null && modeSwitching.modeManipulate;
+
         float thumbY = GetJointLocalY(ThumbAngle1Center);
         float indexY = GetJointLocalY(IndexAngle1Center);
         float middleY = GetJointLocalY(MiddleAngle1Center);
@@ -3873,6 +3875,14 @@ public class ClawModuleController : MonoBehaviour
         bool thumbMiddleSnapNow = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddle180ByRangeActive && IsSnapPairEligibleByFreeze(1, 30f, 9, 330f);
         bool thumbIndexSnapNow = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive && IsSnapPairEligibleByFreeze(1, 330f, 5, 30f);
         bool indexMiddleSnapNow = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddle180ByRangeActive && IsSnapPairEligibleByFreeze(5, 330f, 9, 30f);
+
+        // During manipulate mode, keep live snapping flags/text only and avoid writing angles.
+        // This prevents snapping from overriding single-motor manipulate freeze.
+        if (isManipulating)
+        {
+            Update180SnappingText();
+            return;
+        }
 
         if (full120SnapNow)
         {
