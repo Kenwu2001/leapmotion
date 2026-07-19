@@ -13151,7 +13151,7 @@ MonoBehaviour:
   rightHandCanvasXOffset: -0.35
   rightHandCanvasYOffset: -0.35
   rightHandCanvasZOffset: 0.4
-  rightHandCanvasRotationOffsetEuler: {x: -75, y: -10, z: 0}
+  rightHandCanvasRotationOffsetEuler: {x: -75, y: 45, z: 0}
   modeSwitching: {fileID: 951283614}
   armUIPlaneCollider: {fileID: 274459473}
   distanceThresholdByFingertips: 1

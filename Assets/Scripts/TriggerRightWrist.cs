@@ -99,6 +99,19 @@ public class TriggerRightWrist : MonoBehaviour
         SyncIndicatorWithSender();
     }
 
+    public void ForceDisengageVisualState(string reason = "reset")
+    {
+        if (tcpSender != null)
+        {
+            tcpSender.SetEngagement(false, reason);
+        }
+
+        touchingIndexColliders.Clear();
+        isRightWristTouched = false;
+        SyncIndicatorWithSender();
+        SyncWristTouchMaterial(false);
+    }
+
     private void SyncIndicatorWithSender()
     {
         bool engaged = tcpSender != null && tcpSender.isSending;

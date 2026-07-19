@@ -4759,6 +4759,12 @@ public class ClawModuleController : MonoBehaviour
         {
             tcpSender.SetEngagement(false, "claw_reset");
         }
+
+        TriggerRightWrist rightWristTrigger = FindObjectOfType<TriggerRightWrist>();
+        if (rightWristTrigger != null)
+        {
+            rightWristTrigger.ForceDisengageVisualState("claw_reset");
+        }
     }
 
     /// <summary>
