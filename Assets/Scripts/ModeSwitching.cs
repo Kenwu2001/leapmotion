@@ -773,6 +773,12 @@ public class ModeSwitching : MonoBehaviour
 
                         // Capture current frozen state as the new round baseline.
                         CaptureModeSelectBaseline();
+                        // Away-commit means next selection is a new round, except when the user
+                        // is actively leaving to enter manipulate with a confirmed non-Paxini motor.
+                        if (!(motorSelected && confirmedMotorID != 0 && !IsPaxiniMotor(confirmedMotorID)))
+                        {
+                            ResetFingertipFirstRoundState();
+                        }
                         // Commit changed state first, then repaint from authoritative state
                         // so stale yellow/original colors cannot linger after hand-away.
                         UpdateMotorColors();
@@ -810,6 +816,10 @@ public class ModeSwitching : MonoBehaviour
                     {
                         _noFreezeRoundBaselineCaptured = true;
                         CaptureModeSelectBaseline(); // refreshes _singleMotorFrozenBaseline and resets _roundChangedMotorID
+                        if (!(motorSelected && confirmedMotorID != 0 && !IsPaxiniMotor(confirmedMotorID)))
+                        {
+                            ResetFingertipFirstRoundState();
+                        }
                         UpdateMotorColors();
                     }
                 }
@@ -1049,13 +1059,7 @@ public class ModeSwitching : MonoBehaviour
                 }
 
                 // Reset fingertip priority mode state
-                if (useFingertipFirst)
-                {
-                    currentPhase = SelectionPhase.SelectingFingertip;
-                    confirmedFingertipID = 0;
-                    SelectMotorCollider.ResetFingertipConfirmation();
-                    SelectMotorCollider.ReleaseFrozenLine();
-                }
+                ResetFingertipFirstRoundState();
 
                 // Apply colors AFTER all state resets so frozen yellow is always preserved
                 ResetAllColors();
@@ -1966,6 +1970,23 @@ public class ModeSwitching : MonoBehaviour
         _roundChangedMotorID = 0;
     }
 
+    private void ResetFingertipFirstRoundState()
+    {
+        if (!useFingertipFirst)
+        {
+            return;
+        }
+
+        currentPhase = SelectionPhase.SelectingFingertip;
+        confirmedFingertipID = 0;
+
+        if (SelectMotorCollider != null)
+        {
+            SelectMotorCollider.ResetFingertipConfirmation();
+            SelectMotorCollider.ReleaseFrozenLine();
+        }
+    }
+
     private bool IsBaselineFrozenForMotor(int motorID)
     {
         if (motorID < 1 || motorID > 12)
@@ -2119,16 +2140,13 @@ public class ModeSwitching : MonoBehaviour
         hasEnteredCloseRange = false;
         hasSetManipulateColors = false;
 
+        if (useFingertipFirst)
+        {
+            ResetFingertipFirstRoundState();
+        }
+
         if (useFingertipFirst && grayMode)
         {
-            currentPhase = SelectionPhase.SelectingFingertip;
-            confirmedFingertipID = 0;
-
-            if (SelectMotorCollider != null)
-            {
-                SelectMotorCollider.ResetFingertipConfirmation();
-                SelectMotorCollider.ReleaseFrozenLine();
-            }
 
             // Return only 1-12 motors to base selectable colors.
             // Paxini color is managed by TriggerRight*Tip (freeze yellow can stay ON).
