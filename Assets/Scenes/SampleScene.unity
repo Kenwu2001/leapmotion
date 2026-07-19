@@ -35590,7 +35590,6 @@ GameObject:
   m_Component:
   - component: {fileID: 886172675}
   - component: {fileID: 886172677}
-  - component: {fileID: 886172676}
   m_Layer: 0
   m_Name: LeftCanvasStateArea
   m_TagString: Untagged
@@ -35614,28 +35613,6 @@ Transform:
   - {fileID: 1129803462}
   m_Father: {fileID: 582545766}
   m_LocalEulerAnglesHint: {x: 25.928, y: -7.642, z: -3.357}
---- !u!114 &886172676
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 886172674}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 615f00d336dbfbf4db52dd254d5ceeac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tcpSender: {fileID: 188813409}
-  leftIndexTipName: ToyHand
-  isRightWristTouched: 0
-  indicatorQuad: {fileID: 550822876}
-  wristTouchRenderer: {fileID: 550822879}
-  wristTouchedMaterial: {fileID: 2100000, guid: 474ebbc99f81ac846a3a0b649d812ed5, type: 2}
-  wristNotTouchedMaterial: {fileID: 2100000, guid: c332f8a4d3f76774f813e11888fb50d2, type: 2}
-  toggleCooldownSeconds: 0.35
-  engagementSphere: {fileID: 1129803461}
-  engagementSphereRenderer: {fileID: 1129803464}
 --- !u!65 &886172677
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -57255,7 +57232,7 @@ MonoBehaviour:
     point0: {fileID: 1769235116}
     point1: {fileID: 336617019}
   showDebugVisuals: 1
-  showIndexMiddleBaseline: 1
+  showIndexMiddleBaseline: 0
   baselineLineLength: 0.1
   baselineLineColor: {r: 0, g: 1, b: 1, a: 1}
   showIndexAngleVisualization: 0
