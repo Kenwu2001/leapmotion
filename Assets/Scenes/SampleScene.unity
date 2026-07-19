@@ -46589,7 +46589,7 @@ MonoBehaviour:
   confirmedFingertipID: 0
   grayMode: 0
   grayColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  singleMotorFreezeTime: 1
+  singleMotorFreezeTime: 2
   singleFrozenColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   unfreezeConfirmationTime: 1.5
   unfreezeHintColor: {r: 0.9843137, g: 0.68235296, b: 0.68235296, a: 1}
@@ -48165,7 +48165,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     originalColor: {r: 0, g: 0, b: 0, a: 0}
-  enableLegacySnappingButton: 0
+  enableLegacySnappingButton: 1
   clawModuleController: {fileID: 4551987535763487160}
   currentTouchedButton: None
   interactionDebug: No button touched
@@ -64391,7 +64391,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: thumb middle 180
+  m_text: Snapping
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -64418,8 +64418,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 180
-  m_fontSizeBase: 180
+  m_fontSize: 220
+  m_fontSizeBase: 220
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -78288,7 +78288,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1891215550
 Transform:
   m_ObjectHideFlags: 0

@@ -117,14 +117,8 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
         InitializeButton(button1);
         InitializeButton(button2);
         InitializeButton(button3);
-        if (enableLegacySnappingButton)
-        {
-            InitializeButton(buttonSnapping);
-        }
-        else
-        {
-            buttonSnapping.SetVisible(false);
-        }
+        InitializeButton(buttonSnapping);
+        buttonSnapping.SetVisible(true);
         // InitializeButton(buttonAlbow);
         SyncButtonStates();
     }
@@ -220,7 +214,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
-        if (enableLegacySnappingButton && buttonSnapping.isTouched)
+        if (buttonSnapping.isTouched)
         {
             currentTouchedButton = buttonSnapping.buttonName;
             interactionDebug = "Touch stay: " + buttonSnapping.buttonName;
@@ -256,16 +250,9 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             button2.SetVisible(!clawModuleController.IsResetState);
             SetButtonState(button2, clawModuleController.IsResetState);
             SetButtonState(button3, clawModuleController.useIndexMiddleIndividualMode);
-            if (enableLegacySnappingButton)
-            {
-                buttonSnapping.SetVisible(clawModuleController.hasAnySnappingVisible);
-                SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
-                buttonSnapping.SetText(clawModuleController.GetCurrentSnappingText());
-            }
-            else
-            {
-                buttonSnapping.SetVisible(false);
-            }
+            buttonSnapping.SetVisible(true);
+            SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
+            buttonSnapping.SetText("Snapping");
         }
 
         // Albow button logic is temporarily disabled.
@@ -300,7 +287,7 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             button3.buttonName = "IndexMiddleIndividual";
         }
 
-        if (enableLegacySnappingButton && (buttonSnapping.buttonName == "180 Snapping Button" || buttonSnapping.buttonName == "Snapping Button"))
+        if (buttonSnapping.buttonName == "180 Snapping Button" || buttonSnapping.buttonName == "Snapping Button")
         {
             buttonSnapping.buttonName = "snapping";
         }
@@ -348,12 +335,12 @@ public class VirtualLeftHandButtonInteractor : MonoBehaviour
             return;
         }
 
-        if (enableLegacySnappingButton && button == buttonSnapping)
+        if (button == buttonSnapping)
         {
             clawModuleController.ToggleCurrentSnapping();
             SetButtonState(buttonSnapping, clawModuleController.IsCurrentSnappingEnabled());
-            buttonSnapping.SetVisible(clawModuleController.hasAnySnappingVisible);
-            buttonSnapping.SetText(clawModuleController.GetCurrentSnappingText());
+            buttonSnapping.SetVisible(true);
+            buttonSnapping.SetText("Snapping");
             interactionDebug = "Touch enter: " + button.buttonName + " -> " + clawModuleController.IsCurrentSnappingEnabled();
             return;
         }

@@ -23,9 +23,7 @@ public class HUDText : MonoBehaviour
         bool isFullRangeMapping = clawModuleController.isFullRangeMapping;
         bool isIndexMiddleIndividual = clawModuleController.useIndexMiddleIndividualMode;
         bool isEngaged = triggerRightWrist != null && triggerRightWrist.IsEngaged;
-        bool showSnapping = clawModuleController.hasAnySnappingVisible;
         bool currentSnappingEnabled = clawModuleController.IsCurrentSnappingEnabled();
-        string currentSnappingText = clawModuleController.GetCurrentSnappingText();
         string fullRangeText = isFullRangeMapping ? "" : "Small Range Mapping"; // "Full Range Mapping"
         string indexMiddleText = isIndexMiddleIndividual ? "Index Middle Individual" : ""; // "Index Middle Coupled"
         string engagementText = isEngaged ? "Engagement" : "Disengagement";
@@ -37,8 +35,8 @@ public class HUDText : MonoBehaviour
 
         textMesh.text =
             $"<color={engagementColor}>{engagementText}</color>\n" +
-                        (showSnapping
-                ? $"<color={currentSnappingColor}>{currentSnappingText}</color>\n"
+            (currentSnappingEnabled
+                ? $"<color={currentSnappingColor}>Snapping</color>\n"
                 : string.Empty) +
             $"<color={fullRangeColor}>{fullRangeText}</color>\n" +
             $"<color={individualColor}>{indexMiddleText}</color>\n";
