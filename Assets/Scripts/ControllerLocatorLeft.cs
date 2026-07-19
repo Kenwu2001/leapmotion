@@ -13,7 +13,7 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     [Header("Fallback Display")]
     public GameObject leftHandRetargetingSkin;
-    public GameObject leftHandOriginalSkin;
+    // public GameObject leftHandOriginalSkin;
     public GameObject leftQuad;
     public GameObject canvasPlane;
     public GameObject LeftCanvasStateArea;
@@ -477,10 +477,10 @@ public class ControllerLocatorLeft : MonoBehaviour
             leftHandRetargetingSkin.SetActive(!shouldHideLeftHandVisuals);
         }
 
-        if (leftHandOriginalSkin != null)
-        {
-            leftHandOriginalSkin.SetActive(!shouldHideLeftHandVisuals);
-        }
+        // if (leftHandOriginalSkin != null)
+        // {
+        //     leftHandOriginalSkin.SetActive(!shouldHideLeftHandVisuals);
+        // }
 
         if (leftQuad != null)
         {

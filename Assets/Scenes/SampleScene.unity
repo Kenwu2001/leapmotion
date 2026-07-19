@@ -1728,11 +1728,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 134929430}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &135976839 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
-  m_PrefabInstance: {fileID: 1770763344}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &137708558
 GameObject:
   m_ObjectHideFlags: 0
@@ -13133,7 +13128,6 @@ MonoBehaviour:
   currentControllerSeparationDistance: 0
   isControllerSeparationValid: 0
   leftHandRetargetingSkin: {fileID: 2145436053}
-  leftHandOriginalSkin: {fileID: 135976839}
   leftQuad: {fileID: 1319513583}
   canvasPlane: {fileID: 721031720}
   LeftCanvasStateArea: {fileID: 886172674}
@@ -49096,6 +49090,7 @@ MonoBehaviour:
   middleCube4Renderer: {fileID: 0}
   twistRotationSpeed: 20
   isFullRangeMapping: 1
+  isSnappingEnabled: 0
   isIndexMiddle180SnappingEnabled: 0
   isThumbIndex180SnappingEnabled: 0
   isThumbMiddle180SnappingEnabled: 0
@@ -62490,6 +62485,7 @@ MonoBehaviour:
   middleCube4Renderer: {fileID: 0}
   twistRotationSpeed: 20
   isFullRangeMapping: 1
+  isSnappingEnabled: 0
   isIndexMiddle180SnappingEnabled: 0
   isThumbIndex180SnappingEnabled: 0
   isThumbMiddle180SnappingEnabled: 0
@@ -75164,7 +75160,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818669535133314979, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8880001930163941418, guid: 96dd6d300be37b645bb0af42b0c30f2e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -76005,6 +76001,7 @@ MonoBehaviour:
   middleCube4Renderer: {fileID: 0}
   twistRotationSpeed: 20
   isFullRangeMapping: 1
+  isSnappingEnabled: 0
   isIndexMiddle180SnappingEnabled: 0
   isThumbIndex180SnappingEnabled: 0
   isThumbMiddle180SnappingEnabled: 0
@@ -78299,7 +78296,7 @@ Transform:
   m_GameObject: {fileID: 1891215549}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: -0.0013, z: -0.0419}
+  m_LocalPosition: {x: -0.00106, y: -0.05152, z: -0.03265}
   m_LocalScale: {x: 0.02, y: 0.02, z: 0.02}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -86544,6 +86541,7 @@ MonoBehaviour:
   middleCube4Renderer: {fileID: 1185201706}
   twistRotationSpeed: 20
   isFullRangeMapping: 1
+  isSnappingEnabled: 0
   isIndexMiddle180SnappingEnabled: 0
   isThumbIndex180SnappingEnabled: 0
   isThumbMiddle180SnappingEnabled: 0
