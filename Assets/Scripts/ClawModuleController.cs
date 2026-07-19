@@ -411,8 +411,31 @@ public class ClawModuleController : MonoBehaviour
                 return false;
             }
 
+            if (IsAnyFreezeStateActive())
+            {
+                return false;
+            }
+
             return true;
         }
+    }
+
+    private bool IsAnyFreezeStateActive()
+    {
+        if (modeSwitching != null && modeSwitching.singleMotorFrozen != null)
+        {
+            bool[] singleFrozen = modeSwitching.singleMotorFrozen;
+            for (int i = 0; i < singleFrozen.Length; i++)
+            {
+                if (singleFrozen[i])
+                {
+                    return true;
+                }
+            }
+        }
+
+        SelectMotorCollider smc = modeSwitching != null ? modeSwitching.SelectMotorCollider : null;
+        return smc != null && (smc.thumbFreezeEnabled || smc.indexFreezeEnabled || smc.middleFreezeEnabled);
     }
 
     private bool IsAnyPaxiniYellowActive()
@@ -3151,8 +3174,14 @@ public class ClawModuleController : MonoBehaviour
         bool thumbMiddle180ByRange = (thumbMiddleInThumbRange && thumbMiddleInMiddleRange);
         bool thumbIndex180ByRange = (thumbIndexInThumbRange && thumbIndexInIndexRange);
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool thumbMiddle180ByForce = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddle180ByRange;
-        bool thumbIndex180ByForce = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRange;
+        bool thumbMiddle180ByForce = isSnappingEnabled &&
+            isThumbMiddle180SnappingEnabled &&
+            thumbMiddle180ByRange &&
+            IsSnapPairEligibleByFreeze(1, 30f, 9, 330f);
+        bool thumbIndex180ByForce = isSnappingEnabled &&
+            isThumbIndex180SnappingEnabled &&
+            thumbIndex180ByRange &&
+            IsSnapPairEligibleByFreeze(1, 330f, 5, 30f);
 
         thumbMiddle180ByRangeActive = thumbMiddle180ByRange;
         thumbIndex180ByRangeActive = thumbIndex180ByRange;
@@ -3507,8 +3536,14 @@ public class ClawModuleController : MonoBehaviour
 
         bool indexMiddle180ByRange = (indexMiddleInIndexRange && indexMiddleInMiddleRange);
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool indexMiddle180ByForce = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddle180ByRange;
-        bool thumbIndex180OnIndexByForce = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
+        bool indexMiddle180ByForce = isSnappingEnabled &&
+            isIndexMiddle180SnappingEnabled &&
+            indexMiddle180ByRange &&
+            IsSnapPairEligibleByFreeze(5, 330f, 9, 30f);
+        bool thumbIndex180OnIndexByForce = isSnappingEnabled &&
+            isThumbIndex180SnappingEnabled &&
+            thumbIndex180ByRangeActive &&
+            IsSnapPairEligibleByFreeze(1, 330f, 5, 30f);
 
         indexMiddle180ByRangeActive = indexMiddle180ByRange;
         Update180SnappingText();
@@ -3581,7 +3616,228 @@ public class ClawModuleController : MonoBehaviour
              is120SnappingEnabled &&
                thumb120DegreeSnappingActive &&
                index120DegreeSnappingActive &&
-               middle120DegreeSnappingActive;
+               middle120DegreeSnappingActive &&
+               IsFull120SnapEligibleByFreeze();
+    }
+
+    private bool IsFull120SnapEligibleByFreeze()
+    {
+        bool thumbFrozen = IsMotorFrozenForSnapping(1);
+        bool indexFrozen = IsMotorFrozenForSnapping(5);
+        bool middleFrozen = IsMotorFrozenForSnapping(9);
+
+        // No freeze: snapping should still work normally.
+        if (!thumbFrozen && !indexFrozen && !middleFrozen)
+        {
+            return true;
+        }
+
+        if (thumbFrozen && !IsMotorAtSnappingY(1, 0f))
+        {
+            return false;
+        }
+
+        if (indexFrozen && !IsMotorAtSnappingY(5, 0f))
+        {
+            return false;
+        }
+
+        if (middleFrozen && !IsMotorAtSnappingY(9, 0f))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsSnapPairEligibleByFreeze(int motorAId, float motorATargetY, int motorBId, float motorBTargetY)
+    {
+        bool motorAFrozen = IsMotorFrozenForSnapping(motorAId);
+        bool motorBFrozen = IsMotorFrozenForSnapping(motorBId);
+
+        // No freeze on either motor: snapping should still work normally.
+        if (!motorAFrozen && !motorBFrozen)
+        {
+            return true;
+        }
+
+        if (motorAFrozen && !IsMotorAtSnappingY(motorAId, motorATargetY))
+        {
+            return false;
+        }
+
+        if (motorBFrozen && !IsMotorAtSnappingY(motorBId, motorBTargetY))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsMotorAtSnappingY(int motorId, float targetY)
+    {
+        const float snappingAngleTolerance = 0.25f;
+
+        float currentY;
+        if (!TryGetFrozenMotorY(motorId, out currentY))
+        {
+            Transform motorTransform = GetMotorTransform(motorId);
+            if (motorTransform == null)
+            {
+                return false;
+            }
+
+            currentY = motorTransform.localRotation.eulerAngles.y;
+        }
+
+        currentY = Mathf.Repeat(currentY, 360f);
+        float normalizedTargetY = Mathf.Repeat(targetY, 360f);
+        return Mathf.Abs(Mathf.DeltaAngle(currentY, normalizedTargetY)) <= snappingAngleTolerance;
+    }
+
+    private bool TryGetFrozenMotorY(int motorId, out float frozenY)
+    {
+        frozenY = 0f;
+
+        int index = motorId - 1;
+        if (modeSwitching != null && modeSwitching.singleMotorFrozen != null &&
+            index >= 0 && index < modeSwitching.singleMotorFrozen.Length &&
+            modeSwitching.singleMotorFrozen[index])
+        {
+            Quaternion frozenRot = _singleMotorFrozenRot[index];
+            if (!IsQuaternionSnapshotValid(frozenRot))
+            {
+                return false;
+            }
+
+            frozenY = frozenRot.eulerAngles.y;
+            return true;
+        }
+
+        SelectMotorCollider smc = modeSwitching != null ? modeSwitching.SelectMotorCollider : null;
+        if (smc == null)
+        {
+            return false;
+        }
+
+        if ((motorId >= 1 && motorId <= 4) && smc.thumbFreezeEnabled)
+        {
+            Quaternion frozenRot = GetThumbFrozenRotationByMotorId(motorId);
+            if (!IsQuaternionSnapshotValid(frozenRot))
+            {
+                return false;
+            }
+
+            frozenY = frozenRot.eulerAngles.y;
+            return true;
+        }
+
+        if ((motorId >= 5 && motorId <= 8) && smc.indexFreezeEnabled)
+        {
+            Quaternion frozenRot = GetIndexFrozenRotationByMotorId(motorId);
+            if (!IsQuaternionSnapshotValid(frozenRot))
+            {
+                return false;
+            }
+
+            frozenY = frozenRot.eulerAngles.y;
+            return true;
+        }
+
+        if ((motorId >= 9 && motorId <= 12) && smc.middleFreezeEnabled)
+        {
+            Quaternion frozenRot = GetMiddleFrozenRotationByMotorId(motorId);
+            if (!IsQuaternionSnapshotValid(frozenRot))
+            {
+                return false;
+            }
+
+            frozenY = frozenRot.eulerAngles.y;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsQuaternionSnapshotValid(Quaternion rotation)
+    {
+        return Mathf.Abs(rotation.x) > 0.0001f ||
+               Mathf.Abs(rotation.y) > 0.0001f ||
+               Mathf.Abs(rotation.z) > 0.0001f ||
+               Mathf.Abs(rotation.w) > 0.0001f;
+    }
+
+    private Quaternion GetThumbFrozenRotationByMotorId(int motorId)
+    {
+        switch (motorId)
+        {
+            case 1: return _smcFrozenThumbM1;
+            case 2: return _smcFrozenThumbM2;
+            case 3: return _smcFrozenThumbM3;
+            case 4: return _smcFrozenThumbM4;
+            default: return default;
+        }
+    }
+
+    private Quaternion GetIndexFrozenRotationByMotorId(int motorId)
+    {
+        switch (motorId)
+        {
+            case 5: return _smcFrozenIndexM1;
+            case 6: return _smcFrozenIndexM2;
+            case 7: return _smcFrozenIndexM3;
+            case 8: return _smcFrozenIndexM4;
+            default: return default;
+        }
+    }
+
+    private Quaternion GetMiddleFrozenRotationByMotorId(int motorId)
+    {
+        switch (motorId)
+        {
+            case 9: return _smcFrozenMiddleM1;
+            case 10: return _smcFrozenMiddleM2;
+            case 11: return _smcFrozenMiddleM3;
+            case 12: return _smcFrozenMiddleM4;
+            default: return default;
+        }
+    }
+
+    private bool IsMotorFrozenForSnapping(int motorId)
+    {
+        bool singleFrozen = false;
+        if (modeSwitching != null && modeSwitching.singleMotorFrozen != null)
+        {
+            int index = motorId - 1;
+            if (index >= 0 && index < modeSwitching.singleMotorFrozen.Length)
+            {
+                singleFrozen = modeSwitching.singleMotorFrozen[index];
+            }
+        }
+
+        bool groupFrozen = false;
+        if (modeSwitching != null && modeSwitching.SelectMotorCollider != null)
+        {
+            SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
+            bool thumbFrozen = smc.thumbFreezeEnabled;
+            bool indexFrozen = smc.indexFreezeEnabled;
+            bool middleFrozen = smc.middleFreezeEnabled;
+
+            if (motorId >= 1 && motorId <= 4)
+            {
+                groupFrozen = thumbFrozen;
+            }
+            else if (motorId >= 5 && motorId <= 8)
+            {
+                groupFrozen = indexFrozen;
+            }
+            else if (motorId >= 9 && motorId <= 12)
+            {
+                groupFrozen = middleFrozen;
+            }
+        }
+
+        return singleFrozen || groupFrozen;
     }
 
     private void RefreshLiveSnappingStateAndApplyLocks()
@@ -3589,6 +3845,13 @@ public class ClawModuleController : MonoBehaviour
         float thumbY = GetJointLocalY(ThumbAngle1Center);
         float indexY = GetJointLocalY(IndexAngle1Center);
         float middleY = GetJointLocalY(MiddleAngle1Center);
+
+        bool thumbFrozenAt30 = IsMotorAtSnappingY(1, 30f) && IsMotorFrozenForSnapping(1);
+        bool thumbFrozenAt330 = IsMotorAtSnappingY(1, 330f) && IsMotorFrozenForSnapping(1);
+        bool indexFrozenAt30 = IsMotorAtSnappingY(5, 30f) && IsMotorFrozenForSnapping(5);
+        bool indexFrozenAt330 = IsMotorAtSnappingY(5, 330f) && IsMotorFrozenForSnapping(5);
+        bool middleFrozenAt30 = IsMotorAtSnappingY(9, 30f) && IsMotorFrozenForSnapping(9);
+        bool middleFrozenAt330 = IsMotorAtSnappingY(9, 330f) && IsMotorFrozenForSnapping(9);
 
         thumbMiddleInThumbRange = IsAngleInRange(thumbY, 10f, 50f);
         thumbIndexInThumbRange = IsAngleInRange(thumbY, 310f, 350f);
@@ -3602,39 +3865,39 @@ public class ClawModuleController : MonoBehaviour
         thumbMiddleInMiddleRange = IsAngleInRange(middleY, 310f, 350f);
         middle120DegreeSnappingActive = IsAngleInRange(middleY, 0f, 10f) || IsAngleInRange(middleY, 350f, 360f);
 
-        thumbMiddle180ByRangeActive = thumbMiddleInThumbRange && thumbMiddleInMiddleRange;
-        thumbIndex180ByRangeActive = thumbIndexInThumbRange && thumbIndexInIndexRange;
-        indexMiddle180ByRangeActive = indexMiddleInIndexRange && indexMiddleInMiddleRange;
+        thumbMiddle180ByRangeActive = (thumbMiddleInThumbRange || thumbFrozenAt30) && (thumbMiddleInMiddleRange || middleFrozenAt330);
+        thumbIndex180ByRangeActive = (thumbIndexInThumbRange || thumbFrozenAt330) && (thumbIndexInIndexRange || indexFrozenAt30);
+        indexMiddle180ByRangeActive = (indexMiddleInIndexRange || indexFrozenAt330) && (indexMiddleInMiddleRange || middleFrozenAt30);
 
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool thumbMiddleSnapNow = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddle180ByRangeActive;
-        bool thumbIndexSnapNow = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive;
-        bool indexMiddleSnapNow = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddle180ByRangeActive;
+        bool thumbMiddleSnapNow = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddle180ByRangeActive && IsSnapPairEligibleByFreeze(1, 30f, 9, 330f);
+        bool thumbIndexSnapNow = isSnappingEnabled && isThumbIndex180SnappingEnabled && thumbIndex180ByRangeActive && IsSnapPairEligibleByFreeze(1, 330f, 5, 30f);
+        bool indexMiddleSnapNow = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddle180ByRangeActive && IsSnapPairEligibleByFreeze(5, 330f, 9, 30f);
 
         if (full120SnapNow)
         {
-            ApplyJointY(ThumbAngle1Center, 0f);
-            ApplyJointY(IndexAngle1Center, 0f);
-            ApplyJointY(MiddleAngle1Center, 0f);
+            ApplyJointY(ThumbAngle1Center, 1, 0f);
+            ApplyJointY(IndexAngle1Center, 5, 0f);
+            ApplyJointY(MiddleAngle1Center, 9, 0f);
         }
         else
         {
             if (thumbMiddleSnapNow)
             {
-                ApplyJointY(ThumbAngle1Center, 30f);
-                ApplyJointY(MiddleAngle1Center, 330f);
+                ApplyJointY(ThumbAngle1Center, 1, 30f);
+                ApplyJointY(MiddleAngle1Center, 9, 330f);
             }
 
             if (thumbIndexSnapNow)
             {
-                ApplyJointY(ThumbAngle1Center, 330f);
-                ApplyJointY(IndexAngle1Center, 30f);
+                ApplyJointY(ThumbAngle1Center, 1, 330f);
+                ApplyJointY(IndexAngle1Center, 5, 30f);
             }
 
             if (indexMiddleSnapNow)
             {
-                ApplyJointY(IndexAngle1Center, 330f);
-                ApplyJointY(MiddleAngle1Center, 30f);
+                ApplyJointY(IndexAngle1Center, 5, 330f);
+                ApplyJointY(MiddleAngle1Center, 9, 30f);
             }
         }
 
@@ -3646,9 +3909,9 @@ public class ClawModuleController : MonoBehaviour
         return joint != null ? joint.localRotation.eulerAngles.y : 0f;
     }
 
-    private void ApplyJointY(Transform joint, float yAngle)
+    private void ApplyJointY(Transform joint, int motorId, float yAngle)
     {
-        if (joint == null)
+        if (joint == null || IsMotorFrozenForSnapping(motorId))
         {
             return;
         }
@@ -4032,8 +4295,16 @@ public class ClawModuleController : MonoBehaviour
         middle120DegreeSnappingActive = IsAngleInRange(targetRotation.eulerAngles.y, 0f, 10f) || IsAngleInRange(targetRotation.eulerAngles.y, 350f, 360f);
 
         bool full120SnapNow = ShouldApplyFull120SnapNow();
-        bool indexMiddle180OnMiddleByForce = isSnappingEnabled && isIndexMiddle180SnappingEnabled && indexMiddleInIndexRange && indexMiddleInMiddleRange;
-        bool thumbMiddle180OnMiddleByForce = isSnappingEnabled && isThumbMiddle180SnappingEnabled && thumbMiddleInThumbRange && thumbMiddleInMiddleRange;
+        bool indexMiddle180OnMiddleByForce = isSnappingEnabled &&
+            isIndexMiddle180SnappingEnabled &&
+            indexMiddleInIndexRange &&
+            indexMiddleInMiddleRange &&
+            IsSnapPairEligibleByFreeze(5, 330f, 9, 30f);
+        bool thumbMiddle180OnMiddleByForce = isSnappingEnabled &&
+            isThumbMiddle180SnappingEnabled &&
+            thumbMiddleInThumbRange &&
+            thumbMiddleInMiddleRange &&
+            IsSnapPairEligibleByFreeze(1, 30f, 9, 330f);
 
         // Only enabled flags latch motors. Range flags are for visibility/text only.
         if (full120SnapNow)
