@@ -2388,7 +2388,7 @@ public class ClawModuleController : MonoBehaviour
         //FIXME: abduction remapping
         if (IndexAngle2Center != null)
         {
-            float indexRemapMin = useIndexMiddleIndividualMode ? 15f : 20f;
+            float indexRemapMin = useIndexMiddleIndividualMode ? 18f : 25f;
             float indexRemapMax = useIndexMiddleIndividualMode ? 30f : 57f;
             float clampedIndexAngleOnPalm = useIndexMiddleIndividualMode
                 ? Mathf.Clamp(jointAngle.indexToBaselineAngleOnPalm, indexRemapMin, indexRemapMax)
@@ -2774,7 +2774,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (MiddleAngle2Center != null)
         {
-            float middleRemapMin = useIndexMiddleIndividualMode ? 20f : 20f;
+            float middleRemapMin = useIndexMiddleIndividualMode ? 20f : 25f;
             float middleRemapMax = useIndexMiddleIndividualMode ? 35f : 57f;
             float clampedMiddleAngleOnPalm = useIndexMiddleIndividualMode
                 ? Mathf.Clamp(jointAngle.middleToBaselineAngleOnPalm, middleRemapMin, middleRemapMax)
@@ -3496,7 +3496,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (IndexAngle1Center != null)
         {
-            float indexRemapMin = useIndexMiddleIndividualMode ? 15f : 20f;
+            float indexRemapMin = useIndexMiddleIndividualMode ? 18f : 25f;
             float indexRemapMax = useIndexMiddleIndividualMode ? 30f : 57f;
             float clampedIndexAngleOnPalm = useIndexMiddleIndividualMode
                 ? Mathf.Clamp(jointAngle.indexToBaselineAngleOnPalm, indexRemapMin, indexRemapMax)
@@ -4267,7 +4267,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (MiddleAngle1Center != null)
         {
-            float middleRemapMin = useIndexMiddleIndividualMode ? 20f : 20f;
+            float middleRemapMin = useIndexMiddleIndividualMode ? 20f : 25f;
             float middleRemapMax = useIndexMiddleIndividualMode ? 35f : 57f;
             float clampedMiddleAngleOnPalm = useIndexMiddleIndividualMode
                 ? Mathf.Clamp(jointAngle.middleToBaselineAngleOnPalm, middleRemapMin, middleRemapMax)
