@@ -20,6 +20,9 @@ public class TriggerRightWrist : MonoBehaviour
     private readonly HashSet<Collider> touchingIndexColliders = new HashSet<Collider>();
     private float lastToggleTime = -999f;
 
+    public GameObject engagementSphere;
+    public Renderer engagementSphereRenderer;
+
     public bool IsEngaged
     {
         get
@@ -30,6 +33,11 @@ public class TriggerRightWrist : MonoBehaviour
 
     private void Start()
     {
+        if (engagementSphereRenderer == null && engagementSphere != null)
+        {
+            engagementSphereRenderer = engagementSphere.GetComponent<Renderer>();
+        }
+
         SyncIndicatorWithSender();
         SyncWristTouchMaterial();
     }
@@ -110,17 +118,23 @@ public class TriggerRightWrist : MonoBehaviour
 
     private void SyncWristTouchMaterial(bool engaged)
     {
-        if (wristTouchRenderer == null)
-        {
-            return;
-        }
-
         Material targetMaterial = engaged ? wristTouchedMaterial : wristNotTouchedMaterial;
-        if (targetMaterial == null || wristTouchRenderer.sharedMaterial == targetMaterial)
+        if (targetMaterial == null)
         {
             return;
         }
 
-        wristTouchRenderer.material = targetMaterial;
+        ApplyMaterial(wristTouchRenderer, targetMaterial);
+        ApplyMaterial(engagementSphereRenderer, targetMaterial);
+    }
+
+    private static void ApplyMaterial(Renderer targetRenderer, Material targetMaterial)
+    {
+        if (targetRenderer == null || targetRenderer.sharedMaterial == targetMaterial)
+        {
+            return;
+        }
+
+        targetRenderer.material = targetMaterial;
     }
 }
