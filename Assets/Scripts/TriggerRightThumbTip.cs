@@ -24,6 +24,7 @@ public class TriggerRightThumbTip : MonoBehaviour
     public Color freezeDisplayColor = Color.yellow;
     public Color originalColor;
     private bool isInitialized = false;
+    private BaselineTwo baselineTwo;
 
     private void Awake()
     {
@@ -33,6 +34,9 @@ public class TriggerRightThumbTip : MonoBehaviour
 
     private void Start()
     {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
         if (thumbPaxiniRenderer != null)
         {
             isInitialized = true;
@@ -46,7 +50,19 @@ public class TriggerRightThumbTip : MonoBehaviour
 
     private void UpdateThumbColor()
     {
-        if (!isInitialized || thumbPaxiniRenderer == null || modeSwitching == null)
+        if (!isInitialized || thumbPaxiniRenderer == null)
+            return;
+
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
+        if (baselineTwo != null && baselineTwo.useKeyboardControl)
+        {
+            thumbPaxiniRenderer.material.color = baselineTwo.GetKeyboardVisualColorForMotor(ThumbPaxiniMotorID, originalColor);
+            return;
+        }
+
+        if (modeSwitching == null)
             return;
 
         // Check if collider is enabled

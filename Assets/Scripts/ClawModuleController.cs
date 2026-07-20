@@ -1354,6 +1354,12 @@ public class ClawModuleController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R))
         {
+            BaselineTwo baselineTwo = GetComponent<BaselineTwo>();
+            if (baselineTwo != null && baselineTwo.useKeyboardControl)
+            {
+                return;
+            }
+
             ResetFingerRotations();
         }
     }

@@ -25,6 +25,7 @@ public class TriggerRightMiddleTip : MonoBehaviour
     public Color freezeDisplayColor = Color.yellow;
     public Color originalColor;
     private bool isInitialized = false;
+    private BaselineTwo baselineTwo;
 
     private void Awake()
     {
@@ -34,6 +35,9 @@ public class TriggerRightMiddleTip : MonoBehaviour
 
     private void Start()
     {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
         if (middlePaxiniRenderer != null)
         {
             isInitialized = true;
@@ -47,7 +51,19 @@ public class TriggerRightMiddleTip : MonoBehaviour
 
     private void UpdateMiddleColor()
     {
-        if (!isInitialized || middlePaxiniRenderer == null || modeSwitching == null)
+        if (!isInitialized || middlePaxiniRenderer == null)
+            return;
+
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
+        if (baselineTwo != null && baselineTwo.useKeyboardControl)
+        {
+            middlePaxiniRenderer.material.color = baselineTwo.GetKeyboardVisualColorForMotor(MiddlePaxiniMotorID, originalColor);
+            return;
+        }
+
+        if (modeSwitching == null)
             return;
 
         // Check if collider is enabled

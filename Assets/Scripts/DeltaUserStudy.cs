@@ -116,7 +116,7 @@ public class DeltaUserStudy : MonoBehaviour
     private Dictionary<Renderer, Color> originalColors = new Dictionary<Renderer, Color>();
     private Renderer currentSelectedRenderer;
 
-    public Color purpleColor = new Color(0.5f, 0f, 0.5f);
+    public Color lightRedColor = new Color(1f, 0.5f, 0.5f, 1f);
     private float rotationSpeed = 18f;
     
     // Store initial rotation of each joint
@@ -249,12 +249,7 @@ public class DeltaUserStudy : MonoBehaviour
         currentSelectedRenderer = rendererArray[currentRow, currentCol];
         if (currentSelectedRenderer != null)
         {
-            // If the selected is one of the IndexAngle1-4, use red, else green
-            Transform selectedTransform = motorArray[currentRow, currentCol];
-            if (selectedTransform == IndexAngle1Center || selectedTransform == IndexAngle2Center || selectedTransform == IndexAngle3Center || selectedTransform == IndexAngle4Center)
-                currentSelectedRenderer.material.color = Color.red;
-            else
-                currentSelectedRenderer.material.color = Color.green;
+            currentSelectedRenderer.material.color = lightRedColor;
             // Debug.Log($"Selected: Row {currentRow}, Col {currentCol} - {selectedTransform.name}");
         }
     }

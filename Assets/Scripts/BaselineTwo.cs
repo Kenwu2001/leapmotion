@@ -8,6 +8,7 @@ public class BaselineTwo : MonoBehaviour
     [Header("=== Keyboard Control ===")]
     [Tooltip("ON: Enable WASD+QE keyboard control for motor offsets")]
     public bool useKeyboardControl = false;
+    public Color lightRedColor = new Color(1f, 0.5f, 0.5f, 1f);
 
     private const int KB_ROWS = 5;
     private const int KB_COLS = 3;
@@ -29,6 +30,7 @@ public class BaselineTwo : MonoBehaviour
     private bool pendingArrowUseHorizontal;
     private bool pendingArrowUseLeftSide;
     private float pendingArrowDelta;
+    private bool selectedFrozenUsesLightRed;
 
     public bool IsMoveUpPressed => useKeyboardControl && Input.GetKey(KeyCode.W);
     public bool IsMoveLeftPressed => useKeyboardControl && Input.GetKey(KeyCode.A);
@@ -228,6 +230,7 @@ public class BaselineTwo : MonoBehaviour
         }
 
         previousSelectedMotorID = currentMotorID;
+        selectedFrozenUsesLightRed = IsMotorFrozen(currentMotorID);
         ApplyMotorVisualState(currentMotorID);
     }
 
@@ -481,6 +484,11 @@ public class BaselineTwo : MonoBehaviour
             ClearSingleFreezeStateForGroup(GetGroupStartForPaxiniSelection(motorID));
         }
 
+        if (motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol))
+        {
+            selectedFrozenUsesLightRed = false;
+        }
+
         RefreshAllMotorVisualStates();
     }
 
@@ -505,6 +513,11 @@ public class BaselineTwo : MonoBehaviour
             motorID - 1 < controller.modeSwitching.singleMotorFrozen.Length)
         {
             controller.KeyboardSetSingleMotorFreezeState(motorID, frozen);
+        }
+
+        if (motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol))
+        {
+            selectedFrozenUsesLightRed = false;
         }
 
         ApplyMotorVisualState(motorID);
@@ -567,33 +580,63 @@ public class BaselineTwo : MonoBehaviour
             return;
         }
 
-        bool isSelected = motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+        renderer.material.color = GetKeyboardVisualColorForMotor(motorID, fallbackColor);
+    }
 
-        if (controller != null && controller.KeyboardIsPaxiniFrozen(motorID))
+    public Color GetKeyboardVisualColorForMotor(int motorID, Color fallbackColor)
+    {
+        if (motorID <= 0)
         {
-            renderer.material.color = controller.yellowColor;
-            return;
+            return fallbackColor;
+        }
+
+        bool isSelected = motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+        bool isPaxiniFrozen = controller != null && controller.KeyboardIsPaxiniFrozen(motorID);
+        bool isSingleFrozen = IsSingleFrozen(motorID);
+        bool isFrozen = isPaxiniFrozen || isSingleFrozen;
+        Color freezeColor = controller != null ? controller.yellowColor : Color.yellow;
+
+        if (isSelected)
+        {
+            if (isFrozen && !selectedFrozenUsesLightRed)
+            {
+                return freezeColor;
+            }
+
+            return lightRedColor;
+        }
+
+        if (isPaxiniFrozen)
+        {
+            return freezeColor;
         }
 
         if (motorID >= 13 && motorID <= 15)
         {
-            renderer.material.color = fallbackColor;
-            return;
+            return fallbackColor;
         }
 
-        if (IsSingleFrozen(motorID))
+        if (isSingleFrozen)
         {
-            renderer.material.color = controller.yellowColor;
-            return;
+            return freezeColor;
         }
 
-        if (isSelected)
+        return fallbackColor;
+    }
+
+    private bool IsMotorFrozen(int motorID)
+    {
+        if (motorID <= 0)
         {
-            renderer.material.color = Color.red;
-            return;
+            return false;
         }
 
-        renderer.material.color = fallbackColor;
+        if (controller != null && controller.KeyboardIsPaxiniFrozen(motorID))
+        {
+            return true;
+        }
+
+        return IsSingleFrozen(motorID);
     }
 
     private void ApplyMotorVisualState(int motorID)
