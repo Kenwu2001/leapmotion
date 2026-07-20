@@ -1448,6 +1448,11 @@ public class ModeSwitching : MonoBehaviour
         _justFrozeMotorID = motorID;
     }
 
+    public void KeyboardTogglePaxiniFreeze(int motorID)
+    {
+        CommitArmUIPaxiniToggle(motorID);
+    }
+
     private int GetGroupStartForPaxiniMotor(int motorID)
     {
         if (motorID == ThumbPaxiniMotorID) return 1;

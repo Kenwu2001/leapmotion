@@ -9,15 +9,14 @@ public class BaselineTwo : MonoBehaviour
     [Tooltip("ON: Enable WASD+QE keyboard control for motor offsets")]
     public bool useKeyboardControl = false;
 
-    private const int KB_ROWS = 4;
+    private const int KB_ROWS = 5;
     private const int KB_COLS = 3;
 
     private ClawModuleController controller;
     private int kbCurrentRow = 3;
     private int kbCurrentCol = 1;
-    private Transform[,] kbMotorArray;
+    private int[,] kbMotorIdArray;
     private Renderer[,] kbRendererArray;
-    private Renderer kbCurrentSelectedRenderer;
     private float kbRotationSpeed = 18f;
     private bool prevUseKeyboardControl;
     private bool hadArrowInputLastFrame;
@@ -35,7 +34,7 @@ public class BaselineTwo : MonoBehaviour
     public bool IsMoveLeftPressed => useKeyboardControl && Input.GetKey(KeyCode.A);
     public bool IsMoveDownPressed => useKeyboardControl && Input.GetKey(KeyCode.S);
     public bool IsMoveRightPressed => useKeyboardControl && Input.GetKey(KeyCode.D);
-    public bool IsCurrentSelectionFrozen => IsSingleFrozen(GetMotorIDForCell(kbCurrentRow, kbCurrentCol));
+    public bool IsCurrentSelectionFrozen => IsSelectionFrozen(GetMotorIDForCell(kbCurrentRow, kbCurrentCol));
 
     private void Awake()
     {
@@ -59,12 +58,13 @@ public class BaselineTwo : MonoBehaviour
             }
         }
 
-        kbMotorArray = new Transform[KB_ROWS, KB_COLS]
+        kbMotorIdArray = new int[KB_ROWS, KB_COLS]
         {
-            { controller.ThumbAngle1Center, controller.IndexAngle1Center, controller.MiddleAngle1Center },
-            { controller.ThumbAngle2Center, controller.IndexAngle2Center, controller.MiddleAngle2Center },
-            { controller.ThumbAngle3Center, controller.IndexAngle3Center, controller.MiddleAngle3Center },
-            { controller.ThumbAngle4Center, controller.IndexAngle4Center, controller.MiddleAngle4Center }
+            { 1, 5, 9 },
+            { 2, 6, 10 },
+            { 3, 7, 11 },
+            { 4, 8, 12 },
+            { 13, 14, 15 }
         };
 
         kbRendererArray = new Renderer[KB_ROWS, KB_COLS]
@@ -72,7 +72,8 @@ public class BaselineTwo : MonoBehaviour
             { controller.thumbJoint1Renderer, controller.indexJoint1Renderer, controller.middleJoint1Renderer },
             { controller.thumbJoint2Renderer, controller.indexJoint2Renderer, controller.middleJoint2Renderer },
             { controller.thumbJoint3Renderer, controller.indexJoint3Renderer, controller.middleJoint3Renderer },
-            { controller.thumbJoint4Renderer, controller.indexJoint4Renderer, controller.middleJoint4Renderer }
+            { controller.thumbJoint4Renderer, controller.indexJoint4Renderer, controller.middleJoint4Renderer },
+            { GetPaxiniRenderer(13), GetPaxiniRenderer(14), GetPaxiniRenderer(15) }
         };
 
         prevUseKeyboardControl = useKeyboardControl;
@@ -171,7 +172,6 @@ public class BaselineTwo : MonoBehaviour
         hadArrowInputLastFrame = false;
         sideLockedMotorID = 0;
         hasPendingArrow = false;
-        kbCurrentSelectedRenderer = null;
         ClearAllSingleFreezeStates();
     }
 
@@ -228,8 +228,6 @@ public class BaselineTwo : MonoBehaviour
         }
 
         previousSelectedMotorID = currentMotorID;
-
-        kbCurrentSelectedRenderer = kbRendererArray[kbCurrentRow, kbCurrentCol];
         ApplyMotorVisualState(currentMotorID);
     }
 
@@ -253,18 +251,23 @@ public class BaselineTwo : MonoBehaviour
             ToggleCurrentSelectionFreeze();
         }
 
-        if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
-        if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
+        bool isPaxiniSelection = selectedMotorID >= 13 && selectedMotorID <= 15;
 
-        if (Input.GetKey(KeyCode.U)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, -rotDelta); }
-        if (Input.GetKey(KeyCode.J)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, rotDelta); }
+        if (!isPaxiniSelection)
+        {
+            if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
+            if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
 
-        if (Input.GetKey(KeyCode.I)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, -rotDelta); }
-        if (Input.GetKey(KeyCode.K)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, rotDelta); }
+            if (Input.GetKey(KeyCode.U)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, -rotDelta); }
+            if (Input.GetKey(KeyCode.J)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, rotDelta); }
 
-        bool hasArrowInput = Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E) ||
+            if (Input.GetKey(KeyCode.I)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, -rotDelta); }
+            if (Input.GetKey(KeyCode.K)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, rotDelta); }
+        }
+
+        bool hasArrowInput = !isPaxiniSelection && (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E) ||
                              Input.GetKey(KeyCode.U) || Input.GetKey(KeyCode.J) ||
-                             Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K);
+                             Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K));
         if (!hasArrowInput && hadArrowInputLastFrame)
         {
             controller.ClearArmUIDirectAngleArrowState();
@@ -429,8 +432,24 @@ public class BaselineTwo : MonoBehaviour
             return;
         }
 
+        if (motorID >= 13 && motorID <= 15)
+        {
+            TogglePaxiniFreezeForSelection(motorID);
+            return;
+        }
+
         bool newFrozenState = !IsSingleFrozen(motorID);
         SetSingleFrozen(motorID, newFrozenState);
+    }
+
+    private bool IsSelectionFrozen(int motorID)
+    {
+        if (motorID >= 13 && motorID <= 15)
+        {
+            return IsPaxiniSelectionFrozen(motorID);
+        }
+
+        return IsSingleFrozen(motorID);
     }
 
     private bool IsSingleFrozen(int motorID)
@@ -441,6 +460,39 @@ public class BaselineTwo : MonoBehaviour
         }
 
         return kbSingleFrozen[motorID - 1];
+    }
+
+    private bool IsPaxiniSelectionFrozen(int motorID)
+    {
+        if (controller == null)
+        {
+            return false;
+        }
+
+        return controller.KeyboardIsPaxiniFrozen(motorID);
+    }
+
+    private void TogglePaxiniFreezeForSelection(int motorID)
+    {
+        if (controller == null)
+        {
+            return;
+        }
+
+        if (!controller.KeyboardTogglePaxiniFreeze(motorID))
+        {
+            return;
+        }
+
+        RefreshAllMotorVisualStates();
+    }
+
+    private static int GetGroupStartForPaxiniSelection(int motorID)
+    {
+        if (motorID == 13) return 1;
+        if (motorID == 14) return 5;
+        if (motorID == 15) return 9;
+        return 0;
     }
 
     private void SetSingleFrozen(int motorID, bool frozen)
@@ -503,13 +555,21 @@ public class BaselineTwo : MonoBehaviour
             return;
         }
 
+        bool isSelected = motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+
+        if (controller != null && controller.KeyboardIsPaxiniFrozen(motorID))
+        {
+            renderer.material.color = controller.yellowColor;
+            return;
+        }
+
         if (IsSingleFrozen(motorID))
         {
             renderer.material.color = controller.yellowColor;
             return;
         }
 
-        if (motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol))
+        if (isSelected)
         {
             renderer.material.color = Color.red;
             return;
@@ -539,8 +599,36 @@ public class BaselineTwo : MonoBehaviour
             case 10: return controller != null ? controller.middleJoint2Renderer : null;
             case 11: return controller != null ? controller.middleJoint3Renderer : null;
             case 12: return controller != null ? controller.middleJoint4Renderer : null;
+            case 13: return controller != null && controller.triggerRightThumbTip != null ? controller.triggerRightThumbTip.thumbPaxiniRenderer : null;
+            case 14: return controller != null && controller.triggerRightIndexTip != null ? controller.triggerRightIndexTip.indexPaxiniRenderer : null;
+            case 15: return controller != null && controller.triggerRightMiddleTip != null ? controller.triggerRightMiddleTip.middlePaxiniRenderer : null;
             default: return null;
         }
+    }
+
+    private Renderer GetPaxiniRenderer(int motorID)
+    {
+        if (controller == null)
+        {
+            return null;
+        }
+
+        if (motorID == 13 && controller.triggerRightThumbTip != null)
+        {
+            return controller.triggerRightThumbTip.thumbPaxiniRenderer;
+        }
+
+        if (motorID == 14 && controller.triggerRightIndexTip != null)
+        {
+            return controller.triggerRightIndexTip.indexPaxiniRenderer;
+        }
+
+        if (motorID == 15 && controller.triggerRightMiddleTip != null)
+        {
+            return controller.triggerRightMiddleTip.middlePaxiniRenderer;
+        }
+
+        return null;
     }
 
     private static int GetMotorIDForCell(int row, int col)
@@ -577,6 +665,14 @@ public class BaselineTwo : MonoBehaviour
                     case 0: return 4;
                     case 1: return 8;
                     case 2: return 12;
+                }
+                break;
+            case 4:
+                switch (col)
+                {
+                    case 0: return 13;
+                    case 1: return 14;
+                    case 2: return 15;
                 }
                 break;
         }
@@ -663,6 +759,11 @@ public class BaselineTwo : MonoBehaviour
     private void KbApplyRotation(int row, int col, float delta)
     {
         int motorID = GetMotorIDForCell(row, col);
+        if (motorID >= 13 && motorID <= 15)
+        {
+            return;
+        }
+
         if (motorID > 0 && IsSingleFrozen(motorID))
         {
             hasPendingArrow = false;

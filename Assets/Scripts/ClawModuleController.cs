@@ -641,6 +641,9 @@ public class ClawModuleController : MonoBehaviour
     private Quaternion[] _singleMotorFrozenRot = new Quaternion[12]; // captured joint rotation per motor
     private bool[]       _singleMotorFrozenInjected = new bool[12];  // pre-captured snapshot to use on next freeze rising-edge
     private bool[]       _keyboardSingleMotorFrozenOverride = new bool[12]; // BaselineTwo immediate freeze override
+    private bool _keyboardThumbPaxiniFrozen = false;
+    private bool _keyboardIndexPaxiniFrozen = false;
+    private bool _keyboardMiddlePaxiniFrozen = false;
 
     // Selecting-round lock baseline: while inside threshold during modeSelect,
     // angle lock follows this snapshot and ignores in-round freeze toggles.
@@ -1295,6 +1298,8 @@ public class ClawModuleController : MonoBehaviour
         ApplySingleMotorFreezeOverrides();
 
         RefreshLiveSnappingStateAndApplyLocks();
+
+        ApplyKeyboardPaxiniFreezeOverrides();
     }
 
     void LateUpdate()
@@ -1441,6 +1446,130 @@ public class ClawModuleController : MonoBehaviour
         }
     }
 
+    public bool KeyboardIsPaxiniFrozen(int motorID)
+    {
+        if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
+        {
+            return false;
+        }
+
+        SelectMotorCollider selectMotorCollider = modeSwitching.SelectMotorCollider;
+        if (motorID >= 1 && motorID <= 4) return selectMotorCollider.thumbFreezeEnabled;
+        if (motorID >= 5 && motorID <= 8) return selectMotorCollider.indexFreezeEnabled;
+        if (motorID >= 9 && motorID <= 12) return selectMotorCollider.middleFreezeEnabled;
+        if (motorID == 13) return selectMotorCollider.thumbFreezeEnabled;
+        if (motorID == 14) return selectMotorCollider.indexFreezeEnabled;
+        if (motorID == 15) return selectMotorCollider.middleFreezeEnabled;
+        return false;
+    }
+
+    public bool KeyboardTogglePaxiniFreeze(int motorID)
+    {
+        if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
+        {
+            return false;
+        }
+
+        if (motorID < 13 || motorID > 15)
+        {
+            return false;
+        }
+
+        modeSwitching.KeyboardTogglePaxiniFreeze(motorID);
+        SetKeyboardPaxiniFreezeState(motorID, KeyboardIsPaxiniFrozen(motorID));
+        return true;
+    }
+
+    private void SetKeyboardPaxiniFreezeState(int motorID, bool frozen)
+    {
+        if (motorID == 13)
+        {
+            _keyboardThumbPaxiniFrozen = frozen;
+            if (frozen)
+            {
+                CaptureKeyboardPaxiniFreezeSnapshot(1);
+            }
+        }
+        else if (motorID == 14)
+        {
+            _keyboardIndexPaxiniFrozen = frozen;
+            if (frozen)
+            {
+                CaptureKeyboardPaxiniFreezeSnapshot(5);
+            }
+        }
+        else if (motorID == 15)
+        {
+            _keyboardMiddlePaxiniFrozen = frozen;
+            if (frozen)
+            {
+                CaptureKeyboardPaxiniFreezeSnapshot(9);
+            }
+        }
+    }
+
+    private void CaptureKeyboardPaxiniFreezeSnapshot(int groupStart)
+    {
+        int groupEnd = groupStart + 3;
+        for (int motorID = groupStart; motorID <= groupEnd; motorID++)
+        {
+            Transform t = GetMotorTransform(motorID);
+            if (t == null)
+            {
+                continue;
+            }
+
+            switch (groupStart)
+            {
+                case 1:
+                    _smcFrozenThumbM1 = groupStart == 1 && motorID == 1 ? t.localRotation : _smcFrozenThumbM1;
+                    _smcFrozenThumbM2 = motorID == 2 ? t.localRotation : _smcFrozenThumbM2;
+                    _smcFrozenThumbM3 = motorID == 3 ? t.localRotation : _smcFrozenThumbM3;
+                    _smcFrozenThumbM4 = motorID == 4 ? t.localRotation : _smcFrozenThumbM4;
+                    break;
+                case 5:
+                    _smcFrozenIndexM1 = motorID == 5 ? t.localRotation : _smcFrozenIndexM1;
+                    _smcFrozenIndexM2 = motorID == 6 ? t.localRotation : _smcFrozenIndexM2;
+                    _smcFrozenIndexM3 = motorID == 7 ? t.localRotation : _smcFrozenIndexM3;
+                    _smcFrozenIndexM4 = motorID == 8 ? t.localRotation : _smcFrozenIndexM4;
+                    break;
+                case 9:
+                    _smcFrozenMiddleM1 = motorID == 9 ? t.localRotation : _smcFrozenMiddleM1;
+                    _smcFrozenMiddleM2 = motorID == 10 ? t.localRotation : _smcFrozenMiddleM2;
+                    _smcFrozenMiddleM3 = motorID == 11 ? t.localRotation : _smcFrozenMiddleM3;
+                    _smcFrozenMiddleM4 = motorID == 12 ? t.localRotation : _smcFrozenMiddleM4;
+                    break;
+            }
+        }
+    }
+
+    private void ApplyKeyboardPaxiniFreezeOverrides()
+    {
+        if (_keyboardThumbPaxiniFrozen)
+        {
+            if (ThumbAngle1Center != null) ThumbAngle1Center.localRotation = _smcFrozenThumbM1;
+            if (ThumbAngle2Center != null) ThumbAngle2Center.localRotation = _smcFrozenThumbM2;
+            if (ThumbAngle3Center != null) ThumbAngle3Center.localRotation = _smcFrozenThumbM3;
+            if (ThumbAngle4Center != null) ThumbAngle4Center.localRotation = _smcFrozenThumbM4;
+        }
+
+        if (_keyboardIndexPaxiniFrozen)
+        {
+            if (IndexAngle1Center != null) IndexAngle1Center.localRotation = _smcFrozenIndexM1;
+            if (IndexAngle2Center != null) IndexAngle2Center.localRotation = _smcFrozenIndexM2;
+            if (IndexAngle3Center != null) IndexAngle3Center.localRotation = _smcFrozenIndexM3;
+            if (IndexAngle4Center != null) IndexAngle4Center.localRotation = _smcFrozenIndexM4;
+        }
+
+        if (_keyboardMiddlePaxiniFrozen)
+        {
+            if (MiddleAngle1Center != null) MiddleAngle1Center.localRotation = _smcFrozenMiddleM1;
+            if (MiddleAngle2Center != null) MiddleAngle2Center.localRotation = _smcFrozenMiddleM2;
+            if (MiddleAngle3Center != null) MiddleAngle3Center.localRotation = _smcFrozenMiddleM3;
+            if (MiddleAngle4Center != null) MiddleAngle4Center.localRotation = _smcFrozenMiddleM4;
+        }
+    }
+
     public void ClearSingleMotorFreezeSnapshot(int motorID)
     {
         if (motorID < 1 || motorID > 12)
@@ -1454,6 +1583,9 @@ public class ClawModuleController : MonoBehaviour
     public void KeyboardClearSingleMotorFreezeOverrides()
     {
         System.Array.Clear(_keyboardSingleMotorFrozenOverride, 0, _keyboardSingleMotorFrozenOverride.Length);
+        _keyboardThumbPaxiniFrozen = false;
+        _keyboardIndexPaxiniFrozen = false;
+        _keyboardMiddlePaxiniFrozen = false;
     }
 
     /// <summary>Returns the joint Transform for motor IDs 1-12.</summary>
@@ -5056,6 +5188,9 @@ public class ClawModuleController : MonoBehaviour
         _smcIndexFreezeWasEnabled = false;
         _smcMiddleFreezeWasEnabled = false;
         System.Array.Clear(_singleMotorFrozenInjected, 0, _singleMotorFrozenInjected.Length);
+        _keyboardThumbPaxiniFrozen = false;
+        _keyboardIndexPaxiniFrozen = false;
+        _keyboardMiddlePaxiniFrozen = false;
 
         if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
         {
