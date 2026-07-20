@@ -1477,6 +1477,12 @@ public class ClawModuleController : MonoBehaviour
 
         modeSwitching.KeyboardTogglePaxiniFreeze(motorID);
         SetKeyboardPaxiniFreezeState(motorID, KeyboardIsPaxiniFrozen(motorID));
+
+        if (!KeyboardIsPaxiniFrozen(motorID))
+        {
+            ClearKeyboardPaxiniGroupSingleFreeze(motorID);
+        }
+
         return true;
     }
 
@@ -1568,6 +1574,28 @@ public class ClawModuleController : MonoBehaviour
             if (MiddleAngle3Center != null) MiddleAngle3Center.localRotation = _smcFrozenMiddleM3;
             if (MiddleAngle4Center != null) MiddleAngle4Center.localRotation = _smcFrozenMiddleM4;
         }
+    }
+
+    private void ClearKeyboardPaxiniGroupSingleFreeze(int motorID)
+    {
+        int groupStart = GetKeyboardPaxiniGroupStart(motorID);
+        if (groupStart == 0)
+        {
+            return;
+        }
+
+        for (int currentMotorID = groupStart; currentMotorID < groupStart + 4; currentMotorID++)
+        {
+            KeyboardSetSingleMotorFreezeState(currentMotorID, false);
+        }
+    }
+
+    private static int GetKeyboardPaxiniGroupStart(int motorID)
+    {
+        if (motorID == 13) return 1;
+        if (motorID == 14) return 5;
+        if (motorID == 15) return 9;
+        return 0;
     }
 
     public void ClearSingleMotorFreezeSnapshot(int motorID)

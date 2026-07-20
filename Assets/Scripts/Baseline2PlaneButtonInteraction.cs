@@ -160,7 +160,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         SyncButtonState(baseline2KeyA, baselineTwo != null && baselineTwo.IsMoveLeftPressed);
         SyncButtonState(baseline2KeyS, baselineTwo != null && baselineTwo.IsMoveDownPressed);
         SyncButtonState(baseline2KeyD, baselineTwo != null && baselineTwo.IsMoveRightPressed);
-        SyncButtonState(baseline2KeyF, baselineTwo != null && baselineTwo.IsCurrentSelectionFrozen);
+        SyncButtonState(baseline2KeyF, baseline2KeyF != null && baseline2KeyF.isTouched);
     }
 
     private void SyncButtonState(ButtonBinding button, bool keyboardPressed)

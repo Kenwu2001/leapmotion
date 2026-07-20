@@ -484,6 +484,11 @@ public class BaselineTwo : MonoBehaviour
             return;
         }
 
+        if (!controller.KeyboardIsPaxiniFrozen(motorID))
+        {
+            ClearSingleFreezeStateForGroup(GetGroupStartForPaxiniSelection(motorID));
+        }
+
         RefreshAllMotorVisualStates();
     }
 
@@ -532,6 +537,21 @@ public class BaselineTwo : MonoBehaviour
         RefreshAllMotorVisualStates();
     }
 
+    private void ClearSingleFreezeStateForGroup(int groupStart)
+    {
+        int groupEnd = groupStart + 3;
+        for (int motorID = groupStart; motorID <= groupEnd; motorID++)
+        {
+            int index = motorID - 1;
+            if (index < 0 || index >= kbSingleFrozen.Length)
+            {
+                continue;
+            }
+
+            kbSingleFrozen[index] = false;
+        }
+    }
+
     private void RefreshAllMotorVisualStates()
     {
         for (int row = 0; row < KB_ROWS; row++)
@@ -560,6 +580,12 @@ public class BaselineTwo : MonoBehaviour
         if (controller != null && controller.KeyboardIsPaxiniFrozen(motorID))
         {
             renderer.material.color = controller.yellowColor;
+            return;
+        }
+
+        if (motorID >= 13 && motorID <= 15)
+        {
+            renderer.material.color = fallbackColor;
             return;
         }
 
