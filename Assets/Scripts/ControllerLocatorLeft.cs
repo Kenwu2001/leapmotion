@@ -131,6 +131,26 @@ public class ControllerLocatorLeft : MonoBehaviour
             armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
         }
 
+        if (canvasPlane == null)
+        {
+            EnsureLeftCanvasStateRenderer();
+            EnsureBaseline2CanvasStateRenderer();
+            SetLeftCanvasState(false);
+            SetBaseline2CanvasState(false);
+
+            if (baseline2CanvasPlane != null)
+            {
+                baseline2CanvasPlane.SetActive(false);
+            }
+
+            return;
+        }
+
+        canvasOriginalParent = canvasPlane.transform.parent;
+        canvasInitialLocalPosition = canvasPlane.transform.localPosition;
+        canvasInitialLocalRotation = canvasPlane.transform.localRotation;
+        canvasInitialLocalScale = canvasPlane.transform.localScale;
+
         EnsureLeftCanvasStateRenderer();
         EnsureBaseline2CanvasStateRenderer();
         SetLeftCanvasState(false);
@@ -140,16 +160,6 @@ public class ControllerLocatorLeft : MonoBehaviour
         {
             baseline2CanvasPlane.SetActive(false);
         }
-
-        if (canvasPlane == null)
-        {
-            return;
-        }
-
-        canvasOriginalParent = canvasPlane.transform.parent;
-        canvasInitialLocalPosition = canvasPlane.transform.localPosition;
-        canvasInitialLocalRotation = canvasPlane.transform.localRotation;
-        canvasInitialLocalScale = canvasPlane.transform.localScale;
 
         if (previewCanvasPlaneOffset)
         {
