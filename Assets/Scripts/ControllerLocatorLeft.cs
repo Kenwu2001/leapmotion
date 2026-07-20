@@ -40,6 +40,10 @@ public class ControllerLocatorLeft : MonoBehaviour
     public float rightHandCanvasZOffset = 0.3f;
     [Tooltip("Fixed world Euler rotation (X/Y/Z) for fallback canvas while following right-hand position")]
     public Vector3 rightHandCanvasRotationOffsetEuler;
+    [Tooltip("Local offset from right-hand controller to LeftCanvasStateArea (X)")]
+    public float leftCanvasStateAreaRightHandXOffset = 0f;
+    [Tooltip("Local offset from right-hand controller to LeftCanvasStateArea (Z)")]
+    public float leftCanvasStateAreaRightHandZOffset = 0f;
 
     [Header("Head Follow")]
     [Tooltip("Optional head transform used for the canvas Y position. If null, XRNode.Head or the main camera will be used.")]
@@ -84,6 +88,7 @@ public class ControllerLocatorLeft : MonoBehaviour
     private float leftHandHiddenTimer;
     private bool isFallbackVisualsActive;
     private bool shouldHideLeftHandByDistance;
+    private bool isLeftCanvasStateAreaDetached;
     private readonly HashSet<Collider> touchingCanvasStateColliders = new HashSet<Collider>();
 
     void Awake()
@@ -147,6 +152,7 @@ public class ControllerLocatorLeft : MonoBehaviour
         RefreshLeftHandSeparationHideState();
         UpdateLeftHandVisualsHiddenState();
         UpdateCanvasLinkedObjectsVisibility();
+        UpdateLeftCanvasStateAreaPose();
 
         if (alwaysAllowToyHandAndCanvas)
         {
@@ -635,6 +641,43 @@ public class ControllerLocatorLeft : MonoBehaviour
         {
             canvasPlane.SetActive(isVisible);
         }
+    }
+
+    private void UpdateLeftCanvasStateAreaPose()
+    {
+        if (LeftCanvasStateArea == null)
+        {
+            return;
+        }
+
+        if (!TryGetRightHandControllerWorldPose(out Vector3 rightHandWorldPosition, out _))
+        {
+            return;
+        }
+
+        Transform areaTransform = LeftCanvasStateArea.transform;
+        if (!isLeftCanvasStateAreaDetached)
+        {
+            areaTransform.SetParent(null, true);
+            isLeftCanvasStateAreaDetached = true;
+        }
+
+        Vector3 worldPosition = new Vector3(
+            rightHandWorldPosition.x + leftCanvasStateAreaRightHandXOffset,
+            rightHandWorldPosition.y,
+            rightHandWorldPosition.z + leftCanvasStateAreaRightHandZOffset
+        );
+
+        if (TryGetHeadWorldPosition(out Vector3 headWorldPosition))
+        {
+            worldPosition.y = headWorldPosition.y + headCanvasYOffset;
+        }
+        else
+        {
+            worldPosition.y += rightHandCanvasYOffset;
+        }
+
+        areaTransform.SetPositionAndRotation(worldPosition, Quaternion.identity);
     }
 
     private void UpdateCanvasLinkedObjectsVisibility()

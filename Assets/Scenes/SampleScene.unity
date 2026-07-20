@@ -13132,8 +13132,8 @@ MonoBehaviour:
   canvasPlane: {fileID: 721031720}
   LeftCanvasStateArea: {fileID: 886172674}
   LeftCanvasStateRenderer: {fileID: 1129803464}
-  leftCanvasOnMaterial: {fileID: 2100000, guid: 474ebbc99f81ac846a3a0b649d812ed5, type: 2}
-  leftCanvasOffMaterial: {fileID: 2100000, guid: c332f8a4d3f76774f813e11888fb50d2, type: 2}
+  leftCanvasOnMaterial: {fileID: 2100000, guid: 3326d76b936980b49b965e56fb5596cd, type: 2}
+  leftCanvasOffMaterial: {fileID: 2100000, guid: 04c360bde51101740a57d6f3778e08a9, type: 2}
   leftCanvasStateIsOn: 0
   leftCanvasStateAreaTag: LeftCanvasStateArea
   canvasLinkedObjects:
@@ -13146,6 +13146,8 @@ MonoBehaviour:
   rightHandCanvasYOffset: -0.35
   rightHandCanvasZOffset: 0.55
   rightHandCanvasRotationOffsetEuler: {x: -75, y: -5, z: 0}
+  leftCanvasStateAreaRightHandXOffset: -1.03
+  leftCanvasStateAreaRightHandZOffset: 0.78
   headTransform: {fileID: 963194228}
   headCanvasYOffset: -0.2
   modeSwitching: {fileID: 951283614}
@@ -35628,8 +35630,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 51.850723, y: 28.141762, z: 35.339096}
-  m_Center: {x: 19.216623, y: -7.2755756, z: -28.382757}
+  m_Size: {x: 35.025272, y: 14.152497, z: 13.619268}
+  m_Center: {x: 27.629288, y: -10.757137, z: -19.057947}
 --- !u!1 &886858301
 GameObject:
   m_ObjectHideFlags: 0
@@ -51301,8 +51303,8 @@ Transform:
   m_GameObject: {fileID: 1129803461}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 31.8, y: -10.9, z: -20.1}
-  m_LocalScale: {x: 26.6, y: 19.766973, z: 16.887339}
+  m_LocalPosition: {x: 36.1, y: -10.9, z: -20.1}
+  m_LocalScale: {x: 16.51, y: 12.2689, z: 10.481578}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 886172675}
