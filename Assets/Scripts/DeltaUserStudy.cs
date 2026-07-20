@@ -9,6 +9,10 @@ public class DeltaUserStudy : MonoBehaviour
     [Header("=== Collider/Mode References (disable in keyboard-only mode) ===")]
     public ModeSwitching modeSwitching;
     public ClawModuleController clawModuleController;
+    public ArmUIPlaneController armUIPlaneController;
+    public ArmUIPlaneCollider armUIPlaneCollider;
+    [Tooltip("If true, block Arm UI plane input while DeltaUserStudy is active.")]
+    public bool disableArmUIPlaneDuringDelta = true;
     [Tooltip("If true, disable ClawModuleController while DeltaUserStudy is active so hand-joint updates cannot drive motor angles.")]
     public bool disableClawModuleControllerDuringDelta = true;
     public DeltaUserStudyPlaneButtonInteraction planeButtonInteraction;
@@ -138,6 +142,10 @@ public class DeltaUserStudy : MonoBehaviour
     private bool wasPlaneSPressed;
     private bool wasPlaneDPressed;
     private bool wasPlaneResetPressed;
+    private bool restoreArmUIPlaneColliderEnabled;
+    private bool hadArmUIPlaneColliderAtEnable;
+    private bool restoreArmUIPlaneVisualRootActive;
+    private bool hadArmUIPlaneVisualRootAtEnable;
         
     // Start is called before the first frame update
     /// <summary>
@@ -151,6 +159,16 @@ public class DeltaUserStudy : MonoBehaviour
         if (planeButtonInteraction == null)
         {
             planeButtonInteraction = FindObjectOfType<DeltaUserStudyPlaneButtonInteraction>();
+        }
+
+        if (armUIPlaneController == null)
+        {
+            armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
+        }
+
+        if (armUIPlaneCollider == null)
+        {
+            armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
         }
 
         if (disableClawModuleControllerDuringDelta && clawModuleController != null)
@@ -206,6 +224,7 @@ public class DeltaUserStudy : MonoBehaviour
 
     void OnDisable()
     {
+        RestoreArmUIPlaneState();
         ClearDirectAngleArrows();
     }
     
@@ -626,7 +645,11 @@ public class DeltaUserStudy : MonoBehaviour
 
             if (modeSwitching.SelectMotorCollider != null)
                 modeSwitching.SelectMotorCollider.enabled = false;
+
+            modeSwitching.ClearArmUIInput();
         }
+
+        DisableArmUIPlane();
 
         DisableTriggerCollider(triggerRightIndexTip);
         DisableTriggerCollider(triggerRightMiddleTip);
@@ -639,6 +662,69 @@ public class DeltaUserStudy : MonoBehaviour
         if (trigger == null) return;
         Collider col = trigger.GetComponent<Collider>();
         if (col != null) col.enabled = false;
+    }
+
+    private void DisableArmUIPlane()
+    {
+        if (!disableArmUIPlaneDuringDelta)
+        {
+            return;
+        }
+
+        if (armUIPlaneController == null)
+        {
+            armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
+        }
+
+        if (armUIPlaneCollider == null)
+        {
+            armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
+        }
+
+        if (armUIPlaneController != null)
+        {
+            armUIPlaneController.useArmUIPlane = false;
+
+            if (armUIPlaneController.armUIPlaneVisualRoot != null)
+            {
+                hadArmUIPlaneVisualRootAtEnable = true;
+                restoreArmUIPlaneVisualRootActive = armUIPlaneController.armUIPlaneVisualRoot.activeSelf;
+                armUIPlaneController.armUIPlaneVisualRoot.SetActive(false);
+            }
+        }
+
+        if (armUIPlaneCollider != null)
+        {
+            hadArmUIPlaneColliderAtEnable = true;
+            restoreArmUIPlaneColliderEnabled = armUIPlaneCollider.enabled;
+            armUIPlaneCollider.enabled = false;
+        }
+    }
+
+    private void RestoreArmUIPlaneState()
+    {
+        if (!disableArmUIPlaneDuringDelta)
+        {
+            return;
+        }
+
+        if (armUIPlaneController != null)
+        {
+            armUIPlaneController.useArmUIPlane = false;
+
+            if (hadArmUIPlaneVisualRootAtEnable && armUIPlaneController.armUIPlaneVisualRoot != null)
+            {
+                armUIPlaneController.armUIPlaneVisualRoot.SetActive(restoreArmUIPlaneVisualRootActive);
+            }
+        }
+
+        if (hadArmUIPlaneColliderAtEnable && armUIPlaneCollider != null)
+        {
+            armUIPlaneCollider.enabled = restoreArmUIPlaneColliderEnabled;
+        }
+
+        hadArmUIPlaneColliderAtEnable = false;
+        hadArmUIPlaneVisualRootAtEnable = false;
     }
 
     /// <summary>
