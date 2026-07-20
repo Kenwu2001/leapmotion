@@ -257,17 +257,9 @@ public class BaselineTwo : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
             if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
-
-            if (Input.GetKey(KeyCode.U)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, -rotDelta); }
-            if (Input.GetKey(KeyCode.J)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, rotDelta); }
-
-            if (Input.GetKey(KeyCode.I)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, -rotDelta); }
-            if (Input.GetKey(KeyCode.K)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, rotDelta); }
         }
 
-        bool hasArrowInput = !isPaxiniSelection && (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E) ||
-                             Input.GetKey(KeyCode.U) || Input.GetKey(KeyCode.J) ||
-                             Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K));
+        bool hasArrowInput = !isPaxiniSelection && (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E));
         if (!hasArrowInput && hadArrowInputLastFrame)
         {
             controller.ClearArmUIDirectAngleArrowState();
@@ -275,7 +267,7 @@ public class BaselineTwo : MonoBehaviour
         }
         hadArrowInputLastFrame = hasArrowInput;
 
-        if (Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             ResetKeyboardOffsets();
         }
