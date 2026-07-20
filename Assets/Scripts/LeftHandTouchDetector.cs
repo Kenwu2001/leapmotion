@@ -15,6 +15,8 @@ public class LeftHandTouchDetector : MonoBehaviour
     [Header("Mode Control")]
     public ModeSwitching modeSwitching;
 
+    public BaselineTwo baselineTwo;
+
     [Tooltip("Optional: lets this script report current projection mode (FivePoint/TwoPoint/FrozenLine)")]
     public SelectMotorCollider selectMotorCollider;
 
@@ -34,6 +36,9 @@ public class LeftHandTouchDetector : MonoBehaviour
 
     private void Start()
     {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
         // Hide visual points initially
         if (rightFingerPoint != null)
             rightFingerPoint.gameObject.SetActive(false);
@@ -43,6 +48,12 @@ public class LeftHandTouchDetector : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (IsBaseline2Active())
+        {
+            ClearTrackingState();
+            return;
+        }
+
         // Only drive when in modeSelect
         if (modeSwitching == null || !modeSwitching.modeSelect)
             return;
@@ -168,6 +179,12 @@ public class LeftHandTouchDetector : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (IsBaseline2Active())
+        {
+            ClearTrackingState();
+            return;
+        }
+
         RightFingerTouchZone zone = other.GetComponent<RightFingerTouchZone>();
         if (zone == null) return;
 
@@ -176,6 +193,25 @@ public class LeftHandTouchDetector : MonoBehaviour
         _isInZone = false;
         
         // Hide visual points
+        if (rightFingerPoint != null)
+            rightFingerPoint.gameObject.SetActive(false);
+        if (clawFingerPoint != null)
+            clawFingerPoint.gameObject.SetActive(false);
+    }
+
+    private bool IsBaseline2Active()
+    {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
+        return baselineTwo != null && baselineTwo.useKeyboardControl;
+    }
+
+    private void ClearTrackingState()
+    {
+        _recordedOffset = Vector3.zero;
+        _isInZone = false;
+
         if (rightFingerPoint != null)
             rightFingerPoint.gameObject.SetActive(false);
         if (clawFingerPoint != null)

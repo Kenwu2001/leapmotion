@@ -54,6 +54,9 @@ public class ControllerLocatorLeft : MonoBehaviour
     [Header("Mode Switching")]
     public ModeSwitching modeSwitching;
 
+    [Header("Baseline2")]
+    public BaselineTwo baselineTwo;
+
     [Header("Arm UI")]
     public ArmUIPlaneCollider armUIPlaneCollider;
 
@@ -96,6 +99,11 @@ public class ControllerLocatorLeft : MonoBehaviour
         if (modeSwitching == null)
         {
             modeSwitching = FindObjectOfType<ModeSwitching>();
+        }
+
+        if (baselineTwo == null)
+        {
+            baselineTwo = FindObjectOfType<BaselineTwo>();
         }
 
         if (jointAngle == null)
@@ -481,8 +489,10 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateLeftHandVisualsHiddenState()
     {
-        bool shouldHideLeftHandVisuals = !alwaysAllowToyHandAndCanvas &&
-                                        (shouldHideLeftHandByDistance || isFallbackVisualsActive);
+        bool shouldForceBaseline2ToyHand = IsBaseline2ToyHandModeActive();
+        bool shouldHideLeftHandVisuals = shouldForceBaseline2ToyHand ||
+                                        (!alwaysAllowToyHandAndCanvas &&
+                                        (shouldHideLeftHandByDistance || isFallbackVisualsActive));
 
         if (leftHandRetargetingSkin != null)
         {
@@ -701,6 +711,11 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private bool ShouldShowToyHand()
     {
+        if (IsBaseline2ToyHandModeActive())
+        {
+            return true;
+        }
+
         if (alwaysAllowToyHandAndCanvas)
         {
             return true;
@@ -717,6 +732,16 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         return ShouldUseFallbackVisuals();
+    }
+
+    private bool IsBaseline2ToyHandModeActive()
+    {
+        if (baselineTwo == null)
+        {
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+        }
+
+        return baselineTwo != null && baselineTwo.useKeyboardControl;
     }
 
     private bool IsArmUIAreaActive()

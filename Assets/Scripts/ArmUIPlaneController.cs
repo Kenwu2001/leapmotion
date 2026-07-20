@@ -146,6 +146,8 @@ public class ArmUIPlaneController : MonoBehaviour
     [Tooltip("When enabled, motor selection/highlight logic is suppressed so the Arm UI plane can take over interaction.")]
     public bool useArmUIPlane = false;
 
+    public BaselineTwo baselineTwo;
+
     [Header("Arm UI Plane Visual Root")]
     [Tooltip("Optional external ArmUIPlane root. When useArmUIPlane is false, this root will be moved far away instead of being deactivated.")]
     public GameObject armUIPlaneVisualRoot;
@@ -227,6 +229,11 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void Awake()
     {
+        if (baselineTwo == null)
+        {
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+        }
+
         if (modeSwitching == null)
         {
             modeSwitching = FindObjectOfType<ModeSwitching>();
@@ -270,6 +277,19 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void Update()
     {
+        if (IsBaseline2Active())
+        {
+            useArmUIPlane = false;
+            enterArmUIPlaneButton.isTouched = false;
+            SyncArmUIPlaneVisualRootPosition(true);
+            if (modeSwitching != null)
+            {
+                modeSwitching.ClearArmUIInput();
+            }
+            _wasUseArmUIPlaneLastFrame = false;
+            return;
+        }
+
         // Arm UI enable state is fully driven by arm-area touch state.
         useArmUIPlane = armUIPlaneCollider != null && armUIPlaneCollider.inArmUIArea;
         bool justEnteredArmUIArea = useArmUIPlane && !_wasUseArmUIPlaneLastFrame;
@@ -354,6 +374,16 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncMaxMinSliderValue();
         _lastArmModeManipulate = armModeManipulate;
         _wasUseArmUIPlaneLastFrame = useArmUIPlane;
+    }
+
+    private bool IsBaseline2Active()
+    {
+        if (baselineTwo == null)
+        {
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+        }
+
+        return baselineTwo != null && baselineTwo.useKeyboardControl;
     }
 
     [ContextMenu("ArmUI Debug/Copy Payload To Clipboard")]

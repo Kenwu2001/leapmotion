@@ -6,6 +6,7 @@ public class LeapAnchorOffset : MonoBehaviour // this is for latest retargeting 
     public ModeSwitching modeSwitching;
     public LeftHandTouchDetector leftHandTouchDetector; // Used for modeSelect=true
     public RetargetTouchDetector retargetTouchDetector; // NEW: Used for modeSelect=false
+    public BaselineTwo baselineTwo;
     
     // OLD retarget scripts (commented out, kept for reference)
     // public RetargetIndex retargetIndex;
@@ -60,6 +61,13 @@ public class LeapAnchorOffset : MonoBehaviour // this is for latest retargeting 
 
     void LateUpdate()
     {
+        if (IsBaseline2Active())
+        {
+            transform.position = baseLeapAnchorPosition.position;
+            HideAllDebugBalls();
+            return;
+        }
+
         // When modeSelect is true, apply the recorded offset from LeftHandTouchDetector
         if (modeSwitching != null && modeSwitching.modeSelect)
         {
@@ -328,9 +336,28 @@ public class LeapAnchorOffset : MonoBehaviour // this is for latest retargeting 
 
     void Start()
     {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
         if (colliderBall != null) colliderBall.SetActive(false);
         if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
         if (gripperBall != null) gripperBall.SetActive(false);
+    }
+
+    private bool IsBaseline2Active()
+    {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
+        return baselineTwo != null && baselineTwo.useKeyboardControl;
+    }
+
+    private void HideAllDebugBalls()
+    {
+        if (colliderBall != null) colliderBall.SetActive(false);
+        if (rightFingertipBall != null) rightFingertipBall.SetActive(false);
+        if (gripperBall != null) gripperBall.SetActive(false);
+        if (leftFingertipBall != null) leftFingertipBall.SetActive(false);
     }
 
     // ===============================================

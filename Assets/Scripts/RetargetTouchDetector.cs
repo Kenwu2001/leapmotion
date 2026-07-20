@@ -19,6 +19,8 @@ public class RetargetTouchDetector : MonoBehaviour
     [Header("Mode Control")]
     public ModeSwitching modeSwitching;
 
+    public BaselineTwo baselineTwo;
+
     [Header("Recorded Offset")]
     private Vector3 _recordedOffset = Vector3.zero;
     private bool _isInZone = false;
@@ -27,6 +29,9 @@ public class RetargetTouchDetector : MonoBehaviour
 
     private void Start()
     {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
         // Hide visual points initially
         if (rightFingerPoint != null)
             rightFingerPoint.gameObject.SetActive(false);
@@ -65,6 +70,12 @@ public class RetargetTouchDetector : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (IsBaseline2Active())
+        {
+            ClearTrackingState();
+            return;
+        }
+
         // Only drive when NOT in modeSelect (i.e., during retargeting)
         if (modeSwitching == null || modeSwitching.modeSelect)
         {
@@ -160,6 +171,12 @@ public class RetargetTouchDetector : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (IsBaseline2Active())
+        {
+            ClearTrackingState();
+            return;
+        }
+
         RightFingerTouchZone zone = other.GetComponent<RightFingerTouchZone>();
         if (zone == null) return;
 
@@ -168,6 +185,25 @@ public class RetargetTouchDetector : MonoBehaviour
         _isInZone = false;
         
         // Hide visual points
+        if (rightFingerPoint != null)
+            rightFingerPoint.gameObject.SetActive(false);
+        if (clawFingerPoint != null)
+            clawFingerPoint.gameObject.SetActive(false);
+    }
+
+    private bool IsBaseline2Active()
+    {
+        if (baselineTwo == null)
+            baselineTwo = FindObjectOfType<BaselineTwo>();
+
+        return baselineTwo != null && baselineTwo.useKeyboardControl;
+    }
+
+    private void ClearTrackingState()
+    {
+        _recordedOffset = Vector3.zero;
+        _isInZone = false;
+
         if (rightFingerPoint != null)
             rightFingerPoint.gameObject.SetActive(false);
         if (clawFingerPoint != null)
