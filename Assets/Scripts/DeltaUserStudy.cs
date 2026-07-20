@@ -278,17 +278,19 @@ public class DeltaUserStudy : MonoBehaviour
         float rotationDelta = rotationSpeed * Time.deltaTime;
         bool rotationChanged = false;
         
-        // Q key - decrease angle
+        bool reverseDirection = currentRow >= 2; // Only Angle3/Angle4 motors: 3,4,7,8,11,12
+
+        // Q key - decrease angle (rows 0/1), increase angle (rows 2/3)
         if (Input.GetKey(KeyCode.Q))
         {
-            currentRotations[currentRow, currentCol] -= rotationDelta;
+            currentRotations[currentRow, currentCol] += reverseDirection ? rotationDelta : -rotationDelta;
             rotationChanged = true;
         }
         
-        // E key - increase angle
+        // E key - increase angle (rows 0/1), decrease angle (rows 2/3)
         if (Input.GetKey(KeyCode.E))
         {
-            currentRotations[currentRow, currentCol] += rotationDelta;
+            currentRotations[currentRow, currentCol] += reverseDirection ? -rotationDelta : rotationDelta;
             rotationChanged = true;
         }
         
