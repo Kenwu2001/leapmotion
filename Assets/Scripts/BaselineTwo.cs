@@ -31,16 +31,29 @@ public class BaselineTwo : MonoBehaviour
     private bool pendingArrowUseLeftSide;
     private float pendingArrowDelta;
     private bool selectedFrozenUsesLightRed;
+    public Baseline2PlaneButtonInteraction planeButtonInteraction;
 
-    public bool IsMoveUpPressed => useKeyboardControl && Input.GetKey(KeyCode.W);
-    public bool IsMoveLeftPressed => useKeyboardControl && Input.GetKey(KeyCode.A);
-    public bool IsMoveDownPressed => useKeyboardControl && Input.GetKey(KeyCode.S);
-    public bool IsMoveRightPressed => useKeyboardControl && Input.GetKey(KeyCode.D);
+    public bool IsMoveUpPressed => useKeyboardControl && (Input.GetKey(KeyCode.W) || IsPlaneButtonTouched(KeyCode.W));
+    public bool IsMoveLeftPressed => useKeyboardControl && (Input.GetKey(KeyCode.A) || IsPlaneButtonTouched(KeyCode.A));
+    public bool IsMoveDownPressed => useKeyboardControl && (Input.GetKey(KeyCode.S) || IsPlaneButtonTouched(KeyCode.S));
+    public bool IsMoveRightPressed => useKeyboardControl && (Input.GetKey(KeyCode.D) || IsPlaneButtonTouched(KeyCode.D));
+    public bool IsRotateNegativePressed => useKeyboardControl && (Input.GetKey(KeyCode.Q) || IsPlaneButtonTouched(KeyCode.Q));
+    public bool IsRotatePositivePressed => useKeyboardControl && (Input.GetKey(KeyCode.E) || IsPlaneButtonTouched(KeyCode.E));
+    public bool IsFreezePressed => useKeyboardControl && (Input.GetKey(KeyCode.F) || IsPlaneButtonTouched(KeyCode.F));
+    public bool IsResetPressed => useKeyboardControl && (Input.GetKey(KeyCode.Space) || IsPlaneButtonTouched(KeyCode.Space));
+    public bool IsIndexMiddleIndividualModeActive => useKeyboardControl && controller != null && controller.useIndexMiddleIndividualMode;
+    public bool IsSmallRangeMappingActive => useKeyboardControl && controller != null && !controller.isFullRangeMapping;
+    public bool IsSnappingModeActive => useKeyboardControl && controller != null && controller.IsCurrentSnappingEnabled();
     public bool IsCurrentSelectionFrozen => IsSelectionFrozen(GetMotorIDForCell(kbCurrentRow, kbCurrentCol));
 
     private void Awake()
     {
         controller = GetComponent<ClawModuleController>();
+
+        if (planeButtonInteraction == null)
+        {
+            planeButtonInteraction = FindObjectOfType<Baseline2PlaneButtonInteraction>();
+        }
 
         if (useKeyboardControl && controller != null && controller.modeSwitching != null)
         {
@@ -254,15 +267,30 @@ public class BaselineTwo : MonoBehaviour
             ToggleCurrentSelectionFreeze();
         }
 
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            ToggleIndexMiddleIndividualMode();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            ToggleSmallRangeMapping();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            ToggleSnappingMode();
+        }
+
         bool isPaxiniSelection = selectedMotorID >= 13 && selectedMotorID <= 15;
 
         if (!isPaxiniSelection)
         {
-            if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
-            if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
+            if (IsRotateNegativePressed) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
+            if (IsRotatePositivePressed) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
         }
 
-        bool hasArrowInput = !isPaxiniSelection && (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E));
+        bool hasArrowInput = !isPaxiniSelection && (IsRotateNegativePressed || IsRotatePositivePressed);
         if (!hasArrowInput && hadArrowInputLastFrame)
         {
             controller.ClearArmUIDirectAngleArrowState();
@@ -272,8 +300,48 @@ public class BaselineTwo : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            ResetKeyboardOffsets();
+            TriggerReset();
         }
+    }
+
+    public void ToggleIndexMiddleIndividualMode()
+    {
+        if (!useKeyboardControl || controller == null)
+        {
+            return;
+        }
+
+        controller.useIndexMiddleIndividualMode = !controller.useIndexMiddleIndividualMode;
+    }
+
+    public void ToggleSmallRangeMapping()
+    {
+        if (!useKeyboardControl || controller == null)
+        {
+            return;
+        }
+
+        controller.isFullRangeMapping = !controller.isFullRangeMapping;
+    }
+
+    public void ToggleSnappingMode()
+    {
+        if (!useKeyboardControl || controller == null)
+        {
+            return;
+        }
+
+        controller.ToggleCurrentSnapping();
+    }
+
+    public void TriggerReset()
+    {
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        ResetKeyboardOffsets();
     }
 
     public void MoveSelectionUp()
@@ -642,6 +710,22 @@ public class BaselineTwo : MonoBehaviour
     private void ApplyMotorVisualState(int motorID)
     {
         ApplyMotorVisualState(motorID, controller != null ? controller.KeyboardOriginalColor : Color.white);
+    }
+
+    private bool IsPlaneButtonTouched(KeyCode keyCode)
+    {
+        if (planeButtonInteraction == null)
+        {
+            planeButtonInteraction = FindObjectOfType<Baseline2PlaneButtonInteraction>();
+        }
+
+        if (planeButtonInteraction == null)
+        {
+            return false;
+        }
+
+        Baseline2PlaneButtonInteraction.ButtonBinding button = planeButtonInteraction.GetButtonBinding(keyCode);
+        return button != null && button.isTouched;
     }
 
     private Renderer GetRendererForMotorID(int motorID)

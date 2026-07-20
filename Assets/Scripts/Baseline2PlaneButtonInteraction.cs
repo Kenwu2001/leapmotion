@@ -8,6 +8,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
     public class ButtonBinding
     {
         public string buttonName = "Button";
+        public KeyCode keyboardKey = KeyCode.None;
         public GameObject buttonObject;
         public Collider buttonCollider;
         public Renderer buttonRenderer;
@@ -61,7 +62,13 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
     public ButtonBinding baseline2KeyA = new ButtonBinding { buttonName = "Baseline2KeyA" };
     public ButtonBinding baseline2KeyS = new ButtonBinding { buttonName = "Baseline2KeyS" };
     public ButtonBinding baseline2KeyD = new ButtonBinding { buttonName = "Baseline2KeyD" };
+    public ButtonBinding baseline2KeyQ = new ButtonBinding { buttonName = "Baseline2KeyQ" };
+    public ButtonBinding baseline2KeyE = new ButtonBinding { buttonName = "Baseline2KeyE" };
     public ButtonBinding baseline2KeyF = new ButtonBinding { buttonName = "Baseline2KeyF" };
+    public ButtonBinding baseline2KeyReset = new ButtonBinding { buttonName = "Baseline2KeyReset" };
+    public ButtonBinding baseline2Key1 = new ButtonBinding { buttonName = "Baseline2Key1" };
+    public ButtonBinding baseline2Key2 = new ButtonBinding { buttonName = "Baseline2Key2" };
+    public ButtonBinding baseline2Key3 = new ButtonBinding { buttonName = "Baseline2Key3" };
 
     [Header("State Sources")]
     public BaselineTwo baselineTwo;
@@ -103,11 +110,18 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
             Baseline2Plane.transform.SetParent(null, true);
         }
 
+        AssignDefaultKeyboardBindings();
         InitializeButton(baseline2KeyW);
         InitializeButton(baseline2KeyA);
         InitializeButton(baseline2KeyS);
         InitializeButton(baseline2KeyD);
+        InitializeButton(baseline2KeyQ);
+        InitializeButton(baseline2KeyE);
         InitializeButton(baseline2KeyF);
+        InitializeButton(baseline2KeyReset);
+        InitializeButton(baseline2Key1);
+        InitializeButton(baseline2Key2);
+        InitializeButton(baseline2Key3);
         SyncButtonStates();
     }
 
@@ -132,7 +146,28 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         if (TryHandleEnter(baseline2KeyA, other)) return;
         if (TryHandleEnter(baseline2KeyS, other)) return;
         if (TryHandleEnter(baseline2KeyD, other)) return;
+        if (TryHandleEnter(baseline2KeyQ, other)) return;
+        if (TryHandleEnter(baseline2KeyE, other)) return;
         if (TryHandleEnter(baseline2KeyF, other)) return;
+        if (TryHandleEnter(baseline2KeyReset, other)) return;
+        if (TryHandleEnter(baseline2Key1, other)) return;
+        if (TryHandleEnter(baseline2Key2, other)) return;
+        if (TryHandleEnter(baseline2Key3, other)) return;
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (TryHandleEnter(baseline2KeyW, other)) return;
+        if (TryHandleEnter(baseline2KeyA, other)) return;
+        if (TryHandleEnter(baseline2KeyS, other)) return;
+        if (TryHandleEnter(baseline2KeyD, other)) return;
+        if (TryHandleEnter(baseline2KeyQ, other)) return;
+        if (TryHandleEnter(baseline2KeyE, other)) return;
+        if (TryHandleEnter(baseline2KeyF, other)) return;
+        if (TryHandleEnter(baseline2KeyReset, other)) return;
+        if (TryHandleEnter(baseline2Key1, other)) return;
+        if (TryHandleEnter(baseline2Key2, other)) return;
+        if (TryHandleEnter(baseline2Key3, other)) return;
     }
 
     private void OnTriggerExit(Collider other)
@@ -141,7 +176,13 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         if (TryHandleExit(baseline2KeyA, other)) return;
         if (TryHandleExit(baseline2KeyS, other)) return;
         if (TryHandleExit(baseline2KeyD, other)) return;
+        if (TryHandleExit(baseline2KeyQ, other)) return;
+        if (TryHandleExit(baseline2KeyE, other)) return;
         if (TryHandleExit(baseline2KeyF, other)) return;
+        if (TryHandleExit(baseline2KeyReset, other)) return;
+        if (TryHandleExit(baseline2Key1, other)) return;
+        if (TryHandleExit(baseline2Key2, other)) return;
+        if (TryHandleExit(baseline2Key3, other)) return;
     }
 
     private void InitializeButton(ButtonBinding button)
@@ -154,13 +195,42 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         button.Initialize();
     }
 
+    private void AssignDefaultKeyboardBindings()
+    {
+        AssignKeyboardBinding(baseline2KeyW, KeyCode.W);
+        AssignKeyboardBinding(baseline2KeyA, KeyCode.A);
+        AssignKeyboardBinding(baseline2KeyS, KeyCode.S);
+        AssignKeyboardBinding(baseline2KeyD, KeyCode.D);
+        AssignKeyboardBinding(baseline2KeyQ, KeyCode.Q);
+        AssignKeyboardBinding(baseline2KeyE, KeyCode.E);
+        AssignKeyboardBinding(baseline2KeyF, KeyCode.F);
+        AssignKeyboardBinding(baseline2KeyReset, KeyCode.Space);
+        AssignKeyboardBinding(baseline2Key1, KeyCode.Alpha1);
+        AssignKeyboardBinding(baseline2Key2, KeyCode.Alpha2);
+        AssignKeyboardBinding(baseline2Key3, KeyCode.Alpha3);
+    }
+
+    private static void AssignKeyboardBinding(ButtonBinding button, KeyCode keyCode)
+    {
+        if (button != null && button.keyboardKey == KeyCode.None)
+        {
+            button.keyboardKey = keyCode;
+        }
+    }
+
     private void SyncButtonStates()
     {
         SyncButtonState(baseline2KeyW, baselineTwo != null && baselineTwo.IsMoveUpPressed);
         SyncButtonState(baseline2KeyA, baselineTwo != null && baselineTwo.IsMoveLeftPressed);
         SyncButtonState(baseline2KeyS, baselineTwo != null && baselineTwo.IsMoveDownPressed);
         SyncButtonState(baseline2KeyD, baselineTwo != null && baselineTwo.IsMoveRightPressed);
-        SyncButtonState(baseline2KeyF, baseline2KeyF != null && baseline2KeyF.isTouched);
+        SyncButtonState(baseline2KeyQ, baselineTwo != null && baselineTwo.IsRotateNegativePressed);
+        SyncButtonState(baseline2KeyE, baselineTwo != null && baselineTwo.IsRotatePositivePressed);
+        SyncButtonState(baseline2KeyF, baselineTwo != null && baselineTwo.IsFreezePressed);
+        SyncButtonState(baseline2KeyReset, baselineTwo != null && baselineTwo.IsResetPressed);
+        SyncButtonState(baseline2Key1, baselineTwo != null && baselineTwo.IsIndexMiddleIndividualModeActive);
+        SyncButtonState(baseline2Key2, baselineTwo != null && baselineTwo.IsSmallRangeMappingActive);
+        SyncButtonState(baseline2Key3, baselineTwo != null && baselineTwo.IsSnappingModeActive);
     }
 
     private void SyncButtonState(ButtonBinding button, bool keyboardPressed)
@@ -240,6 +310,55 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
             return;
         }
 
+        if (baseline2KeyQ.isTouched)
+        {
+            currentTouchedButton = baseline2KeyQ.buttonName;
+            interactionDebug = "Touch stay: " + baseline2KeyQ.buttonName;
+            return;
+        }
+
+        if (baseline2KeyE.isTouched)
+        {
+            currentTouchedButton = baseline2KeyE.buttonName;
+            interactionDebug = "Touch stay: " + baseline2KeyE.buttonName;
+            return;
+        }
+
+        if (baseline2KeyF.isTouched)
+        {
+            currentTouchedButton = baseline2KeyF.buttonName;
+            interactionDebug = "Touch stay: " + baseline2KeyF.buttonName;
+            return;
+        }
+
+        if (baseline2KeyReset.isTouched)
+        {
+            currentTouchedButton = baseline2KeyReset.buttonName;
+            interactionDebug = "Touch stay: " + baseline2KeyReset.buttonName;
+            return;
+        }
+
+        if (baseline2Key1.isTouched)
+        {
+            currentTouchedButton = baseline2Key1.buttonName;
+            interactionDebug = "Touch stay: " + baseline2Key1.buttonName;
+            return;
+        }
+
+        if (baseline2Key2.isTouched)
+        {
+            currentTouchedButton = baseline2Key2.buttonName;
+            interactionDebug = "Touch stay: " + baseline2Key2.buttonName;
+            return;
+        }
+
+        if (baseline2Key3.isTouched)
+        {
+            currentTouchedButton = baseline2Key3.buttonName;
+            interactionDebug = "Touch stay: " + baseline2Key3.buttonName;
+            return;
+        }
+
         currentTouchedButton = "None";
         interactionDebug = "No Baseline2 plane button touched";
     }
@@ -275,10 +394,50 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
             return;
         }
 
+        if (button == baseline2KeyReset)
+        {
+            baselineTwo.TriggerReset();
+            return;
+        }
+
+        if (button == baseline2Key1)
+        {
+            baselineTwo.ToggleIndexMiddleIndividualMode();
+            return;
+        }
+
+        if (button == baseline2Key2)
+        {
+            baselineTwo.ToggleSmallRangeMapping();
+            return;
+        }
+
+        if (button == baseline2Key3)
+        {
+            baselineTwo.ToggleSnappingMode();
+            return;
+        }
+
         if (button == baseline2KeyF)
         {
             baselineTwo.ToggleCurrentSelectionFreeze();
         }
+    }
+
+    public ButtonBinding GetButtonBinding(KeyCode keyCode)
+    {
+        if (baseline2KeyW != null && baseline2KeyW.keyboardKey == keyCode) return baseline2KeyW;
+        if (baseline2KeyA != null && baseline2KeyA.keyboardKey == keyCode) return baseline2KeyA;
+        if (baseline2KeyS != null && baseline2KeyS.keyboardKey == keyCode) return baseline2KeyS;
+        if (baseline2KeyD != null && baseline2KeyD.keyboardKey == keyCode) return baseline2KeyD;
+        if (baseline2KeyQ != null && baseline2KeyQ.keyboardKey == keyCode) return baseline2KeyQ;
+        if (baseline2KeyE != null && baseline2KeyE.keyboardKey == keyCode) return baseline2KeyE;
+        if (baseline2KeyF != null && baseline2KeyF.keyboardKey == keyCode) return baseline2KeyF;
+        if (baseline2KeyReset != null && baseline2KeyReset.keyboardKey == keyCode) return baseline2KeyReset;
+        if (baseline2Key1 != null && baseline2Key1.keyboardKey == keyCode) return baseline2Key1;
+        if (baseline2Key2 != null && baseline2Key2.keyboardKey == keyCode) return baseline2Key2;
+        if (baseline2Key3 != null && baseline2Key3.keyboardKey == keyCode) return baseline2Key3;
+        return null;
     }
 
     private void UpdateBaseline2PlanePose()
