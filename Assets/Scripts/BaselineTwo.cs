@@ -21,6 +21,7 @@ public class BaselineTwo : MonoBehaviour
     private float kbRotationSpeed = 18f;
     private bool prevUseKeyboardControl;
     private bool hadArrowInputLastFrame;
+    private readonly bool[] kbSingleFrozen = new bool[12];
     private int previousSelectedMotorID;
     private int sideLockedMotorID;
     private bool sideLockedUseLeftSide;
@@ -34,6 +35,7 @@ public class BaselineTwo : MonoBehaviour
     public bool IsMoveLeftPressed => useKeyboardControl && Input.GetKey(KeyCode.A);
     public bool IsMoveDownPressed => useKeyboardControl && Input.GetKey(KeyCode.S);
     public bool IsMoveRightPressed => useKeyboardControl && Input.GetKey(KeyCode.D);
+    public bool IsCurrentSelectionFrozen => IsSingleFrozen(GetMotorIDForCell(kbCurrentRow, kbCurrentCol));
 
     private void Awake()
     {
@@ -147,6 +149,7 @@ public class BaselineTwo : MonoBehaviour
         previousSelectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
         sideLockedMotorID = 0;
         sideLockedUseLeftSide = false;
+        ClearAllSingleFreezeStates();
         KbSetAllColors(controller.KeyboardOriginalColor);
         KbUpdateSelection();
     }
@@ -164,10 +167,12 @@ public class BaselineTwo : MonoBehaviour
 
         controller.KeyboardSetEmbodimentInitialColors();
         controller.ClearArmUIDirectAngleArrowState();
+        controller.KeyboardClearSingleMotorFreezeOverrides();
         hadArrowInputLastFrame = false;
         sideLockedMotorID = 0;
         hasPendingArrow = false;
         kbCurrentSelectedRenderer = null;
+        ClearAllSingleFreezeStates();
     }
 
     private void SetCollidersEnabled(bool enabledState)
@@ -203,10 +208,10 @@ public class BaselineTwo : MonoBehaviour
         {
             for (int col = 0; col < KB_COLS; col++)
             {
-                Renderer renderer = kbRendererArray[row, col];
-                if (renderer != null && renderer.material != null)
+                int motorID = GetMotorIDForCell(row, col);
+                if (motorID > 0)
                 {
-                    renderer.material.color = color;
+                    ApplyMotorVisualState(motorID, color);
                 }
             }
         }
@@ -214,27 +219,18 @@ public class BaselineTwo : MonoBehaviour
 
     private void KbUpdateSelection()
     {
-        if (kbCurrentSelectedRenderer != null)
+        int previousMotorID = previousSelectedMotorID;
+        int currentMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+
+        if (previousMotorID > 0)
         {
-            kbCurrentSelectedRenderer.material.color = controller.KeyboardOriginalColor;
+            ApplyMotorVisualState(previousMotorID);
         }
+
+        previousSelectedMotorID = currentMotorID;
 
         kbCurrentSelectedRenderer = kbRendererArray[kbCurrentRow, kbCurrentCol];
-        if (kbCurrentSelectedRenderer == null)
-        {
-            return;
-        }
-
-        Transform selectedTransform = kbMotorArray[kbCurrentRow, kbCurrentCol];
-        if (selectedTransform == controller.IndexAngle1Center || selectedTransform == controller.IndexAngle2Center ||
-            selectedTransform == controller.IndexAngle3Center || selectedTransform == controller.IndexAngle4Center)
-        {
-            kbCurrentSelectedRenderer.material.color = Color.red;
-        }
-        else
-        {
-            kbCurrentSelectedRenderer.material.color = Color.red;
-        }
+        ApplyMotorVisualState(currentMotorID);
     }
 
     private void HandleKeyboardControl()
@@ -252,6 +248,11 @@ public class BaselineTwo : MonoBehaviour
         }
 
         float rotDelta = kbRotationSpeed * Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            ToggleCurrentSelectionFreeze();
+        }
+
         if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
         if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
 
@@ -336,6 +337,8 @@ public class BaselineTwo : MonoBehaviour
     private void ResetKeyboardOffsets()
     {
         controller.KeyboardForceDisengageOnReset();
+        controller.KeyboardClearSingleMotorFreezeOverrides();
+        ClearAllSingleFreezeStates();
 
         controller.currentThumbRotationY = 0f;
         controller.currentThumbRotationYMax = 0f;
@@ -411,6 +414,133 @@ public class BaselineTwo : MonoBehaviour
         sideLockedMotorID = 0;
         sideLockedUseLeftSide = false;
         previousSelectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+    }
+
+    public void ToggleCurrentSelectionFreeze()
+    {
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        int motorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+        if (motorID <= 0)
+        {
+            return;
+        }
+
+        bool newFrozenState = !IsSingleFrozen(motorID);
+        SetSingleFrozen(motorID, newFrozenState);
+    }
+
+    private bool IsSingleFrozen(int motorID)
+    {
+        if (motorID < 1 || motorID > kbSingleFrozen.Length)
+        {
+            return false;
+        }
+
+        return kbSingleFrozen[motorID - 1];
+    }
+
+    private void SetSingleFrozen(int motorID, bool frozen)
+    {
+        if (motorID < 1 || motorID > kbSingleFrozen.Length)
+        {
+            return;
+        }
+
+        kbSingleFrozen[motorID - 1] = frozen;
+
+        if (controller != null && controller.modeSwitching != null && controller.modeSwitching.singleMotorFrozen != null &&
+            motorID - 1 < controller.modeSwitching.singleMotorFrozen.Length)
+        {
+            controller.KeyboardSetSingleMotorFreezeState(motorID, frozen);
+        }
+
+        ApplyMotorVisualState(motorID);
+    }
+
+    private void ClearAllSingleFreezeStates()
+    {
+        for (int i = 0; i < kbSingleFrozen.Length; i++)
+        {
+            kbSingleFrozen[i] = false;
+        }
+
+        if (controller != null && controller.modeSwitching != null && controller.modeSwitching.singleMotorFrozen != null)
+        {
+            int count = Mathf.Min(kbSingleFrozen.Length, controller.modeSwitching.singleMotorFrozen.Length);
+            for (int i = 0; i < count; i++)
+            {
+                controller.KeyboardSetSingleMotorFreezeState(i + 1, false);
+            }
+        }
+
+        RefreshAllMotorVisualStates();
+    }
+
+    private void RefreshAllMotorVisualStates()
+    {
+        for (int row = 0; row < KB_ROWS; row++)
+        {
+            for (int col = 0; col < KB_COLS; col++)
+            {
+                int motorID = GetMotorIDForCell(row, col);
+                if (motorID > 0)
+                {
+                    ApplyMotorVisualState(motorID);
+                }
+            }
+        }
+    }
+
+    private void ApplyMotorVisualState(int motorID, Color fallbackColor)
+    {
+        Renderer renderer = GetRendererForMotorID(motorID);
+        if (renderer == null)
+        {
+            return;
+        }
+
+        if (IsSingleFrozen(motorID))
+        {
+            renderer.material.color = controller.yellowColor;
+            return;
+        }
+
+        if (motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol))
+        {
+            renderer.material.color = Color.red;
+            return;
+        }
+
+        renderer.material.color = fallbackColor;
+    }
+
+    private void ApplyMotorVisualState(int motorID)
+    {
+        ApplyMotorVisualState(motorID, controller != null ? controller.KeyboardOriginalColor : Color.white);
+    }
+
+    private Renderer GetRendererForMotorID(int motorID)
+    {
+        switch (motorID)
+        {
+            case 1: return controller != null ? controller.thumbJoint1Renderer : null;
+            case 2: return controller != null ? controller.thumbJoint2Renderer : null;
+            case 3: return controller != null ? controller.thumbJoint3Renderer : null;
+            case 4: return controller != null ? controller.thumbJoint4Renderer : null;
+            case 5: return controller != null ? controller.indexJoint1Renderer : null;
+            case 6: return controller != null ? controller.indexJoint2Renderer : null;
+            case 7: return controller != null ? controller.indexJoint3Renderer : null;
+            case 8: return controller != null ? controller.indexJoint4Renderer : null;
+            case 9: return controller != null ? controller.middleJoint1Renderer : null;
+            case 10: return controller != null ? controller.middleJoint2Renderer : null;
+            case 11: return controller != null ? controller.middleJoint3Renderer : null;
+            case 12: return controller != null ? controller.middleJoint4Renderer : null;
+            default: return null;
+        }
     }
 
     private static int GetMotorIDForCell(int row, int col)
@@ -532,6 +662,14 @@ public class BaselineTwo : MonoBehaviour
 
     private void KbApplyRotation(int row, int col, float delta)
     {
+        int motorID = GetMotorIDForCell(row, col);
+        if (motorID > 0 && IsSingleFrozen(motorID))
+        {
+            hasPendingArrow = false;
+            controller.ClearArmUIDirectAngleArrowState();
+            return;
+        }
+
         float effectiveDelta = delta;
         // Extension rows use reversed keyboard direction (Q/E opposite of previous behavior).
         if (row >= 2)

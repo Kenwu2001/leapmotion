@@ -62,3 +62,6 @@ ClawModuleController
 
 #### Single Finger Snapping
 ![alt text](image-11.png)
+
+#### Baseline 2 Setup
+![alt text](image-12.png)

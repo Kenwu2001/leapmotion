@@ -640,6 +640,7 @@ public class ClawModuleController : MonoBehaviour
     private bool[]       _singleMotorFrozenWas = new bool[12];       // previous-frame state for rising-edge detection
     private Quaternion[] _singleMotorFrozenRot = new Quaternion[12]; // captured joint rotation per motor
     private bool[]       _singleMotorFrozenInjected = new bool[12];  // pre-captured snapshot to use on next freeze rising-edge
+    private bool[]       _keyboardSingleMotorFrozenOverride = new bool[12]; // BaselineTwo immediate freeze override
 
     // Selecting-round lock baseline: while inside threshold during modeSelect,
     // angle lock follows this snapshot and ignores in-round freeze toggles.
@@ -1372,7 +1373,7 @@ public class ClawModuleController : MonoBehaviour
 
         for (int i = 0; i < 12; i++)
         {
-            bool isFrozen = useRoundBaselineLocks ? _roundBaselineSingleMotorLocked[i] : frozen[i];
+            bool isFrozen = _keyboardSingleMotorFrozenOverride[i] || (useRoundBaselineLocks ? _roundBaselineSingleMotorLocked[i] : frozen[i]);
             Transform t = GetMotorTransform(i + 1);
             if (t == null) { _singleMotorFrozenWas[i] = isFrozen; continue; }
 
@@ -1415,6 +1416,31 @@ public class ClawModuleController : MonoBehaviour
         _singleMotorFrozenInjected[index] = true;
     }
 
+    public void KeyboardSetSingleMotorFreezeState(int motorID, bool frozen)
+    {
+        if (motorID < 1 || motorID > 12)
+        {
+            return;
+        }
+
+        int index = motorID - 1;
+        _keyboardSingleMotorFrozenOverride[index] = frozen;
+
+        if (modeSwitching != null && modeSwitching.singleMotorFrozen != null && index < modeSwitching.singleMotorFrozen.Length)
+        {
+            modeSwitching.singleMotorFrozen[index] = frozen;
+        }
+
+        if (frozen)
+        {
+            CaptureSingleMotorFreezeSnapshot(motorID);
+        }
+        else
+        {
+            ClearSingleMotorFreezeSnapshot(motorID);
+        }
+    }
+
     public void ClearSingleMotorFreezeSnapshot(int motorID)
     {
         if (motorID < 1 || motorID > 12)
@@ -1423,6 +1449,11 @@ public class ClawModuleController : MonoBehaviour
         }
 
         _singleMotorFrozenInjected[motorID - 1] = false;
+    }
+
+    public void KeyboardClearSingleMotorFreezeOverrides()
+    {
+        System.Array.Clear(_keyboardSingleMotorFrozenOverride, 0, _keyboardSingleMotorFrozenOverride.Length);
     }
 
     /// <summary>Returns the joint Transform for motor IDs 1-12.</summary>

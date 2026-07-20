@@ -61,6 +61,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
     public ButtonBinding baseline2KeyA = new ButtonBinding { buttonName = "Baseline2KeyA" };
     public ButtonBinding baseline2KeyS = new ButtonBinding { buttonName = "Baseline2KeyS" };
     public ButtonBinding baseline2KeyD = new ButtonBinding { buttonName = "Baseline2KeyD" };
+    public ButtonBinding baseline2KeyF = new ButtonBinding { buttonName = "Baseline2KeyF" };
 
     [Header("State Sources")]
     public BaselineTwo baselineTwo;
@@ -106,6 +107,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         InitializeButton(baseline2KeyA);
         InitializeButton(baseline2KeyS);
         InitializeButton(baseline2KeyD);
+        InitializeButton(baseline2KeyF);
         SyncButtonStates();
     }
 
@@ -130,6 +132,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         if (TryHandleEnter(baseline2KeyA, other)) return;
         if (TryHandleEnter(baseline2KeyS, other)) return;
         if (TryHandleEnter(baseline2KeyD, other)) return;
+        if (TryHandleEnter(baseline2KeyF, other)) return;
     }
 
     private void OnTriggerExit(Collider other)
@@ -138,6 +141,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         if (TryHandleExit(baseline2KeyA, other)) return;
         if (TryHandleExit(baseline2KeyS, other)) return;
         if (TryHandleExit(baseline2KeyD, other)) return;
+        if (TryHandleExit(baseline2KeyF, other)) return;
     }
 
     private void InitializeButton(ButtonBinding button)
@@ -156,6 +160,7 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         SyncButtonState(baseline2KeyA, baselineTwo != null && baselineTwo.IsMoveLeftPressed);
         SyncButtonState(baseline2KeyS, baselineTwo != null && baselineTwo.IsMoveDownPressed);
         SyncButtonState(baseline2KeyD, baselineTwo != null && baselineTwo.IsMoveRightPressed);
+        SyncButtonState(baseline2KeyF, baselineTwo != null && baselineTwo.IsCurrentSelectionFrozen);
     }
 
     private void SyncButtonState(ButtonBinding button, bool keyboardPressed)
@@ -267,6 +272,12 @@ public class Baseline2PlaneButtonInteraction : MonoBehaviour
         if (button == baseline2KeyD)
         {
             baselineTwo.MoveSelectionRight();
+            return;
+        }
+
+        if (button == baseline2KeyF)
+        {
+            baselineTwo.ToggleCurrentSelectionFreeze();
         }
     }
 
