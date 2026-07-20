@@ -18,11 +18,17 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject canvasPlane;
     public GameObject LeftCanvasStateArea;
     public Renderer LeftCanvasStateRenderer;
+    public GameObject baseline2CanvasPlane;
+    public GameObject Baseline2CanvasStateArea;
+    public Renderer Baseline2CanvasStateRenderer;
     public Material leftCanvasOnMaterial;
     public Material leftCanvasOffMaterial;
     public bool leftCanvasStateIsOn = false;
+    public bool baseline2CanvasStateIsOn = false;
     [Tooltip("Tag of the collider that can toggle left canvas state")]
     public string leftCanvasStateAreaTag = "LeftCanvasStateArea";
+    [Tooltip("Tag of the collider that can toggle baseline2 canvas state")]
+    public string baseline2CanvasStateAreaTag = "Baseline2CanvasStateArea";
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
     public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
@@ -92,7 +98,9 @@ public class ControllerLocatorLeft : MonoBehaviour
     private bool isFallbackVisualsActive;
     private bool shouldHideLeftHandByDistance;
     private bool isLeftCanvasStateAreaDetached;
+    private bool isBaseline2CanvasStateAreaDetached;
     private readonly HashSet<Collider> touchingCanvasStateColliders = new HashSet<Collider>();
+    private readonly HashSet<Collider> touchingBaseline2CanvasStateColliders = new HashSet<Collider>();
 
     void Awake()
     {
@@ -123,10 +131,18 @@ public class ControllerLocatorLeft : MonoBehaviour
             armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
         }
 
+        EnsureLeftCanvasStateRenderer();
+        EnsureBaseline2CanvasStateRenderer();
+        SetLeftCanvasState(false);
+        SetBaseline2CanvasState(false);
+
+        if (baseline2CanvasPlane != null)
+        {
+            baseline2CanvasPlane.SetActive(false);
+        }
+
         if (canvasPlane == null)
         {
-            EnsureLeftCanvasStateRenderer();
-            SetLeftCanvasState(false);
             return;
         }
 
@@ -144,8 +160,6 @@ public class ControllerLocatorLeft : MonoBehaviour
             SetCanvasVisibility(false);
         }
 
-        EnsureLeftCanvasStateRenderer();
-        SetLeftCanvasState(false);
     }
 
     void Update()
@@ -160,7 +174,8 @@ public class ControllerLocatorLeft : MonoBehaviour
         RefreshLeftHandSeparationHideState();
         UpdateLeftHandVisualsHiddenState();
         UpdateCanvasLinkedObjectsVisibility();
-        UpdateLeftCanvasStateAreaPose();
+        UpdateCanvasStateAreaModeVisibility();
+        UpdateActiveCanvasStateAreaPose();
 
         if (alwaysAllowToyHandAndCanvas)
         {
@@ -288,6 +303,22 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateCanvasPlaneVisibility()
     {
+        if (IsBaseline2ToyHandModeActive())
+        {
+            if (canvasPlane != null && canvasPlane.activeSelf)
+            {
+                HideCanvasPlane();
+            }
+
+            SetBaseline2CanvasPlaneVisibility(baseline2CanvasStateIsOn);
+            return;
+        }
+
+        if (baseline2CanvasPlane != null)
+        {
+            baseline2CanvasPlane.SetActive(false);
+        }
+
         if (canvasPlane == null)
         {
             return;
@@ -653,9 +684,28 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
     }
 
-    private void UpdateLeftCanvasStateAreaPose()
+    private void SetBaseline2CanvasPlaneVisibility(bool isVisible)
     {
-        if (LeftCanvasStateArea == null)
+        if (baseline2CanvasPlane != null)
+        {
+            baseline2CanvasPlane.SetActive(isVisible);
+        }
+    }
+
+    private void UpdateActiveCanvasStateAreaPose()
+    {
+        if (IsBaseline2ToyHandModeActive())
+        {
+            UpdateCanvasStateAreaPose(Baseline2CanvasStateArea, ref isBaseline2CanvasStateAreaDetached);
+            return;
+        }
+
+        UpdateCanvasStateAreaPose(LeftCanvasStateArea, ref isLeftCanvasStateAreaDetached);
+    }
+
+    private void UpdateCanvasStateAreaPose(GameObject stateArea, ref bool isDetached)
+    {
+        if (stateArea == null)
         {
             return;
         }
@@ -665,11 +715,11 @@ public class ControllerLocatorLeft : MonoBehaviour
             return;
         }
 
-        Transform areaTransform = LeftCanvasStateArea.transform;
-        if (!isLeftCanvasStateAreaDetached)
+        Transform areaTransform = stateArea.transform;
+        if (!isDetached)
         {
             areaTransform.SetParent(null, true);
-            isLeftCanvasStateAreaDetached = true;
+            isDetached = true;
         }
 
         Vector3 worldPosition = new Vector3(
@@ -688,6 +738,21 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         areaTransform.SetPositionAndRotation(worldPosition, Quaternion.identity);
+    }
+
+    private void UpdateCanvasStateAreaModeVisibility()
+    {
+        bool isBaseline2Active = IsBaseline2ToyHandModeActive();
+
+        if (LeftCanvasStateArea != null)
+        {
+            LeftCanvasStateArea.SetActive(!isBaseline2Active);
+        }
+
+        if (Baseline2CanvasStateArea != null)
+        {
+            Baseline2CanvasStateArea.SetActive(isBaseline2Active);
+        }
     }
 
     private void UpdateCanvasLinkedObjectsVisibility()
@@ -756,6 +821,21 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (IsBaseline2CanvasStateAreaCollider(other))
+        {
+            if (!touchingBaseline2CanvasStateColliders.Add(other))
+            {
+                return;
+            }
+
+            if (touchingBaseline2CanvasStateColliders.Count == 1)
+            {
+                SetBaseline2CanvasState(!baseline2CanvasStateIsOn);
+            }
+
+            return;
+        }
+
         if (!IsLeftCanvasStateAreaCollider(other))
         {
             return;
@@ -774,6 +854,12 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (IsBaseline2CanvasStateAreaCollider(other))
+        {
+            touchingBaseline2CanvasStateColliders.Remove(other);
+            return;
+        }
+
         if (!IsLeftCanvasStateAreaCollider(other))
         {
             return;
@@ -798,6 +884,22 @@ public class ControllerLocatorLeft : MonoBehaviour
         return !string.IsNullOrEmpty(leftCanvasStateAreaTag) && other.CompareTag(leftCanvasStateAreaTag);
     }
 
+    private bool IsBaseline2CanvasStateAreaCollider(Collider other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        if (Baseline2CanvasStateArea != null)
+        {
+            Transform areaTransform = Baseline2CanvasStateArea.transform;
+            return other.transform == areaTransform || other.transform.IsChildOf(areaTransform);
+        }
+
+        return !string.IsNullOrEmpty(baseline2CanvasStateAreaTag) && other.CompareTag(baseline2CanvasStateAreaTag);
+    }
+
     private void EnsureLeftCanvasStateRenderer()
     {
         if (LeftCanvasStateRenderer == null && LeftCanvasStateArea != null)
@@ -806,10 +908,25 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
     }
 
+    private void EnsureBaseline2CanvasStateRenderer()
+    {
+        if (Baseline2CanvasStateRenderer == null && Baseline2CanvasStateArea != null)
+        {
+            Baseline2CanvasStateRenderer = Baseline2CanvasStateArea.GetComponent<Renderer>();
+        }
+    }
+
     private void SetLeftCanvasState(bool isOn)
     {
         leftCanvasStateIsOn = isOn;
         UpdateLeftCanvasStateMaterial();
+        UpdateCanvasPlaneVisibility();
+    }
+
+    private void SetBaseline2CanvasState(bool isOn)
+    {
+        baseline2CanvasStateIsOn = isOn;
+        UpdateBaseline2CanvasStateMaterial();
         UpdateCanvasPlaneVisibility();
     }
 
@@ -827,5 +944,21 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         LeftCanvasStateRenderer.material = targetMaterial;
+    }
+
+    private void UpdateBaseline2CanvasStateMaterial()
+    {
+        if (Baseline2CanvasStateRenderer == null)
+        {
+            return;
+        }
+
+        Material targetMaterial = baseline2CanvasStateIsOn ? leftCanvasOnMaterial : leftCanvasOffMaterial;
+        if (targetMaterial == null || Baseline2CanvasStateRenderer.sharedMaterial == targetMaterial)
+        {
+            return;
+        }
+
+        Baseline2CanvasStateRenderer.material = targetMaterial;
     }
 }
