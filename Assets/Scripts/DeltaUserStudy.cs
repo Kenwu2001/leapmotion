@@ -9,10 +9,51 @@ public class DeltaUserStudy : MonoBehaviour
     [Header("=== Collider/Mode References (disable in keyboard-only mode) ===")]
     public ModeSwitching modeSwitching;
     public ClawModuleController clawModuleController;
+    [Tooltip("If true, disable ClawModuleController while DeltaUserStudy is active so hand-joint updates cannot drive motor angles.")]
+    public bool disableClawModuleControllerDuringDelta = true;
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
     public TriggerRightThumbAbduction triggerRightThumbAbduction;
+
+    [Header("Optional Direct Arrow References (when not using ClawModuleController)")]
+    public GameObject motor3UpArrow;
+    public GameObject motor3DownArrow;
+    public GameObject motor4UpArrow;
+    public GameObject motor4DownArrow;
+    public GameObject motor7UpArrow;
+    public GameObject motor7DownArrow;
+    public GameObject motor8UpArrow;
+    public GameObject motor8DownArrow;
+    public GameObject motor11UpArrow;
+    public GameObject motor11DownArrow;
+    public GameObject motor12UpArrow;
+    public GameObject motor12DownArrow;
+
+    public GameObject thumb3LeftLeftArrow;
+    public GameObject thumb3LeftRightArrow;
+    public GameObject thumb3RightLeftArrow;
+    public GameObject thumb3RightRightArrow;
+    public GameObject thumb4LeftLeftArrow;
+    public GameObject thumb4LeftRightArrow;
+    public GameObject thumb4RightLeftArrow;
+    public GameObject thumb4RightRightArrow;
+    public GameObject index3LeftLeftArrow;
+    public GameObject index3LeftRightArrow;
+    public GameObject index3RightLeftArrow;
+    public GameObject index3RightRightArrow;
+    public GameObject index4LeftLeftArrow;
+    public GameObject index4LeftRightArrow;
+    public GameObject index4RightLeftArrow;
+    public GameObject index4RightRightArrow;
+    public GameObject middle3LeftLeftArrow;
+    public GameObject middle3LeftRightArrow;
+    public GameObject middle3RightLeftArrow;
+    public GameObject middle3RightRightArrow;
+    public GameObject middle4LeftLeftArrow;
+    public GameObject middle4LeftRightArrow;
+    public GameObject middle4RightLeftArrow;
+    public GameObject middle4RightRightArrow;
 
     public Transform ThumbAngle1Center;
     public Transform ThumbAngle2Center;
@@ -82,6 +123,11 @@ public class DeltaUserStudy : MonoBehaviour
     
     // Store current angle of each joint
     private float[,] currentRotations = new float[4, 3];
+    private bool arrowDirtyThisFrame;
+    private int arrowMotorIDThisFrame;
+    private float arrowDeltaSignThisFrame;
+    private readonly Dictionary<int, GameObject> localMotorUpArrows = new Dictionary<int, GameObject>();
+    private readonly Dictionary<int, GameObject> localMotorDownArrows = new Dictionary<int, GameObject>();
         
     // Start is called before the first frame update
     /// <summary>
@@ -92,9 +138,9 @@ public class DeltaUserStudy : MonoBehaviour
     {
         if (!this.enabled) return;
 
-        if (clawModuleController == null)
+        if (disableClawModuleControllerDuringDelta && clawModuleController != null)
         {
-            clawModuleController = FindObjectOfType<ClawModuleController>();
+            clawModuleController.enabled = false;
         }
 
         if (modeSwitching != null)
@@ -120,6 +166,8 @@ public class DeltaUserStudy : MonoBehaviour
             {thumbJoint3Renderer, indexJoint3Renderer, middleJoint3Renderer},
             {thumbJoint4Renderer, indexJoint4Renderer, middleJoint4Renderer}
         };
+
+        InitializeLocalArrowMappings();
         
         // Disable ModeSwitching and all colliders FIRST, before saving colors
         // (prevents ModeSwitching.Start from setting joints to gray)
@@ -203,6 +251,11 @@ public class DeltaUserStudy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Reset desired arrow state; applied at end of frame in LateUpdate.
+        arrowDirtyThisFrame = false;
+        arrowMotorIDThisFrame = 0;
+        arrowDeltaSignThisFrame = 0f;
+
         // WASD navigation control
         HandleNavigation();
 
@@ -244,6 +297,7 @@ public class DeltaUserStudy : MonoBehaviour
 
     void LateUpdate()
     {
+        ApplyArrowStateForFrame();
         SyncCubeRendererColors();
     }
     
@@ -348,7 +402,7 @@ public class DeltaUserStudy : MonoBehaviour
         }
 
         currentTransform.localRotation = initialRotation * deltaRotation;
-        SyncArrowForCurrentSelection(appliedDelta);
+        MarkArrowForCurrentSelection(appliedDelta);
     }
     
     void HandleRow3Rotation()
@@ -595,9 +649,9 @@ public class DeltaUserStudy : MonoBehaviour
         targetMaterial.color = sourceMaterial.color;
     }
 
-    private void SyncArrowForCurrentSelection(float rawDeltaSign)
+    private void MarkArrowForCurrentSelection(float rawDeltaSign)
     {
-        if (clawModuleController == null)
+        if (Mathf.Abs(rawDeltaSign) <= 0.0001f)
         {
             return;
         }
@@ -605,21 +659,153 @@ public class DeltaUserStudy : MonoBehaviour
         int motorID = GetMotorIDForSelection(currentRow, currentCol);
         if (motorID <= 0)
         {
-            clawModuleController.ClearArmUIDirectAngleArrowState();
             return;
         }
 
-        clawModuleController.SyncArmUIDirectAngleArrowState(motorID, rawDeltaSign);
+        arrowDirtyThisFrame = true;
+        arrowMotorIDThisFrame = motorID;
+        arrowDeltaSignThisFrame = rawDeltaSign;
     }
 
-    private void ClearDirectAngleArrows()
+    private void InitializeLocalArrowMappings()
     {
-        if (clawModuleController == null)
+        localMotorUpArrows.Clear();
+        localMotorDownArrows.Clear();
+
+        localMotorUpArrows[3] = motor3UpArrow;
+        localMotorDownArrows[3] = motor3DownArrow;
+        localMotorUpArrows[4] = motor4UpArrow;
+        localMotorDownArrows[4] = motor4DownArrow;
+        localMotorUpArrows[7] = motor7UpArrow;
+        localMotorDownArrows[7] = motor7DownArrow;
+        localMotorUpArrows[8] = motor8UpArrow;
+        localMotorDownArrows[8] = motor8DownArrow;
+        localMotorUpArrows[11] = motor11UpArrow;
+        localMotorDownArrows[11] = motor11DownArrow;
+        localMotorUpArrows[12] = motor12UpArrow;
+        localMotorDownArrows[12] = motor12DownArrow;
+    }
+
+    private static void SetArrowActive(GameObject arrow, bool active)
+    {
+        if (arrow != null)
+        {
+            arrow.SetActive(active);
+        }
+    }
+
+    private void SetLocalVerticalArrowState(int motorID, bool upActive, bool downActive)
+    {
+        GameObject upArrow;
+        if (localMotorUpArrows.TryGetValue(motorID, out upArrow))
+        {
+            SetArrowActive(upArrow, upActive);
+        }
+
+        GameObject downArrow;
+        if (localMotorDownArrows.TryGetValue(motorID, out downArrow))
+        {
+            SetArrowActive(downArrow, downActive);
+        }
+    }
+
+    private void SetLocalFixedHorizontalArrow(GameObject leftLeftArrow, GameObject rightRightArrow, float rawDeltaSign)
+    {
+        SetArrowActive(leftLeftArrow, rawDeltaSign < 0f);
+        SetArrowActive(rightRightArrow, rawDeltaSign > 0f);
+    }
+
+    private void ClearLocalDirectAngleArrows()
+    {
+        SetLocalVerticalArrowState(3, false, false);
+        SetLocalVerticalArrowState(4, false, false);
+        SetLocalVerticalArrowState(7, false, false);
+        SetLocalVerticalArrowState(8, false, false);
+        SetLocalVerticalArrowState(11, false, false);
+        SetLocalVerticalArrowState(12, false, false);
+
+        SetArrowActive(thumb3LeftLeftArrow, false);
+        SetArrowActive(thumb3LeftRightArrow, false);
+        SetArrowActive(thumb3RightLeftArrow, false);
+        SetArrowActive(thumb3RightRightArrow, false);
+        SetArrowActive(thumb4LeftLeftArrow, false);
+        SetArrowActive(thumb4LeftRightArrow, false);
+        SetArrowActive(thumb4RightLeftArrow, false);
+        SetArrowActive(thumb4RightRightArrow, false);
+        SetArrowActive(index3LeftLeftArrow, false);
+        SetArrowActive(index3LeftRightArrow, false);
+        SetArrowActive(index3RightLeftArrow, false);
+        SetArrowActive(index3RightRightArrow, false);
+        SetArrowActive(index4LeftLeftArrow, false);
+        SetArrowActive(index4LeftRightArrow, false);
+        SetArrowActive(index4RightLeftArrow, false);
+        SetArrowActive(index4RightRightArrow, false);
+        SetArrowActive(middle3LeftLeftArrow, false);
+        SetArrowActive(middle3LeftRightArrow, false);
+        SetArrowActive(middle3RightLeftArrow, false);
+        SetArrowActive(middle3RightRightArrow, false);
+        SetArrowActive(middle4LeftLeftArrow, false);
+        SetArrowActive(middle4LeftRightArrow, false);
+        SetArrowActive(middle4RightLeftArrow, false);
+        SetArrowActive(middle4RightRightArrow, false);
+    }
+
+    private void SyncLocalDirectAngleArrows(int motorID, float rawDeltaSign)
+    {
+        ClearLocalDirectAngleArrows();
+
+        if (Mathf.Abs(rawDeltaSign) <= 0.0001f)
         {
             return;
         }
 
-        clawModuleController.ClearArmUIDirectAngleArrowState();
+        switch (motorID)
+        {
+            case 1:
+                SetLocalFixedHorizontalArrow(thumb4LeftLeftArrow, thumb4RightRightArrow, rawDeltaSign);
+                break;
+            case 2:
+                SetLocalFixedHorizontalArrow(thumb3LeftLeftArrow, thumb3RightRightArrow, rawDeltaSign);
+                break;
+            case 3:
+            case 4:
+            case 7:
+            case 8:
+            case 11:
+            case 12:
+                SetLocalVerticalArrowState(motorID, rawDeltaSign < 0f, rawDeltaSign > 0f);
+                break;
+            case 5:
+                SetLocalFixedHorizontalArrow(index4LeftLeftArrow, index4RightRightArrow, rawDeltaSign);
+                break;
+            case 6:
+                SetLocalFixedHorizontalArrow(index3LeftLeftArrow, index3RightRightArrow, rawDeltaSign);
+                break;
+            case 9:
+                SetLocalFixedHorizontalArrow(middle4LeftLeftArrow, middle4RightRightArrow, rawDeltaSign);
+                break;
+            case 10:
+                SetLocalFixedHorizontalArrow(middle3LeftLeftArrow, middle3RightRightArrow, rawDeltaSign);
+                break;
+        }
+    }
+
+    private void ApplyArrowStateForFrame()
+    {
+        // Always clear first so stale arrows from other logic cannot persist in Delta mode.
+        ClearLocalDirectAngleArrows();
+
+        if (!arrowDirtyThisFrame)
+        {
+            return;
+        }
+
+        SyncLocalDirectAngleArrows(arrowMotorIDThisFrame, arrowDeltaSignThisFrame);
+    }
+
+    private void ClearDirectAngleArrows()
+    {
+        ClearLocalDirectAngleArrows();
     }
 
     private static int GetMotorIDForSelection(int row, int col)

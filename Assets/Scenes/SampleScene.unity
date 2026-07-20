@@ -64776,10 +64776,47 @@ MonoBehaviour:
   jointAngle: {fileID: 1498998533}
   modeSwitching: {fileID: 0}
   clawModuleController: {fileID: 0}
+  disableClawModuleControllerDuringDelta: 1
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
   triggerRightThumbAbduction: {fileID: 0}
+  motor3UpArrow: {fileID: 0}
+  motor3DownArrow: {fileID: 0}
+  motor4UpArrow: {fileID: 0}
+  motor4DownArrow: {fileID: 0}
+  motor7UpArrow: {fileID: 0}
+  motor7DownArrow: {fileID: 0}
+  motor8UpArrow: {fileID: 0}
+  motor8DownArrow: {fileID: 0}
+  motor11UpArrow: {fileID: 0}
+  motor11DownArrow: {fileID: 0}
+  motor12UpArrow: {fileID: 0}
+  motor12DownArrow: {fileID: 0}
+  thumb3LeftLeftArrow: {fileID: 0}
+  thumb3LeftRightArrow: {fileID: 0}
+  thumb3RightLeftArrow: {fileID: 0}
+  thumb3RightRightArrow: {fileID: 0}
+  thumb4LeftLeftArrow: {fileID: 0}
+  thumb4LeftRightArrow: {fileID: 0}
+  thumb4RightLeftArrow: {fileID: 0}
+  thumb4RightRightArrow: {fileID: 0}
+  index3LeftLeftArrow: {fileID: 0}
+  index3LeftRightArrow: {fileID: 0}
+  index3RightLeftArrow: {fileID: 0}
+  index3RightRightArrow: {fileID: 0}
+  index4LeftLeftArrow: {fileID: 0}
+  index4LeftRightArrow: {fileID: 0}
+  index4RightLeftArrow: {fileID: 0}
+  index4RightRightArrow: {fileID: 0}
+  middle3LeftLeftArrow: {fileID: 0}
+  middle3LeftRightArrow: {fileID: 0}
+  middle3RightLeftArrow: {fileID: 0}
+  middle3RightRightArrow: {fileID: 0}
+  middle4LeftLeftArrow: {fileID: 0}
+  middle4LeftRightArrow: {fileID: 0}
+  middle4RightLeftArrow: {fileID: 0}
+  middle4RightRightArrow: {fileID: 0}
   ThumbAngle1Center: {fileID: 2014701384}
   ThumbAngle2Center: {fileID: 1772311579}
   ThumbAngle3Center: {fileID: 218314563}
@@ -78851,10 +78888,47 @@ MonoBehaviour:
   jointAngle: {fileID: 2060227445}
   modeSwitching: {fileID: 0}
   clawModuleController: {fileID: 0}
+  disableClawModuleControllerDuringDelta: 1
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
   triggerRightThumbAbduction: {fileID: 0}
+  motor3UpArrow: {fileID: 0}
+  motor3DownArrow: {fileID: 0}
+  motor4UpArrow: {fileID: 0}
+  motor4DownArrow: {fileID: 0}
+  motor7UpArrow: {fileID: 0}
+  motor7DownArrow: {fileID: 0}
+  motor8UpArrow: {fileID: 0}
+  motor8DownArrow: {fileID: 0}
+  motor11UpArrow: {fileID: 0}
+  motor11DownArrow: {fileID: 0}
+  motor12UpArrow: {fileID: 0}
+  motor12DownArrow: {fileID: 0}
+  thumb3LeftLeftArrow: {fileID: 0}
+  thumb3LeftRightArrow: {fileID: 0}
+  thumb3RightLeftArrow: {fileID: 0}
+  thumb3RightRightArrow: {fileID: 0}
+  thumb4LeftLeftArrow: {fileID: 0}
+  thumb4LeftRightArrow: {fileID: 0}
+  thumb4RightLeftArrow: {fileID: 0}
+  thumb4RightRightArrow: {fileID: 0}
+  index3LeftLeftArrow: {fileID: 0}
+  index3LeftRightArrow: {fileID: 0}
+  index3RightLeftArrow: {fileID: 0}
+  index3RightRightArrow: {fileID: 0}
+  index4LeftLeftArrow: {fileID: 0}
+  index4LeftRightArrow: {fileID: 0}
+  index4RightLeftArrow: {fileID: 0}
+  index4RightRightArrow: {fileID: 0}
+  middle3LeftLeftArrow: {fileID: 0}
+  middle3LeftRightArrow: {fileID: 0}
+  middle3RightLeftArrow: {fileID: 0}
+  middle3RightRightArrow: {fileID: 0}
+  middle4LeftLeftArrow: {fileID: 0}
+  middle4LeftRightArrow: {fileID: 0}
+  middle4RightLeftArrow: {fileID: 0}
+  middle4RightRightArrow: {fileID: 0}
   ThumbAngle1Center: {fileID: 1091200612}
   ThumbAngle2Center: {fileID: 1676111424}
   ThumbAngle3Center: {fileID: 902642472}
@@ -89878,10 +89952,47 @@ MonoBehaviour:
   jointAngle: {fileID: 1422305614}
   modeSwitching: {fileID: 951283614}
   clawModuleController: {fileID: 4551987535763487160}
+  disableClawModuleControllerDuringDelta: 1
   triggerRightIndexTip: {fileID: 1201296085}
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}
   triggerRightThumbAbduction: {fileID: 2050949041}
+  motor3UpArrow: {fileID: 1259987787}
+  motor3DownArrow: {fileID: 103193661}
+  motor4UpArrow: {fileID: 1420288278}
+  motor4DownArrow: {fileID: 1443878472}
+  motor7UpArrow: {fileID: 1596227799}
+  motor7DownArrow: {fileID: 1295621300}
+  motor8UpArrow: {fileID: 1474819144}
+  motor8DownArrow: {fileID: 19121407}
+  motor11UpArrow: {fileID: 1052392999}
+  motor11DownArrow: {fileID: 985502080}
+  motor12UpArrow: {fileID: 147334096}
+  motor12DownArrow: {fileID: 1661784566}
+  thumb3LeftLeftArrow: {fileID: 625426608}
+  thumb3LeftRightArrow: {fileID: 1286518363}
+  thumb3RightLeftArrow: {fileID: 10158269}
+  thumb3RightRightArrow: {fileID: 1533432726}
+  thumb4LeftLeftArrow: {fileID: 496124066}
+  thumb4LeftRightArrow: {fileID: 261961566}
+  thumb4RightLeftArrow: {fileID: 1533034084}
+  thumb4RightRightArrow: {fileID: 1179741385}
+  index3LeftLeftArrow: {fileID: 1341451070}
+  index3LeftRightArrow: {fileID: 715621367}
+  index3RightLeftArrow: {fileID: 784446610}
+  index3RightRightArrow: {fileID: 1785980770}
+  index4LeftLeftArrow: {fileID: 1857297406}
+  index4LeftRightArrow: {fileID: 2143755405}
+  index4RightLeftArrow: {fileID: 349324398}
+  index4RightRightArrow: {fileID: 395073042}
+  middle3LeftLeftArrow: {fileID: 416669168}
+  middle3LeftRightArrow: {fileID: 592865680}
+  middle3RightLeftArrow: {fileID: 547954913}
+  middle3RightRightArrow: {fileID: 201468518}
+  middle4LeftLeftArrow: {fileID: 2259629}
+  middle4LeftRightArrow: {fileID: 556054063}
+  middle4RightLeftArrow: {fileID: 569750670}
+  middle4RightRightArrow: {fileID: 1526150788}
   ThumbAngle1Center: {fileID: 3309505961795741282}
   ThumbAngle2Center: {fileID: 4671302696062652188}
   ThumbAngle3Center: {fileID: 29973487497156349}
