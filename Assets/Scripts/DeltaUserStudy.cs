@@ -11,6 +11,7 @@ public class DeltaUserStudy : MonoBehaviour
     public ClawModuleController clawModuleController;
     [Tooltip("If true, disable ClawModuleController while DeltaUserStudy is active so hand-joint updates cannot drive motor angles.")]
     public bool disableClawModuleControllerDuringDelta = true;
+    public DeltaUserStudyPlaneButtonInteraction planeButtonInteraction;
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
@@ -128,6 +129,11 @@ public class DeltaUserStudy : MonoBehaviour
     private float arrowDeltaSignThisFrame;
     private readonly Dictionary<int, GameObject> localMotorUpArrows = new Dictionary<int, GameObject>();
     private readonly Dictionary<int, GameObject> localMotorDownArrows = new Dictionary<int, GameObject>();
+    private bool wasPlaneWPressed;
+    private bool wasPlaneAPressed;
+    private bool wasPlaneSPressed;
+    private bool wasPlaneDPressed;
+    private bool wasPlaneResetPressed;
         
     // Start is called before the first frame update
     /// <summary>
@@ -137,6 +143,11 @@ public class DeltaUserStudy : MonoBehaviour
     void Awake()
     {
         if (!this.enabled) return;
+
+        if (planeButtonInteraction == null)
+        {
+            planeButtonInteraction = FindObjectOfType<DeltaUserStudyPlaneButtonInteraction>();
+        }
 
         if (disableClawModuleControllerDuringDelta && clawModuleController != null)
         {
@@ -274,7 +285,8 @@ public class DeltaUserStudy : MonoBehaviour
             // SetRow2To89Degrees();
         }
 
-        if (Input.GetKeyDown(KeyCode.P))
+        bool resetPressed = Input.GetKeyDown(KeyCode.Space) || ConsumePlaneButtonPress(KeyCode.Space, ref wasPlaneResetPressed);
+        if (resetPressed)
         {
             ResetAll();
         }
@@ -304,27 +316,31 @@ public class DeltaUserStudy : MonoBehaviour
     void HandleNavigation()
     {
         bool moved = false;
+        bool moveUpPressed = Input.GetKeyDown(KeyCode.W) || ConsumePlaneButtonPress(KeyCode.W, ref wasPlaneWPressed);
+        bool moveDownPressed = Input.GetKeyDown(KeyCode.S) || ConsumePlaneButtonPress(KeyCode.S, ref wasPlaneSPressed);
+        bool moveLeftPressed = Input.GetKeyDown(KeyCode.A) || ConsumePlaneButtonPress(KeyCode.A, ref wasPlaneAPressed);
+        bool moveRightPressed = Input.GetKeyDown(KeyCode.D) || ConsumePlaneButtonPress(KeyCode.D, ref wasPlaneDPressed);
         
         // W - Up (go down one row, wrapping)
-        if (Input.GetKeyDown(KeyCode.W))
+        if (moveUpPressed)
         {
             currentRow = (currentRow + 1) % ROWS;
             moved = true;
         }
         // S - Down (go up one row, wrapping)
-        else if (Input.GetKeyDown(KeyCode.S))
+        else if (moveDownPressed)
         {
             currentRow = (currentRow - 1 + ROWS) % ROWS;
             moved = true;
         }
         // A - Cycle: Index -> Thumb -> Middle -> Index
-        else if (Input.GetKeyDown(KeyCode.A))
+        else if (moveLeftPressed)
         {
             currentCol = (currentCol - 1 + COLS) % COLS;
             moved = true;
         }
         // D - Cycle: Index -> Middle -> Thumb -> Index
-        else if (Input.GetKeyDown(KeyCode.D))
+        else if (moveRightPressed)
         {
             currentCol = (currentCol + 1) % COLS;
             moved = true;
@@ -336,6 +352,25 @@ public class DeltaUserStudy : MonoBehaviour
             ClearDirectAngleArrows();
             UpdateSelection();
         }
+    }
+
+    private bool ConsumePlaneButtonPress(KeyCode keyCode, ref bool wasPressedLastFrame)
+    {
+        bool isPressedThisFrame = IsPlaneButtonTouched(keyCode);
+        bool pressedThisFrame = isPressedThisFrame && !wasPressedLastFrame;
+        wasPressedLastFrame = isPressedThisFrame;
+        return pressedThisFrame;
+    }
+
+    private bool IsPlaneButtonTouched(KeyCode keyCode)
+    {
+        if (planeButtonInteraction == null)
+        {
+            return false;
+        }
+
+        DeltaUserStudyPlaneButtonInteraction.ButtonBinding button = planeButtonInteraction.GetButtonBinding(keyCode);
+        return button != null && button.isTouched;
     }
     
     void HandleRotation()
@@ -413,9 +448,11 @@ public class DeltaUserStudy : MonoBehaviour
         int targetRow = 3; // Row 3: ThumbAngle4Center, IndexAngle4Center, MiddleAngle4Center
         float rotationDelta = rotationSpeed * Time.deltaTime;
         bool rotationChanged = false;
+        bool row3DecreasePressed = Input.GetKey(KeyCode.U) || IsPlaneButtonTouched(KeyCode.U);
+        bool row3IncreasePressed = Input.GetKey(KeyCode.J) || IsPlaneButtonTouched(KeyCode.J);
         
         // U key - decrease angle
-        if (Input.GetKey(KeyCode.U))
+        if (row3DecreasePressed)
         {
             rotationChanged = true;
             // Apply to all columns in Row 3
@@ -426,7 +463,7 @@ public class DeltaUserStudy : MonoBehaviour
         }
         
         // O key - increase angle
-        if (Input.GetKey(KeyCode.J))
+        if (row3IncreasePressed)
         {
             rotationChanged = true;
             // Apply to all columns in Row 3
@@ -474,9 +511,11 @@ public class DeltaUserStudy : MonoBehaviour
         int targetRow = 2; // Row 2: ThumbAngle3Center, IndexAngle3Center, MiddleAngle3Center
         float rotationDelta = rotationSpeed * Time.deltaTime;
         bool rotationChanged = false;
+        bool row2DecreasePressed = Input.GetKey(KeyCode.I) || IsPlaneButtonTouched(KeyCode.I);
+        bool row2IncreasePressed = Input.GetKey(KeyCode.K) || IsPlaneButtonTouched(KeyCode.K);
         
         // I key - decrease angle
-        if (Input.GetKey(KeyCode.I))
+        if (row2DecreasePressed)
         {
             rotationChanged = true;
             // Apply to all columns in Row 2
@@ -487,7 +526,7 @@ public class DeltaUserStudy : MonoBehaviour
         }
         
         // K key - increase angle
-        if (Input.GetKey(KeyCode.K))
+        if (row2IncreasePressed)
         {
             rotationChanged = true;
             // Apply to all columns in Row 2
