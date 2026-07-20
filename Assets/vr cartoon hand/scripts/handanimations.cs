@@ -8,6 +8,9 @@ public class handanimations : MonoBehaviour
 	public GameObject OculusController;
 	public GameObject StickUp;
 	public GameObject StickFront;
+	public bool enableKeyboardInput = false;
+	public bool forceMaskDemoObjects = true;
+	public bool forceIdlePoseWhenMasked = true;
 
     Animator anim;
     int Idle = Animator.StringToHash("Idle");
@@ -39,14 +42,50 @@ public class handanimations : MonoBehaviour
     void Start ()
     {
         anim = GetComponent<Animator>();
-		OculusController.SetActive (false);
-		ViveController.SetActive (false);
-		StickUp.SetActive (false);
-		StickFront.SetActive (false);
+		HideDemoObjects();
     }
 
     void Update()
     {
+		if (!enableKeyboardInput)
+		{
+			if (forceMaskDemoObjects)
+			{
+				HideDemoObjects();
+			}
+
+			if (forceIdlePoseWhenMasked && anim != null)
+			{
+				anim.ResetTrigger(Point);
+				anim.ResetTrigger(GrabLarge);
+				anim.ResetTrigger(GrabSmall);
+				anim.ResetTrigger(GrabStickUp);
+				anim.ResetTrigger(GrabStickFront);
+				anim.ResetTrigger(ThumbUp);
+				anim.ResetTrigger(Fist);
+				anim.ResetTrigger(Gun);
+				anim.ResetTrigger(GunShoot);
+				anim.ResetTrigger(PushButton);
+				anim.ResetTrigger(Spread);
+				anim.ResetTrigger(MiddleFinger);
+				anim.ResetTrigger(Peace);
+				anim.ResetTrigger(OK);
+				anim.ResetTrigger(Phone);
+				anim.ResetTrigger(Rock);
+				anim.ResetTrigger(Natural);
+				anim.ResetTrigger(Number3);
+				anim.ResetTrigger(Number4);
+				anim.ResetTrigger(Number3V2);
+				anim.ResetTrigger(HoldViveController);
+				anim.ResetTrigger(PressTriggerViveController);
+				anim.ResetTrigger(HoldOculusController);
+				anim.ResetTrigger(PressTriggerOculusController);
+				anim.SetTrigger(Idle);
+			}
+
+			return;
+		}
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             anim.SetTrigger(Idle);
@@ -254,5 +293,13 @@ public class handanimations : MonoBehaviour
 			StickFront.SetActive (false);
 		}
     }
+
+	private void HideDemoObjects()
+	{
+		if (OculusController != null) OculusController.SetActive(false);
+		if (ViveController != null) ViveController.SetActive(false);
+		if (StickUp != null) StickUp.SetActive(false);
+		if (StickFront != null) StickFront.SetActive(false);
+	}
   
 }

@@ -58,10 +58,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
     public ButtonBinding deltaKeyA = new ButtonBinding { buttonName = "DeltaKeyA" };
     public ButtonBinding deltaKeyS = new ButtonBinding { buttonName = "DeltaKeyS" };
     public ButtonBinding deltaKeyD = new ButtonBinding { buttonName = "DeltaKeyD" };
-    public ButtonBinding deltaKeyU = new ButtonBinding { buttonName = "DeltaKeyU" };
-    public ButtonBinding deltaKeyJ = new ButtonBinding { buttonName = "DeltaKeyJ" };
-    public ButtonBinding deltaKeyI = new ButtonBinding { buttonName = "DeltaKeyI" };
-    public ButtonBinding deltaKeyK = new ButtonBinding { buttonName = "DeltaKeyK" };
+    public ButtonBinding deltaKeyQ = new ButtonBinding { buttonName = "DeltaKeyQ" };
+    public ButtonBinding deltaKeyE = new ButtonBinding { buttonName = "DeltaKeyE" };
+    public ButtonBinding deltaKeyR = new ButtonBinding { buttonName = "DeltaKeyR" };
+    public ButtonBinding deltaKeyF = new ButtonBinding { buttonName = "DeltaKeyF" };
+    public ButtonBinding deltaKeyT = new ButtonBinding { buttonName = "DeltaKeyT" };
+    public ButtonBinding deltaKeyG = new ButtonBinding { buttonName = "DeltaKeyG" };
     public ButtonBinding deltaKeyReset = new ButtonBinding { buttonName = "DeltaKeyReset" };
 
     [Header("Debug")]
@@ -75,10 +77,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
         InitializeButton(deltaKeyA);
         InitializeButton(deltaKeyS);
         InitializeButton(deltaKeyD);
-        InitializeButton(deltaKeyU);
-        InitializeButton(deltaKeyJ);
-        InitializeButton(deltaKeyI);
-        InitializeButton(deltaKeyK);
+        InitializeButton(deltaKeyQ);
+        InitializeButton(deltaKeyE);
+        InitializeButton(deltaKeyR);
+        InitializeButton(deltaKeyF);
+        InitializeButton(deltaKeyT);
+        InitializeButton(deltaKeyG);
         InitializeButton(deltaKeyReset);
     }
 
@@ -102,10 +106,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
         if (TryHandleEnter(deltaKeyA, other)) return;
         if (TryHandleEnter(deltaKeyS, other)) return;
         if (TryHandleEnter(deltaKeyD, other)) return;
-        if (TryHandleEnter(deltaKeyU, other)) return;
-        if (TryHandleEnter(deltaKeyJ, other)) return;
-        if (TryHandleEnter(deltaKeyI, other)) return;
-        if (TryHandleEnter(deltaKeyK, other)) return;
+        if (TryHandleEnter(deltaKeyQ, other)) return;
+        if (TryHandleEnter(deltaKeyE, other)) return;
+        if (TryHandleEnter(deltaKeyR, other)) return;
+        if (TryHandleEnter(deltaKeyF, other)) return;
+        if (TryHandleEnter(deltaKeyT, other)) return;
+        if (TryHandleEnter(deltaKeyG, other)) return;
         if (TryHandleEnter(deltaKeyReset, other)) return;
     }
 
@@ -115,10 +121,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
         if (TryHandleEnter(deltaKeyA, other)) return;
         if (TryHandleEnter(deltaKeyS, other)) return;
         if (TryHandleEnter(deltaKeyD, other)) return;
-        if (TryHandleEnter(deltaKeyU, other)) return;
-        if (TryHandleEnter(deltaKeyJ, other)) return;
-        if (TryHandleEnter(deltaKeyI, other)) return;
-        if (TryHandleEnter(deltaKeyK, other)) return;
+        if (TryHandleEnter(deltaKeyQ, other)) return;
+        if (TryHandleEnter(deltaKeyE, other)) return;
+        if (TryHandleEnter(deltaKeyR, other)) return;
+        if (TryHandleEnter(deltaKeyF, other)) return;
+        if (TryHandleEnter(deltaKeyT, other)) return;
+        if (TryHandleEnter(deltaKeyG, other)) return;
         if (TryHandleEnter(deltaKeyReset, other)) return;
     }
 
@@ -128,10 +136,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
         if (TryHandleExit(deltaKeyA, other)) return;
         if (TryHandleExit(deltaKeyS, other)) return;
         if (TryHandleExit(deltaKeyD, other)) return;
-        if (TryHandleExit(deltaKeyU, other)) return;
-        if (TryHandleExit(deltaKeyJ, other)) return;
-        if (TryHandleExit(deltaKeyI, other)) return;
-        if (TryHandleExit(deltaKeyK, other)) return;
+        if (TryHandleExit(deltaKeyQ, other)) return;
+        if (TryHandleExit(deltaKeyE, other)) return;
+        if (TryHandleExit(deltaKeyR, other)) return;
+        if (TryHandleExit(deltaKeyF, other)) return;
+        if (TryHandleExit(deltaKeyT, other)) return;
+        if (TryHandleExit(deltaKeyG, other)) return;
         if (TryHandleExit(deltaKeyReset, other)) return;
     }
 
@@ -151,10 +161,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
         AssignKeyboardBinding(deltaKeyA, KeyCode.A);
         AssignKeyboardBinding(deltaKeyS, KeyCode.S);
         AssignKeyboardBinding(deltaKeyD, KeyCode.D);
-        AssignKeyboardBinding(deltaKeyU, KeyCode.U);
-        AssignKeyboardBinding(deltaKeyJ, KeyCode.J);
-        AssignKeyboardBinding(deltaKeyI, KeyCode.I);
-        AssignKeyboardBinding(deltaKeyK, KeyCode.K);
+        AssignKeyboardBinding(deltaKeyQ, KeyCode.Q);
+        AssignKeyboardBinding(deltaKeyE, KeyCode.E);
+        AssignKeyboardBinding(deltaKeyR, KeyCode.R);
+        AssignKeyboardBinding(deltaKeyF, KeyCode.F);
+        AssignKeyboardBinding(deltaKeyT, KeyCode.T);
+        AssignKeyboardBinding(deltaKeyG, KeyCode.G);
         AssignKeyboardBinding(deltaKeyReset, KeyCode.Space);
     }
 
@@ -172,10 +184,12 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
         SyncButtonVisualState(deltaKeyA);
         SyncButtonVisualState(deltaKeyS);
         SyncButtonVisualState(deltaKeyD);
-        SyncButtonVisualState(deltaKeyU);
-        SyncButtonVisualState(deltaKeyJ);
-        SyncButtonVisualState(deltaKeyI);
-        SyncButtonVisualState(deltaKeyK);
+        SyncButtonVisualState(deltaKeyQ);
+        SyncButtonVisualState(deltaKeyE);
+        SyncButtonVisualState(deltaKeyR);
+        SyncButtonVisualState(deltaKeyF);
+        SyncButtonVisualState(deltaKeyT);
+        SyncButtonVisualState(deltaKeyG);
         SyncButtonVisualState(deltaKeyReset);
     }
 
@@ -256,31 +270,45 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
             return;
         }
 
-        if (deltaKeyU.isTouched)
+        if (deltaKeyQ.isTouched)
         {
-            currentTouchedButton = deltaKeyU.buttonName;
-            interactionDebug = "Touch stay: " + deltaKeyU.buttonName;
+            currentTouchedButton = deltaKeyQ.buttonName;
+            interactionDebug = "Touch stay: " + deltaKeyQ.buttonName;
             return;
         }
 
-        if (deltaKeyJ.isTouched)
+        if (deltaKeyE.isTouched)
         {
-            currentTouchedButton = deltaKeyJ.buttonName;
-            interactionDebug = "Touch stay: " + deltaKeyJ.buttonName;
+            currentTouchedButton = deltaKeyE.buttonName;
+            interactionDebug = "Touch stay: " + deltaKeyE.buttonName;
             return;
         }
 
-        if (deltaKeyI.isTouched)
+        if (deltaKeyR.isTouched)
         {
-            currentTouchedButton = deltaKeyI.buttonName;
-            interactionDebug = "Touch stay: " + deltaKeyI.buttonName;
+            currentTouchedButton = deltaKeyR.buttonName;
+            interactionDebug = "Touch stay: " + deltaKeyR.buttonName;
             return;
         }
 
-        if (deltaKeyK.isTouched)
+        if (deltaKeyF.isTouched)
         {
-            currentTouchedButton = deltaKeyK.buttonName;
-            interactionDebug = "Touch stay: " + deltaKeyK.buttonName;
+            currentTouchedButton = deltaKeyF.buttonName;
+            interactionDebug = "Touch stay: " + deltaKeyF.buttonName;
+            return;
+        }
+
+        if (deltaKeyT.isTouched)
+        {
+            currentTouchedButton = deltaKeyT.buttonName;
+            interactionDebug = "Touch stay: " + deltaKeyT.buttonName;
+            return;
+        }
+
+        if (deltaKeyG.isTouched)
+        {
+            currentTouchedButton = deltaKeyG.buttonName;
+            interactionDebug = "Touch stay: " + deltaKeyG.buttonName;
             return;
         }
 
@@ -317,24 +345,34 @@ public class DeltaUserStudyPlaneButtonInteraction : MonoBehaviour
             return deltaKeyD;
         }
 
-        if (deltaKeyU != null && deltaKeyU.keyboardKey == keyCode)
+        if (deltaKeyQ != null && deltaKeyQ.keyboardKey == keyCode)
         {
-            return deltaKeyU;
+            return deltaKeyQ;
         }
 
-        if (deltaKeyJ != null && deltaKeyJ.keyboardKey == keyCode)
+        if (deltaKeyE != null && deltaKeyE.keyboardKey == keyCode)
         {
-            return deltaKeyJ;
+            return deltaKeyE;
         }
 
-        if (deltaKeyI != null && deltaKeyI.keyboardKey == keyCode)
+        if (deltaKeyR != null && deltaKeyR.keyboardKey == keyCode)
         {
-            return deltaKeyI;
+            return deltaKeyR;
         }
 
-        if (deltaKeyK != null && deltaKeyK.keyboardKey == keyCode)
+        if (deltaKeyF != null && deltaKeyF.keyboardKey == keyCode)
         {
-            return deltaKeyK;
+            return deltaKeyF;
+        }
+
+        if (deltaKeyT != null && deltaKeyT.keyboardKey == keyCode)
+        {
+            return deltaKeyT;
+        }
+
+        if (deltaKeyG != null && deltaKeyG.keyboardKey == keyCode)
+        {
+            return deltaKeyG;
         }
 
         if (deltaKeyReset != null && deltaKeyReset.keyboardKey == keyCode)

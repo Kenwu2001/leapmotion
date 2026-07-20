@@ -127,6 +127,10 @@ public class DeltaUserStudy : MonoBehaviour
     private bool arrowDirtyThisFrame;
     private int arrowMotorIDThisFrame;
     private float arrowDeltaSignThisFrame;
+    private bool groupArrowDirtyThisFrame;
+    private float groupArrowDeltaSignThisFrame;
+    private int groupArrowMotorCountThisFrame;
+    private readonly int[] groupArrowMotorIDsThisFrame = new int[6];
     private readonly Dictionary<int, GameObject> localMotorUpArrows = new Dictionary<int, GameObject>();
     private readonly Dictionary<int, GameObject> localMotorDownArrows = new Dictionary<int, GameObject>();
     private bool wasPlaneWPressed;
@@ -261,6 +265,9 @@ public class DeltaUserStudy : MonoBehaviour
         arrowDirtyThisFrame = false;
         arrowMotorIDThisFrame = 0;
         arrowDeltaSignThisFrame = 0f;
+        groupArrowDirtyThisFrame = false;
+        groupArrowDeltaSignThisFrame = 0f;
+        groupArrowMotorCountThisFrame = 0;
 
         // WASD navigation control
         HandleNavigation();
@@ -268,10 +275,10 @@ public class DeltaUserStudy : MonoBehaviour
         // QE rotation control
         HandleRotation();
 
-        // UO keys - Control all Row 3 motors simultaneously
+        // RF keys - Control all Row 3 motors simultaneously
         HandleRow3Rotation();
 
-        // IK keys - Control all Row 2 motors simultaneously
+        // TG keys - Control all Row 2 motors simultaneously
         HandleRow2Rotation();
 
         // R key - Set all Angle3 joints (row 2) to 89 degrees
@@ -379,17 +386,19 @@ public class DeltaUserStudy : MonoBehaviour
         
         float rotationDelta = rotationSpeed * Time.deltaTime;
         float signedInputDelta = 0f;
+        bool rotateNegativePressed = Input.GetKey(KeyCode.Q) || IsPlaneButtonTouched(KeyCode.Q);
+        bool rotatePositivePressed = Input.GetKey(KeyCode.E) || IsPlaneButtonTouched(KeyCode.E);
         
         bool reverseDirection = currentRow >= 2; // Only Angle3/Angle4 motors: 3,4,7,8,11,12
 
         // Q key - decrease angle (rows 0/1), increase angle (rows 2/3)
-        if (Input.GetKey(KeyCode.Q))
+        if (rotateNegativePressed)
         {
             signedInputDelta += reverseDirection ? rotationDelta : -rotationDelta;
         }
         
         // E key - increase angle (rows 0/1), decrease angle (rows 2/3)
-        if (Input.GetKey(KeyCode.E))
+        if (rotatePositivePressed)
         {
             signedInputDelta += reverseDirection ? -rotationDelta : rotationDelta;
         }
@@ -437,127 +446,129 @@ public class DeltaUserStudy : MonoBehaviour
     
     void HandleRow3Rotation()
     {
-        // U key - decrease angle for all Row 3 motors
-        // O key - increase angle for all Row 3 motors
+        // R key - decrease angle for all Row 3 motors
+        // F key - increase angle for all Row 3 motors
         
         int targetRow = 3; // Row 3: ThumbAngle4Center, IndexAngle4Center, MiddleAngle4Center
         float rotationDelta = rotationSpeed * Time.deltaTime;
-        bool rotationChanged = false;
-        bool row3DecreasePressed = Input.GetKey(KeyCode.U) || IsPlaneButtonTouched(KeyCode.U);
-        bool row3IncreasePressed = Input.GetKey(KeyCode.J) || IsPlaneButtonTouched(KeyCode.J);
-        
-        // U key - decrease angle
+        bool row3DecreasePressed = Input.GetKey(KeyCode.R) || IsPlaneButtonTouched(KeyCode.R);
+        bool row3IncreasePressed = Input.GetKey(KeyCode.F) || IsPlaneButtonTouched(KeyCode.F);
+        float signedInputDelta = 0f;
+
         if (row3DecreasePressed)
         {
-            rotationChanged = true;
-            // Apply to all columns in Row 3
-            for (int col = 0; col < COLS; col++)
-            {
-                currentRotations[targetRow, col] -= rotationDelta;
-            }
+            signedInputDelta -= rotationDelta;
         }
-        
-        // O key - increase angle
+
         if (row3IncreasePressed)
         {
-            rotationChanged = true;
-            // Apply to all columns in Row 3
-            for (int col = 0; col < COLS; col++)
-            {
-                currentRotations[targetRow, col] += rotationDelta;
-            }
+            signedInputDelta += rotationDelta;
+        }
+
+        if (Mathf.Abs(signedInputDelta) <= 0.0001f)
+        {
+            return;
         }
         
-        if (rotationChanged)
-        {
-            // Group rotation changes multiple motors; do not keep single-motor arrow highlighted.
-            ClearDirectAngleArrows();
+        // R key - decrease angle
+        // F key - increase angle
+        bool anyMotorChanged = false;
 
-            // Apply rotation to all motors in Row 3
-            for (int col = 0; col < COLS; col++)
+        // Apply rotation to all motors in Row 3
+        for (int col = 0; col < COLS; col++)
+        {
+            Transform t = motorArray[targetRow, col];
+            if (t != null)
             {
-                Transform t = motorArray[targetRow, col];
-                if (t != null)
+                float previousAngle = currentRotations[targetRow, col];
+                float nextAngle = Mathf.Clamp(previousAngle + signedInputDelta, -60f, 60f);
+                if (Mathf.Approximately(previousAngle, nextAngle))
                 {
-                    // Limit angle range to -60 to 60 degrees
-                    currentRotations[targetRow, col] = 
-                        Mathf.Clamp(currentRotations[targetRow, col], -60f, 60f);
-                    
-                    // Apply rotation: initial rotation * current angle change
-                    Quaternion initialRotation = initialRotations[targetRow, col];
-                    float currentAngle = currentRotations[targetRow, col];
-                    
-                    // Row 3 uses X axis (same as Row 2)
-                    Quaternion deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
-                    t.localRotation = initialRotation * deltaRotation;
+                    continue;
                 }
+
+                anyMotorChanged = true;
+                currentRotations[targetRow, col] = nextAngle;
+
+                // Apply rotation: initial rotation * current angle change
+                Quaternion initialRotation = initialRotations[targetRow, col];
+                float currentAngle = currentRotations[targetRow, col];
+
+                // Row 3 uses X axis (same as Row 2)
+                Quaternion deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
+                t.localRotation = initialRotation * deltaRotation;
+
+                MarkGroupArrowForMotor(GetMotorIDForSelection(targetRow, col), signedInputDelta);
             }
-            
-            // Debug output (optional)
-            // Debug.Log($"Row 3 - All motors X axis: {currentRotations[targetRow, 0]:F2}°");
+        }
+
+        if (!anyMotorChanged)
+        {
+            ClearDirectAngleArrows();
         }
     }
     
     void HandleRow2Rotation()
     {
-        // I key - decrease angle for all Row 2 motors
-        // K key - increase angle for all Row 2 motors
+        // T key - decrease angle for all Row 2 motors
+        // G key - increase angle for all Row 2 motors
         
         int targetRow = 2; // Row 2: ThumbAngle3Center, IndexAngle3Center, MiddleAngle3Center
         float rotationDelta = rotationSpeed * Time.deltaTime;
-        bool rotationChanged = false;
-        bool row2DecreasePressed = Input.GetKey(KeyCode.I) || IsPlaneButtonTouched(KeyCode.I);
-        bool row2IncreasePressed = Input.GetKey(KeyCode.K) || IsPlaneButtonTouched(KeyCode.K);
-        
-        // I key - decrease angle
+        bool row2DecreasePressed = Input.GetKey(KeyCode.T) || IsPlaneButtonTouched(KeyCode.T);
+        bool row2IncreasePressed = Input.GetKey(KeyCode.G) || IsPlaneButtonTouched(KeyCode.G);
+        float signedInputDelta = 0f;
+
         if (row2DecreasePressed)
         {
-            rotationChanged = true;
-            // Apply to all columns in Row 2
-            for (int col = 0; col < COLS; col++)
-            {
-                currentRotations[targetRow, col] -= rotationDelta;
-            }
+            signedInputDelta -= rotationDelta;
         }
-        
-        // K key - increase angle
+
         if (row2IncreasePressed)
         {
-            rotationChanged = true;
-            // Apply to all columns in Row 2
-            for (int col = 0; col < COLS; col++)
-            {
-                currentRotations[targetRow, col] += rotationDelta;
-            }
+            signedInputDelta += rotationDelta;
+        }
+
+        if (Mathf.Abs(signedInputDelta) <= 0.0001f)
+        {
+            return;
         }
         
-        if (rotationChanged)
-        {
-            // Group rotation changes multiple motors; do not keep single-motor arrow highlighted.
-            ClearDirectAngleArrows();
+        // T key - decrease angle
+        // G key - increase angle
+        bool anyMotorChanged = false;
 
-            // Apply rotation to all motors in Row 2
-            for (int col = 0; col < COLS; col++)
+        // Apply rotation to all motors in Row 2
+        for (int col = 0; col < COLS; col++)
+        {
+            Transform t = motorArray[targetRow, col];
+            if (t != null)
             {
-                Transform t = motorArray[targetRow, col];
-                if (t != null)
+                float previousAngle = currentRotations[targetRow, col];
+                float nextAngle = Mathf.Clamp(previousAngle + signedInputDelta, -60f, 60f);
+                if (Mathf.Approximately(previousAngle, nextAngle))
                 {
-                    // Limit angle range to -89 to 89 degrees
-                    currentRotations[targetRow, col] = 
-                        Mathf.Clamp(currentRotations[targetRow, col], -60f, 60f);
-                    
-                    // Apply rotation: initial rotation * current angle change
-                    Quaternion initialRotation = initialRotations[targetRow, col];
-                    float currentAngle = currentRotations[targetRow, col];
-                    
-                    // Row 2 uses X axis
-                    Quaternion deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
-                    t.localRotation = initialRotation * deltaRotation;
+                    continue;
                 }
+
+                anyMotorChanged = true;
+                currentRotations[targetRow, col] = nextAngle;
+
+                // Apply rotation: initial rotation * current angle change
+                Quaternion initialRotation = initialRotations[targetRow, col];
+                float currentAngle = currentRotations[targetRow, col];
+
+                // Row 2 uses X axis
+                Quaternion deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
+                t.localRotation = initialRotation * deltaRotation;
+
+                MarkGroupArrowForMotor(GetMotorIDForSelection(targetRow, col), signedInputDelta);
             }
-            
-            // Debug output (optional)
-            // Debug.Log($"Row 2 - All motors X axis: {currentRotations[targetRow, 0]:F2}°");
+        }
+
+        if (!anyMotorChanged)
+        {
+            ClearDirectAngleArrows();
         }
     }
     
@@ -793,6 +804,16 @@ public class DeltaUserStudy : MonoBehaviour
             return;
         }
 
+        ApplyArrowForMotor(motorID, rawDeltaSign);
+    }
+
+    private void ApplyArrowForMotor(int motorID, float rawDeltaSign)
+    {
+        if (Mathf.Abs(rawDeltaSign) <= 0.0001f)
+        {
+            return;
+        }
+
         switch (motorID)
         {
             case 1:
@@ -829,12 +850,49 @@ public class DeltaUserStudy : MonoBehaviour
         // Always clear first so stale arrows from other logic cannot persist in Delta mode.
         ClearLocalDirectAngleArrows();
 
+        if (groupArrowDirtyThisFrame && groupArrowMotorCountThisFrame > 0)
+        {
+            for (int i = 0; i < groupArrowMotorCountThisFrame; i++)
+            {
+                ApplyArrowForMotor(groupArrowMotorIDsThisFrame[i], groupArrowDeltaSignThisFrame);
+            }
+            return;
+        }
+
         if (!arrowDirtyThisFrame)
         {
             return;
         }
 
-        SyncLocalDirectAngleArrows(arrowMotorIDThisFrame, arrowDeltaSignThisFrame);
+        ApplyArrowForMotor(arrowMotorIDThisFrame, arrowDeltaSignThisFrame);
+    }
+
+    private void MarkGroupArrowForMotor(int motorID, float rawDeltaSign)
+    {
+        if (motorID <= 0 || Mathf.Abs(rawDeltaSign) <= 0.0001f)
+        {
+            return;
+        }
+
+        if (!groupArrowDirtyThisFrame)
+        {
+            groupArrowDirtyThisFrame = true;
+            groupArrowDeltaSignThisFrame = rawDeltaSign;
+        }
+
+        for (int i = 0; i < groupArrowMotorCountThisFrame; i++)
+        {
+            if (groupArrowMotorIDsThisFrame[i] == motorID)
+            {
+                return;
+            }
+        }
+
+        if (groupArrowMotorCountThisFrame < groupArrowMotorIDsThisFrame.Length)
+        {
+            groupArrowMotorIDsThisFrame[groupArrowMotorCountThisFrame] = motorID;
+            groupArrowMotorCountThisFrame++;
+        }
     }
 
     private void ClearDirectAngleArrows()
