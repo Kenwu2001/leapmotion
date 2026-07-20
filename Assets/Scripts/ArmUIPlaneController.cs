@@ -226,6 +226,10 @@ public class ArmUIPlaneController : MonoBehaviour
     private bool _wasUseArmUIPlaneLastFrame;
     private bool _legacyModeButtonsHidden;
     private int _armSelectVisibleGroupIndex = -1;
+    private bool _armUIDirectArrowPending;
+    private int _armUIDirectArrowMotorID;
+    private float _armUIDirectArrowDeltaSign;
+    private bool _wasArmUIDirectAngleModeActive;
 
     private void Awake()
     {
@@ -374,6 +378,36 @@ public class ArmUIPlaneController : MonoBehaviour
         SyncMaxMinSliderValue();
         _lastArmModeManipulate = armModeManipulate;
         _wasUseArmUIPlaneLastFrame = useArmUIPlane;
+    }
+
+    private void LateUpdate()
+    {
+        bool isDirectAngleModeActive = IsDirectAngleModeActive();
+        if (!isDirectAngleModeActive)
+        {
+            if (_wasArmUIDirectAngleModeActive && clawModuleController != null)
+            {
+                clawModuleController.ClearArmUIDirectAngleArrowState();
+            }
+
+            _wasArmUIDirectAngleModeActive = false;
+            return;
+        }
+
+        _wasArmUIDirectAngleModeActive = true;
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        if (_armUIDirectArrowPending)
+        {
+            clawModuleController.SyncArmUIDirectAngleArrowState(_armUIDirectArrowMotorID, _armUIDirectArrowDeltaSign);
+        }
+        else
+        {
+            clawModuleController.ClearArmUIDirectAngleArrowState();
+        }
     }
 
     private bool IsBaseline2Active()
@@ -728,6 +762,8 @@ public class ArmUIPlaneController : MonoBehaviour
 
     private void ApplyContinuousDirectAngleButtonInput()
     {
+        _armUIDirectArrowPending = false;
+
         if (!IsDirectAngleModeActive())
         {
             if (clawModuleController != null)
@@ -819,6 +855,10 @@ public class ArmUIPlaneController : MonoBehaviour
         float rawDeltaSign = IsDescendingSegmentMotor(armConfirmedMotorID)
             ? -sliderDirection
             : sliderDirection;
+
+        _armUIDirectArrowPending = true;
+        _armUIDirectArrowMotorID = armConfirmedMotorID;
+        _armUIDirectArrowDeltaSign = rawDeltaSign;
 
         clawModuleController.SyncArmUIDirectAngleArrowState(armConfirmedMotorID, rawDeltaSign);
     }
