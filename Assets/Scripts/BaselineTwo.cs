@@ -24,6 +24,11 @@ public class BaselineTwo : MonoBehaviour
     private int previousSelectedMotorID;
     private int sideLockedMotorID;
     private bool sideLockedUseLeftSide;
+    private bool hasPendingArrow;
+    private int pendingArrowMotorID;
+    private bool pendingArrowUseHorizontal;
+    private bool pendingArrowUseLeftSide;
+    private float pendingArrowDelta;
 
     private void Awake()
     {
@@ -96,6 +101,31 @@ public class BaselineTwo : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (controller == null)
+        {
+            return;
+        }
+
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        if (hasPendingArrow)
+        {
+            if (pendingArrowUseHorizontal)
+            {
+                controller.SyncArmUIHorizontalArrowState(pendingArrowMotorID, pendingArrowUseLeftSide, pendingArrowDelta);
+            }
+            else
+            {
+                controller.SyncArmUIDirectAngleArrowState(pendingArrowMotorID, pendingArrowDelta);
+            }
+        }
+    }
+
     private void EnterKeyboardMode()
     {
         controller.ResetFingerRotations();
@@ -131,6 +161,7 @@ public class BaselineTwo : MonoBehaviour
         controller.ClearArmUIDirectAngleArrowState();
         hadArrowInputLastFrame = false;
         sideLockedMotorID = 0;
+        hasPendingArrow = false;
         kbCurrentSelectedRenderer = null;
     }
 
@@ -233,6 +264,7 @@ public class BaselineTwo : MonoBehaviour
         if (!hasArrowInput && hadArrowInputLastFrame)
         {
             controller.ClearArmUIDirectAngleArrowState();
+            hasPendingArrow = false;
         }
         hadArrowInputLastFrame = hasArrowInput;
 
@@ -335,11 +367,19 @@ public class BaselineTwo : MonoBehaviour
                 sideLockedUseLeftSide = delta < 0f;
             }
 
-            controller.SyncArmUIHorizontalArrowState(motorID, sideLockedUseLeftSide, delta);
+            hasPendingArrow = true;
+            pendingArrowMotorID = motorID;
+            pendingArrowUseHorizontal = true;
+            pendingArrowUseLeftSide = sideLockedUseLeftSide;
+            pendingArrowDelta = delta;
             return;
         }
 
-        controller.SyncArmUIDirectAngleArrowState(motorID, delta);
+        hasPendingArrow = true;
+        pendingArrowMotorID = motorID;
+        pendingArrowUseHorizontal = false;
+        pendingArrowUseLeftSide = false;
+        pendingArrowDelta = delta;
     }
 
     private void KbApplyRotation(int row, int col, float delta)
