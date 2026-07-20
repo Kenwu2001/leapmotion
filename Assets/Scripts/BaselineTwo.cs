@@ -30,6 +30,11 @@ public class BaselineTwo : MonoBehaviour
     private bool pendingArrowUseLeftSide;
     private float pendingArrowDelta;
 
+    public bool IsMoveUpPressed => useKeyboardControl && Input.GetKey(KeyCode.W);
+    public bool IsMoveLeftPressed => useKeyboardControl && Input.GetKey(KeyCode.A);
+    public bool IsMoveDownPressed => useKeyboardControl && Input.GetKey(KeyCode.S);
+    public bool IsMoveRightPressed => useKeyboardControl && Input.GetKey(KeyCode.D);
+
     private void Awake()
     {
         controller = GetComponent<ClawModuleController>();
@@ -234,12 +239,10 @@ public class BaselineTwo : MonoBehaviour
 
     private void HandleKeyboardControl()
     {
-        bool moved = false;
-        if (Input.GetKeyDown(KeyCode.W)) { kbCurrentRow = (kbCurrentRow + 1) % KB_ROWS; moved = true; }
-        else if (Input.GetKeyDown(KeyCode.S)) { kbCurrentRow = (kbCurrentRow - 1 + KB_ROWS) % KB_ROWS; moved = true; }
-        else if (Input.GetKeyDown(KeyCode.A)) { kbCurrentCol = (kbCurrentCol - 1 + KB_COLS) % KB_COLS; moved = true; }
-        else if (Input.GetKeyDown(KeyCode.D)) { kbCurrentCol = (kbCurrentCol + 1) % KB_COLS; moved = true; }
-        if (moved) KbUpdateSelection();
+        if (Input.GetKeyDown(KeyCode.W)) MoveSelectionUp();
+        else if (Input.GetKeyDown(KeyCode.S)) MoveSelectionDown();
+        else if (Input.GetKeyDown(KeyCode.A)) MoveSelectionLeft();
+        else if (Input.GetKeyDown(KeyCode.D)) MoveSelectionRight();
 
         int selectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
         if (selectedMotorID != previousSelectedMotorID)
@@ -271,6 +274,62 @@ public class BaselineTwo : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.P))
         {
             ResetKeyboardOffsets();
+        }
+    }
+
+    public void MoveSelectionUp()
+    {
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        kbCurrentRow = (kbCurrentRow + 1) % KB_ROWS;
+        HandleSelectionChanged();
+    }
+
+    public void MoveSelectionLeft()
+    {
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        kbCurrentCol = (kbCurrentCol - 1 + KB_COLS) % KB_COLS;
+        HandleSelectionChanged();
+    }
+
+    public void MoveSelectionDown()
+    {
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        kbCurrentRow = (kbCurrentRow - 1 + KB_ROWS) % KB_ROWS;
+        HandleSelectionChanged();
+    }
+
+    public void MoveSelectionRight()
+    {
+        if (!useKeyboardControl)
+        {
+            return;
+        }
+
+        kbCurrentCol = (kbCurrentCol + 1) % KB_COLS;
+        HandleSelectionChanged();
+    }
+
+    private void HandleSelectionChanged()
+    {
+        KbUpdateSelection();
+
+        int selectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+        if (selectedMotorID != previousSelectedMotorID)
+        {
+            sideLockedMotorID = 0;
+            previousSelectedMotorID = selectedMotorID;
         }
     }
 
