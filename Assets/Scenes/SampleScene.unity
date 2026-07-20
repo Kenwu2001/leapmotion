@@ -64775,6 +64775,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1498998533}
   modeSwitching: {fileID: 0}
+  clawModuleController: {fileID: 0}
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
@@ -78849,6 +78850,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 2060227445}
   modeSwitching: {fileID: 0}
+  clawModuleController: {fileID: 0}
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
@@ -89875,6 +89877,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1422305614}
   modeSwitching: {fileID: 951283614}
+  clawModuleController: {fileID: 4551987535763487160}
   triggerRightIndexTip: {fileID: 1201296085}
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}

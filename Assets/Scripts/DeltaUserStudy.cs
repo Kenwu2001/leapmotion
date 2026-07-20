@@ -8,6 +8,7 @@ public class DeltaUserStudy : MonoBehaviour
 
     [Header("=== Collider/Mode References (disable in keyboard-only mode) ===")]
     public ModeSwitching modeSwitching;
+    public ClawModuleController clawModuleController;
     public TriggerRightIndexTip triggerRightIndexTip;
     public TriggerRightMiddleTip triggerRightMiddleTip;
     public TriggerRightThumbTip triggerRightThumbTip;
@@ -90,6 +91,12 @@ public class DeltaUserStudy : MonoBehaviour
     void Awake()
     {
         if (!this.enabled) return;
+
+        if (clawModuleController == null)
+        {
+            clawModuleController = FindObjectOfType<ClawModuleController>();
+        }
+
         if (modeSwitching != null)
         {
             modeSwitching.enabled = false;
@@ -126,9 +133,17 @@ public class DeltaUserStudy : MonoBehaviour
 
         // Ensure all joints are originalColor
         SetAllOriginalColors();
+
+        // Avoid stale arrows when entering DeltaUserStudy mode.
+        ClearDirectAngleArrows();
         
         // Set initial position to IndexAngle4Center
         UpdateSelection();
+    }
+
+    void OnDisable()
+    {
+        ClearDirectAngleArrows();
     }
     
     void InitializeRotations()
@@ -190,16 +205,16 @@ public class DeltaUserStudy : MonoBehaviour
     {
         // WASD navigation control
         HandleNavigation();
-        
+
         // QE rotation control
         HandleRotation();
-        
+
         // UO keys - Control all Row 3 motors simultaneously
         HandleRow3Rotation();
-        
+
         // IK keys - Control all Row 2 motors simultaneously
         HandleRow2Rotation();
-        
+
         // R key - Set all Angle3 joints (row 2) to 89 degrees
         if (Input.GetKeyDown(KeyCode.J))
         {
@@ -212,9 +227,6 @@ public class DeltaUserStudy : MonoBehaviour
         }
         
         // if (ThumbAngle3Center != null)
-        //     ThumbAngle3Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
-
-        // if (ThumbAngle4Center != null)
         //     ThumbAngle4Center.localRotation = Quaternion.Euler(jointAngle.thumbAngle1 + 10, 0f, 0f);
 
         // if (IndexAngle3Center != null)
@@ -266,6 +278,8 @@ public class DeltaUserStudy : MonoBehaviour
         
         if (moved)
         {
+            // Changing selection should not keep previous motor arrow highlighted.
+            ClearDirectAngleArrows();
             UpdateSelection();
         }
     }
@@ -273,58 +287,68 @@ public class DeltaUserStudy : MonoBehaviour
     void HandleRotation()
     {
         Transform currentTransform = motorArray[currentRow, currentCol];
-        if (currentTransform == null) return;
+        if (currentTransform == null)
+        {
+            ClearDirectAngleArrows();
+            return;
+        }
         
         float rotationDelta = rotationSpeed * Time.deltaTime;
-        bool rotationChanged = false;
+        float signedInputDelta = 0f;
         
         bool reverseDirection = currentRow >= 2; // Only Angle3/Angle4 motors: 3,4,7,8,11,12
 
         // Q key - decrease angle (rows 0/1), increase angle (rows 2/3)
         if (Input.GetKey(KeyCode.Q))
         {
-            currentRotations[currentRow, currentCol] += reverseDirection ? rotationDelta : -rotationDelta;
-            rotationChanged = true;
+            signedInputDelta += reverseDirection ? rotationDelta : -rotationDelta;
         }
         
         // E key - increase angle (rows 0/1), decrease angle (rows 2/3)
         if (Input.GetKey(KeyCode.E))
         {
-            currentRotations[currentRow, currentCol] += reverseDirection ? -rotationDelta : rotationDelta;
-            rotationChanged = true;
+            signedInputDelta += reverseDirection ? -rotationDelta : rotationDelta;
         }
-        
-        if (rotationChanged)
+
+        if (Mathf.Abs(signedInputDelta) <= 0.0001f)
         {
-            // Limit angle range to -60 to 60 degrees
-            currentRotations[currentRow, currentCol] = 
-                Mathf.Clamp(currentRotations[currentRow, currentCol], -89f, 89f);
-            
-            // Apply rotation: initial rotation * current angle change
-            Quaternion initialRotation = initialRotations[currentRow, currentCol];
-            float currentAngle = currentRotations[currentRow, currentCol];
-            Quaternion deltaRotation;
-            
-            // Determine rotation axis based on row
-            if (currentRow == 0) // Row 0: ThumbAngle1, IndexAngle1, MiddleAngle1 - Y axis
-            {
-                deltaRotation = Quaternion.Euler(0f, currentAngle, 0f);
-            }
-            else if (currentRow == 1) // Row 1: ThumbAngle2, IndexAngle2, MiddleAngle2 - Z axis
-            {
-                deltaRotation = Quaternion.Euler(0f, 0f, currentAngle);
-            }
-            else // Row 2 & 3: Angle3, Angle4 - X axis
-            {
-                deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
-            }
-            
-            currentTransform.localRotation = initialRotation * deltaRotation;
-            
-            // Debug output
-            string axisName = currentRow == 0 ? "Y" : (currentRow == 1 ? "Z" : "X");
-            // Debug.Log($"Row {currentRow}, Col {currentCol} - {axisName} axis: {currentAngle:F2}°");
+            ClearDirectAngleArrows();
+            return;
         }
+
+        float previousAngle = currentRotations[currentRow, currentCol];
+        float nextAngle = Mathf.Clamp(previousAngle + signedInputDelta, -89f, 89f);
+        if (Mathf.Approximately(previousAngle, nextAngle))
+        {
+            // Input exists but angle is clamped, so hide arrows.
+            ClearDirectAngleArrows();
+            return;
+        }
+
+        currentRotations[currentRow, currentCol] = nextAngle;
+        float appliedDelta = nextAngle - previousAngle;
+        
+        // Apply rotation: initial rotation * current angle change
+        Quaternion initialRotation = initialRotations[currentRow, currentCol];
+        float currentAngle = currentRotations[currentRow, currentCol];
+        Quaternion deltaRotation;
+
+        // Determine rotation axis based on row
+        if (currentRow == 0) // Row 0: ThumbAngle1, IndexAngle1, MiddleAngle1 - Y axis
+        {
+            deltaRotation = Quaternion.Euler(0f, currentAngle, 0f);
+        }
+        else if (currentRow == 1) // Row 1: ThumbAngle2, IndexAngle2, MiddleAngle2 - Z axis
+        {
+            deltaRotation = Quaternion.Euler(0f, 0f, currentAngle);
+        }
+        else // Row 2 & 3: Angle3, Angle4 - X axis
+        {
+            deltaRotation = Quaternion.Euler(currentAngle, 0f, 0f);
+        }
+
+        currentTransform.localRotation = initialRotation * deltaRotation;
+        SyncArrowForCurrentSelection(appliedDelta);
     }
     
     void HandleRow3Rotation()
@@ -360,6 +384,9 @@ public class DeltaUserStudy : MonoBehaviour
         
         if (rotationChanged)
         {
+            // Group rotation changes multiple motors; do not keep single-motor arrow highlighted.
+            ClearDirectAngleArrows();
+
             // Apply rotation to all motors in Row 3
             for (int col = 0; col < COLS; col++)
             {
@@ -418,6 +445,9 @@ public class DeltaUserStudy : MonoBehaviour
         
         if (rotationChanged)
         {
+            // Group rotation changes multiple motors; do not keep single-motor arrow highlighted.
+            ClearDirectAngleArrows();
+
             // Apply rotation to all motors in Row 2
             for (int col = 0; col < COLS; col++)
             {
@@ -464,6 +494,8 @@ public class DeltaUserStudy : MonoBehaviour
 
     void ResetAll()
     {
+        ClearDirectAngleArrows();
+
         // Reset all joints to initial rotations
         for (int row = 0; row < ROWS; row++)
         {
@@ -561,5 +593,56 @@ public class DeltaUserStudy : MonoBehaviour
         }
 
         targetMaterial.color = sourceMaterial.color;
+    }
+
+    private void SyncArrowForCurrentSelection(float rawDeltaSign)
+    {
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        int motorID = GetMotorIDForSelection(currentRow, currentCol);
+        if (motorID <= 0)
+        {
+            clawModuleController.ClearArmUIDirectAngleArrowState();
+            return;
+        }
+
+        clawModuleController.SyncArmUIDirectAngleArrowState(motorID, rawDeltaSign);
+    }
+
+    private void ClearDirectAngleArrows()
+    {
+        if (clawModuleController == null)
+        {
+            return;
+        }
+
+        clawModuleController.ClearArmUIDirectAngleArrowState();
+    }
+
+    private static int GetMotorIDForSelection(int row, int col)
+    {
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLS)
+        {
+            return 0;
+        }
+
+        // Motor IDs are grouped by finger columns:
+        // row0: 1,5,9 / row1: 2,6,10 / row2: 3,7,11 / row3: 4,8,12
+        switch (row)
+        {
+            case 0:
+                return col == 0 ? 1 : (col == 1 ? 5 : 9);
+            case 1:
+                return col == 0 ? 2 : (col == 1 ? 6 : 10);
+            case 2:
+                return col == 0 ? 3 : (col == 1 ? 7 : 11);
+            case 3:
+                return col == 0 ? 4 : (col == 1 ? 8 : 12);
+            default:
+                return 0;
+        }
     }
 }
