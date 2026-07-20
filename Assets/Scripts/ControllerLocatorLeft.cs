@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 public class ControllerLocatorLeft : MonoBehaviour
 {
+    private enum CanvasMode
+    {
+        Normal,
+        Baseline2,
+        DeltaUserStudy
+    }
+
     [Header("Debug")]
     public Vector3 currentControllerPosition;
     public Vector3 currentControllerEulerAngles;
@@ -15,20 +22,30 @@ public class ControllerLocatorLeft : MonoBehaviour
     public GameObject leftHandRetargetingSkin;
     // public GameObject leftHandOriginalSkin;
     public GameObject leftQuad;
+    
     public GameObject canvasPlane;
     public GameObject LeftCanvasStateArea;
     public Renderer LeftCanvasStateRenderer;
+
     public GameObject baseline2CanvasPlane;
     public GameObject Baseline2CanvasStateArea;
     public Renderer Baseline2CanvasStateRenderer;
+
+    public GameObject deltaUserStudyCanvasPlane;
+    public GameObject deltaUserStudyCanvasStateArea;
+    public Renderer DeltaUserStudyCanvasStateRenderer;
+
     public Material leftCanvasOnMaterial;
     public Material leftCanvasOffMaterial;
     public bool leftCanvasStateIsOn = false;
     public bool baseline2CanvasStateIsOn = false;
+    public bool deltaUserStudyCanvasStateIsOn = false;
     [Tooltip("Tag of the collider that can toggle left canvas state")]
     public string leftCanvasStateAreaTag = "LeftCanvasStateArea";
     [Tooltip("Tag of the collider that can toggle baseline2 canvas state")]
     public string baseline2CanvasStateAreaTag = "Baseline2CanvasStateArea";
+    [Tooltip("Tag of the collider that can toggle delta user study canvas state")]
+    public string deltaUserStudyCanvasStateAreaTag = "DeltaUserStudyCanvasStateArea";
     [Tooltip("Objects on the same hierarchy level that should follow canvasPlane visibility (e.g. Cube)")]
     public GameObject[] canvasLinkedObjects;
     public bool alwaysShowCanvasPlane = false;
@@ -62,6 +79,7 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     [Header("Baseline2")]
     public BaselineTwo baselineTwo;
+    public DeltaUserStudy deltaUserStudy;
 
     [Header("Arm UI")]
     public ArmUIPlaneCollider armUIPlaneCollider;
@@ -92,6 +110,16 @@ public class ControllerLocatorLeft : MonoBehaviour
     private Quaternion canvasInitialLocalRotation;
     private Vector3 canvasInitialLocalScale;
     private bool isCanvasFrozenInWorld;
+    private Transform baseline2CanvasOriginalParent;
+    private Vector3 baseline2CanvasInitialLocalPosition;
+    private Quaternion baseline2CanvasInitialLocalRotation;
+    private Vector3 baseline2CanvasInitialLocalScale;
+    private bool isBaseline2CanvasFrozenInWorld;
+    private Transform deltaUserStudyCanvasOriginalParent;
+    private Vector3 deltaUserStudyCanvasInitialLocalPosition;
+    private Quaternion deltaUserStudyCanvasInitialLocalRotation;
+    private Vector3 deltaUserStudyCanvasInitialLocalScale;
+    private bool isDeltaUserStudyCanvasFrozenInWorld;
     private bool wasPreviewCanvasPlaneOffset;
     private bool wasAlwaysShowCanvasPlane;
     private float leftHandHiddenTimer;
@@ -99,8 +127,10 @@ public class ControllerLocatorLeft : MonoBehaviour
     private bool shouldHideLeftHandByDistance;
     private bool isLeftCanvasStateAreaDetached;
     private bool isBaseline2CanvasStateAreaDetached;
+    private bool isDeltaUserStudyCanvasStateAreaDetached;
     private readonly HashSet<Collider> touchingCanvasStateColliders = new HashSet<Collider>();
     private readonly HashSet<Collider> touchingBaseline2CanvasStateColliders = new HashSet<Collider>();
+    private readonly HashSet<Collider> touchingDeltaUserStudyCanvasStateColliders = new HashSet<Collider>();
 
     void Awake()
     {
@@ -112,6 +142,11 @@ public class ControllerLocatorLeft : MonoBehaviour
         if (baselineTwo == null)
         {
             baselineTwo = FindObjectOfType<BaselineTwo>();
+        }
+
+        if (deltaUserStudy == null)
+        {
+            deltaUserStudy = FindObjectOfType<DeltaUserStudy>();
         }
 
         if (jointAngle == null)
@@ -131,16 +166,25 @@ public class ControllerLocatorLeft : MonoBehaviour
             armUIPlaneCollider = FindObjectOfType<ArmUIPlaneCollider>();
         }
 
+        CacheModeCanvasInitialTransforms();
+
         if (canvasPlane == null)
         {
             EnsureLeftCanvasStateRenderer();
             EnsureBaseline2CanvasStateRenderer();
+            EnsureDeltaUserStudyCanvasStateRenderer();
             SetLeftCanvasState(false);
             SetBaseline2CanvasState(false);
+            SetDeltaUserStudyCanvasState(false);
 
             if (baseline2CanvasPlane != null)
             {
                 baseline2CanvasPlane.SetActive(false);
+            }
+
+            if (deltaUserStudyCanvasPlane != null)
+            {
+                deltaUserStudyCanvasPlane.SetActive(false);
             }
 
             return;
@@ -153,12 +197,19 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         EnsureLeftCanvasStateRenderer();
         EnsureBaseline2CanvasStateRenderer();
+        EnsureDeltaUserStudyCanvasStateRenderer();
         SetLeftCanvasState(false);
         SetBaseline2CanvasState(false);
+        SetDeltaUserStudyCanvasState(false);
 
         if (baseline2CanvasPlane != null)
         {
             baseline2CanvasPlane.SetActive(false);
+        }
+
+        if (deltaUserStudyCanvasPlane != null)
+        {
+            deltaUserStudyCanvasPlane.SetActive(false);
         }
 
         if (previewCanvasPlaneOffset)
@@ -313,21 +364,64 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateCanvasPlaneVisibility()
     {
-        if (IsBaseline2ToyHandModeActive())
+        CanvasMode activeMode = ResolveActiveCanvasMode();
+
+        if (activeMode == CanvasMode.Baseline2)
         {
             if (canvasPlane != null && canvasPlane.activeSelf)
             {
                 HideCanvasPlane();
             }
 
-            SetBaseline2CanvasPlaneVisibility(baseline2CanvasStateIsOn);
+            SetDeltaUserStudyCanvasPlaneVisibility(false);
+
+            if (baseline2CanvasStateIsOn)
+            {
+                if (baseline2CanvasPlane != null && (!baseline2CanvasPlane.activeSelf || !isBaseline2CanvasFrozenInWorld))
+                {
+                    ShowBaseline2CanvasPlaneFollowingRightHand();
+                }
+
+                SetBaseline2CanvasPlaneVisibility(true);
+                UpdateBaseline2CanvasPlaneFollowingRightHandPose();
+            }
+            else
+            {
+                HideBaseline2CanvasPlane();
+            }
+
             return;
         }
 
-        if (baseline2CanvasPlane != null)
+        if (activeMode == CanvasMode.DeltaUserStudy)
         {
-            baseline2CanvasPlane.SetActive(false);
+            if (canvasPlane != null && canvasPlane.activeSelf)
+            {
+                HideCanvasPlane();
+            }
+
+            SetBaseline2CanvasPlaneVisibility(false);
+
+            if (deltaUserStudyCanvasStateIsOn)
+            {
+                if (deltaUserStudyCanvasPlane != null && (!deltaUserStudyCanvasPlane.activeSelf || !isDeltaUserStudyCanvasFrozenInWorld))
+                {
+                    ShowDeltaUserStudyCanvasPlaneFollowingRightHand();
+                }
+
+                SetDeltaUserStudyCanvasPlaneVisibility(true);
+                UpdateDeltaUserStudyCanvasPlaneFollowingRightHandPose();
+            }
+            else
+            {
+                HideDeltaUserStudyCanvasPlane();
+            }
+
+            return;
         }
+
+        HideBaseline2CanvasPlane();
+        HideDeltaUserStudyCanvasPlane();
 
         if (canvasPlane == null)
         {
@@ -530,8 +624,8 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateLeftHandVisualsHiddenState()
     {
-        bool shouldForceBaseline2ToyHand = IsBaseline2ToyHandModeActive();
-        bool shouldHideLeftHandVisuals = shouldForceBaseline2ToyHand ||
+        bool shouldForceToyHandMode = ResolveActiveCanvasMode() != CanvasMode.Normal;
+        bool shouldHideLeftHandVisuals = shouldForceToyHandMode ||
                                         (!alwaysAllowToyHandAndCanvas &&
                                         (shouldHideLeftHandByDistance || isFallbackVisualsActive));
 
@@ -570,6 +664,34 @@ public class ControllerLocatorLeft : MonoBehaviour
         UpdateCanvasPlaneFollowingRightHandPose();
     }
 
+    private void ShowBaseline2CanvasPlaneFollowingRightHand()
+    {
+        if (baseline2CanvasPlane == null)
+        {
+            return;
+        }
+
+        Transform canvasTransform = baseline2CanvasPlane.transform;
+        canvasTransform.SetParent(null, false);
+        SetBaseline2CanvasPlaneVisibility(true);
+        isBaseline2CanvasFrozenInWorld = true;
+        UpdateBaseline2CanvasPlaneFollowingRightHandPose();
+    }
+
+    private void ShowDeltaUserStudyCanvasPlaneFollowingRightHand()
+    {
+        if (deltaUserStudyCanvasPlane == null)
+        {
+            return;
+        }
+
+        Transform canvasTransform = deltaUserStudyCanvasPlane.transform;
+        canvasTransform.SetParent(null, false);
+        SetDeltaUserStudyCanvasPlaneVisibility(true);
+        isDeltaUserStudyCanvasFrozenInWorld = true;
+        UpdateDeltaUserStudyCanvasPlaneFollowingRightHandPose();
+    }
+
     private void UpdateCanvasPlaneFollowingRightHandPose()
     {
         if (!leftCanvasStateIsOn || canvasPlane == null)
@@ -601,6 +723,72 @@ public class ControllerLocatorLeft : MonoBehaviour
 
         canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
         canvasTransform.localScale = canvasInitialLocalScale;
+    }
+
+    private void UpdateBaseline2CanvasPlaneFollowingRightHandPose()
+    {
+        if (!baseline2CanvasStateIsOn || baseline2CanvasPlane == null)
+        {
+            return;
+        }
+
+        if (!TryGetRightHandControllerWorldPose(out Vector3 rightHandWorldPosition, out _))
+        {
+            return;
+        }
+
+        Transform canvasTransform = baseline2CanvasPlane.transform;
+        Vector3 worldPosition = new Vector3(
+            rightHandWorldPosition.x + rightHandCanvasXOffset,
+            rightHandWorldPosition.y,
+            rightHandWorldPosition.z + rightHandCanvasZOffset
+        );
+        if (TryGetHeadWorldPosition(out Vector3 headWorldPosition))
+        {
+            worldPosition.y = headWorldPosition.y + headCanvasYOffset;
+        }
+        else
+        {
+            worldPosition.y += rightHandCanvasYOffset;
+        }
+
+        Quaternion worldRotation = Quaternion.Euler(rightHandCanvasRotationOffsetEuler);
+
+        canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
+        canvasTransform.localScale = baseline2CanvasInitialLocalScale;
+    }
+
+    private void UpdateDeltaUserStudyCanvasPlaneFollowingRightHandPose()
+    {
+        if (!deltaUserStudyCanvasStateIsOn || deltaUserStudyCanvasPlane == null)
+        {
+            return;
+        }
+
+        if (!TryGetRightHandControllerWorldPose(out Vector3 rightHandWorldPosition, out _))
+        {
+            return;
+        }
+
+        Transform canvasTransform = deltaUserStudyCanvasPlane.transform;
+        Vector3 worldPosition = new Vector3(
+            rightHandWorldPosition.x + rightHandCanvasXOffset,
+            rightHandWorldPosition.y,
+            rightHandWorldPosition.z + rightHandCanvasZOffset
+        );
+        if (TryGetHeadWorldPosition(out Vector3 headWorldPosition))
+        {
+            worldPosition.y = headWorldPosition.y + headCanvasYOffset;
+        }
+        else
+        {
+            worldPosition.y += rightHandCanvasYOffset;
+        }
+
+        Quaternion worldRotation = Quaternion.Euler(rightHandCanvasRotationOffsetEuler);
+
+        canvasTransform.SetPositionAndRotation(worldPosition, worldRotation);
+        canvasTransform.localScale = deltaUserStudyCanvasInitialLocalScale;
     }
 
     private bool TryGetHeadWorldPosition(out Vector3 headWorldPosition)
@@ -686,6 +874,67 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
     }
 
+    private void HideBaseline2CanvasPlane()
+    {
+        if (baseline2CanvasPlane == null)
+        {
+            return;
+        }
+
+        SetBaseline2CanvasPlaneVisibility(false);
+
+        Transform canvasTransform = baseline2CanvasPlane.transform;
+        if (baseline2CanvasOriginalParent != null)
+        {
+            canvasTransform.SetParent(baseline2CanvasOriginalParent, false);
+        }
+
+        canvasTransform.localPosition = baseline2CanvasInitialLocalPosition;
+        canvasTransform.localRotation = baseline2CanvasInitialLocalRotation;
+        canvasTransform.localScale = baseline2CanvasInitialLocalScale;
+        isBaseline2CanvasFrozenInWorld = false;
+    }
+
+    private void HideDeltaUserStudyCanvasPlane()
+    {
+        if (deltaUserStudyCanvasPlane == null)
+        {
+            return;
+        }
+
+        SetDeltaUserStudyCanvasPlaneVisibility(false);
+
+        Transform canvasTransform = deltaUserStudyCanvasPlane.transform;
+        if (deltaUserStudyCanvasOriginalParent != null)
+        {
+            canvasTransform.SetParent(deltaUserStudyCanvasOriginalParent, false);
+        }
+
+        canvasTransform.localPosition = deltaUserStudyCanvasInitialLocalPosition;
+        canvasTransform.localRotation = deltaUserStudyCanvasInitialLocalRotation;
+        canvasTransform.localScale = deltaUserStudyCanvasInitialLocalScale;
+        isDeltaUserStudyCanvasFrozenInWorld = false;
+    }
+
+    private void CacheModeCanvasInitialTransforms()
+    {
+        if (baseline2CanvasPlane != null)
+        {
+            baseline2CanvasOriginalParent = baseline2CanvasPlane.transform.parent;
+            baseline2CanvasInitialLocalPosition = baseline2CanvasPlane.transform.localPosition;
+            baseline2CanvasInitialLocalRotation = baseline2CanvasPlane.transform.localRotation;
+            baseline2CanvasInitialLocalScale = baseline2CanvasPlane.transform.localScale;
+        }
+
+        if (deltaUserStudyCanvasPlane != null)
+        {
+            deltaUserStudyCanvasOriginalParent = deltaUserStudyCanvasPlane.transform.parent;
+            deltaUserStudyCanvasInitialLocalPosition = deltaUserStudyCanvasPlane.transform.localPosition;
+            deltaUserStudyCanvasInitialLocalRotation = deltaUserStudyCanvasPlane.transform.localRotation;
+            deltaUserStudyCanvasInitialLocalScale = deltaUserStudyCanvasPlane.transform.localScale;
+        }
+    }
+
     private void SetCanvasVisibility(bool isVisible)
     {
         if (canvasPlane != null)
@@ -702,11 +951,27 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
     }
 
+    private void SetDeltaUserStudyCanvasPlaneVisibility(bool isVisible)
+    {
+        if (deltaUserStudyCanvasPlane != null)
+        {
+            deltaUserStudyCanvasPlane.SetActive(isVisible);
+        }
+    }
+
     private void UpdateActiveCanvasStateAreaPose()
     {
-        if (IsBaseline2ToyHandModeActive())
+        CanvasMode activeMode = ResolveActiveCanvasMode();
+
+        if (activeMode == CanvasMode.Baseline2)
         {
             UpdateCanvasStateAreaPose(Baseline2CanvasStateArea, ref isBaseline2CanvasStateAreaDetached);
+            return;
+        }
+
+        if (activeMode == CanvasMode.DeltaUserStudy)
+        {
+            UpdateCanvasStateAreaPose(deltaUserStudyCanvasStateArea, ref isDeltaUserStudyCanvasStateAreaDetached);
             return;
         }
 
@@ -752,16 +1017,21 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void UpdateCanvasStateAreaModeVisibility()
     {
-        bool isBaseline2Active = IsBaseline2ToyHandModeActive();
+        CanvasMode activeMode = ResolveActiveCanvasMode();
 
         if (LeftCanvasStateArea != null)
         {
-            LeftCanvasStateArea.SetActive(!isBaseline2Active);
+            LeftCanvasStateArea.SetActive(activeMode == CanvasMode.Normal);
         }
 
         if (Baseline2CanvasStateArea != null)
         {
-            Baseline2CanvasStateArea.SetActive(isBaseline2Active);
+            Baseline2CanvasStateArea.SetActive(activeMode == CanvasMode.Baseline2);
+        }
+
+        if (deltaUserStudyCanvasStateArea != null)
+        {
+            deltaUserStudyCanvasStateArea.SetActive(activeMode == CanvasMode.DeltaUserStudy);
         }
     }
 
@@ -786,7 +1056,7 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private bool ShouldShowToyHand()
     {
-        if (IsBaseline2ToyHandModeActive())
+        if (ResolveActiveCanvasMode() != CanvasMode.Normal)
         {
             return true;
         }
@@ -819,6 +1089,31 @@ public class ControllerLocatorLeft : MonoBehaviour
         return baselineTwo != null && baselineTwo.useKeyboardControl;
     }
 
+    private bool IsDeltaUserStudyModeActive()
+    {
+        if (deltaUserStudy == null)
+        {
+            deltaUserStudy = FindObjectOfType<DeltaUserStudy>();
+        }
+
+        return deltaUserStudy != null && deltaUserStudy.enabled && deltaUserStudy.gameObject.activeInHierarchy;
+    }
+
+    private CanvasMode ResolveActiveCanvasMode()
+    {
+        if (IsDeltaUserStudyModeActive())
+        {
+            return CanvasMode.DeltaUserStudy;
+        }
+
+        if (IsBaseline2ToyHandModeActive())
+        {
+            return CanvasMode.Baseline2;
+        }
+
+        return CanvasMode.Normal;
+    }
+
     private bool IsArmUIAreaActive()
     {
         if (armUIPlaneCollider == null)
@@ -831,6 +1126,21 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (IsDeltaUserStudyCanvasStateAreaCollider(other))
+        {
+            if (!touchingDeltaUserStudyCanvasStateColliders.Add(other))
+            {
+                return;
+            }
+
+            if (touchingDeltaUserStudyCanvasStateColliders.Count == 1)
+            {
+                SetDeltaUserStudyCanvasState(!deltaUserStudyCanvasStateIsOn);
+            }
+
+            return;
+        }
+
         if (IsBaseline2CanvasStateAreaCollider(other))
         {
             if (!touchingBaseline2CanvasStateColliders.Add(other))
@@ -864,6 +1174,12 @@ public class ControllerLocatorLeft : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (IsDeltaUserStudyCanvasStateAreaCollider(other))
+        {
+            touchingDeltaUserStudyCanvasStateColliders.Remove(other);
+            return;
+        }
+
         if (IsBaseline2CanvasStateAreaCollider(other))
         {
             touchingBaseline2CanvasStateColliders.Remove(other);
@@ -910,6 +1226,22 @@ public class ControllerLocatorLeft : MonoBehaviour
         return !string.IsNullOrEmpty(baseline2CanvasStateAreaTag) && other.CompareTag(baseline2CanvasStateAreaTag);
     }
 
+    private bool IsDeltaUserStudyCanvasStateAreaCollider(Collider other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        if (deltaUserStudyCanvasStateArea != null)
+        {
+            Transform areaTransform = deltaUserStudyCanvasStateArea.transform;
+            return other.transform == areaTransform || other.transform.IsChildOf(areaTransform);
+        }
+
+        return !string.IsNullOrEmpty(deltaUserStudyCanvasStateAreaTag) && other.CompareTag(deltaUserStudyCanvasStateAreaTag);
+    }
+
     private void EnsureLeftCanvasStateRenderer()
     {
         if (LeftCanvasStateRenderer == null && LeftCanvasStateArea != null)
@@ -926,6 +1258,14 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
     }
 
+    private void EnsureDeltaUserStudyCanvasStateRenderer()
+    {
+        if (DeltaUserStudyCanvasStateRenderer == null && deltaUserStudyCanvasStateArea != null)
+        {
+            DeltaUserStudyCanvasStateRenderer = deltaUserStudyCanvasStateArea.GetComponent<Renderer>();
+        }
+    }
+
     private void SetLeftCanvasState(bool isOn)
     {
         leftCanvasStateIsOn = isOn;
@@ -937,6 +1277,13 @@ public class ControllerLocatorLeft : MonoBehaviour
     {
         baseline2CanvasStateIsOn = isOn;
         UpdateBaseline2CanvasStateMaterial();
+        UpdateCanvasPlaneVisibility();
+    }
+
+    private void SetDeltaUserStudyCanvasState(bool isOn)
+    {
+        deltaUserStudyCanvasStateIsOn = isOn;
+        UpdateDeltaUserStudyCanvasStateMaterial();
         UpdateCanvasPlaneVisibility();
     }
 
@@ -970,5 +1317,21 @@ public class ControllerLocatorLeft : MonoBehaviour
         }
 
         Baseline2CanvasStateRenderer.material = targetMaterial;
+    }
+
+    private void UpdateDeltaUserStudyCanvasStateMaterial()
+    {
+        if (DeltaUserStudyCanvasStateRenderer == null)
+        {
+            return;
+        }
+
+        Material targetMaterial = deltaUserStudyCanvasStateIsOn ? leftCanvasOnMaterial : leftCanvasOffMaterial;
+        if (targetMaterial == null || DeltaUserStudyCanvasStateRenderer.sharedMaterial == targetMaterial)
+        {
+            return;
+        }
+
+        DeltaUserStudyCanvasStateRenderer.material = targetMaterial;
     }
 }
