@@ -801,6 +801,42 @@ public class ClawModuleController : MonoBehaviour
         }
     }
 
+    // BaselineTwo horizontal control uses side-locked arrow pairs per motor.
+    public void SyncArmUIHorizontalArrowState(int motorID, bool useLeftSide, float rawDeltaSign)
+    {
+        ClearArmUIDirectAngleArrowState();
+
+        if (Mathf.Abs(rawDeltaSign) <= 0.0001f)
+        {
+            return;
+        }
+
+        switch (motorID)
+        {
+            case 1:
+                SetHorizontalMotorArrowState(thumb4LeftLeftArrow, thumb4LeftRightArrow, thumb4RightLeftArrow, thumb4RightRightArrow, useLeftSide, rawDeltaSign);
+                break;
+            case 2:
+                SetHorizontalMotorArrowState(thumb3LeftLeftArrow, thumb3LeftRightArrow, thumb3RightLeftArrow, thumb3RightRightArrow, useLeftSide, rawDeltaSign);
+                break;
+            case 5:
+                SetHorizontalMotorArrowState(index4LeftLeftArrow, index4LeftRightArrow, index4RightLeftArrow, index4RightRightArrow, useLeftSide, rawDeltaSign);
+                break;
+            case 6:
+                SetHorizontalMotorArrowState(index3LeftLeftArrow, index3LeftRightArrow, index3RightLeftArrow, index3RightRightArrow, useLeftSide, rawDeltaSign);
+                break;
+            case 9:
+                SetHorizontalMotorArrowState(middle4LeftLeftArrow, middle4LeftRightArrow, middle4RightLeftArrow, middle4RightRightArrow, useLeftSide, rawDeltaSign);
+                break;
+            case 10:
+                SetHorizontalMotorArrowState(middle3LeftLeftArrow, middle3LeftRightArrow, middle3RightLeftArrow, middle3RightRightArrow, useLeftSide, rawDeltaSign);
+                break;
+            default:
+                SyncArmUIDirectAngleArrowState(motorID, rawDeltaSign);
+                break;
+        }
+    }
+
     private bool IsDirectAngleMotorTarget(int motorID)
     {
         ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();

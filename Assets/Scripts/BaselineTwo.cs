@@ -20,6 +20,10 @@ public class BaselineTwo : MonoBehaviour
     private Renderer kbCurrentSelectedRenderer;
     private float kbRotationSpeed = 18f;
     private bool prevUseKeyboardControl;
+    private bool hadArrowInputLastFrame;
+    private int previousSelectedMotorID;
+    private int sideLockedMotorID;
+    private bool sideLockedUseLeftSide;
 
     private void Awake()
     {
@@ -105,6 +109,9 @@ public class BaselineTwo : MonoBehaviour
 
         kbCurrentRow = 3;
         kbCurrentCol = 1;
+        previousSelectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+        sideLockedMotorID = 0;
+        sideLockedUseLeftSide = false;
         KbSetAllColors(controller.KeyboardOriginalColor);
         KbUpdateSelection();
     }
@@ -121,6 +128,9 @@ public class BaselineTwo : MonoBehaviour
         }
 
         controller.KeyboardSetEmbodimentInitialColors();
+        controller.ClearArmUIDirectAngleArrowState();
+        hadArrowInputLastFrame = false;
+        sideLockedMotorID = 0;
         kbCurrentSelectedRenderer = null;
     }
 
@@ -200,6 +210,13 @@ public class BaselineTwo : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.D)) { kbCurrentCol = (kbCurrentCol + 1) % KB_COLS; moved = true; }
         if (moved) KbUpdateSelection();
 
+        int selectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
+        if (selectedMotorID != previousSelectedMotorID)
+        {
+            sideLockedMotorID = 0;
+            previousSelectedMotorID = selectedMotorID;
+        }
+
         float rotDelta = kbRotationSpeed * Time.deltaTime;
         if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
         if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
@@ -209,6 +226,15 @@ public class BaselineTwo : MonoBehaviour
 
         if (Input.GetKey(KeyCode.I)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, -rotDelta); }
         if (Input.GetKey(KeyCode.K)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, rotDelta); }
+
+        bool hasArrowInput = Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E) ||
+                             Input.GetKey(KeyCode.U) || Input.GetKey(KeyCode.J) ||
+                             Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K);
+        if (!hasArrowInput && hadArrowInputLastFrame)
+        {
+            controller.ClearArmUIDirectAngleArrowState();
+        }
+        hadArrowInputLastFrame = hasArrowInput;
 
         if (Input.GetKeyDown(KeyCode.P))
         {
@@ -247,50 +273,165 @@ public class BaselineTwo : MonoBehaviour
         }
     }
 
-    private void KbApplyRotation(int row, int col, float delta)
+    private static int GetMotorIDForCell(int row, int col)
     {
         switch (row)
         {
             case 0:
                 switch (col)
                 {
+                    case 0: return 1;
+                    case 1: return 5;
+                    case 2: return 9;
+                }
+                break;
+            case 1:
+                switch (col)
+                {
+                    case 0: return 2;
+                    case 1: return 6;
+                    case 2: return 10;
+                }
+                break;
+            case 2:
+                switch (col)
+                {
+                    case 0: return 3;
+                    case 1: return 7;
+                    case 2: return 11;
+                }
+                break;
+            case 3:
+                switch (col)
+                {
+                    case 0: return 4;
+                    case 1: return 8;
+                    case 2: return 12;
+                }
+                break;
+        }
+
+        return 0;
+    }
+
+    private void SyncKeyboardArrowForCell(int row, int col, float delta)
+    {
+        if (Mathf.Abs(delta) <= 0.0001f)
+        {
+            return;
+        }
+
+        int motorID = GetMotorIDForCell(row, col);
+        if (motorID <= 0)
+        {
+            return;
+        }
+
+        if (row <= 1)
+        {
+            if (sideLockedMotorID != motorID)
+            {
+                sideLockedMotorID = motorID;
+                sideLockedUseLeftSide = delta < 0f;
+            }
+
+            controller.SyncArmUIHorizontalArrowState(motorID, sideLockedUseLeftSide, delta);
+            return;
+        }
+
+        controller.SyncArmUIDirectAngleArrowState(motorID, delta);
+    }
+
+    private void KbApplyRotation(int row, int col, float delta)
+    {
+        float effectiveDelta = delta;
+        // Extension rows use reversed keyboard direction (Q/E opposite of previous behavior).
+        if (row >= 2)
+        {
+            effectiveDelta = -delta;
+        }
+
+        bool changed = false;
+
+        switch (row)
+        {
+            case 0:
+                switch (col)
+                {
                     case 0:
-                        controller.currentThumbRotationY += delta;
-                        controller.currentThumbRotationY = Mathf.Clamp(controller.currentThumbRotationY, -60f, 60f);
-                        controller.thumbGripperJoint1MaxRotationVector =
-                            (controller.KeyboardThumbAngle1InitialRotation * Quaternion.Euler(0f, controller.currentThumbRotationY, 0f)).eulerAngles;
+                        if (sideLockedMotorID != 1)
+                        {
+                            sideLockedMotorID = 1;
+                            sideLockedUseLeftSide = effectiveDelta < 0f;
+                        }
+
+                        if (sideLockedUseLeftSide)
+                        {
+                            float prevThumbYMax = controller.currentThumbRotationYMax;
+                            controller.currentThumbRotationYMax += effectiveDelta;
+                            controller.currentThumbRotationYMax = Mathf.Clamp(controller.currentThumbRotationYMax, -90f, 0f);
+                            changed = !Mathf.Approximately(prevThumbYMax, controller.currentThumbRotationYMax);
+                            controller.thumbGripperJoint1MaxRotationVector =
+                                (controller.KeyboardThumbAngle1InitialRotation * Quaternion.Euler(0f, controller.currentThumbRotationYMax, 0f)).eulerAngles;
+                        }
+                        else
+                        {
+                            float prevThumbYMin = controller.currentThumbRotationYMin;
+                            controller.currentThumbRotationYMin += effectiveDelta;
+                            controller.currentThumbRotationYMin = Mathf.Clamp(controller.currentThumbRotationYMin, 0f, 90f);
+                            changed = !Mathf.Approximately(prevThumbYMin, controller.currentThumbRotationYMin);
+                            controller.thumbGripperJoint1MinRotationVector =
+                                (controller.KeyboardThumbAngle1InitialRotation * Quaternion.Euler(0f, controller.currentThumbRotationYMin, 0f)).eulerAngles;
+                        }
                         break;
                     case 1:
-                        if (delta < 0f)
+                        if (sideLockedMotorID != 5)
                         {
-                            controller.currentIndexRotationYMax += delta;
+                            sideLockedMotorID = 5;
+                            sideLockedUseLeftSide = effectiveDelta < 0f;
+                        }
+
+                        if (sideLockedUseLeftSide)
+                        {
+                            float prevIndexYMax = controller.currentIndexRotationYMax;
+                            controller.currentIndexRotationYMax += effectiveDelta;
                             controller.currentIndexRotationYMax = Mathf.Clamp(controller.currentIndexRotationYMax, -90f, 0f);
+                            changed = !Mathf.Approximately(prevIndexYMax, controller.currentIndexRotationYMax);
                             controller.indexGripperJoint1MaxRotationVector = controller.KeyboardGetIndexJoint1MaxRotationVector();
                         }
-                        else if (delta > 0f)
+                        else
                         {
-                            if (controller.currentIndexRotationYMin <= 0f)
-                                controller.currentIndexRotationYMin = 60f;
-
-                            controller.currentIndexRotationYMin += delta;
+                            float prevIndexYMin = controller.currentIndexRotationYMin;
+                            controller.currentIndexRotationYMin += effectiveDelta;
                             controller.currentIndexRotationYMin = Mathf.Clamp(controller.currentIndexRotationYMin, 0f, 90f);
+                            changed = !Mathf.Approximately(prevIndexYMin, controller.currentIndexRotationYMin);
                             controller.indexGripperJoint1MinRotationVector =
                                 (controller.KeyboardIndexAngle1InitialRotation * Quaternion.Euler(0f, controller.currentIndexRotationYMin, 0f)).eulerAngles;
                         }
                         break;
                     case 2:
-                        if (delta < 0f)
+                        if (sideLockedMotorID != 9)
                         {
-                            controller.currentMiddleRotationYMax += delta;
+                            sideLockedMotorID = 9;
+                            sideLockedUseLeftSide = effectiveDelta < 0f;
+                        }
+
+                        if (sideLockedUseLeftSide)
+                        {
+                            float prevMiddleYMax = controller.currentMiddleRotationYMax;
+                            controller.currentMiddleRotationYMax += effectiveDelta;
                             controller.currentMiddleRotationYMax = Mathf.Clamp(controller.currentMiddleRotationYMax, -90f, 0f);
+                            changed = !Mathf.Approximately(prevMiddleYMax, controller.currentMiddleRotationYMax);
                             controller.middleGripperJoint1MaxRotationVector = controller.KeyboardGetMiddleJoint1MaxRotationVector();
                             controller.maxMiddleYAxisAngle = controller.KeyboardNormalizeMiddleJoint1MaxAngle(controller.middleGripperJoint1MaxRotationVector.y);
                             controller.KeyboardRefreshMiddleJoint1YDebug("KbApplyRotation:max");
                         }
-                        else if (delta > 0f)
+                        else
                         {
-                            controller.currentMiddleRotationYMin += delta;
+                            float prevMiddleYMin = controller.currentMiddleRotationYMin;
+                            controller.currentMiddleRotationYMin += effectiveDelta;
                             controller.currentMiddleRotationYMin = Mathf.Clamp(controller.currentMiddleRotationYMin, 0f, 90f);
+                            changed = !Mathf.Approximately(prevMiddleYMin, controller.currentMiddleRotationYMin);
                             controller.middleGripperJoint1MinRotationVector = controller.KeyboardGetMiddleJoint1MinRotationVector();
                             controller.minMiddleYAxisAngle = controller.KeyboardNormalizeAngle(controller.middleGripperJoint1MinRotationVector.y);
                             controller.KeyboardRefreshMiddleJoint1YDebug("KbApplyRotation:min");
@@ -303,23 +444,84 @@ public class BaselineTwo : MonoBehaviour
                 switch (col)
                 {
                     case 0:
-                        controller.currentThumbRotationZ += delta;
-                        controller.currentThumbRotationZ = Mathf.Clamp(controller.currentThumbRotationZ, -60f, 60f);
+                        if (sideLockedMotorID != 2)
+                        {
+                            sideLockedMotorID = 2;
+                            sideLockedUseLeftSide = effectiveDelta < 0f;
+                        }
+
+                        if (sideLockedUseLeftSide)
+                        {
+                            float prevThumbZMax = controller.currentThumbRotationZMax;
+                            controller.currentThumbRotationZMax += effectiveDelta;
+                            controller.currentThumbRotationZMax = Mathf.Clamp(controller.currentThumbRotationZMax, -90f, 0f);
+                            changed = !Mathf.Approximately(prevThumbZMax, controller.currentThumbRotationZMax);
+                            controller.thumbGripperJoint2MaxRotationVector =
+                                (controller.KeyboardThumbAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentThumbRotationZMax)).eulerAngles;
+                        }
+                        else
+                        {
+                            float prevThumbZMin = controller.currentThumbRotationZMin;
+                            controller.currentThumbRotationZMin += effectiveDelta;
+                            controller.currentThumbRotationZMin = Mathf.Clamp(controller.currentThumbRotationZMin, 0f, 90f);
+                            changed = !Mathf.Approximately(prevThumbZMin, controller.currentThumbRotationZMin);
+                            controller.thumbGripperJoint2MinRotationVector =
+                                (controller.KeyboardThumbAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentThumbRotationZMin)).eulerAngles;
+                        }
+
                         controller.hasThumbAbductionAdjustment = true;
-                        controller.thumbGripperJoint2MaxRotationVector =
-                            (controller.KeyboardThumbAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentThumbRotationZ)).eulerAngles;
                         break;
                     case 1:
-                        controller.currentIndexRotationZMax += delta;
-                        controller.currentIndexRotationZMax = Mathf.Clamp(controller.currentIndexRotationZMax, -58f, 0f);
-                        controller.indexGripperJoint2MaxRotationVector =
-                            (controller.KeyboardIndexAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentIndexRotationZMax)).eulerAngles;
+                        if (sideLockedMotorID != 6)
+                        {
+                            sideLockedMotorID = 6;
+                            sideLockedUseLeftSide = effectiveDelta < 0f;
+                        }
+
+                        if (sideLockedUseLeftSide)
+                        {
+                            float prevIndexZMax = controller.currentIndexRotationZMax;
+                            controller.currentIndexRotationZMax += effectiveDelta;
+                            controller.currentIndexRotationZMax = Mathf.Clamp(controller.currentIndexRotationZMax, -90f, 0f);
+                            changed = !Mathf.Approximately(prevIndexZMax, controller.currentIndexRotationZMax);
+                            controller.indexGripperJoint2MaxRotationVector =
+                                (controller.KeyboardIndexAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentIndexRotationZMax)).eulerAngles;
+                        }
+                        else
+                        {
+                            float prevIndexZMin = controller.currentIndexRotationZMin;
+                            controller.currentIndexRotationZMin += effectiveDelta;
+                            controller.currentIndexRotationZMin = Mathf.Clamp(controller.currentIndexRotationZMin, 0f, 90f);
+                            changed = !Mathf.Approximately(prevIndexZMin, controller.currentIndexRotationZMin);
+                            controller.indexGripperJoint2MinRotationVector =
+                                (controller.KeyboardIndexAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentIndexRotationZMin)).eulerAngles;
+                        }
                         break;
                     case 2:
-                        controller.currentMiddleRotationZ += delta;
-                        controller.currentMiddleRotationZ = Mathf.Clamp(controller.currentMiddleRotationZ, 0f, 58f);
-                        controller.middleGripperJoint2MaxRotationVector =
-                            (controller.KeyboardMiddleAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentMiddleRotationZ)).eulerAngles;
+                        if (sideLockedMotorID != 10)
+                        {
+                            sideLockedMotorID = 10;
+                            sideLockedUseLeftSide = effectiveDelta < 0f;
+                        }
+
+                        if (sideLockedUseLeftSide)
+                        {
+                            float prevMiddleZMax = controller.currentMiddleRotationZMax;
+                            controller.currentMiddleRotationZMax += effectiveDelta;
+                            controller.currentMiddleRotationZMax = Mathf.Clamp(controller.currentMiddleRotationZMax, -90f, 0f);
+                            changed = !Mathf.Approximately(prevMiddleZMax, controller.currentMiddleRotationZMax);
+                            controller.middleGripperJoint2MaxRotationVector =
+                                (controller.KeyboardMiddleAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentMiddleRotationZMax)).eulerAngles;
+                        }
+                        else
+                        {
+                            float prevMiddleZMin = controller.currentMiddleRotationZMin;
+                            controller.currentMiddleRotationZMin += effectiveDelta;
+                            controller.currentMiddleRotationZMin = Mathf.Clamp(controller.currentMiddleRotationZMin, 0f, 90f);
+                            changed = !Mathf.Approximately(prevMiddleZMin, controller.currentMiddleRotationZMin);
+                            controller.middleGripperJoint2MinRotationVector =
+                                (controller.KeyboardMiddleAngle2InitialRotation * Quaternion.Euler(0f, 0f, controller.currentMiddleRotationZMin)).eulerAngles;
+                        }
                         break;
                 }
                 break;
@@ -328,16 +530,22 @@ public class BaselineTwo : MonoBehaviour
                 switch (col)
                 {
                     case 0:
-                        controller.currentThumbInnerExtensionRotationZ += delta;
+                        float prevThumbInner = controller.currentThumbInnerExtensionRotationZ;
+                        controller.currentThumbInnerExtensionRotationZ += effectiveDelta;
                         controller.currentThumbInnerExtensionRotationZ = Mathf.Clamp(controller.currentThumbInnerExtensionRotationZ, controller.KeyboardExtensionClampMin, controller.KeyboardExtensionClampMax);
+                        changed = !Mathf.Approximately(prevThumbInner, controller.currentThumbInnerExtensionRotationZ);
                         break;
                     case 1:
-                        controller.currentIndexInnerExtensionRotationZ += delta;
+                        float prevIndexInner = controller.currentIndexInnerExtensionRotationZ;
+                        controller.currentIndexInnerExtensionRotationZ += effectiveDelta;
                         controller.currentIndexInnerExtensionRotationZ = Mathf.Clamp(controller.currentIndexInnerExtensionRotationZ, controller.KeyboardExtensionClampMin, controller.KeyboardExtensionClampMax);
+                        changed = !Mathf.Approximately(prevIndexInner, controller.currentIndexInnerExtensionRotationZ);
                         break;
                     case 2:
-                        controller.currentMiddleInnerExtensionRotationZ += delta;
+                        float prevMiddleInner = controller.currentMiddleInnerExtensionRotationZ;
+                        controller.currentMiddleInnerExtensionRotationZ += effectiveDelta;
                         controller.currentMiddleInnerExtensionRotationZ = Mathf.Clamp(controller.currentMiddleInnerExtensionRotationZ, controller.KeyboardExtensionClampMin, controller.KeyboardExtensionClampMax);
+                        changed = !Mathf.Approximately(prevMiddleInner, controller.currentMiddleInnerExtensionRotationZ);
                         break;
                 }
                 break;
@@ -346,19 +554,30 @@ public class BaselineTwo : MonoBehaviour
                 switch (col)
                 {
                     case 0:
-                        controller.currentThumbTipRotationZ += delta;
+                        float prevThumbTip = controller.currentThumbTipRotationZ;
+                        controller.currentThumbTipRotationZ += effectiveDelta;
                         controller.currentThumbTipRotationZ = Mathf.Clamp(controller.currentThumbTipRotationZ, controller.KeyboardExtensionClampMin, controller.KeyboardExtensionClampMax);
+                        changed = !Mathf.Approximately(prevThumbTip, controller.currentThumbTipRotationZ);
                         break;
                     case 1:
-                        controller.currentIndexTipRotationZ += delta;
+                        float prevIndexTip = controller.currentIndexTipRotationZ;
+                        controller.currentIndexTipRotationZ += effectiveDelta;
                         controller.currentIndexTipRotationZ = Mathf.Clamp(controller.currentIndexTipRotationZ, controller.KeyboardExtensionClampMin, controller.KeyboardExtensionClampMax);
+                        changed = !Mathf.Approximately(prevIndexTip, controller.currentIndexTipRotationZ);
                         break;
                     case 2:
-                        controller.currentMiddleTipRotationZ += delta;
+                        float prevMiddleTip = controller.currentMiddleTipRotationZ;
+                        controller.currentMiddleTipRotationZ += effectiveDelta;
                         controller.currentMiddleTipRotationZ = Mathf.Clamp(controller.currentMiddleTipRotationZ, controller.KeyboardExtensionClampMin, controller.KeyboardExtensionClampMax);
+                        changed = !Mathf.Approximately(prevMiddleTip, controller.currentMiddleTipRotationZ);
                         break;
                 }
                 break;
+        }
+
+        if (changed)
+        {
+            SyncKeyboardArrowForCell(row, col, effectiveDelta);
         }
     }
 }
