@@ -49209,7 +49209,6 @@ MonoBehaviour:
   index120DegreeSnappingActive: 0
   middle120DegreeSnappingActive: 0
   isActivelyManipulating: 0
-  useKeyboardControl: 0
   useFullExtensionClampRange: 0
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 0
@@ -62604,7 +62603,6 @@ MonoBehaviour:
   index120DegreeSnappingActive: 0
   middle120DegreeSnappingActive: 0
   isActivelyManipulating: 0
-  useKeyboardControl: 0
   useFullExtensionClampRange: 0
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 0
@@ -76120,7 +76118,6 @@ MonoBehaviour:
   index120DegreeSnappingActive: 0
   middle120DegreeSnappingActive: 0
   isActivelyManipulating: 0
-  useKeyboardControl: 0
   useFullExtensionClampRange: 0
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 0
@@ -85412,6 +85409,7 @@ GameObject:
   - component: {fileID: 4551987535763487159}
   - component: {fileID: 4551987535763487160}
   - component: {fileID: 4551987535763487161}
+  - component: {fileID: 4551987535763487162}
   m_Layer: 0
   m_Name: ClawAttached 1
   m_TagString: Untagged
@@ -86660,7 +86658,6 @@ MonoBehaviour:
   index120DegreeSnappingActive: 0
   middle120DegreeSnappingActive: 0
   isActivelyManipulating: 0
-  useKeyboardControl: 0
   useFullExtensionClampRange: 1
   innerExtensionFullRangeMapping: 1
   tipExtensionFullRangeMapping: 1
@@ -86722,6 +86719,19 @@ MonoBehaviour:
   middleCube3Renderer: {fileID: 134929433}
   middleCube4Renderer: {fileID: 1185201706}
   purpleColor: {r: 0.5, g: 0, b: 0.5, a: 1}
+--- !u!114 &4551987535763487162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3265390217554441853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b149c07021aa12447ad847c8b1ba9159, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  useKeyboardControl: 1
 --- !u!4 &4582782382478664306
 Transform:
   m_ObjectHideFlags: 0

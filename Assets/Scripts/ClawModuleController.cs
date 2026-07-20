@@ -607,10 +607,6 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Keyboard Control
     // ==============================
-    [Header("=== Keyboard Control ===")]
-    [Tooltip("ON: Enable WASD+QE keyboard control for motor offsets")]
-    public bool useKeyboardControl = false;
-
     [Header("=== Extension Clamp Range ===")]
     [Tooltip("Off: clamp X extension/tip to (-80, 50). On: clamp to (-90, 90).")]
     public bool useFullExtensionClampRange = false;
@@ -626,16 +622,6 @@ public class ClawModuleController : MonoBehaviour
     [Tooltip("ON: Use indexToBaselineAngleOnPalm / middleToBaselineAngleOnPalm for index/middle abduction+pronation mapping.")]
     public bool useIndexMiddleIndividualMode = false;
     public float tt = 0f;
-
-    private int kbCurrentRow = 3;
-    private int kbCurrentCol = 1;
-    private const int KB_ROWS = 4;
-    private const int KB_COLS = 3;
-    private Transform[,] kbMotorArray;
-    private Renderer[,] kbRendererArray;
-    private Renderer kbCurrentSelectedRenderer;
-    private float kbRotationSpeed = 18f;
-    private bool _prevUseKeyboardControl = false;
 
     // ==============================
     // 🔹 SMC Freeze Motor Feature State
@@ -686,10 +672,6 @@ public class ClawModuleController : MonoBehaviour
             armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
         }
 
-        if (useKeyboardControl && modeSwitching != null)
-        {
-            modeSwitching.enabled = false;
-        }
     }
 
     private void InitializeMotorArrowMappings()
@@ -895,27 +877,6 @@ public class ClawModuleController : MonoBehaviour
         maxMiddleZAxisAngle = MiddleAngle2CenterInitialRotation.eulerAngles.z;
         RefreshMiddleJoint1YDebug("Start");
 
-        // --- Initialize Keyboard Control arrays (always, so runtime toggle works) ---
-        kbMotorArray = new Transform[KB_ROWS, KB_COLS] {
-            {ThumbAngle1Center, IndexAngle1Center, MiddleAngle1Center},
-            {ThumbAngle2Center, IndexAngle2Center, MiddleAngle2Center},
-            {ThumbAngle3Center, IndexAngle3Center, MiddleAngle3Center},
-            {ThumbAngle4Center, IndexAngle4Center, MiddleAngle4Center}
-        };
-        kbRendererArray = new Renderer[KB_ROWS, KB_COLS] {
-            {thumbJoint1Renderer, indexJoint1Renderer, middleJoint1Renderer},
-            {thumbJoint2Renderer, indexJoint2Renderer, middleJoint2Renderer},
-            {thumbJoint3Renderer, indexJoint3Renderer, middleJoint3Renderer},
-            {thumbJoint4Renderer, indexJoint4Renderer, middleJoint4Renderer}
-        };
-
-        // If keyboard mode is already ON at start, enter it
-        _prevUseKeyboardControl = useKeyboardControl;
-        if (useKeyboardControl)
-        {
-            EnterKeyboardMode();
-        }
-
         thumb3RightRightArrow.SetActive(false);
         thumb3RightLeftArrow.SetActive(false);
         thumb3LeftRightArrow.SetActive(false);
@@ -1052,22 +1013,6 @@ public class ClawModuleController : MonoBehaviour
         }
 
         HandleInput();
-
-        // Detect keyboard toggle change at runtime
-        if (useKeyboardControl != _prevUseKeyboardControl)
-        {
-            _prevUseKeyboardControl = useKeyboardControl;
-            if (useKeyboardControl)
-                EnterKeyboardMode();
-            else
-                ExitKeyboardMode();
-        }
-
-        // Keyboard control handling
-        if (useKeyboardControl)
-        {
-            HandleKeyboardControl();
-        }
 
         // In Arm UI direct-angle mode, motor rotations must only be driven by ArmUIPlane slider write-back.
         // Skip all joint-angle-based finger updates to prevent overwriting slider-controlled angles.
@@ -4440,6 +4385,29 @@ public class ClawModuleController : MonoBehaviour
     private float ExtensionClampMin => useFullExtensionClampRange ? -90f : -80f;
     private float ExtensionClampMax => useFullExtensionClampRange ? 90f : 50f;
 
+    // Bridge API for BaselineTwo keyboard-controller component.
+    public Color KeyboardOriginalColor => originalColor;
+    public float KeyboardExtensionClampMin => ExtensionClampMin;
+    public float KeyboardExtensionClampMax => ExtensionClampMax;
+
+    public Quaternion KeyboardThumbAngle1InitialRotation => ThumbAngle1CenterInitialRotation;
+    public Quaternion KeyboardThumbAngle2InitialRotation => ThumbAngle2CenterInitialRotation;
+    public Quaternion KeyboardIndexAngle1InitialRotation => IndexAngle1CenterInitialRotation;
+    public Quaternion KeyboardIndexAngle2InitialRotation => IndexAngle2CenterInitialRotation;
+    public Quaternion KeyboardMiddleAngle1InitialRotation => MiddleAngle1CenterInitialRotation;
+    public Quaternion KeyboardMiddleAngle2InitialRotation => MiddleAngle2CenterInitialRotation;
+
+    public Vector3 KeyboardGetIndexJoint1MaxRotationVector() => GetIndexJoint1MaxRotationVector();
+    public Vector3 KeyboardGetMiddleJoint1MaxRotationVector() => GetMiddleJoint1MaxRotationVector();
+    public Vector3 KeyboardGetMiddleJoint1MinRotationVector() => GetMiddleJoint1MinRotationVector();
+    public Vector3 KeyboardGetMiddleJoint2MaxRotationVector() => GetMiddleJoint2MaxRotationVector();
+    public float KeyboardNormalizeAngle(float angle) => NormalizeAngle(angle);
+    public float KeyboardNormalizeMiddleJoint1MaxAngle(float angle) => NormalizeMiddleJoint1MaxAngle(angle);
+    public void KeyboardRefreshMiddleJoint1YDebug(string source) => RefreshMiddleJoint1YDebug(source);
+    public void KeyboardForceDisengageOnReset() => ForceDisengageOnReset();
+    public void KeyboardResetModeSwitchingState() => ResetModeSwitchingState();
+    public void KeyboardSetEmbodimentInitialColors() => SetEmbodimentInitialColors();
+
     #region @Extension
     private void UpdateFingertipExtension(
         bool isTipTouched,
@@ -5070,63 +5038,6 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
 
     /// <summary>
-    /// Called when useKeyboardControl is toggled ON.
-    /// Resets all offsets/rotations, disables ModeSwitching and all colliders,
-    /// sets all joints to originalColor, then highlights selected motor.
-    /// </summary>
-    void EnterKeyboardMode()
-    {
-        ResetFingerRotations();
-        ResetModeSwitchingState();
-        SetCollidersEnabled(false);
-        if (modeSwitching != null) modeSwitching.enabled = false;
-        kbCurrentRow = 3;
-        kbCurrentCol = 1;
-        KbSetAllColors(originalColor);
-        KbUpdateSelection();
-    }
-
-    /// <summary>
-    /// Called when useKeyboardControl is toggled OFF (back to embodiment).
-    /// Resets all offsets/rotations, re-enables ModeSwitching and all colliders,
-    /// sets embodiment initial colors (fingertips=originalColor, others=gray).
-    /// </summary>
-    void ExitKeyboardMode()
-    {
-        ResetFingerRotations();
-        ResetModeSwitchingState();
-        SetCollidersEnabled(true);
-        if (modeSwitching != null) modeSwitching.enabled = true;
-        SetEmbodimentInitialColors();
-        kbCurrentSelectedRenderer = null;
-    }
-
-    /// <summary>
-    /// Enable or disable all trigger colliders and SelectMotorCollider.
-    /// When disabled, no hand-tracking collision detection occurs.
-    /// </summary>
-    void SetCollidersEnabled(bool enabled)
-    {
-        if (modeSwitching != null && modeSwitching.SelectMotorCollider != null)
-            modeSwitching.SelectMotorCollider.enabled = enabled;
-
-        SetTriggerColliderEnabled(triggerRightIndexTip, enabled);
-        SetTriggerColliderEnabled(triggerRightMiddleTip, enabled);
-        SetTriggerColliderEnabled(triggerRightThumbTip, enabled);
-        SetTriggerColliderEnabled(triggerRightThumbAbduction, enabled);
-        // SetTriggerColliderEnabled(triggerThumbInnerExtension, enabled);
-        // SetTriggerColliderEnabled(triggerIndexInnerExtension, enabled);
-        // SetTriggerColliderEnabled(triggerMiddleInnerExtension, enabled);
-    }
-
-    void SetTriggerColliderEnabled(MonoBehaviour trigger, bool enabled)
-    {
-        if (trigger == null) return;
-        Collider col = trigger.GetComponent<Collider>();
-        if (col != null) col.enabled = enabled;
-    }
-
-    /// <summary>
     /// Resets ModeSwitching back to its initial select state.
     /// </summary>
     void ResetModeSwitchingState()
@@ -5217,227 +5128,6 @@ public class ClawModuleController : MonoBehaviour
         thumbJoint4Renderer.material.color = originalColor;
         indexJoint4Renderer.material.color = originalColor;
         middleJoint4Renderer.material.color = originalColor;
-    }
-
-    /// <summary>
-    /// Sets all motor renderer colors to the given color.
-    /// </summary>
-    void KbSetAllColors(Color color)
-    {
-        for (int row = 0; row < KB_ROWS; row++)
-        {
-            for (int col = 0; col < KB_COLS; col++)
-            {
-                Renderer renderer = kbRendererArray[row, col];
-                if (renderer != null && renderer.material != null)
-                {
-                    renderer.material.color = color;
-                }
-            }
-        }
-    }
-
-    void KbUpdateSelection()
-    {
-        // Restore previous selection to white
-        if (kbCurrentSelectedRenderer != null)
-        {
-            kbCurrentSelectedRenderer.material.color = originalColor;
-        }
-
-        kbCurrentSelectedRenderer = kbRendererArray[kbCurrentRow, kbCurrentCol];
-        if (kbCurrentSelectedRenderer != null)
-        {
-            Transform selectedTransform = kbMotorArray[kbCurrentRow, kbCurrentCol];
-            if (selectedTransform == IndexAngle1Center || selectedTransform == IndexAngle2Center ||
-                selectedTransform == IndexAngle3Center || selectedTransform == IndexAngle4Center)
-                kbCurrentSelectedRenderer.material.color = Color.red;
-            else
-                kbCurrentSelectedRenderer.material.color = Color.green;
-        }
-    }
-
-    void HandleKeyboardControl()
-    {
-        // WASD navigation
-        bool moved = false;
-        if (Input.GetKeyDown(KeyCode.W)) { kbCurrentRow = (kbCurrentRow + 1) % KB_ROWS; moved = true; }
-        else if (Input.GetKeyDown(KeyCode.S)) { kbCurrentRow = (kbCurrentRow - 1 + KB_ROWS) % KB_ROWS; moved = true; }
-        else if (Input.GetKeyDown(KeyCode.A)) { kbCurrentCol = (kbCurrentCol - 1 + KB_COLS) % KB_COLS; moved = true; }
-        else if (Input.GetKeyDown(KeyCode.D)) { kbCurrentCol = (kbCurrentCol + 1) % KB_COLS; moved = true; }
-        if (moved) KbUpdateSelection();
-
-        // Q/E rotation for selected motor
-        float rotDelta = kbRotationSpeed * Time.deltaTime;
-        if (Input.GetKey(KeyCode.Q)) KbApplyRotation(kbCurrentRow, kbCurrentCol, -rotDelta);
-        if (Input.GetKey(KeyCode.E)) KbApplyRotation(kbCurrentRow, kbCurrentCol, rotDelta);
-
-        // U/J - all Row 3 (Angle4) motors
-        if (Input.GetKey(KeyCode.U)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, -rotDelta); }
-        if (Input.GetKey(KeyCode.J)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(3, c, rotDelta); }
-
-        // I/K - all Row 2 (Angle3) motors
-        if (Input.GetKey(KeyCode.I)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, -rotDelta); }
-        if (Input.GetKey(KeyCode.K)) { for (int c = 0; c < KB_COLS; c++) KbApplyRotation(2, c, rotDelta); }
-
-        // P - reset all keyboard offsets
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            ForceDisengageOnReset();
-
-            currentThumbRotationY = 0f;
-            currentThumbRotationZ = 0f;
-            hasThumbAbductionAdjustment = false;
-            currentThumbInnerExtensionRotationZ = 0f;
-            currentThumbTipRotationZ = 0f;
-            currentIndexRotationYMax = 0f;
-            currentIndexRotationYMin = 0f;
-            currentIndexRotationZMax = 0f;
-            currentIndexRotationZMin = 0f;
-            currentIndexInnerExtensionRotationZ = 0f;
-            currentIndexTipRotationZ = 0f;
-            currentMiddleRotationYMax = -60f;
-            currentMiddleRotationYMin = 0f;
-            currentMiddleRotationZ = 0f;
-            currentMiddleRotationZMax = 0f;
-            currentMiddleRotationZMin = 0f;
-            currentMiddleInnerExtensionRotationZ = 0f;
-            currentMiddleTipRotationZ = 0f;
-
-            thumbGripperJoint1MaxRotationVector = ThumbAngle1CenterInitialRotation.eulerAngles;
-            thumbGripperJoint2MaxRotationVector = ThumbAngle2CenterInitialRotation.eulerAngles;
-            indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
-            indexGripperJoint1MinRotationVector =
-                (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
-            indexGripperJoint2MaxRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
-            indexGripperJoint2MinRotationVector = IndexAngle2CenterInitialRotation.eulerAngles;
-            middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
-            middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
-            middleGripperJoint2MaxRotationVector = GetMiddleJoint2MaxRotationVector();
-            middleGripperJoint2MinRotationVector = MiddleAngle2CenterInitialRotation.eulerAngles;
-        }
-    }
-
-    /// <summary>
-    /// Apply keyboard rotation delta to the correct offset variable for [row, col],
-    /// using the same clamp limits as the manipulation functions.
-    /// Also updates the MaxRotationVector so isFullRangeMapping formulas stay consistent.
-    /// </summary>
-    void KbApplyRotation(int row, int col, float delta)
-    {
-        // Row 0 = Angle1 (Y-axis), Row 1 = Angle2 (Z-axis), Row 2 = Angle3 (X inner), Row 3 = Angle4 (X tip)
-        // Col 0 = Thumb, Col 1 = Index, Col 2 = Middle
-        switch (row)
-        {
-            case 0: // Y-axis motors
-                switch (col)
-                {
-                    case 0:
-                        currentThumbRotationY += delta;
-                        currentThumbRotationY = Mathf.Clamp(currentThumbRotationY, -60f, 60f);
-                        thumbGripperJoint1MaxRotationVector =
-                            (ThumbAngle1CenterInitialRotation * Quaternion.Euler(0f, currentThumbRotationY, 0f)).eulerAngles;
-                        break;
-                    case 1:
-                        if (delta < 0f)
-                        {
-                            currentIndexRotationYMax += delta;
-                            currentIndexRotationYMax = Mathf.Clamp(currentIndexRotationYMax, -90f, 0f);
-                            indexGripperJoint1MaxRotationVector = GetIndexJoint1MaxRotationVector();
-                        }
-                        else if (delta > 0f)
-                        {
-                            if (currentIndexRotationYMin <= 0f)
-                                currentIndexRotationYMin = 60f;
-
-                            currentIndexRotationYMin += delta;
-                            currentIndexRotationYMin = Mathf.Clamp(currentIndexRotationYMin, 0f, 90f);
-                            indexGripperJoint1MinRotationVector =
-                                (IndexAngle1CenterInitialRotation * Quaternion.Euler(0f, currentIndexRotationYMin, 0f)).eulerAngles;
-                        }
-                        break;
-                    case 2:
-                        if (delta < 0f)
-                        {
-                            currentMiddleRotationYMax += delta;
-                            currentMiddleRotationYMax = Mathf.Clamp(currentMiddleRotationYMax, -90f, 0f);
-                            middleGripperJoint1MaxRotationVector = GetMiddleJoint1MaxRotationVector();
-                            maxMiddleYAxisAngle = NormalizeMiddleJoint1MaxAngle(middleGripperJoint1MaxRotationVector.y);
-                            RefreshMiddleJoint1YDebug("KbApplyRotation:max");
-                        }
-                        else if (delta > 0f)
-                        {
-                            currentMiddleRotationYMin += delta;
-                            currentMiddleRotationYMin = Mathf.Clamp(currentMiddleRotationYMin, 0f, 90f);
-                            middleGripperJoint1MinRotationVector = GetMiddleJoint1MinRotationVector();
-                            minMiddleYAxisAngle = NormalizeAngle(middleGripperJoint1MinRotationVector.y);
-                            RefreshMiddleJoint1YDebug("KbApplyRotation:min");
-                        }
-                        break;
-                }
-                break;
-
-            case 1: // Z-axis motors
-                switch (col)
-                {
-                    case 0:
-                        currentThumbRotationZ += delta;
-                        currentThumbRotationZ = Mathf.Clamp(currentThumbRotationZ, -60f, 60f);
-                        hasThumbAbductionAdjustment = true;
-                        thumbGripperJoint2MaxRotationVector =
-                            (ThumbAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentThumbRotationZ)).eulerAngles;
-                        break;
-                    case 1:
-                        currentIndexRotationZMax += delta;
-                        currentIndexRotationZMax = Mathf.Clamp(currentIndexRotationZMax, -58f, 0f);
-                        indexGripperJoint2MaxRotationVector =
-                            (IndexAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentIndexRotationZMax)).eulerAngles;
-                        break;
-                    case 2:
-                        currentMiddleRotationZ += delta;
-                        currentMiddleRotationZ = Mathf.Clamp(currentMiddleRotationZ, 0f, 58f);
-                        middleGripperJoint2MaxRotationVector =
-                            (MiddleAngle2CenterInitialRotation * Quaternion.Euler(0f, 0f, currentMiddleRotationZ)).eulerAngles;
-                        break;
-                }
-                break;
-
-            case 2: // X-axis inner extension motors
-                switch (col)
-                {
-                    case 0:
-                        currentThumbInnerExtensionRotationZ += delta;
-                        currentThumbInnerExtensionRotationZ = Mathf.Clamp(currentThumbInnerExtensionRotationZ, ExtensionClampMin, ExtensionClampMax);
-                        break;
-                    case 1:
-                        currentIndexInnerExtensionRotationZ += delta;
-                        currentIndexInnerExtensionRotationZ = Mathf.Clamp(currentIndexInnerExtensionRotationZ, ExtensionClampMin, ExtensionClampMax);
-                        break;
-                    case 2:
-                        currentMiddleInnerExtensionRotationZ += delta;
-                        currentMiddleInnerExtensionRotationZ = Mathf.Clamp(currentMiddleInnerExtensionRotationZ, ExtensionClampMin, ExtensionClampMax);
-                        break;
-                }
-                break;
-
-            case 3: // X-axis tip extension motors
-                switch (col)
-                {
-                    case 0:
-                        currentThumbTipRotationZ += delta;
-                        currentThumbTipRotationZ = Mathf.Clamp(currentThumbTipRotationZ, ExtensionClampMin, ExtensionClampMax);
-                        break;
-                    case 1:
-                        currentIndexTipRotationZ += delta;
-                        currentIndexTipRotationZ = Mathf.Clamp(currentIndexTipRotationZ, ExtensionClampMin, ExtensionClampMax);
-                        break;
-                    case 2:
-                        currentMiddleTipRotationZ += delta;
-                        currentMiddleTipRotationZ = Mathf.Clamp(currentMiddleTipRotationZ, ExtensionClampMin, ExtensionClampMax);
-                        break;
-                }
-                break;
-        }
     }
 
     private void RefreshMiddleJoint1YDebug(string source)
