@@ -228,7 +228,7 @@ public class BaselineTwo : MonoBehaviour
         }
         else
         {
-            kbCurrentSelectedRenderer.material.color = Color.green;
+            kbCurrentSelectedRenderer.material.color = Color.red;
         }
     }
 
@@ -270,39 +270,88 @@ public class BaselineTwo : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            controller.KeyboardForceDisengageOnReset();
-
-            controller.currentThumbRotationY = 0f;
-            controller.currentThumbRotationZ = 0f;
-            controller.hasThumbAbductionAdjustment = false;
-            controller.currentThumbInnerExtensionRotationZ = 0f;
-            controller.currentThumbTipRotationZ = 0f;
-            controller.currentIndexRotationYMax = 0f;
-            controller.currentIndexRotationYMin = 0f;
-            controller.currentIndexRotationZMax = 0f;
-            controller.currentIndexRotationZMin = 0f;
-            controller.currentIndexInnerExtensionRotationZ = 0f;
-            controller.currentIndexTipRotationZ = 0f;
-            controller.currentMiddleRotationYMax = -60f;
-            controller.currentMiddleRotationYMin = 0f;
-            controller.currentMiddleRotationZ = 0f;
-            controller.currentMiddleRotationZMax = 0f;
-            controller.currentMiddleRotationZMin = 0f;
-            controller.currentMiddleInnerExtensionRotationZ = 0f;
-            controller.currentMiddleTipRotationZ = 0f;
-
-            controller.thumbGripperJoint1MaxRotationVector = controller.KeyboardThumbAngle1InitialRotation.eulerAngles;
-            controller.thumbGripperJoint2MaxRotationVector = controller.KeyboardThumbAngle2InitialRotation.eulerAngles;
-            controller.indexGripperJoint1MaxRotationVector = controller.KeyboardGetIndexJoint1MaxRotationVector();
-            controller.indexGripperJoint1MinRotationVector =
-                (controller.KeyboardIndexAngle1InitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
-            controller.indexGripperJoint2MaxRotationVector = controller.KeyboardIndexAngle2InitialRotation.eulerAngles;
-            controller.indexGripperJoint2MinRotationVector = controller.KeyboardIndexAngle2InitialRotation.eulerAngles;
-            controller.middleGripperJoint1MaxRotationVector = controller.KeyboardGetMiddleJoint1MaxRotationVector();
-            controller.middleGripperJoint1MinRotationVector = controller.KeyboardGetMiddleJoint1MinRotationVector();
-            controller.middleGripperJoint2MaxRotationVector = controller.KeyboardGetMiddleJoint2MaxRotationVector();
-            controller.middleGripperJoint2MinRotationVector = controller.KeyboardMiddleAngle2InitialRotation.eulerAngles;
+            ResetKeyboardOffsets();
         }
+    }
+
+    private void ResetKeyboardOffsets()
+    {
+        controller.KeyboardForceDisengageOnReset();
+
+        controller.currentThumbRotationY = 0f;
+        controller.currentThumbRotationYMax = 0f;
+        controller.currentThumbRotationYMin = 0f;
+        controller.currentThumbRotationZ = 0f;
+        controller.currentThumbRotationZMax = 0f;
+        controller.currentThumbRotationZMin = 0f;
+        controller.hasThumbAbductionAdjustment = false;
+        controller.currentThumbInnerExtensionRotationZ = 0f;
+        controller.currentThumbTipRotationZ = 0f;
+
+        controller.currentIndexRotationYMax = 0f;
+        controller.currentIndexRotationYMin = 0f;
+        controller.currentIndexRotationZMax = 0f;
+        controller.currentIndexRotationZMin = 0f;
+        controller.currentIndexInnerExtensionRotationZ = 0f;
+        controller.currentIndexTipRotationZ = 0f;
+
+        controller.currentMiddleRotationYMax = -60f;
+        controller.currentMiddleRotationYMin = 0f;
+        controller.currentMiddleRotationZ = 0f;
+        controller.currentMiddleRotationZMax = 0f;
+        controller.currentMiddleRotationZMin = 0f;
+        controller.currentMiddleInnerExtensionRotationZ = 0f;
+        controller.currentMiddleTipRotationZ = 0f;
+
+        controller.thumbGripperJoint1MaxRotationVector = controller.KeyboardThumbAngle1InitialRotation.eulerAngles;
+        if (controller.thumbGripperJoint1MaxRotationVector.y < 1f)
+        {
+            controller.thumbGripperJoint1MaxRotationVector.y = 360f;
+        }
+
+        controller.thumbGripperJoint1MinRotationVector =
+            (controller.KeyboardThumbAngle1InitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
+        controller.thumbGripperJoint2MaxRotationVector = controller.KeyboardThumbAngle2InitialRotation.eulerAngles;
+        if (controller.thumbGripperJoint2MaxRotationVector.z < 1f)
+        {
+            controller.thumbGripperJoint2MaxRotationVector.z = 360f;
+        }
+
+        controller.thumbGripperJoint2MinRotationVector = controller.KeyboardThumbAngle2InitialRotation.eulerAngles;
+
+        controller.indexGripperJoint1MaxRotationVector = controller.KeyboardGetIndexJoint1MaxRotationVector();
+        controller.indexGripperJoint1MinRotationVector =
+            (controller.KeyboardIndexAngle1InitialRotation * Quaternion.Euler(0f, 60f, 0f)).eulerAngles;
+        controller.indexGripperJoint2MaxRotationVector = controller.KeyboardIndexAngle2InitialRotation.eulerAngles;
+        controller.indexGripperJoint2MinRotationVector = controller.KeyboardIndexAngle2InitialRotation.eulerAngles;
+
+        controller.middleGripperJoint1MaxRotationVector = controller.KeyboardGetMiddleJoint1MaxRotationVector();
+        controller.middleGripperJoint1MinRotationVector = controller.KeyboardGetMiddleJoint1MinRotationVector();
+        controller.middleGripperJoint2MaxRotationVector = controller.KeyboardGetMiddleJoint2MaxRotationVector();
+        controller.middleGripperJoint2MinRotationVector = controller.KeyboardMiddleAngle2InitialRotation.eulerAngles;
+
+        controller.maxThumbYAxisAngle = controller.KeyboardNormalizeAngle(controller.thumbGripperJoint1MaxRotationVector.y);
+        controller.minThumbYAxisAngle = controller.KeyboardNormalizeAngle(controller.thumbGripperJoint1MinRotationVector.y);
+        controller.maxThumbZAxisAngle = controller.thumbGripperJoint2MaxRotationVector.z;
+        controller.minThumbZAxisAngle = controller.thumbGripperJoint2MinRotationVector.z;
+
+        controller.maxIndexYAxisAngle = controller.KeyboardIndexAngle1InitialRotation.eulerAngles.y;
+        controller.minIndexYAxisAngle = controller.KeyboardNormalizeAngle(controller.indexGripperJoint1MinRotationVector.y);
+        controller.maxIndexZAxisAngle = controller.KeyboardIndexAngle2InitialRotation.eulerAngles.z;
+        controller.minIndexZAxisAngle = controller.KeyboardIndexAngle2InitialRotation.eulerAngles.z;
+
+        controller.maxMiddleYAxisAngle = controller.KeyboardNormalizeMiddleJoint1MaxAngle(controller.middleGripperJoint1MaxRotationVector.y);
+        controller.minMiddleYAxisAngle = controller.KeyboardNormalizeAngle(controller.middleGripperJoint1MinRotationVector.y);
+        controller.maxMiddleZAxisAngle = controller.KeyboardMiddleAngle2InitialRotation.eulerAngles.z;
+        controller.minMiddleZAxisAngle = controller.middleGripperJoint2MinRotationVector.z;
+        controller.KeyboardRefreshMiddleJoint1YDebug("BaselineTwo:ResetP");
+
+        controller.ClearArmUIDirectAngleArrowState();
+        hadArrowInputLastFrame = false;
+        hasPendingArrow = false;
+        sideLockedMotorID = 0;
+        sideLockedUseLeftSide = false;
+        previousSelectedMotorID = GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
     }
 
     private static int GetMotorIDForCell(int row, int col)
@@ -382,6 +431,46 @@ public class BaselineTwo : MonoBehaviour
         pendingArrowDelta = delta;
     }
 
+    private void EnsureThumbPronationMinBaselineInitialized()
+    {
+        if (!Mathf.Approximately(controller.currentThumbRotationYMin, 0f))
+        {
+            return;
+        }
+
+        float wrappedY = Mathf.Repeat(controller.thumbGripperJoint1MinRotationVector.y, 360f);
+        if (Mathf.Abs(wrappedY - 60f) > 0.5f)
+        {
+            return;
+        }
+
+        controller.currentThumbRotationYMin = 60f;
+        Vector3 minVec = controller.thumbGripperJoint1MinRotationVector;
+        minVec.y = 60f;
+        controller.thumbGripperJoint1MinRotationVector = minVec;
+        controller.minThumbYAxisAngle = controller.KeyboardNormalizeAngle(minVec.y);
+    }
+
+    private void EnsureIndexPronationMinBaselineInitialized()
+    {
+        if (!Mathf.Approximately(controller.currentIndexRotationYMin, 0f))
+        {
+            return;
+        }
+
+        float wrappedY = Mathf.Repeat(controller.indexGripperJoint1MinRotationVector.y, 360f);
+        if (Mathf.Abs(wrappedY - 60f) > 0.5f)
+        {
+            return;
+        }
+
+        controller.currentIndexRotationYMin = 60f;
+        Vector3 minVec = controller.indexGripperJoint1MinRotationVector;
+        minVec.y = 60f;
+        controller.indexGripperJoint1MinRotationVector = minVec;
+        controller.minIndexYAxisAngle = controller.KeyboardNormalizeAngle(minVec.y);
+    }
+
     private void KbApplyRotation(int row, int col, float delta)
     {
         float effectiveDelta = delta;
@@ -416,6 +505,8 @@ public class BaselineTwo : MonoBehaviour
                         }
                         else
                         {
+                            EnsureThumbPronationMinBaselineInitialized();
+
                             float prevThumbYMin = controller.currentThumbRotationYMin;
                             controller.currentThumbRotationYMin += effectiveDelta;
                             controller.currentThumbRotationYMin = Mathf.Clamp(controller.currentThumbRotationYMin, 0f, 90f);
@@ -441,6 +532,8 @@ public class BaselineTwo : MonoBehaviour
                         }
                         else
                         {
+                            EnsureIndexPronationMinBaselineInitialized();
+
                             float prevIndexYMin = controller.currentIndexRotationYMin;
                             controller.currentIndexRotationYMin += effectiveDelta;
                             controller.currentIndexRotationYMin = Mathf.Clamp(controller.currentIndexRotationYMin, 0f, 90f);
