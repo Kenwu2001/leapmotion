@@ -165,7 +165,7 @@ public class ClawModuleController : MonoBehaviour
     // ==============================
     // 🔹 Snapping types
     // ==============================
-    public bool isSnappingEnabled = false;
+    public bool isSnappingEnabled = true;
     public bool isIndexMiddle180SnappingEnabled = false;
     public bool isThumbIndex180SnappingEnabled = false;
     public bool isThumbMiddle180SnappingEnabled = false;
@@ -675,6 +675,10 @@ public class ClawModuleController : MonoBehaviour
         {
             armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
         }
+
+        // Enforce snapping default at runtime even if scene-serialized values were off.
+        SetSnappingEnabled(true);
+        Update180SnappingText();
 
     }
 
@@ -5177,12 +5181,9 @@ public class ClawModuleController : MonoBehaviour
         ResetAllFreezeStates();
         ResetModeSwitchingState();
 
-        // Reset all snapping flags
-        isIndexMiddle180SnappingEnabled = false;
-        isThumbIndex180SnappingEnabled = false;
-        isThumbMiddle180SnappingEnabled = false;
-        is120SnappingEnabled = false;
-        isSnappingEnabled = false;
+        // Keep snapping enabled after reset so the user starts from snapping-on state.
+        SetSnappingEnabled(true);
+        Update180SnappingText();
 
         // Reset Arm UI state preference while keeping Arm UI plane disabled.
         ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
