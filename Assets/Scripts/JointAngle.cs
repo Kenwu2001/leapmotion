@@ -858,7 +858,8 @@ public class JointAngle : MonoBehaviour
                     lineRenderer.SetPosition(1, rotationPoint0Position);
                 }
 
-                lineRenderer.enabled = showDebugVisuals; // Replaced lineRenderer.enabled = true;
+                // Only show red debug line for pronation motors (1/5/9).
+                lineRenderer.enabled = showDebugVisuals && IsPronationMotor(confirmedMotorID);
 
                 if (hasPreviousFrame && isClockWise != 0)
                 {
@@ -1455,6 +1456,11 @@ public class JointAngle : MonoBehaviour
             return middleRotationColliderMode;
 
         return false;
+    }
+
+    private static bool IsPronationMotor(int motorID)
+    {
+        return motorID == 1 || motorID == 5 || motorID == 9;
     }
 
     internal void OnRotationColliderEntered(int colliderType)
