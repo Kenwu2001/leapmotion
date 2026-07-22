@@ -117,6 +117,10 @@ public class ModeSwitching : MonoBehaviour
 
     [Tooltip("Gray mode visuals for fingertip-first: ON = non-selectable motors are gray, OFF = keep original claw colors")]
     public bool grayMode = true;
+
+    [Header("Paxini OFF Preview")]
+    [Tooltip("ON: pending Paxini OFF can temporarily restore same-group preview colors when hovering another motor. OFF: Paxini stays off/original and the four group motors stay yellow.")]
+    public bool PaxiniOffReturnOriginalColor = true;
     
     public Color grayColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Gray (disabled/unselectable)
 
@@ -1884,6 +1888,9 @@ public class ModeSwitching : MonoBehaviour
         Color baseColor = fallbackOriginalColor;
         if (motorID >= 1 && motorID <= 12)
         {
+            int groupStart = (motorID <= 4) ? 1 : (motorID <= 8 ? 5 : 9);
+            bool keepYellowDuringPendingDirectOff = ShouldKeepGroupYellowDuringPendingDirectOff(groupStart);
+
             if (_pendingSingleMotorFreeze[motorID - 1])
             {
                 return singleFrozenColor;
@@ -1897,13 +1904,12 @@ public class ModeSwitching : MonoBehaviour
             bool suppressGroupYellow = (motorID <= 4 && _suppressThumbGroupYellow)
                                      || (motorID >= 5 && motorID <= 8 && _suppressIndexGroupYellow)
                                      || (motorID >= 9 && _suppressMiddleGroupYellow);
-            int groupStart = (motorID <= 4) ? 1 : (motorID <= 8 ? 5 : 9);
             if (ShouldTemporarilyRestoreGroupYellow(groupStart))
             {
                 suppressGroupYellow = false;
             }
 
-            if (singleMotorFrozen[motorID - 1] && !suppressGroupYellow)
+            if (singleMotorFrozen[motorID - 1] && (!suppressGroupYellow || keepYellowDuringPendingDirectOff))
             {
                 return singleFrozenColor;
             }
@@ -2160,12 +2166,13 @@ public class ModeSwitching : MonoBehaviour
                 int mID = i + 1;
                 int groupStart = (mID <= 4) ? 1 : (mID <= 8 ? 5 : 9);
                 bool restoreYellowPreview = ShouldTemporarilyRestoreGroupYellow(groupStart);
+                bool keepYellowDuringPendingDirectOff = ShouldKeepGroupYellowDuringPendingDirectOff(groupStart);
                 bool suppress = ((mID <= 4 && _suppressThumbGroupYellow)
                               || (mID >= 5 && mID <= 8 && _suppressIndexGroupYellow)
                               || (mID >= 9 && _suppressMiddleGroupYellow))
                               && !restoreYellowPreview;
                 bool isActiveSelectionMotor = (mID == currentRedMotorID) || (mID == confirmedMotorID);
-                if (!suppress && !isActiveSelectionMotor)
+                if ((!suppress && !isActiveSelectionMotor) || keepYellowDuringPendingDirectOff)
                     SetMotorColorDirect(mID, singleFrozenColor);
             }
             else if (_pendingSingleMotorFreeze[i])
@@ -2440,6 +2447,9 @@ public class ModeSwitching : MonoBehaviour
     {
         // While pending direct-OFF is active, touching a motor in the same group previews
         // the old frozen look for that group (except the actively touched motor itself).
+        if (!PaxiniOffReturnOriginalColor)
+            return false;
+
         if (!IsPendingDirectOffForGroup(groupStart))
             return false;
 
@@ -2450,6 +2460,11 @@ public class ModeSwitching : MonoBehaviour
         if (groupStart == 1) return touchedMotor >= 1 && touchedMotor <= 4;
         if (groupStart == 5) return touchedMotor >= 5 && touchedMotor <= 8;
         return touchedMotor >= 9 && touchedMotor <= 12;
+    }
+
+    private bool ShouldKeepGroupYellowDuringPendingDirectOff(int groupStart)
+    {
+        return !PaxiniOffReturnOriginalColor && IsPendingDirectOffForGroup(groupStart);
     }
 
     /// <summary>
@@ -3060,6 +3075,13 @@ public class ModeSwitching : MonoBehaviour
             }
 
             return fallbackOriginalColor;
+        }
+
+        if (motorID >= 1 && motorID <= 12)
+        {
+            int pendingGroupStart = (motorID <= 4) ? 1 : (motorID <= 8 ? 5 : 9);
+            if (ShouldKeepGroupYellowDuringPendingDirectOff(pendingGroupStart) && singleMotorFrozen[motorID - 1])
+                return singleFrozenColor;
         }
 
         if (_isUnfreezing && motorID == _unfreezeTargetMotorID && currentRedMotorID == motorID)
