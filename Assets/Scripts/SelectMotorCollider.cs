@@ -3132,7 +3132,17 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightThumbTip != null)
         {
-            if (thumbPaxiniForceOriginal)
+            // Direct pending direct-OFF preview check (like ArmUI version) to avoid lerp-induced flicker.
+            // Must be checked FIRST before forceOriginal, so ShouldTemporarilyRestoreGroupYellow always wins.
+            if (modeSwitching != null && modeSwitching.IsPendingDirectOffForMotor(ThumbPaxiniMotorID) && modeSwitching.ShouldTemporarilyRestoreGroupYellow(1))
+            {
+                // Touching same-group motor while pending direct-OFF → show yellow immediately
+                triggerRightThumbTip.showFreezeColor = true;
+                triggerRightThumbTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightThumbTip.thumbPaxiniRenderer != null)
+                    triggerRightThumbTip.thumbPaxiniRenderer.material.color = Color.yellow;
+            }
+            else if (thumbPaxiniForceOriginal)
             {
                 // Pending auto-OFF: override to original despite thumbFreezeEnabled=true
                 triggerRightThumbTip.showFreezeColor = false;
@@ -3171,7 +3181,16 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightIndexTip != null)
         {
-            if (indexPaxiniForceOriginal)
+            // Direct pending direct-OFF preview check (like ArmUI version) to avoid lerp-induced flicker.
+            if (modeSwitching != null && modeSwitching.IsPendingDirectOffForMotor(IndexPaxiniMotorID) && modeSwitching.ShouldTemporarilyRestoreGroupYellow(5))
+            {
+                // Touching same-group motor while pending direct-OFF → show yellow immediately
+                triggerRightIndexTip.showFreezeColor = true;
+                triggerRightIndexTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightIndexTip.indexPaxiniRenderer != null)
+                    triggerRightIndexTip.indexPaxiniRenderer.material.color = Color.yellow;
+            }
+            else if (indexPaxiniForceOriginal)
             {
                 triggerRightIndexTip.showFreezeColor = false;
                 triggerRightIndexTip.freezeDisplayColor = triggerRightIndexTip.originalColor;
@@ -3208,7 +3227,16 @@ public class SelectMotorCollider : MonoBehaviour
 
         if (triggerRightMiddleTip != null)
         {
-            if (middlePaxiniForceOriginal)
+            // Direct pending direct-OFF preview check (like ArmUI version) to avoid lerp-induced flicker.
+            if (modeSwitching != null && modeSwitching.IsPendingDirectOffForMotor(MiddlePaxiniMotorID) && modeSwitching.ShouldTemporarilyRestoreGroupYellow(9))
+            {
+                // Touching same-group motor while pending direct-OFF → show yellow immediately
+                triggerRightMiddleTip.showFreezeColor = true;
+                triggerRightMiddleTip.freezeDisplayColor = Color.yellow;
+                if (triggerRightMiddleTip.middlePaxiniRenderer != null)
+                    triggerRightMiddleTip.middlePaxiniRenderer.material.color = Color.yellow;
+            }
+            else if (middlePaxiniForceOriginal)
             {
                 triggerRightMiddleTip.showFreezeColor = false;
                 triggerRightMiddleTip.freezeDisplayColor = triggerRightMiddleTip.originalColor;
