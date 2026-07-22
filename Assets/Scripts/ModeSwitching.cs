@@ -371,6 +371,8 @@ public class ModeSwitching : MonoBehaviour
 
                 if (currentMotorID != 0)
                 {
+                    RevertPaxiniToBaselineForHoveredGroupMotor(currentMotorID);
+
                     // Detect if the newly touched motor is currently single-frozen → unfreeze flow
                     bool isFrozenMotor = currentMotorID >= 1 && currentMotorID <= 12
                                         && singleMotorFrozen[currentMotorID - 1];
@@ -1144,7 +1146,7 @@ public class ModeSwitching : MonoBehaviour
             {
                 if (_pendingThumbDirectOff)
                 {
-                    if (ShouldTemporarilyRestoreGroupYellow(1))
+                    if (ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(1))
                     {
                         SelectMotorCollider.thumbPaxiniForceOriginal = false;
                         SelectMotorCollider.thumbPaxiniForceYellow   = true;
@@ -1158,7 +1160,7 @@ public class ModeSwitching : MonoBehaviour
                 }
                 if (_pendingIndexDirectOff)
                 {
-                    if (ShouldTemporarilyRestoreGroupYellow(5))
+                    if (ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(5))
                     {
                         SelectMotorCollider.indexPaxiniForceOriginal = false;
                         SelectMotorCollider.indexPaxiniForceYellow   = true;
@@ -1172,7 +1174,7 @@ public class ModeSwitching : MonoBehaviour
                 }
                 if (_pendingMiddleDirectOff)
                 {
-                    if (ShouldTemporarilyRestoreGroupYellow(9))
+                    if (ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(9))
                     {
                         SelectMotorCollider.middlePaxiniForceOriginal = false;
                         SelectMotorCollider.middlePaxiniForceYellow   = true;
@@ -1866,7 +1868,7 @@ public class ModeSwitching : MonoBehaviour
             if (IsPendingDirectOffForMotor(motorID))
             {
                 int groupStart = (motorID == ThumbPaxiniMotorID) ? 1 : (motorID == IndexPaxiniMotorID ? 5 : 9);
-                return ShouldTemporarilyRestoreGroupYellow(groupStart) ? singleFrozenColor : fallbackOriginalColor;
+                return ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(groupStart) ? singleFrozenColor : fallbackOriginalColor;
             }
 
             return GetCanonicalPaxiniDisplayColor(
@@ -1909,7 +1911,8 @@ public class ModeSwitching : MonoBehaviour
                 suppressGroupYellow = false;
             }
 
-            if (singleMotorFrozen[motorID - 1] && (!suppressGroupYellow || keepYellowDuringPendingDirectOff))
+            bool isActiveSelectionMotor = (motorID == currentRedMotorID) || (motorID == confirmedMotorID);
+            if (singleMotorFrozen[motorID - 1] && ((!suppressGroupYellow || keepYellowDuringPendingDirectOff) && !isActiveSelectionMotor))
             {
                 return singleFrozenColor;
             }
@@ -2200,13 +2203,13 @@ public class ModeSwitching : MonoBehaviour
             // ShouldTemporarilyRestoreGroupYellow: user touches same-group motor while pending direct-OFF
             // → Paxini should preview yellow, not original. Skip the original override in that case.
             if (ShouldShowPaxiniOriginalWhileTouchingGroupMotor(ThumbPaxiniMotorID)
-                && !ShouldTemporarilyRestoreGroupYellow(1))
+                && !ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(1))
                 SetMotorColorDirect(ThumbPaxiniMotorID, thumbPaxiniOriginalColor);
             if (ShouldShowPaxiniOriginalWhileTouchingGroupMotor(IndexPaxiniMotorID)
-                && !ShouldTemporarilyRestoreGroupYellow(5))
+                && !ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(5))
                 SetMotorColorDirect(IndexPaxiniMotorID, indexPaxiniOriginalColor);
             if (ShouldShowPaxiniOriginalWhileTouchingGroupMotor(MiddlePaxiniMotorID)
-                && !ShouldTemporarilyRestoreGroupYellow(9))
+                && !ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(9))
                 SetMotorColorDirect(MiddlePaxiniMotorID, middlePaxiniOriginalColor);
         }
     }
@@ -2462,9 +2465,41 @@ public class ModeSwitching : MonoBehaviour
         return touchedMotor >= 9 && touchedMotor <= 12;
     }
 
+    public bool ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(int groupStart)
+    {
+        if (!IsPendingDirectOffForGroup(groupStart))
+            return false;
+
+        int touchedMotor = currentRedMotorID;
+        if (touchedMotor < 1 || touchedMotor > 12)
+            return false;
+
+        if (groupStart == 1) return touchedMotor >= 1 && touchedMotor <= 4;
+        if (groupStart == 5) return touchedMotor >= 5 && touchedMotor <= 8;
+        return touchedMotor >= 9 && touchedMotor <= 12;
+    }
+
     private bool ShouldKeepGroupYellowDuringPendingDirectOff(int groupStart)
     {
         return !PaxiniOffReturnOriginalColor && IsPendingDirectOffForGroup(groupStart);
+    }
+
+    private void RevertPaxiniToBaselineForHoveredGroupMotor(int motorID)
+    {
+        if (motorID < 1 || motorID > 12 || SelectMotorCollider == null)
+            return;
+
+        int groupStart = GetGroupStartForMotor(motorID);
+        int paxiniID = GetPaxiniIDForGroup(groupStart);
+        bool paxiniDiffersFromBaseline = IsCanonicalPaxiniOnForMotor(paxiniID) != GetBaselinePaxiniOn(groupStart);
+        bool hasPendingDirectOff = IsPendingDirectOffForGroup(groupStart);
+
+        if (!paxiniDiffersFromBaseline && !hasPendingDirectOff && _roundChangedMotorID != paxiniID)
+            return;
+
+        RevertPaxiniToBaseline(groupStart);
+        if (_roundChangedMotorID == paxiniID)
+            _roundChangedMotorID = 0;
     }
 
     /// <summary>
@@ -3041,7 +3076,7 @@ public class ModeSwitching : MonoBehaviour
             if (IsPendingDirectOffForMotor(motorID))
             {
                 int groupStart = (motorID == ThumbPaxiniMotorID) ? 1 : (motorID == IndexPaxiniMotorID ? 5 : 9);
-                return ShouldTemporarilyRestoreGroupYellow(groupStart) ? singleFrozenColor : fallbackOriginalColor;
+                return ShouldRestorePaxiniBaselineWhileTouchingGroupMotor(groupStart) ? singleFrozenColor : fallbackOriginalColor;
             }
 
             if (ShouldShowPaxiniOriginalWhileTouchingGroupMotor(motorID))
@@ -3075,13 +3110,6 @@ public class ModeSwitching : MonoBehaviour
             }
 
             return fallbackOriginalColor;
-        }
-
-        if (motorID >= 1 && motorID <= 12)
-        {
-            int pendingGroupStart = (motorID <= 4) ? 1 : (motorID <= 8 ? 5 : 9);
-            if (ShouldKeepGroupYellowDuringPendingDirectOff(pendingGroupStart) && singleMotorFrozen[motorID - 1])
-                return singleFrozenColor;
         }
 
         if (_isUnfreezing && motorID == _unfreezeTargetMotorID && currentRedMotorID == motorID)
@@ -3134,11 +3162,12 @@ public class ModeSwitching : MonoBehaviour
 
             int groupStart = (motorID <= 4) ? 1 : (motorID <= 8 ? 5 : 9);
             bool restoreYellowPreview = ShouldTemporarilyRestoreGroupYellow(groupStart);
+            bool keepYellowDuringPendingDirectOff = ShouldKeepGroupYellowDuringPendingDirectOff(groupStart);
             bool suppress = ((motorID <= 4 && _suppressThumbGroupYellow)
                           || (motorID >= 5 && motorID <= 8 && _suppressIndexGroupYellow)
                           || (motorID >= 9 && _suppressMiddleGroupYellow))
                           && !restoreYellowPreview;
-            if (singleMotorFrozen[motorID - 1] && !suppress)
+            if (singleMotorFrozen[motorID - 1] && (!suppress || keepYellowDuringPendingDirectOff))
                 return singleFrozenColor;
 
             return baseColor;

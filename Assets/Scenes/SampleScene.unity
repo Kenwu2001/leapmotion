@@ -49445,6 +49445,7 @@ MonoBehaviour:
   currentPhase: 0
   confirmedFingertipID: 0
   grayMode: 0
+  PaxiniOffReturnOriginalColor: 1
   grayColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   singleMotorFreezeTime: 2
   singleFrozenColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
