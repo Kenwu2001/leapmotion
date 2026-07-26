@@ -1,4 +1,8 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
 
 [DefaultExecutionOrder(-100)]
 [DisallowMultipleComponent]
@@ -32,6 +36,54 @@ public class BaselineTwo : MonoBehaviour
     private float pendingArrowDelta;
     private bool selectedFrozenUsesLightRed;
     public Baseline2PlaneButtonInteraction planeButtonInteraction;
+    public TriggerRightWrist triggerRightWrist;
+
+    [Header("=== Baseline2 Operation Log ===")]
+    [Tooltip("Write one CSV row per completed operation. Relative folders are created under the Unity project folder.")]
+    public bool enableOperationLogging = true;
+    [Tooltip("Absolute folder path, or a path relative to the Unity project folder.")]
+    public string operationLogFolder = "UserStudyLogs";
+    [Tooltip("CSV file name written inside Operation Log Folder.")]
+    public string operationLogFileName = "baseline2_operation_log.csv";
+    [Tooltip("If true, append a timestamp suffix when a new log session starts to avoid overwriting previous files.")]
+    public bool appendTimestampToLogFileName = true;
+    [Tooltip("Press this key during Play Mode to discard the current log and start again from operation 0.")]
+    public KeyCode restartOperationLogKey = KeyCode.Backspace;
+    [Tooltip("Turn this on in the Inspector during Play Mode to discard the current log and start again from operation 0.")]
+    public bool restartOperationLogNow;
+    public int loggedOperationCount;
+    public float totalOperationSeconds;
+    public float taskCompletionSeconds;
+    public string currentOperationLogPath = "";
+    public string operationLogStatus = "Log not started";
+
+    private struct OperationLogEntry
+    {
+        public int index;
+        public float startTime;
+        public float endTime;
+        public string startedAt;
+        public string endedAt;
+    }
+
+    private readonly List<OperationLogEntry> operationLogEntries = new List<OperationLogEntry>();
+    private bool operationLogActive;
+    private bool operationSawAdjustmentInput;
+    private float currentOperationStartTime;
+    private string currentOperationStartedAt;
+    private bool previousAnyAdjustmentPressed;
+    private bool previousEngagementActive;
+    private bool hasTaskCompletionStart;
+    private bool hasTaskCompletionEnd;
+    private float taskCompletionStartTime;
+    private float taskCompletionEndTime;
+    private string taskCompletionStartedAt;
+    private string taskCompletionEndedAt;
+    private string runtimeOperationLogFileName;
+    private bool wasPlaneWPressed;
+    private bool wasPlaneAPressed;
+    private bool wasPlaneSPressed;
+    private bool wasPlaneDPressed;
 
     public bool IsMoveUpPressed => useKeyboardControl && (Input.GetKey(KeyCode.W) || IsPlaneButtonTouched(KeyCode.W));
     public bool IsMoveLeftPressed => useKeyboardControl && (Input.GetKey(KeyCode.A) || IsPlaneButtonTouched(KeyCode.A));
@@ -53,6 +105,11 @@ public class BaselineTwo : MonoBehaviour
         if (planeButtonInteraction == null)
         {
             planeButtonInteraction = FindObjectOfType<Baseline2PlaneButtonInteraction>();
+        }
+
+        if (triggerRightWrist == null)
+        {
+            triggerRightWrist = FindObjectOfType<TriggerRightWrist>();
         }
 
         if (useKeyboardControl && controller != null && controller.modeSwitching != null)
@@ -92,6 +149,7 @@ public class BaselineTwo : MonoBehaviour
         };
 
         prevUseKeyboardControl = useKeyboardControl;
+        RestartOperationLog();
         if (useKeyboardControl)
         {
             EnterKeyboardMode();
@@ -118,10 +176,331 @@ public class BaselineTwo : MonoBehaviour
             }
         }
 
+        TrackTaskCompletionTime();
+
         if (useKeyboardControl)
         {
+            HandleOperationLogRestartInput();
+            TrackOperationStartBeforeInputHandlers();
             HandleKeyboardControl();
+            TrackOperationEndAfterInputHandlers();
         }
+    }
+
+    private void HandleOperationLogRestartInput()
+    {
+        if (!enableOperationLogging)
+        {
+            restartOperationLogNow = false;
+            return;
+        }
+
+        if (restartOperationLogNow || (restartOperationLogKey != KeyCode.None && Input.GetKeyDown(restartOperationLogKey)))
+        {
+            restartOperationLogNow = false;
+            RestartOperationLog();
+        }
+    }
+
+    private void TrackOperationStartBeforeInputHandlers()
+    {
+        if (!enableOperationLogging || operationLogActive)
+        {
+            return;
+        }
+
+        if (!hasTaskCompletionStart)
+        {
+            return;
+        }
+
+        if (IsAnyNavigationPressedThisFrame())
+        {
+            operationLogActive = true;
+            operationSawAdjustmentInput = false;
+            currentOperationStartTime = Time.realtimeSinceStartup;
+            currentOperationStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            operationLogStatus = "Operation " + (operationLogEntries.Count + 1) + " running";
+        }
+    }
+
+    private void TrackOperationEndAfterInputHandlers()
+    {
+        if (!enableOperationLogging)
+        {
+            previousAnyAdjustmentPressed = IsAnyAdjustmentPressed();
+            return;
+        }
+
+        if (!hasTaskCompletionStart)
+        {
+            previousAnyAdjustmentPressed = IsAnyAdjustmentPressed();
+            return;
+        }
+
+        bool anyAdjustmentPressed = IsAnyAdjustmentPressed();
+        if (operationLogActive && anyAdjustmentPressed)
+        {
+            operationSawAdjustmentInput = true;
+        }
+
+        bool adjustmentReleasedThisFrame = previousAnyAdjustmentPressed && !anyAdjustmentPressed;
+        if (operationLogActive && operationSawAdjustmentInput && adjustmentReleasedThisFrame)
+        {
+            CompleteCurrentOperation();
+        }
+
+        previousAnyAdjustmentPressed = anyAdjustmentPressed;
+    }
+
+    private void TrackTaskCompletionTime()
+    {
+        if (!enableOperationLogging)
+        {
+            previousEngagementActive = IsEngagementActive();
+            return;
+        }
+
+        bool engagementActive = IsEngagementActive();
+        if (engagementActive && !previousEngagementActive && !hasTaskCompletionStart)
+        {
+            hasTaskCompletionStart = true;
+            hasTaskCompletionEnd = false;
+            taskCompletionStartTime = Time.realtimeSinceStartup;
+            taskCompletionEndTime = 0f;
+            taskCompletionSeconds = 0f;
+            taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            taskCompletionEndedAt = "";
+            operationLogStatus = "Engagement started: operation logging is now active";
+            WriteOperationLogCsv();
+        }
+
+        if (!engagementActive && previousEngagementActive && hasTaskCompletionStart)
+        {
+            hasTaskCompletionEnd = true;
+            taskCompletionEndTime = Time.realtimeSinceStartup;
+            taskCompletionSeconds = Mathf.Max(0f, taskCompletionEndTime - taskCompletionStartTime);
+            taskCompletionEndedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            WriteOperationLogCsv();
+        }
+
+        previousEngagementActive = engagementActive;
+    }
+
+    private bool IsEngagementActive()
+    {
+        return triggerRightWrist != null && triggerRightWrist.IsEngaged;
+    }
+
+    private bool IsAnyNavigationPressedThisFrame()
+    {
+        return Input.GetKeyDown(KeyCode.W)
+            || Input.GetKeyDown(KeyCode.A)
+            || Input.GetKeyDown(KeyCode.S)
+            || Input.GetKeyDown(KeyCode.D)
+            || ConsumePlaneButtonPress(KeyCode.W, ref wasPlaneWPressed)
+            || ConsumePlaneButtonPress(KeyCode.A, ref wasPlaneAPressed)
+            || ConsumePlaneButtonPress(KeyCode.S, ref wasPlaneSPressed)
+            || ConsumePlaneButtonPress(KeyCode.D, ref wasPlaneDPressed);
+    }
+
+    private bool ConsumePlaneButtonPress(KeyCode keyCode, ref bool wasPressedLastFrame)
+    {
+        bool isPressedThisFrame = IsPlaneButtonTouched(keyCode);
+        bool pressedThisFrame = isPressedThisFrame && !wasPressedLastFrame;
+        wasPressedLastFrame = isPressedThisFrame;
+        return pressedThisFrame;
+    }
+
+    private bool IsAnyAdjustmentPressed()
+    {
+        return IsAdjustmentPressed(KeyCode.Q)
+            || IsAdjustmentPressed(KeyCode.E)
+            || IsAdjustmentPressed(KeyCode.F);
+    }
+
+    private bool IsAdjustmentPressed(KeyCode keyCode)
+    {
+        return Input.GetKey(keyCode) || IsPlaneButtonTouched(keyCode);
+    }
+
+    private void CompleteCurrentOperation()
+    {
+        float endTime = Time.realtimeSinceStartup;
+        float duration = Mathf.Max(0f, endTime - currentOperationStartTime);
+        operationLogEntries.Add(new OperationLogEntry
+        {
+            index = operationLogEntries.Count + 1,
+            startTime = currentOperationStartTime,
+            endTime = endTime,
+            startedAt = currentOperationStartedAt,
+            endedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)
+        });
+
+        loggedOperationCount = operationLogEntries.Count;
+        totalOperationSeconds += duration;
+        operationLogActive = false;
+        operationSawAdjustmentInput = false;
+        WriteOperationLogCsv();
+    }
+
+    [ContextMenu("Restart Operation Log")]
+    public void RestartOperationLog()
+    {
+        operationLogEntries.Clear();
+        loggedOperationCount = 0;
+        totalOperationSeconds = 0f;
+        taskCompletionSeconds = 0f;
+        operationLogActive = false;
+        operationSawAdjustmentInput = false;
+        previousAnyAdjustmentPressed = IsAnyAdjustmentPressed();
+        hasTaskCompletionStart = false;
+        hasTaskCompletionEnd = false;
+        taskCompletionStartTime = 0f;
+        taskCompletionEndTime = 0f;
+        taskCompletionStartedAt = "";
+        taskCompletionEndedAt = "";
+        previousEngagementActive = IsEngagementActive();
+        if (previousEngagementActive)
+        {
+            hasTaskCompletionStart = true;
+            taskCompletionStartTime = Time.realtimeSinceStartup;
+            taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+        }
+
+        runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
+        WriteOperationLogCsv();
+        if (hasTaskCompletionStart)
+        {
+            operationLogStatus = "Engagement already ON: operation logging active";
+        }
+        else
+        {
+            operationLogStatus = "Waiting for first engagement ON";
+        }
+    }
+
+    private string BuildRuntimeOperationLogFileName()
+    {
+        string fileName = string.IsNullOrWhiteSpace(operationLogFileName) ? "baseline2_operation_log.csv" : operationLogFileName.Trim();
+        string extension = Path.GetExtension(fileName);
+        if (string.IsNullOrEmpty(extension))
+        {
+            extension = ".csv";
+        }
+
+        string baseName = Path.GetFileNameWithoutExtension(fileName);
+        if (string.IsNullOrWhiteSpace(baseName))
+        {
+            baseName = "baseline2_operation_log";
+        }
+
+        if (!appendTimestampToLogFileName)
+        {
+            return baseName + extension;
+        }
+
+        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+        return baseName + "_" + timestamp + extension;
+    }
+
+    private void WriteOperationLogCsv()
+    {
+        if (!enableOperationLogging)
+        {
+            operationLogStatus = "Operation logging disabled";
+            return;
+        }
+
+        string folderPath = ResolveOperationLogFolderPath();
+        if (string.IsNullOrWhiteSpace(runtimeOperationLogFileName))
+        {
+            runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
+        }
+
+        try
+        {
+            Directory.CreateDirectory(folderPath);
+            currentOperationLogPath = Path.Combine(folderPath, runtimeOperationLogFileName);
+            File.WriteAllText(currentOperationLogPath, BuildOperationLogCsv(), Encoding.UTF8);
+            operationLogStatus = "Wrote " + loggedOperationCount + " operations";
+        }
+        catch (System.Exception exception)
+        {
+            operationLogStatus = "Log write failed: " + exception.Message;
+            Debug.LogError(operationLogStatus);
+        }
+    }
+
+    private string ResolveOperationLogFolderPath()
+    {
+        string folder = string.IsNullOrWhiteSpace(operationLogFolder) ? "UserStudyLogs" : operationLogFolder.Trim();
+        if (Path.IsPathRooted(folder))
+        {
+            return folder;
+        }
+
+        string projectFolder = Directory.GetParent(Application.dataPath).FullName;
+        return Path.Combine(projectFolder, folder);
+    }
+
+    private string BuildOperationLogCsv()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.AppendLine("RecordType,OperationIndex,StartRealtimeSeconds,EndRealtimeSeconds,DurationSeconds,StartedAt,EndedAt,TotalOperations,TotalOperationSeconds,TaskStartRealtimeSeconds,TaskEndRealtimeSeconds,TaskCompletionSeconds,TaskStartedAt,TaskEndedAt");
+
+        float calculatedTotalOperationSeconds = 0f;
+        for (int i = 0; i < operationLogEntries.Count; i++)
+        {
+            OperationLogEntry entry = operationLogEntries[i];
+            float duration = Mathf.Max(0f, entry.endTime - entry.startTime);
+            calculatedTotalOperationSeconds += duration;
+            builder.Append("Operation,");
+            builder.Append(entry.index.ToString(CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(entry.startTime.ToString("F4", CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(entry.endTime.ToString("F4", CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(duration.ToString("F4", CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(EscapeCsv(entry.startedAt));
+            builder.Append(',');
+            builder.Append(EscapeCsv(entry.endedAt));
+            builder.AppendLine(",,,,,,,");
+        }
+
+        totalOperationSeconds = calculatedTotalOperationSeconds;
+        builder.Append("Summary,,,,,,,");
+        builder.Append(operationLogEntries.Count.ToString(CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(totalOperationSeconds.ToString("F4", CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(hasTaskCompletionStart ? taskCompletionStartTime.ToString("F4", CultureInfo.InvariantCulture) : "");
+        builder.Append(',');
+        builder.Append(hasTaskCompletionEnd ? taskCompletionEndTime.ToString("F4", CultureInfo.InvariantCulture) : "");
+        builder.Append(',');
+        builder.Append(hasTaskCompletionEnd ? taskCompletionSeconds.ToString("F4", CultureInfo.InvariantCulture) : "");
+        builder.Append(',');
+        builder.Append(EscapeCsv(taskCompletionStartedAt));
+        builder.Append(',');
+        builder.AppendLine(EscapeCsv(taskCompletionEndedAt));
+        return builder.ToString();
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "";
+        }
+
+        if (value.Contains(",") || value.Contains("\"") || value.Contains("\n") || value.Contains("\r"))
+        {
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+
+        return value;
     }
 
     private void LateUpdate()
