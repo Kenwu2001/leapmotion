@@ -1168,12 +1168,12 @@ public class ClawModuleController : MonoBehaviour
         if (_operationEnteredManipulate)
         {
             success = _operationChangedAngle;
-            reason = _operationChangedAngle ? "anglechanged" : "noanglechange";
+            reason = BuildOperationReason(_operationChangedAngle ? "anglechanged" : "noanglechange");
             return;
         }
 
         success = _operationChangedFreeze;
-        reason = _operationChangedFreeze ? GetFreezeChangeSuccessReason() : "nochange";
+        reason = BuildOperationReason(_operationChangedFreeze ? GetFreezeChangeSuccessReason() : "nochange");
     }
 
     private string GetFreezeChangeSuccessReason()
@@ -1193,6 +1193,12 @@ public class ClawModuleController : MonoBehaviour
         }
 
         return "statechanged";
+    }
+
+    private string BuildOperationReason(string baseReason)
+    {
+        string sourcePrefix = _operationSource == OperationInputSource.ArmUI ? "UI" : "claw";
+        return sourcePrefix + "_" + baseReason;
     }
 
     private static int CountFrozenStates(FreezeStateSnapshot snapshot)
