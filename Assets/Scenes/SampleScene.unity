@@ -53630,7 +53630,7 @@ MonoBehaviour:
   host: 127.0.0.1
   port: 50007
   paxiniZeroThreshold: 5
-  paxiniSnapOnThreshold: 40
+  paxiniSnapOnThreshold: 35
   isThumbPaxiniZero: 0
   isThumbTouchSnapped: 0
   isIndexPaxiniZero: 0
