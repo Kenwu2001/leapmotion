@@ -1015,7 +1015,7 @@ public class ClawModuleController : MonoBehaviour
 
         if (!engagementActive && _previousEngagementActive && _hasTaskCompletionStart)
         {
-            FinalizeOpenTaskCompletion("engagement_off");
+            RecordTaskCompletionEnd();
         }
 
         _previousEngagementActive = engagementActive;
@@ -1023,21 +1023,27 @@ public class ClawModuleController : MonoBehaviour
 
     private void FinalizeOpenTaskCompletion(string reason)
     {
-        if (!enableOperationLogging || !_hasTaskCompletionStart || _hasTaskCompletionEnd)
+        if (!enableOperationLogging || !_hasTaskCompletionStart)
         {
             return;
         }
 
-        _hasTaskCompletionEnd = true;
-        _taskCompletionEndTime = Time.realtimeSinceStartup;
-        taskCompletionSeconds = Mathf.Max(0f, _taskCompletionEndTime - _taskCompletionStartTime);
-        _taskCompletionEndedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+        RecordTaskCompletionEnd();
 
         if (_operationActive)
         {
             FinalizeOperation(false, reason + "_before_operation_completed");
         }
 
+        WriteOperationLogCsv();
+    }
+
+    private void RecordTaskCompletionEnd()
+    {
+        _hasTaskCompletionEnd = true;
+        _taskCompletionEndTime = Time.realtimeSinceStartup;
+        taskCompletionSeconds = Mathf.Max(0f, _taskCompletionEndTime - _taskCompletionStartTime);
+        _taskCompletionEndedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
         WriteOperationLogCsv();
     }
 
@@ -1064,14 +1070,14 @@ public class ClawModuleController : MonoBehaviour
             return;
         }
 
-        bool startCondition = _hasTaskCompletionStart && IsEngagementActive() && IsOperationStartConditionNow();
+        bool startCondition = _hasTaskCompletionStart && IsOperationStartConditionNow();
         if (!_operationActive)
         {
             if (startCondition && !_previousStartCondition)
             {
                 BeginOperation();
             }
-            else if (_hasTaskCompletionStart && IsEngagementActive() && GetModeManipulateForSource(GetCurrentOperationSource()))
+            else if (_hasTaskCompletionStart && GetModeManipulateForSource(GetCurrentOperationSource()))
             {
                 int confirmedMotorID = GetConfirmedMotorIDForSource(GetCurrentOperationSource());
                 if (confirmedMotorID > 0)
@@ -1090,6 +1096,11 @@ public class ClawModuleController : MonoBehaviour
         if (modeManipulateNow)
         {
             _operationEnteredManipulate = true;
+        }
+
+        if (_operationSource == OperationInputSource.ArmUI && _operationEnteredManipulate && IsArmUIAngleAdjustmentInputActive())
+        {
+            _operationChangedAngle = true;
         }
 
         float signatureNow = ComputeOperationSignature();
@@ -1242,6 +1253,11 @@ public class ClawModuleController : MonoBehaviour
     {
         if (source == OperationInputSource.ArmUI)
         {
+            if (modeSwitching != null)
+            {
+                return modeSwitching.armUIProxyModeSelect;
+            }
+
             ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
             return activeArmUI != null && activeArmUI.armModeSelect;
         }
@@ -1253,6 +1269,11 @@ public class ClawModuleController : MonoBehaviour
     {
         if (source == OperationInputSource.ArmUI)
         {
+            if (modeSwitching != null)
+            {
+                return modeSwitching.armUIProxyModeManipulate;
+            }
+
             ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
             return activeArmUI != null && activeArmUI.armModeManipulate;
         }
@@ -1265,7 +1286,10 @@ public class ClawModuleController : MonoBehaviour
         if (source == OperationInputSource.ArmUI)
         {
             ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
-            return activeArmUI != null && !activeArmUI.armModeManipulate && !activeArmUI.armModeSelect;
+            return activeArmUI != null
+                && activeArmUI.useArmUIPlane
+                && activeArmUI.enterArmUIPlaneButton != null
+                && !activeArmUI.enterArmUIPlaneButton.isTouched;
         }
 
         if (modeSwitching == null)
@@ -1283,6 +1307,11 @@ public class ClawModuleController : MonoBehaviour
     {
         if (source == OperationInputSource.ArmUI)
         {
+            if (modeSwitching != null && modeSwitching.armUIProxyCurrentRedMotorID > 0)
+            {
+                return modeSwitching.armUIProxyCurrentRedMotorID;
+            }
+
             ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
             return activeArmUI != null ? activeArmUI.armCurrentRedMotorID : 0;
         }
@@ -1294,6 +1323,14 @@ public class ClawModuleController : MonoBehaviour
     {
         if (source == OperationInputSource.ArmUI)
         {
+            if (modeSwitching != null)
+            {
+                if (modeSwitching.armUIProxyCurrentRedMotorID > 0) return modeSwitching.armUIProxyCurrentRedMotorID;
+                if (modeSwitching.armUIProxyCurrentTouchedMotorID > 0) return modeSwitching.armUIProxyCurrentTouchedMotorID;
+                if (modeSwitching.armUIProxyConfirmedMotorID > 0) return modeSwitching.armUIProxyConfirmedMotorID;
+                if (modeSwitching.armUIProxyConfirmedFingertipID > 0) return modeSwitching.armUIProxyConfirmedFingertipID;
+            }
+
             ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
             if (activeArmUI == null)
             {
@@ -1303,6 +1340,7 @@ public class ClawModuleController : MonoBehaviour
             if (activeArmUI.armCurrentRedMotorID > 0) return activeArmUI.armCurrentRedMotorID;
             if (activeArmUI.armCurrentTouchedMotorID > 0) return activeArmUI.armCurrentTouchedMotorID;
             if (activeArmUI.armRawCurrentTouchedMotorID > 0) return activeArmUI.armRawCurrentTouchedMotorID;
+            if (activeArmUI.armRawTouchedMotorID > 0) return activeArmUI.armRawTouchedMotorID;
             if (activeArmUI.armConfirmedMotorID > 0) return activeArmUI.armConfirmedMotorID;
             if (activeArmUI.armConfirmedFingertipID > 0) return activeArmUI.armConfirmedFingertipID;
             return 0;
@@ -1323,6 +1361,12 @@ public class ClawModuleController : MonoBehaviour
     {
         if (source == OperationInputSource.ArmUI)
         {
+            if (modeSwitching != null)
+            {
+                if (modeSwitching.armUIProxyConfirmedMotorID > 0) return modeSwitching.armUIProxyConfirmedMotorID;
+                if (modeSwitching.armUIProxyConfirmedFingertipID > 0) return modeSwitching.armUIProxyConfirmedFingertipID;
+            }
+
             ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
             if (activeArmUI == null)
             {
@@ -1335,6 +1379,27 @@ public class ClawModuleController : MonoBehaviour
         }
 
         return modeSwitching != null ? modeSwitching.confirmedMotorID : 0;
+    }
+
+    private bool IsArmUIAngleAdjustmentInputActive()
+    {
+        ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+        if (activeArmUI == null || !activeArmUI.useArmUIPlane)
+        {
+            return false;
+        }
+
+        return IsArmUIButtonTouched(activeArmUI.thumbAngleDownButton)
+            || IsArmUIButtonTouched(activeArmUI.thumbAngleUpButton)
+            || IsArmUIButtonTouched(activeArmUI.indexAngleDownButton)
+            || IsArmUIButtonTouched(activeArmUI.indexAngleUpButton)
+            || IsArmUIButtonTouched(activeArmUI.middleAngleDownButton)
+            || IsArmUIButtonTouched(activeArmUI.middleAngleUpButton);
+    }
+
+    private static bool IsArmUIButtonTouched(ArmUIPlaneController.ButtonBinding button)
+    {
+        return button != null && button.isTouched;
     }
 
     private FreezeStateSnapshot CaptureFreezeStateSnapshot()
