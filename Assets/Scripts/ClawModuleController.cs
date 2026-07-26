@@ -1165,12 +1165,52 @@ public class ClawModuleController : MonoBehaviour
         if (_operationEnteredManipulate)
         {
             success = _operationChangedAngle;
-            reason = _operationChangedAngle ? "success_manipulate_angle_changed" : "failed_manipulate_no_angle_change";
+            reason = _operationChangedAngle ? "anglechanged" : "noanglechange";
             return;
         }
 
         success = _operationChangedFreeze;
-        reason = _operationChangedFreeze ? "success_freeze_state_changed_round_away" : "failed_selected_but_round_away_no_effective_change";
+        reason = _operationChangedFreeze ? GetFreezeChangeSuccessReason() : "nochange";
+    }
+
+    private string GetFreezeChangeSuccessReason()
+    {
+        FreezeStateSnapshot currentFreezeState = CaptureFreezeStateSnapshot();
+        int startFrozenCount = CountFrozenStates(_operationStartFreezeState);
+        int currentFrozenCount = CountFrozenStates(currentFreezeState);
+
+        if (currentFrozenCount > startFrozenCount)
+        {
+            return "freeze";
+        }
+
+        if (currentFrozenCount < startFrozenCount)
+        {
+            return "unfreeze";
+        }
+
+        return "statechanged";
+    }
+
+    private static int CountFrozenStates(FreezeStateSnapshot snapshot)
+    {
+        int count = 0;
+        if (snapshot.thumbGroup) count += 1;
+        if (snapshot.indexGroup) count += 1;
+        if (snapshot.middleGroup) count += 1;
+
+        if (snapshot.singleFrozen != null)
+        {
+            for (int i = 0; i < snapshot.singleFrozen.Length; i++)
+            {
+                if (snapshot.singleFrozen[i])
+                {
+                    count += 1;
+                }
+            }
+        }
+
+        return count;
     }
 
     private void FinalizeOperation(bool success, string reason)
