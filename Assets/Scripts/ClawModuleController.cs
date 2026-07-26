@@ -1,5 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
 using UnityEngine;
 
 public class ClawModuleController : MonoBehaviour
@@ -22,12 +25,90 @@ public class ClawModuleController : MonoBehaviour
     public ModeSwitching modeSwitching;
     public ArmUIPlaneController armUIPlaneController;
     public TcpSender tcpSender;
+    public TriggerRightWrist triggerRightWrist;
 
     public PaxiniValue paxiniValue;
 
     [Header("Arm UI Direct Override Debug")]
     public bool debugArmUIDirectOverrideActive = false;
     public string debugArmUIOverrideSource = "None";
+
+    [Header("=== Claw Operation Log ===")]
+    [Tooltip("Write one CSV row per completed operation. Relative folders are created under the Unity project folder.")]
+    public bool enableOperationLogging = true;
+    [Tooltip("Absolute folder path, or a path relative to the Unity project folder.")]
+    public string operationLogFolder = "UserStudyLogs";
+    [Tooltip("CSV file name written inside Operation Log Folder.")]
+    public string operationLogFileName = "claw_operation_log.csv";
+    [Tooltip("If true, append a timestamp suffix when a new log session starts to avoid overwriting previous files.")]
+    public bool appendTimestampToLogFileName = true;
+    [Tooltip("Press this key during Play Mode to discard the current log and start again from operation 0.")]
+    public KeyCode restartOperationLogKey = KeyCode.Backspace;
+    [Tooltip("Turn this on in the Inspector during Play Mode to discard the current log and start again from operation 0.")]
+    public bool restartOperationLogNow;
+    public int loggedOperationCount;
+    public int successOperationCount;
+    public int failedOperationCount;
+    public float totalOperationSeconds;
+    public float successOperationSeconds;
+    public float failedOperationSeconds;
+    public float taskCompletionSeconds;
+    public string currentOperationLogPath = "";
+    public string operationLogStatus = "Log not started";
+
+    private enum OperationInputSource
+    {
+        Normal,
+        ArmUI
+    }
+
+    private struct OperationLogEntry
+    {
+        public int index;
+        public bool success;
+        public string source;
+        public string reason;
+        public float startTime;
+        public float endTime;
+        public float duration;
+        public bool enteredManipulate;
+        public bool changedAngle;
+        public bool changedFreeze;
+        public string startedAt;
+        public string endedAt;
+    }
+
+    private struct FreezeStateSnapshot
+    {
+        public bool thumbGroup;
+        public bool indexGroup;
+        public bool middleGroup;
+        public bool[] singleFrozen;
+    }
+
+    private readonly List<OperationLogEntry> _operationLogEntries = new List<OperationLogEntry>();
+    private bool _operationActive;
+    private bool _operationEnteredManipulate;
+    private bool _operationChangedAngle;
+    private bool _operationChangedFreeze;
+    private bool _operationPrevModeSelect;
+    private float _operationStartTime;
+    private string _operationStartedAt;
+    private OperationInputSource _operationSource;
+    private FreezeStateSnapshot _operationStartFreezeState;
+    private float _operationStartSignature;
+    private float _operationLastSignature;
+    private bool _previousStartCondition;
+
+    private bool _previousEngagementActive;
+    private bool _hasTaskCompletionStart;
+    private bool _hasTaskCompletionEnd;
+    private float _taskCompletionStartTime;
+    private float _taskCompletionEndTime;
+    private string _taskCompletionStartedAt;
+    private string _taskCompletionEndedAt;
+
+    private string _runtimeOperationLogFileName;
 
     // public FingerSnapManager fingerSnapManager;
 
@@ -679,10 +760,25 @@ public class ClawModuleController : MonoBehaviour
             armUIPlaneController = FindObjectOfType<ArmUIPlaneController>();
         }
 
+        if (triggerRightWrist == null)
+        {
+            triggerRightWrist = FindObjectOfType<TriggerRightWrist>();
+        }
+
         // Enforce snapping default at runtime even if scene-serialized values were off.
         SetSnappingEnabled(true);
         Update180SnappingText();
 
+    }
+
+    private void OnDisable()
+    {
+        FinalizeOpenTaskCompletion("controller_disabled");
+    }
+
+    private void OnApplicationQuit()
+    {
+        FinalizeOpenTaskCompletion("application_quit");
     }
 
     private void InitializeMotorArrowMappings()
@@ -880,8 +976,654 @@ public class ClawModuleController : MonoBehaviour
         return armUIPlaneController;
     }
 
+    private void HandleOperationLogRestartInput()
+    {
+        if (!enableOperationLogging)
+        {
+            restartOperationLogNow = false;
+            return;
+        }
+
+        if (restartOperationLogNow || (restartOperationLogKey != KeyCode.None && Input.GetKeyDown(restartOperationLogKey)))
+        {
+            restartOperationLogNow = false;
+            RestartOperationLog();
+        }
+    }
+
+    private void TrackTaskCompletionTime()
+    {
+        if (!enableOperationLogging)
+        {
+            _previousEngagementActive = IsEngagementActive();
+            return;
+        }
+
+        bool engagementActive = IsEngagementActive();
+        if (engagementActive && !_previousEngagementActive && !_hasTaskCompletionStart)
+        {
+            _hasTaskCompletionStart = true;
+            _hasTaskCompletionEnd = false;
+            _taskCompletionStartTime = Time.realtimeSinceStartup;
+            _taskCompletionEndTime = 0f;
+            taskCompletionSeconds = 0f;
+            _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            _taskCompletionEndedAt = "";
+            operationLogStatus = "Engagement started: operation logging is now active";
+            WriteOperationLogCsv();
+        }
+
+        if (!engagementActive && _previousEngagementActive && _hasTaskCompletionStart)
+        {
+            FinalizeOpenTaskCompletion("engagement_off");
+        }
+
+        _previousEngagementActive = engagementActive;
+    }
+
+    private void FinalizeOpenTaskCompletion(string reason)
+    {
+        if (!enableOperationLogging || !_hasTaskCompletionStart || _hasTaskCompletionEnd)
+        {
+            return;
+        }
+
+        _hasTaskCompletionEnd = true;
+        _taskCompletionEndTime = Time.realtimeSinceStartup;
+        taskCompletionSeconds = Mathf.Max(0f, _taskCompletionEndTime - _taskCompletionStartTime);
+        _taskCompletionEndedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+
+        if (_operationActive)
+        {
+            FinalizeOperation(false, reason + "_before_operation_completed");
+        }
+
+        WriteOperationLogCsv();
+    }
+
+    private bool IsEngagementActive()
+    {
+        if (tcpSender != null)
+        {
+            return tcpSender.isSending;
+        }
+
+        if (triggerRightWrist != null)
+        {
+            return triggerRightWrist.IsEngaged;
+        }
+
+        return false;
+    }
+
+    private void TrackClawOperationLog()
+    {
+        if (!enableOperationLogging)
+        {
+            _previousStartCondition = false;
+            return;
+        }
+
+        bool startCondition = _hasTaskCompletionStart && IsEngagementActive() && IsOperationStartConditionNow();
+        if (!_operationActive)
+        {
+            if (startCondition && !_previousStartCondition)
+            {
+                BeginOperation();
+            }
+            else if (_hasTaskCompletionStart && IsEngagementActive() && GetModeManipulateForSource(GetCurrentOperationSource()))
+            {
+                int confirmedMotorID = GetConfirmedMotorIDForSource(GetCurrentOperationSource());
+                if (confirmedMotorID > 0)
+                {
+                    // Fallback: if modeSelect edge was missed, start logging at manipulate entry.
+                    BeginOperation();
+                }
+            }
+
+            _previousStartCondition = startCondition;
+            return;
+        }
+
+        bool modeSelectNow = GetModeSelectForSource(_operationSource);
+        bool modeManipulateNow = GetModeManipulateForSource(_operationSource);
+        if (modeManipulateNow)
+        {
+            _operationEnteredManipulate = true;
+        }
+
+        float signatureNow = ComputeOperationSignature();
+        if (_operationEnteredManipulate && !_operationChangedAngle && Mathf.Abs(signatureNow - _operationLastSignature) > 0.0001f)
+        {
+            _operationChangedAngle = true;
+        }
+        _operationLastSignature = signatureNow;
+
+        if (!_operationChangedFreeze && !AreFreezeSnapshotsEqual(_operationStartFreezeState, CaptureFreezeStateSnapshot()))
+        {
+            _operationChangedFreeze = true;
+        }
+
+        if (!_operationPrevModeSelect && modeSelectNow)
+        {
+            bool success;
+            string reason;
+            ClassifyOperationOutcome(out success, out reason);
+            FinalizeOperation(success, reason);
+            _previousStartCondition = startCondition;
+            return;
+        }
+
+        // For freeze/unfreeze style operations that stay in modeSelect,
+        // complete when the hand leaves the active separation threshold.
+        if (!_operationEnteredManipulate
+            && modeSelectNow
+            && IsRoundAwayForOperationSource(_operationSource)
+            && GetConfirmedMotorIDForSource(_operationSource) <= 0)
+        {
+            bool success;
+            string reason;
+            ClassifyOperationOutcome(out success, out reason);
+            FinalizeOperation(success, reason);
+            _previousStartCondition = startCondition;
+            return;
+        }
+
+        _operationPrevModeSelect = modeSelectNow;
+        _previousStartCondition = startCondition;
+    }
+
+    private void BeginOperation()
+    {
+        _operationActive = true;
+        _operationSource = GetCurrentOperationSource();
+        _operationStartTime = Time.realtimeSinceStartup;
+        _operationStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+        _operationEnteredManipulate = GetModeManipulateForSource(_operationSource);
+        _operationChangedAngle = false;
+        _operationChangedFreeze = false;
+        _operationPrevModeSelect = GetModeSelectForSource(_operationSource);
+        _operationStartFreezeState = CaptureFreezeStateSnapshot();
+        _operationStartSignature = ComputeOperationSignature();
+        _operationLastSignature = _operationStartSignature;
+        operationLogStatus = "Operation " + (_operationLogEntries.Count + 1) + " running";
+    }
+
+    private void ClassifyOperationOutcome(out bool success, out string reason)
+    {
+        if (_operationEnteredManipulate)
+        {
+            success = _operationChangedAngle;
+            reason = _operationChangedAngle ? "success_manipulate_angle_changed" : "failed_manipulate_no_angle_change";
+            return;
+        }
+
+        success = _operationChangedFreeze;
+        reason = _operationChangedFreeze ? "success_freeze_state_changed_round_away" : "failed_selected_but_round_away_no_effective_change";
+    }
+
+    private void FinalizeOperation(bool success, string reason)
+    {
+        if (!_operationActive)
+        {
+            return;
+        }
+
+        float endTime = Time.realtimeSinceStartup;
+        float duration = Mathf.Max(0f, endTime - _operationStartTime);
+
+        OperationLogEntry entry = new OperationLogEntry
+        {
+            index = _operationLogEntries.Count + 1,
+            success = success,
+            source = _operationSource == OperationInputSource.ArmUI ? "ArmUIPlane" : "ClawModeSwitching",
+            reason = reason,
+            startTime = _operationStartTime,
+            endTime = endTime,
+            duration = duration,
+            enteredManipulate = _operationEnteredManipulate,
+            changedAngle = _operationChangedAngle,
+            changedFreeze = _operationChangedFreeze,
+            startedAt = _operationStartedAt,
+            endedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)
+        };
+        _operationLogEntries.Add(entry);
+
+        loggedOperationCount = _operationLogEntries.Count;
+        totalOperationSeconds += duration;
+        if (success)
+        {
+            successOperationCount += 1;
+            successOperationSeconds += duration;
+        }
+        else
+        {
+            failedOperationCount += 1;
+            failedOperationSeconds += duration;
+        }
+
+        _operationActive = false;
+        _operationEnteredManipulate = false;
+        _operationChangedAngle = false;
+        _operationChangedFreeze = false;
+        operationLogStatus = "Wrote " + loggedOperationCount + " operations";
+        WriteOperationLogCsv();
+    }
+
+    private OperationInputSource GetCurrentOperationSource()
+    {
+        ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+        if (activeArmUI != null && activeArmUI.useArmUIPlane)
+        {
+            return OperationInputSource.ArmUI;
+        }
+
+        return OperationInputSource.Normal;
+    }
+
+    private bool IsOperationStartConditionNow()
+    {
+        OperationInputSource source = GetCurrentOperationSource();
+        if (!GetModeSelectForSource(source))
+        {
+            return false;
+        }
+
+        int selectedMotorID = GetCurrentSelectMotorIDForSource(source);
+        return selectedMotorID > 0;
+    }
+
+    private static bool IsFingertipMotor(int motorID)
+    {
+        return motorID == 4 || motorID == 8 || motorID == 12;
+    }
+
+    private bool GetModeSelectForSource(OperationInputSource source)
+    {
+        if (source == OperationInputSource.ArmUI)
+        {
+            ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+            return activeArmUI != null && activeArmUI.armModeSelect;
+        }
+
+        return modeSwitching != null && modeSwitching.modeSelect;
+    }
+
+    private bool GetModeManipulateForSource(OperationInputSource source)
+    {
+        if (source == OperationInputSource.ArmUI)
+        {
+            ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+            return activeArmUI != null && activeArmUI.armModeManipulate;
+        }
+
+        return modeSwitching != null && modeSwitching.modeManipulate;
+    }
+
+    private bool IsRoundAwayForOperationSource(OperationInputSource source)
+    {
+        if (source == OperationInputSource.ArmUI)
+        {
+            ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+            return activeArmUI != null && !activeArmUI.armModeManipulate && !activeArmUI.armModeSelect;
+        }
+
+        if (modeSwitching == null)
+        {
+            return false;
+        }
+
+        float threshold = modeSwitching.useControllerSeperationDistance
+            ? modeSwitching.controllerSeparationThreshold
+            : modeSwitching.handSeparationThreshold;
+        return modeSwitching.currentHandSeparationDistance > threshold;
+    }
+
+    private int GetCurrentRedMotorIDForSource(OperationInputSource source)
+    {
+        if (source == OperationInputSource.ArmUI)
+        {
+            ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+            return activeArmUI != null ? activeArmUI.armCurrentRedMotorID : 0;
+        }
+
+        return modeSwitching != null ? modeSwitching.currentRedMotorID : 0;
+    }
+
+    private int GetCurrentSelectMotorIDForSource(OperationInputSource source)
+    {
+        if (source == OperationInputSource.ArmUI)
+        {
+            ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+            if (activeArmUI == null)
+            {
+                return 0;
+            }
+
+            if (activeArmUI.armCurrentRedMotorID > 0) return activeArmUI.armCurrentRedMotorID;
+            if (activeArmUI.armCurrentTouchedMotorID > 0) return activeArmUI.armCurrentTouchedMotorID;
+            if (activeArmUI.armRawCurrentTouchedMotorID > 0) return activeArmUI.armRawCurrentTouchedMotorID;
+            if (activeArmUI.armConfirmedMotorID > 0) return activeArmUI.armConfirmedMotorID;
+            if (activeArmUI.armConfirmedFingertipID > 0) return activeArmUI.armConfirmedFingertipID;
+            return 0;
+        }
+
+        if (modeSwitching == null)
+        {
+            return 0;
+        }
+
+        if (modeSwitching.currentRedMotorID > 0) return modeSwitching.currentRedMotorID;
+        if (modeSwitching.lastTouchedMotorID > 0) return modeSwitching.lastTouchedMotorID;
+        if (modeSwitching.confirmedMotorID > 0) return modeSwitching.confirmedMotorID;
+        return 0;
+    }
+
+    private int GetConfirmedMotorIDForSource(OperationInputSource source)
+    {
+        if (source == OperationInputSource.ArmUI)
+        {
+            ArmUIPlaneController activeArmUI = GetActiveArmUIPlaneController();
+            if (activeArmUI == null)
+            {
+                return 0;
+            }
+
+            if (activeArmUI.armConfirmedMotorID > 0) return activeArmUI.armConfirmedMotorID;
+            if (activeArmUI.armConfirmedFingertipID > 0) return activeArmUI.armConfirmedFingertipID;
+            return 0;
+        }
+
+        return modeSwitching != null ? modeSwitching.confirmedMotorID : 0;
+    }
+
+    private FreezeStateSnapshot CaptureFreezeStateSnapshot()
+    {
+        FreezeStateSnapshot snapshot = new FreezeStateSnapshot
+        {
+            thumbGroup = false,
+            indexGroup = false,
+            middleGroup = false,
+            singleFrozen = new bool[12]
+        };
+
+        if (modeSwitching != null && modeSwitching.SelectMotorCollider != null)
+        {
+            SelectMotorCollider smc = modeSwitching.SelectMotorCollider;
+            snapshot.thumbGroup = smc.thumbFreezeEnabled;
+            snapshot.indexGroup = smc.indexFreezeEnabled;
+            snapshot.middleGroup = smc.middleFreezeEnabled;
+        }
+
+        if (modeSwitching != null && modeSwitching.singleMotorFrozen != null)
+        {
+            int count = Mathf.Min(12, modeSwitching.singleMotorFrozen.Length);
+            for (int i = 0; i < count; i++)
+            {
+                snapshot.singleFrozen[i] = modeSwitching.singleMotorFrozen[i];
+            }
+        }
+
+        return snapshot;
+    }
+
+    private static bool AreFreezeSnapshotsEqual(FreezeStateSnapshot a, FreezeStateSnapshot b)
+    {
+        if (a.thumbGroup != b.thumbGroup || a.indexGroup != b.indexGroup || a.middleGroup != b.middleGroup)
+        {
+            return false;
+        }
+
+        int count = Mathf.Min(a.singleFrozen != null ? a.singleFrozen.Length : 0, b.singleFrozen != null ? b.singleFrozen.Length : 0);
+        if (count < 12)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < 12; i++)
+        {
+            if (a.singleFrozen[i] != b.singleFrozen[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private float ComputeOperationSignature()
+    {
+        float signature = 0f;
+        signature += currentThumbRotationY;
+        signature += currentThumbRotationYMax;
+        signature += currentThumbRotationYMin;
+        signature += currentThumbRotationZ;
+        signature += currentThumbRotationZMax;
+        signature += currentThumbRotationZMin;
+        signature += currentIndexRotationYMax;
+        signature += currentIndexRotationYMin;
+        signature += currentIndexRotationZMax;
+        signature += currentIndexRotationZMin;
+        signature += currentMiddleRotationYMax;
+        signature += currentMiddleRotationYMin;
+        signature += currentMiddleRotationZ;
+        signature += currentMiddleRotationZMax;
+        signature += currentMiddleRotationZMin;
+        signature += currentThumbTipRotationZ;
+        signature += currentIndexTipRotationZ;
+        signature += currentMiddleTipRotationZ;
+        signature += currentThumbInnerExtensionRotationZ;
+        signature += currentIndexInnerExtensionRotationZ;
+        signature += currentMiddleInnerExtensionRotationZ;
+        return signature;
+    }
+
+    [ContextMenu("Restart Operation Log")]
+    public void RestartOperationLog()
+    {
+        _operationLogEntries.Clear();
+        loggedOperationCount = 0;
+        successOperationCount = 0;
+        failedOperationCount = 0;
+        totalOperationSeconds = 0f;
+        successOperationSeconds = 0f;
+        failedOperationSeconds = 0f;
+        taskCompletionSeconds = 0f;
+
+        _operationActive = false;
+        _operationEnteredManipulate = false;
+        _operationChangedAngle = false;
+        _operationChangedFreeze = false;
+        _previousStartCondition = false;
+
+        _hasTaskCompletionStart = false;
+        _hasTaskCompletionEnd = false;
+        _taskCompletionStartTime = 0f;
+        _taskCompletionEndTime = 0f;
+        _taskCompletionStartedAt = "";
+        _taskCompletionEndedAt = "";
+        _previousEngagementActive = IsEngagementActive();
+        if (_previousEngagementActive)
+        {
+            _hasTaskCompletionStart = true;
+            _taskCompletionStartTime = Time.realtimeSinceStartup;
+            _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+        }
+
+        _runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
+        WriteOperationLogCsv();
+        operationLogStatus = _hasTaskCompletionStart
+            ? "Engagement already ON: operation logging active"
+            : "Waiting for first engagement ON";
+    }
+
+    private string BuildRuntimeOperationLogFileName()
+    {
+        string fileName = string.IsNullOrWhiteSpace(operationLogFileName) ? "claw_operation_log.csv" : operationLogFileName.Trim();
+        string extension = Path.GetExtension(fileName);
+        if (string.IsNullOrEmpty(extension))
+        {
+            extension = ".csv";
+        }
+
+        string baseName = Path.GetFileNameWithoutExtension(fileName);
+        if (string.IsNullOrWhiteSpace(baseName))
+        {
+            baseName = "claw_operation_log";
+        }
+
+        if (!appendTimestampToLogFileName)
+        {
+            return baseName + extension;
+        }
+
+        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+        return baseName + "_" + timestamp + extension;
+    }
+
+    private void WriteOperationLogCsv()
+    {
+        if (!enableOperationLogging)
+        {
+            operationLogStatus = "Operation logging disabled";
+            return;
+        }
+
+        string folderPath = ResolveOperationLogFolderPath();
+        if (string.IsNullOrWhiteSpace(_runtimeOperationLogFileName))
+        {
+            _runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
+        }
+
+        try
+        {
+            Directory.CreateDirectory(folderPath);
+            currentOperationLogPath = Path.Combine(folderPath, _runtimeOperationLogFileName);
+            File.WriteAllText(currentOperationLogPath, BuildOperationLogCsv(), Encoding.UTF8);
+        }
+        catch (System.Exception exception)
+        {
+            operationLogStatus = "Log write failed: " + exception.Message;
+            Debug.LogError(operationLogStatus);
+        }
+    }
+
+    private string ResolveOperationLogFolderPath()
+    {
+        string folder = string.IsNullOrWhiteSpace(operationLogFolder) ? "UserStudyLogs" : operationLogFolder.Trim();
+        if (Path.IsPathRooted(folder))
+        {
+            return folder;
+        }
+
+        string projectFolder = Directory.GetParent(Application.dataPath).FullName;
+        return Path.Combine(projectFolder, folder);
+    }
+
+    private string BuildOperationLogCsv()
+    {
+        float computedTotalSeconds = 0f;
+        float computedSuccessSeconds = 0f;
+        float computedFailedSeconds = 0f;
+        int computedSuccessCount = 0;
+        int computedFailedCount = 0;
+
+        StringBuilder builder = new StringBuilder();
+        builder.AppendLine("RecordType,OperationIndex,Success,Source,Reason,StartRealtimeSeconds,EndRealtimeSeconds,DurationSeconds,EnteredManipulate,ChangedAngle,ChangedFreeze,StartedAt,EndedAt,TotalOperations,SuccessOperations,FailedOperations,TotalOperationSeconds,SuccessOperationSeconds,FailedOperationSeconds,TaskStartRealtimeSeconds,TaskEndRealtimeSeconds,TaskCompletionSeconds,TaskStartedAt,TaskEndedAt");
+
+        for (int i = 0; i < _operationLogEntries.Count; i++)
+        {
+            OperationLogEntry entry = _operationLogEntries[i];
+            computedTotalSeconds += entry.duration;
+            if (entry.success)
+            {
+                computedSuccessCount += 1;
+                computedSuccessSeconds += entry.duration;
+            }
+            else
+            {
+                computedFailedCount += 1;
+                computedFailedSeconds += entry.duration;
+            }
+
+            builder.Append("Operation,");
+            builder.Append(entry.index.ToString(CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(entry.success ? "1" : "0");
+            builder.Append(',');
+            builder.Append(EscapeCsv(entry.source));
+            builder.Append(',');
+            builder.Append(EscapeCsv(entry.reason));
+            builder.Append(',');
+            builder.Append(entry.startTime.ToString("F4", CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(entry.endTime.ToString("F4", CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(entry.duration.ToString("F4", CultureInfo.InvariantCulture));
+            builder.Append(',');
+            builder.Append(entry.enteredManipulate ? "1" : "0");
+            builder.Append(',');
+            builder.Append(entry.changedAngle ? "1" : "0");
+            builder.Append(',');
+            builder.Append(entry.changedFreeze ? "1" : "0");
+            builder.Append(',');
+            builder.Append(EscapeCsv(entry.startedAt));
+            builder.Append(',');
+            builder.Append(EscapeCsv(entry.endedAt));
+            builder.AppendLine(",,,,,,,,,,,");
+        }
+
+        loggedOperationCount = _operationLogEntries.Count;
+        successOperationCount = computedSuccessCount;
+        failedOperationCount = computedFailedCount;
+        totalOperationSeconds = computedTotalSeconds;
+        successOperationSeconds = computedSuccessSeconds;
+        failedOperationSeconds = computedFailedSeconds;
+
+        builder.Append("Summary,,,,,,,,,,,,");
+        builder.Append(loggedOperationCount.ToString(CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(successOperationCount.ToString(CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(failedOperationCount.ToString(CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(totalOperationSeconds.ToString("F4", CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(successOperationSeconds.ToString("F4", CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(failedOperationSeconds.ToString("F4", CultureInfo.InvariantCulture));
+        builder.Append(',');
+        builder.Append(_hasTaskCompletionStart ? _taskCompletionStartTime.ToString("F4", CultureInfo.InvariantCulture) : "");
+        builder.Append(',');
+        builder.Append(_hasTaskCompletionEnd ? _taskCompletionEndTime.ToString("F4", CultureInfo.InvariantCulture) : "");
+        builder.Append(',');
+        builder.Append(_hasTaskCompletionEnd ? taskCompletionSeconds.ToString("F4", CultureInfo.InvariantCulture) : "");
+        builder.Append(',');
+        builder.Append(EscapeCsv(_taskCompletionStartedAt));
+        builder.Append(',');
+        builder.AppendLine(EscapeCsv(_taskCompletionEndedAt));
+        return builder.ToString();
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "";
+        }
+
+        if (value.Contains(",") || value.Contains("\"") || value.Contains("\n") || value.Contains("\r"))
+        {
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+
+        return value;
+    }
+
     void Start()
     {
+        RestartOperationLog();
+
         // --- Initialize Thumb ---
         ThumbAngle1CenterInitialRotation = ThumbAngle1Center.localRotation;
         ThumbAngle2CenterInitialRotation = ThumbAngle2Center.localRotation;
@@ -970,6 +1712,9 @@ public class ClawModuleController : MonoBehaviour
 
     void Update()
     {
+        HandleOperationLogRestartInput();
+        TrackTaskCompletionTime();
+
         // Check if any fingertip extension is being touched (highest priority)
         // This checks if any fingertip is currently touched and meets initial conditions (lerping)
         isFingerTipTriggered = false;
@@ -1058,6 +1803,8 @@ public class ClawModuleController : MonoBehaviour
         {
             _manipulationFreezeInitialized = false;
         }
+
+        TrackClawOperationLog();
 
         HandleInput();
 

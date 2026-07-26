@@ -52286,9 +52286,25 @@ MonoBehaviour:
   modeSwitching: {fileID: 0}
   armUIPlaneController: {fileID: 0}
   tcpSender: {fileID: 0}
+  triggerRightWrist: {fileID: 0}
   paxiniValue: {fileID: 0}
   debugArmUIDirectOverrideActive: 0
   debugArmUIOverrideSource: None
+  enableOperationLogging: 1
+  operationLogFolder: UserStudyLogs
+  operationLogFileName: claw_operation_log.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  successOperationCount: 0
+  failedOperationCount: 0
+  totalOperationSeconds: 0
+  successOperationSeconds: 0
+  failedOperationSeconds: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
   motor3UpArrow: {fileID: 0}
   motor3DownArrow: {fileID: 0}
   motor4UpArrow: {fileID: 0}
@@ -67698,6 +67714,7 @@ MonoBehaviour:
   restartOperationLogKey: 8
   restartOperationLogNow: 0
   loggedOperationCount: 0
+  totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 
   operationLogStatus: Log not started
@@ -67721,9 +67738,25 @@ MonoBehaviour:
   modeSwitching: {fileID: 0}
   armUIPlaneController: {fileID: 0}
   tcpSender: {fileID: 0}
+  triggerRightWrist: {fileID: 0}
   paxiniValue: {fileID: 0}
   debugArmUIDirectOverrideActive: 0
   debugArmUIOverrideSource: None
+  enableOperationLogging: 1
+  operationLogFolder: UserStudyLogs
+  operationLogFileName: claw_operation_log.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  successOperationCount: 0
+  failedOperationCount: 0
+  totalOperationSeconds: 0
+  successOperationSeconds: 0
+  failedOperationSeconds: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
   motor3UpArrow: {fileID: 0}
   motor3DownArrow: {fileID: 0}
   motor4UpArrow: {fileID: 0}
@@ -82454,6 +82487,7 @@ MonoBehaviour:
   restartOperationLogKey: 8
   restartOperationLogNow: 0
   loggedOperationCount: 0
+  totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 
   operationLogStatus: Log not started
@@ -82477,9 +82511,25 @@ MonoBehaviour:
   modeSwitching: {fileID: 0}
   armUIPlaneController: {fileID: 0}
   tcpSender: {fileID: 0}
+  triggerRightWrist: {fileID: 0}
   paxiniValue: {fileID: 0}
   debugArmUIDirectOverrideActive: 0
   debugArmUIOverrideSource: None
+  enableOperationLogging: 1
+  operationLogFolder: UserStudyLogs
+  operationLogFileName: claw_operation_log.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  successOperationCount: 0
+  failedOperationCount: 0
+  totalOperationSeconds: 0
+  successOperationSeconds: 0
+  failedOperationSeconds: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
   motor3UpArrow: {fileID: 0}
   motor3DownArrow: {fileID: 0}
   motor4UpArrow: {fileID: 0}
@@ -93563,7 +93613,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3265390217554441853}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8254cca38622a543bd7824df06befc0, type: 3}
   m_Name: 
@@ -93576,9 +93626,25 @@ MonoBehaviour:
   modeSwitching: {fileID: 951283614}
   armUIPlaneController: {fileID: 1016481714}
   tcpSender: {fileID: 188813409}
+  triggerRightWrist: {fileID: 902935578}
   paxiniValue: {fileID: 1086361769}
   debugArmUIDirectOverrideActive: 0
   debugArmUIOverrideSource: None
+  enableOperationLogging: 1
+  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Ken
+  operationLogFileName: 3_handle.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  successOperationCount: 0
+  failedOperationCount: 0
+  totalOperationSeconds: 0
+  successOperationSeconds: 0
+  failedOperationSeconds: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
   motor3UpArrow: {fileID: 1259987787}
   motor3DownArrow: {fileID: 103193661}
   motor4UpArrow: {fileID: 1420288278}
@@ -93781,7 +93847,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3265390217554441853}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b630f906b729a249bed157ad5cb11bd, type: 3}
   m_Name: 
@@ -93879,6 +93945,7 @@ MonoBehaviour:
   restartOperationLogKey: 8
   restartOperationLogNow: 0
   loggedOperationCount: 0
+  totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 
   operationLogStatus: Log not started
@@ -93897,6 +93964,18 @@ MonoBehaviour:
   useKeyboardControl: 0
   lightRedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
   planeButtonInteraction: {fileID: 1016481720}
+  triggerRightWrist: {fileID: 0}
+  enableOperationLogging: 1
+  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Ken
+  operationLogFileName: 2_handle.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  totalOperationSeconds: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
 --- !u!4 &4582782382478664306
 Transform:
   m_ObjectHideFlags: 0
