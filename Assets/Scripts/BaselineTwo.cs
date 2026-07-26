@@ -446,6 +446,26 @@ public class BaselineTwo : MonoBehaviour
             return;
         }
 
+        if (controller != null && controller.KeyboardIsPaxiniFrozen(motorID))
+        {
+            if (controller.KeyboardReleasePaxiniFreezeForMotor(motorID))
+            {
+                int groupStart = GetGroupStartForMotorID(motorID);
+                for (int currentMotorID = groupStart; currentMotorID < groupStart + 4; currentMotorID++)
+                {
+                    int index = currentMotorID - 1;
+                    if (index >= 0 && index < kbSingleFrozen.Length)
+                    {
+                        kbSingleFrozen[index] = currentMotorID != motorID;
+                    }
+                }
+
+                selectedFrozenUsesLightRed = false;
+                RefreshAllMotorVisualStates();
+            }
+            return;
+        }
+
         bool newFrozenState = !IsSingleFrozen(motorID);
         SetSingleFrozen(motorID, newFrozenState);
     }
@@ -477,7 +497,7 @@ public class BaselineTwo : MonoBehaviour
             return false;
         }
 
-        return controller.KeyboardIsPaxiniFrozen(motorID);
+        return controller.KeyboardShouldShowPaxiniYellow(motorID);
     }
 
     private void TogglePaxiniFreezeForSelection(int motorID)
@@ -513,6 +533,14 @@ public class BaselineTwo : MonoBehaviour
         return 0;
     }
 
+    private static int GetGroupStartForMotorID(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4) return 1;
+        if (motorID >= 5 && motorID <= 8) return 5;
+        if (motorID >= 9 && motorID <= 12) return 9;
+        return 0;
+    }
+
     private void SetSingleFrozen(int motorID, bool frozen)
     {
         if (motorID < 1 || motorID > kbSingleFrozen.Length)
@@ -533,6 +561,11 @@ public class BaselineTwo : MonoBehaviour
             selectedFrozenUsesLightRed = false;
         }
 
+        if (controller != null)
+        {
+            controller.RefreshKeyboardPaxiniPreviewForMotor(motorID);
+        }
+
         ApplyMotorVisualState(motorID);
     }
 
@@ -550,6 +583,8 @@ public class BaselineTwo : MonoBehaviour
             {
                 controller.KeyboardSetSingleMotorFreezeState(i + 1, false);
             }
+
+            controller.ClearKeyboardPaxiniPreviewStates();
         }
 
         RefreshAllMotorVisualStates();
@@ -605,8 +640,9 @@ public class BaselineTwo : MonoBehaviour
 
         bool isSelected = motorID == GetMotorIDForCell(kbCurrentRow, kbCurrentCol);
         bool isPaxiniFrozen = controller != null && controller.KeyboardIsPaxiniFrozen(motorID);
+        bool shouldShowPaxiniYellow = controller != null && controller.KeyboardShouldShowPaxiniYellow(motorID);
         bool isSingleFrozen = IsSingleFrozen(motorID);
-        bool isFrozen = isPaxiniFrozen || isSingleFrozen;
+        bool isFrozen = shouldShowPaxiniYellow || isSingleFrozen;
         Color freezeColor = controller != null ? controller.yellowColor : Color.yellow;
 
         if (isSelected)
@@ -619,7 +655,7 @@ public class BaselineTwo : MonoBehaviour
             return lightRedColor;
         }
 
-        if (isPaxiniFrozen)
+        if (shouldShowPaxiniYellow)
         {
             return freezeColor;
         }

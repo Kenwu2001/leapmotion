@@ -644,6 +644,9 @@ public class ClawModuleController : MonoBehaviour
     private bool _keyboardThumbPaxiniFrozen = false;
     private bool _keyboardIndexPaxiniFrozen = false;
     private bool _keyboardMiddlePaxiniFrozen = false;
+    private bool _keyboardThumbPaxiniPreviewYellow = false;
+    private bool _keyboardIndexPaxiniPreviewYellow = false;
+    private bool _keyboardMiddlePaxiniPreviewYellow = false;
 
     // Selecting-round lock baseline: while inside threshold during modeSelect,
     // angle lock follows this snapshot and ignores in-round freeze toggles.
@@ -1473,6 +1476,41 @@ public class ClawModuleController : MonoBehaviour
         return false;
     }
 
+    public bool KeyboardShouldShowPaxiniYellow(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4)
+        {
+            return KeyboardIsPaxiniFrozen(motorID) || _keyboardThumbPaxiniPreviewYellow;
+        }
+
+        if (motorID >= 5 && motorID <= 8)
+        {
+            return KeyboardIsPaxiniFrozen(motorID) || _keyboardIndexPaxiniPreviewYellow;
+        }
+
+        if (motorID >= 9 && motorID <= 12)
+        {
+            return KeyboardIsPaxiniFrozen(motorID) || _keyboardMiddlePaxiniPreviewYellow;
+        }
+
+        if (motorID == 13)
+        {
+            return KeyboardIsPaxiniFrozen(motorID) || _keyboardThumbPaxiniPreviewYellow;
+        }
+
+        if (motorID == 14)
+        {
+            return KeyboardIsPaxiniFrozen(motorID) || _keyboardIndexPaxiniPreviewYellow;
+        }
+
+        if (motorID == 15)
+        {
+            return KeyboardIsPaxiniFrozen(motorID) || _keyboardMiddlePaxiniPreviewYellow;
+        }
+
+        return false;
+    }
+
     public bool KeyboardTogglePaxiniFreeze(int motorID)
     {
         if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
@@ -1487,6 +1525,7 @@ public class ClawModuleController : MonoBehaviour
 
         modeSwitching.KeyboardTogglePaxiniFreeze(motorID);
         SetKeyboardPaxiniFreezeState(motorID, KeyboardIsPaxiniFrozen(motorID));
+        SetKeyboardPaxiniPreviewState(GetKeyboardPaxiniGroupStart(motorID), false);
 
         if (!KeyboardIsPaxiniFrozen(motorID))
         {
@@ -1494,6 +1533,69 @@ public class ClawModuleController : MonoBehaviour
         }
 
         return true;
+    }
+
+    public bool KeyboardReleasePaxiniFreezeForMotor(int motorID)
+    {
+        if (modeSwitching == null || modeSwitching.SelectMotorCollider == null)
+        {
+            return false;
+        }
+
+        int paxiniMotorID = GetKeyboardPaxiniMotorID(motorID);
+        int groupStart = GetKeyboardPaxiniGroupStartForMotor(motorID);
+        if (paxiniMotorID == 0 || groupStart == 0 || !KeyboardIsPaxiniFrozen(motorID))
+        {
+            return false;
+        }
+
+        modeSwitching.KeyboardTogglePaxiniFreeze(paxiniMotorID);
+        SetKeyboardPaxiniFreezeState(paxiniMotorID, false);
+        SetKeyboardPaxiniPreviewState(groupStart, false);
+
+        // Keep same-group motors frozen except the requested unfreeze target.
+        for (int currentMotorID = groupStart; currentMotorID < groupStart + 4; currentMotorID++)
+        {
+            KeyboardSetSingleMotorFreezeState(currentMotorID, currentMotorID != motorID);
+        }
+
+        RefreshKeyboardPaxiniPreviewForMotor(motorID);
+        return true;
+    }
+
+    public void RefreshKeyboardPaxiniPreviewForMotor(int motorID)
+    {
+        int groupStart = GetKeyboardPaxiniGroupStartForMotor(motorID);
+        if (groupStart == 0)
+        {
+            return;
+        }
+
+        int paxiniMotorID = GetKeyboardPaxiniMotorID(motorID);
+        if (KeyboardIsPaxiniFrozen(paxiniMotorID))
+        {
+            SetKeyboardPaxiniPreviewState(groupStart, false);
+            return;
+        }
+
+        bool allFrozen = true;
+        for (int currentMotorID = groupStart; currentMotorID < groupStart + 4; currentMotorID++)
+        {
+            if (!_keyboardSingleMotorFrozenOverride[currentMotorID - 1])
+            {
+                allFrozen = false;
+                break;
+            }
+        }
+
+        SetKeyboardPaxiniPreviewState(groupStart, allFrozen);
+    }
+
+    public void ClearKeyboardPaxiniPreviewStates()
+    {
+        _keyboardThumbPaxiniPreviewYellow = false;
+        _keyboardIndexPaxiniPreviewYellow = false;
+        _keyboardMiddlePaxiniPreviewYellow = false;
     }
 
     private void SetKeyboardPaxiniFreezeState(int motorID, bool frozen)
@@ -1608,6 +1710,39 @@ public class ClawModuleController : MonoBehaviour
         return 0;
     }
 
+    private static int GetKeyboardPaxiniGroupStartForMotor(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4) return 1;
+        if (motorID >= 5 && motorID <= 8) return 5;
+        if (motorID >= 9 && motorID <= 12) return 9;
+        return GetKeyboardPaxiniGroupStart(motorID);
+    }
+
+    private void SetKeyboardPaxiniPreviewState(int groupStart, bool active)
+    {
+        if (groupStart == 1)
+        {
+            _keyboardThumbPaxiniPreviewYellow = active;
+        }
+        else if (groupStart == 5)
+        {
+            _keyboardIndexPaxiniPreviewYellow = active;
+        }
+        else if (groupStart == 9)
+        {
+            _keyboardMiddlePaxiniPreviewYellow = active;
+        }
+    }
+
+    private static int GetKeyboardPaxiniMotorID(int motorID)
+    {
+        if (motorID >= 1 && motorID <= 4) return 13;
+        if (motorID >= 5 && motorID <= 8) return 14;
+        if (motorID >= 9 && motorID <= 12) return 15;
+        if (motorID >= 13 && motorID <= 15) return motorID;
+        return 0;
+    }
+
     public void ClearSingleMotorFreezeSnapshot(int motorID)
     {
         if (motorID < 1 || motorID > 12)
@@ -1624,6 +1759,7 @@ public class ClawModuleController : MonoBehaviour
         _keyboardThumbPaxiniFrozen = false;
         _keyboardIndexPaxiniFrozen = false;
         _keyboardMiddlePaxiniFrozen = false;
+        ClearKeyboardPaxiniPreviewStates();
     }
 
     /// <summary>Returns the joint Transform for motor IDs 1-12.</summary>
