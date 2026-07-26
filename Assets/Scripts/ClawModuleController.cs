@@ -109,6 +109,7 @@ public class ClawModuleController : MonoBehaviour
     private string _taskCompletionEndedAt;
 
     private string _runtimeOperationLogFileName;
+    private BaselineTwo _baselineTwo;
 
     // public FingerSnapManager fingerSnapManager;
 
@@ -765,6 +766,8 @@ public class ClawModuleController : MonoBehaviour
             triggerRightWrist = FindObjectOfType<TriggerRightWrist>();
         }
 
+        _baselineTwo = GetComponent<BaselineTwo>();
+
         // Enforce snapping default at runtime even if scene-serialized values were off.
         SetSnappingEnabled(true);
         Update180SnappingText();
@@ -978,7 +981,7 @@ public class ClawModuleController : MonoBehaviour
 
     private void HandleOperationLogRestartInput()
     {
-        if (!enableOperationLogging)
+        if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive())
         {
             restartOperationLogNow = false;
             return;
@@ -993,7 +996,7 @@ public class ClawModuleController : MonoBehaviour
 
     private void TrackTaskCompletionTime()
     {
-        if (!enableOperationLogging)
+        if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive())
         {
             _previousEngagementActive = IsEngagementActive();
             return;
@@ -1023,7 +1026,7 @@ public class ClawModuleController : MonoBehaviour
 
     private void FinalizeOpenTaskCompletion(string reason)
     {
-        if (!enableOperationLogging || !_hasTaskCompletionStart)
+        if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive() || !_hasTaskCompletionStart)
         {
             return;
         }
@@ -1064,7 +1067,7 @@ public class ClawModuleController : MonoBehaviour
 
     private void TrackClawOperationLog()
     {
-        if (!enableOperationLogging)
+        if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive())
         {
             _previousStartCondition = false;
             return;
@@ -1555,6 +1558,14 @@ public class ClawModuleController : MonoBehaviour
             _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
         }
 
+        if (IsBaselineTwoKeyboardControlActive())
+        {
+            _runtimeOperationLogFileName = "";
+            currentOperationLogPath = "";
+            operationLogStatus = "BaselineTwo logging active; claw log suppressed";
+            return;
+        }
+
         _runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
         WriteOperationLogCsv();
         operationLogStatus = _hasTaskCompletionStart
@@ -1588,9 +1599,11 @@ public class ClawModuleController : MonoBehaviour
 
     private void WriteOperationLogCsv()
     {
-        if (!enableOperationLogging)
+        if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive())
         {
-            operationLogStatus = "Operation logging disabled";
+            operationLogStatus = IsBaselineTwoKeyboardControlActive()
+                ? "BaselineTwo logging active; claw log suppressed"
+                : "Operation logging disabled";
             return;
         }
 
@@ -1611,6 +1624,11 @@ public class ClawModuleController : MonoBehaviour
             operationLogStatus = "Log write failed: " + exception.Message;
             Debug.LogError(operationLogStatus);
         }
+    }
+
+    private bool IsBaselineTwoKeyboardControlActive()
+    {
+        return _baselineTwo != null && _baselineTwo.useKeyboardControl;
     }
 
     private string ResolveOperationLogFolderPath()
