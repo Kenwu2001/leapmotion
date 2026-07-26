@@ -67613,6 +67613,7 @@ MonoBehaviour:
   disableArmUIPlaneDuringDelta: 1
   disableClawModuleControllerDuringDelta: 1
   planeButtonInteraction: {fileID: 0}
+  triggerRightWrist: {fileID: 0}
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
@@ -67690,6 +67691,16 @@ MonoBehaviour:
   middleCube3Renderer: {fileID: 0}
   middleCube4Renderer: {fileID: 0}
   lightRedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
+  enableOperationLogging: 1
+  operationLogFolder: UserStudyLogs
+  operationLogFileName: baseline1_operation_log.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
 --- !u!114 &1487720135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82358,6 +82369,7 @@ MonoBehaviour:
   disableArmUIPlaneDuringDelta: 1
   disableClawModuleControllerDuringDelta: 1
   planeButtonInteraction: {fileID: 0}
+  triggerRightWrist: {fileID: 0}
   triggerRightIndexTip: {fileID: 0}
   triggerRightMiddleTip: {fileID: 0}
   triggerRightThumbTip: {fileID: 0}
@@ -82435,6 +82447,16 @@ MonoBehaviour:
   middleCube3Renderer: {fileID: 0}
   middleCube4Renderer: {fileID: 0}
   lightRedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
+  enableOperationLogging: 1
+  operationLogFolder: UserStudyLogs
+  operationLogFileName: baseline1_operation_log.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
 --- !u!114 &1776150496
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93541,7 +93563,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3265390217554441853}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8254cca38622a543bd7824df06befc0, type: 3}
   m_Name: 
@@ -93759,7 +93781,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3265390217554441853}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b630f906b729a249bed157ad5cb11bd, type: 3}
   m_Name: 
@@ -93772,6 +93794,7 @@ MonoBehaviour:
   disableArmUIPlaneDuringDelta: 1
   disableClawModuleControllerDuringDelta: 1
   planeButtonInteraction: {fileID: 1016481723}
+  triggerRightWrist: {fileID: 902935578}
   triggerRightIndexTip: {fileID: 1201296085}
   triggerRightMiddleTip: {fileID: 1307753529}
   triggerRightThumbTip: {fileID: 187972396}
@@ -93849,6 +93872,16 @@ MonoBehaviour:
   middleCube3Renderer: {fileID: 134929433}
   middleCube4Renderer: {fileID: 1185201706}
   lightRedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
+  enableOperationLogging: 1
+  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Ken
+  operationLogFileName: 1_knob.csv
+  appendTimestampToLogFileName: 1
+  restartOperationLogKey: 8
+  restartOperationLogNow: 0
+  loggedOperationCount: 0
+  taskCompletionSeconds: 0
+  currentOperationLogPath: 
+  operationLogStatus: Log not started
 --- !u!114 &4551987535763487162
 MonoBehaviour:
   m_ObjectHideFlags: 0
