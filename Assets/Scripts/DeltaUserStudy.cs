@@ -9,6 +9,27 @@ public class DeltaUserStudy : MonoBehaviour
 {
     public JointAngle jointAngle;
 
+    [Header("=== Baseline1 Operation Log ===")]
+    [Tooltip("Write one CSV row per completed operation. Relative folders are created under the Unity project folder.")]
+    public bool enableOperationLogging = true;
+    [Tooltip("Absolute folder path, or a path relative to the Unity project folder.")]
+    public string operationLogFolder = "UserStudyLogs";
+    [Tooltip("CSV file name written inside Operation Log Folder.")]
+    public string operationLogFileName = "baseline1_operation_log.csv";
+    [Tooltip("If true, append a timestamp suffix when a new log session starts to avoid overwriting previous files.")]
+    public bool appendTimestampToLogFileName = true;
+    [Tooltip("Press this key during Play Mode to discard the current log and start again from operation 0.")]
+    public KeyCode restartOperationLogKey = KeyCode.Backspace;
+    [Tooltip("Turn this on in the Inspector during Play Mode to discard the current log and start again from operation 0.")]
+    public bool restartOperationLogNow;
+    [Tooltip("Turn this on in the Inspector during Play Mode to write the current operation log values to CSV.")]
+    public bool writeOperationLogNow;
+    public int loggedOperationCount;
+    public float totalOperationSeconds;
+    public float taskCompletionSeconds;
+    public string currentOperationLogPath = "";
+    public string operationLogStatus = "Log not started";
+
     [Header("=== Collider/Mode References (disable in keyboard-only mode) ===")]
     public ModeSwitching modeSwitching;
     public ClawModuleController clawModuleController;
@@ -146,25 +167,6 @@ public class DeltaUserStudy : MonoBehaviour
     private bool wasPlaneSPressed;
     private bool wasPlaneDPressed;
     private bool wasPlaneResetPressed;
-
-    [Header("=== Baseline1 Operation Log ===")]
-    [Tooltip("Write one CSV row per completed operation. Relative folders are created under the Unity project folder.")]
-    public bool enableOperationLogging = true;
-    [Tooltip("Absolute folder path, or a path relative to the Unity project folder.")]
-    public string operationLogFolder = "UserStudyLogs";
-    [Tooltip("CSV file name written inside Operation Log Folder.")]
-    public string operationLogFileName = "baseline1_operation_log.csv";
-    [Tooltip("If true, append a timestamp suffix when a new log session starts to avoid overwriting previous files.")]
-    public bool appendTimestampToLogFileName = true;
-    [Tooltip("Press this key during Play Mode to discard the current log and start again from operation 0.")]
-    public KeyCode restartOperationLogKey = KeyCode.Backspace;
-    [Tooltip("Turn this on in the Inspector during Play Mode to discard the current log and start again from operation 0.")]
-    public bool restartOperationLogNow;
-    public int loggedOperationCount;
-    public float totalOperationSeconds;
-    public float taskCompletionSeconds;
-    public string currentOperationLogPath = "";
-    public string operationLogStatus = "Log not started";
 
     private struct OperationLogEntry
     {
@@ -459,6 +461,7 @@ public class DeltaUserStudy : MonoBehaviour
         if (!enableOperationLogging)
         {
             restartOperationLogNow = false;
+            writeOperationLogNow = false;
             return;
         }
 
@@ -466,6 +469,12 @@ public class DeltaUserStudy : MonoBehaviour
         {
             restartOperationLogNow = false;
             RestartOperationLog();
+        }
+
+        if (writeOperationLogNow)
+        {
+            writeOperationLogNow = false;
+            WriteOperationLogCsv(true);
         }
     }
 
@@ -647,7 +656,7 @@ public class DeltaUserStudy : MonoBehaviour
         }
     }
 
-    private string BuildRuntimeOperationLogFileName()
+    private string BuildRuntimeOperationLogFileName(bool forceTimestamp = false)
     {
         string fileName = string.IsNullOrWhiteSpace(operationLogFileName) ? "baseline1_operation_log.csv" : operationLogFileName.Trim();
         string extension = Path.GetExtension(fileName);
@@ -662,16 +671,16 @@ public class DeltaUserStudy : MonoBehaviour
             baseName = "baseline1_operation_log";
         }
 
-        if (!appendTimestampToLogFileName)
+        if (!forceTimestamp && !appendTimestampToLogFileName)
         {
             return baseName + extension;
         }
 
-        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
         return baseName + "_" + timestamp + extension;
     }
 
-    private void WriteOperationLogCsv()
+    private void WriteOperationLogCsv(bool forceNewFileName = false)
     {
         if (!enableOperationLogging)
         {
@@ -680,7 +689,11 @@ public class DeltaUserStudy : MonoBehaviour
         }
 
         string folderPath = ResolveOperationLogFolderPath();
-        if (string.IsNullOrWhiteSpace(runtimeOperationLogFileName))
+        if (forceNewFileName)
+        {
+            runtimeOperationLogFileName = BuildRuntimeOperationLogFileName(true);
+        }
+        else if (string.IsNullOrWhiteSpace(runtimeOperationLogFileName))
         {
             runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
         }
