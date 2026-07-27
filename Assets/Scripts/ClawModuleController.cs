@@ -46,6 +46,8 @@ public class ClawModuleController : MonoBehaviour
     public KeyCode restartOperationLogKey = KeyCode.Backspace;
     [Tooltip("Turn this on in the Inspector during Play Mode to discard the current log and start again from operation 0.")]
     public bool restartOperationLogNow;
+    [Tooltip("Turn this on in the Inspector during Play Mode to write the current operation log values to CSV.")]
+    public bool writeOperationLogNow;
     public int loggedOperationCount;
     public int successOperationCount;
     public int failedOperationCount;
@@ -984,6 +986,7 @@ public class ClawModuleController : MonoBehaviour
         if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive())
         {
             restartOperationLogNow = false;
+            writeOperationLogNow = false;
             return;
         }
 
@@ -991,6 +994,12 @@ public class ClawModuleController : MonoBehaviour
         {
             restartOperationLogNow = false;
             RestartOperationLog();
+        }
+
+        if (writeOperationLogNow)
+        {
+            writeOperationLogNow = false;
+            WriteOperationLogCsv(true);
         }
     }
 
@@ -1012,8 +1021,7 @@ public class ClawModuleController : MonoBehaviour
             taskCompletionSeconds = 0f;
             _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
             _taskCompletionEndedAt = "";
-            operationLogStatus = "Engagement started: operation logging is now active";
-            WriteOperationLogCsv();
+            operationLogStatus = "Engagement started: waiting for CSV write toggle";
         }
 
         if (!engagementActive && _previousEngagementActive && _hasTaskCompletionStart)
@@ -1038,7 +1046,6 @@ public class ClawModuleController : MonoBehaviour
             FinalizeOperation(false, reason + "_before_operation_completed");
         }
 
-        WriteOperationLogCsv();
     }
 
     private void RecordTaskCompletionEnd()
@@ -1047,7 +1054,7 @@ public class ClawModuleController : MonoBehaviour
         _taskCompletionEndTime = Time.realtimeSinceStartup;
         taskCompletionSeconds = Mathf.Max(0f, _taskCompletionEndTime - _taskCompletionStartTime);
         _taskCompletionEndedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-        WriteOperationLogCsv();
+        operationLogStatus = "Task completion time updated: waiting for CSV write toggle";
     }
 
     private bool IsEngagementActive()
@@ -1266,8 +1273,7 @@ public class ClawModuleController : MonoBehaviour
         _operationEnteredManipulate = false;
         _operationChangedAngle = false;
         _operationChangedFreeze = false;
-        operationLogStatus = "Wrote " + loggedOperationCount + " operations";
-        WriteOperationLogCsv();
+        operationLogStatus = "Recorded " + loggedOperationCount + " operations: waiting for CSV write toggle";
     }
 
     private OperationInputSource GetCurrentOperationSource()
@@ -1573,13 +1579,12 @@ public class ClawModuleController : MonoBehaviour
         }
 
         _runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
-        WriteOperationLogCsv();
         operationLogStatus = _hasTaskCompletionStart
-            ? "Engagement already ON: operation logging active"
+            ? "Engagement already ON: waiting for CSV write toggle"
             : "Waiting for first engagement ON";
     }
 
-    private string BuildRuntimeOperationLogFileName()
+    private string BuildRuntimeOperationLogFileName(bool forceTimestamp = false)
     {
         string fileName = string.IsNullOrWhiteSpace(operationLogFileName) ? "claw_operation_log.csv" : operationLogFileName.Trim();
         string extension = Path.GetExtension(fileName);
@@ -1594,16 +1599,16 @@ public class ClawModuleController : MonoBehaviour
             baseName = "claw_operation_log";
         }
 
-        if (!appendTimestampToLogFileName)
+        if (!forceTimestamp && !appendTimestampToLogFileName)
         {
             return baseName + extension;
         }
 
-        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
         return baseName + "_" + timestamp + extension;
     }
 
-    private void WriteOperationLogCsv()
+    private void WriteOperationLogCsv(bool forceNewFileName = false)
     {
         if (!enableOperationLogging || IsBaselineTwoKeyboardControlActive())
         {
@@ -1614,7 +1619,11 @@ public class ClawModuleController : MonoBehaviour
         }
 
         string folderPath = ResolveOperationLogFolderPath();
-        if (string.IsNullOrWhiteSpace(_runtimeOperationLogFileName))
+        if (forceNewFileName)
+        {
+            _runtimeOperationLogFileName = BuildRuntimeOperationLogFileName(true);
+        }
+        else if (string.IsNullOrWhiteSpace(_runtimeOperationLogFileName))
         {
             _runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
         }
@@ -1624,6 +1633,7 @@ public class ClawModuleController : MonoBehaviour
             Directory.CreateDirectory(folderPath);
             currentOperationLogPath = Path.Combine(folderPath, _runtimeOperationLogFileName);
             File.WriteAllText(currentOperationLogPath, BuildOperationLogCsv(), Encoding.UTF8);
+            operationLogStatus = "Wrote " + loggedOperationCount + " operations";
         }
         catch (System.Exception exception)
         {
@@ -1709,7 +1719,7 @@ public class ClawModuleController : MonoBehaviour
         successOperationSeconds = computedSuccessSeconds;
         failedOperationSeconds = computedFailedSeconds;
 
-        builder.Append("Summary,,,,,,,,,,,,");
+        builder.Append("Summary,,,,,,,,,,,,,");
         builder.Append(loggedOperationCount.ToString(CultureInfo.InvariantCulture));
         builder.Append(',');
         builder.Append(successOperationCount.ToString(CultureInfo.InvariantCulture));
