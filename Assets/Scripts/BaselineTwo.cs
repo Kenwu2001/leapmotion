@@ -51,6 +51,8 @@ public class BaselineTwo : MonoBehaviour
     public KeyCode restartOperationLogKey = KeyCode.Backspace;
     [Tooltip("Turn this on in the Inspector during Play Mode to discard the current log and start again from operation 0.")]
     public bool restartOperationLogNow;
+    [Tooltip("Turn this on in the Inspector during Play Mode to write the current operation log values to CSV.")]
+    public bool writeOperationLogNow;
     public int loggedOperationCount;
     public float totalOperationSeconds;
     public float taskCompletionSeconds;
@@ -192,6 +194,7 @@ public class BaselineTwo : MonoBehaviour
         if (!enableOperationLogging)
         {
             restartOperationLogNow = false;
+            writeOperationLogNow = false;
             return;
         }
 
@@ -199,6 +202,12 @@ public class BaselineTwo : MonoBehaviour
         {
             restartOperationLogNow = false;
             RestartOperationLog();
+        }
+
+        if (writeOperationLogNow)
+        {
+            writeOperationLogNow = false;
+            WriteOperationLogCsv(true);
         }
     }
 
@@ -380,7 +389,7 @@ public class BaselineTwo : MonoBehaviour
         }
     }
 
-    private string BuildRuntimeOperationLogFileName()
+    private string BuildRuntimeOperationLogFileName(bool forceTimestamp = false)
     {
         string fileName = string.IsNullOrWhiteSpace(operationLogFileName) ? "baseline2_operation_log.csv" : operationLogFileName.Trim();
         string extension = Path.GetExtension(fileName);
@@ -395,16 +404,16 @@ public class BaselineTwo : MonoBehaviour
             baseName = "baseline2_operation_log";
         }
 
-        if (!appendTimestampToLogFileName)
+        if (!forceTimestamp && !appendTimestampToLogFileName)
         {
             return baseName + extension;
         }
 
-        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
         return baseName + "_" + timestamp + extension;
     }
 
-    private void WriteOperationLogCsv()
+    private void WriteOperationLogCsv(bool forceNewFileName = false)
     {
         if (!enableOperationLogging)
         {
@@ -413,7 +422,11 @@ public class BaselineTwo : MonoBehaviour
         }
 
         string folderPath = ResolveOperationLogFolderPath();
-        if (string.IsNullOrWhiteSpace(runtimeOperationLogFileName))
+        if (forceNewFileName)
+        {
+            runtimeOperationLogFileName = BuildRuntimeOperationLogFileName(true);
+        }
+        else if (string.IsNullOrWhiteSpace(runtimeOperationLogFileName))
         {
             runtimeOperationLogFileName = BuildRuntimeOperationLogFileName();
         }

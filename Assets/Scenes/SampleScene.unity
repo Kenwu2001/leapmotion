@@ -93618,7 +93618,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3265390217554441853}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8254cca38622a543bd7824df06befc0, type: 3}
   m_Name: 
@@ -93853,7 +93853,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3265390217554441853}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b630f906b729a249bed157ad5cb11bd, type: 3}
   m_Name: 
@@ -93978,6 +93978,7 @@ MonoBehaviour:
   appendTimestampToLogFileName: 1
   restartOperationLogKey: 8
   restartOperationLogNow: 0
+  writeOperationLogNow: 0
   loggedOperationCount: 0
   totalOperationSeconds: 0
   taskCompletionSeconds: 0
