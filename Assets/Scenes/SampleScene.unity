@@ -52300,6 +52300,7 @@ MonoBehaviour:
   loggedOperationCount: 0
   successOperationCount: 0
   failedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   successOperationSeconds: 0
   failedOperationSeconds: 0
@@ -67631,6 +67632,7 @@ MonoBehaviour:
   restartOperationLogNow: 0
   writeOperationLogNow: 0
   loggedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 
@@ -67754,6 +67756,7 @@ MonoBehaviour:
   loggedOperationCount: 0
   successOperationCount: 0
   failedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   successOperationSeconds: 0
   failedOperationSeconds: 0
@@ -82406,6 +82409,7 @@ MonoBehaviour:
   restartOperationLogNow: 0
   writeOperationLogNow: 0
   loggedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 
@@ -82529,6 +82533,7 @@ MonoBehaviour:
   loggedOperationCount: 0
   successOperationCount: 0
   failedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   successOperationSeconds: 0
   failedOperationSeconds: 0
@@ -93636,8 +93641,8 @@ MonoBehaviour:
   debugArmUIDirectOverrideActive: 0
   debugArmUIOverrideSource: None
   enableOperationLogging: 1
-  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Arisa
-  operationLogFileName: 3_hhh.csv
+  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Young
+  operationLogFileName: 3_ttttt.csv
   appendTimestampToLogFileName: 1
   restartOperationLogKey: 8
   restartOperationLogNow: 0
@@ -93645,6 +93650,7 @@ MonoBehaviour:
   loggedOperationCount: 0
   successOperationCount: 0
   failedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   successOperationSeconds: 0
   failedOperationSeconds: 0
@@ -93860,13 +93866,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointAngle: {fileID: 1422305614}
   enableOperationLogging: 1
-  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Arisa
-  operationLogFileName: 1_asas.csv
+  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Linda
+  operationLogFileName: 1_handle.csv
   appendTimestampToLogFileName: 1
   restartOperationLogKey: 8
   restartOperationLogNow: 0
   writeOperationLogNow: 0
   loggedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 
@@ -93973,13 +93980,14 @@ MonoBehaviour:
   planeButtonInteraction: {fileID: 1016481720}
   triggerRightWrist: {fileID: 0}
   enableOperationLogging: 1
-  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Ken
-  operationLogFileName: 2_asas.csv
+  operationLogFolder: C:\Users\succe\OneDrive\Desktop\Ken\EmbodiGripperLog\Linda
+  operationLogFileName: 2_handle.csv
   appendTimestampToLogFileName: 1
   restartOperationLogKey: 8
   restartOperationLogNow: 0
   writeOperationLogNow: 0
   loggedOperationCount: 0
+  engagementOnCount: 0
   totalOperationSeconds: 0
   taskCompletionSeconds: 0
   currentOperationLogPath: 

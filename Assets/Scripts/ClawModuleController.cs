@@ -51,6 +51,7 @@ public class ClawModuleController : MonoBehaviour
     public int loggedOperationCount;
     public int successOperationCount;
     public int failedOperationCount;
+    public int engagementOnCount;
     public float totalOperationSeconds;
     public float successOperationSeconds;
     public float failedOperationSeconds;
@@ -1012,16 +1013,20 @@ public class ClawModuleController : MonoBehaviour
         }
 
         bool engagementActive = IsEngagementActive();
-        if (engagementActive && !_previousEngagementActive && !_hasTaskCompletionStart)
+        if (engagementActive && !_previousEngagementActive)
         {
-            _hasTaskCompletionStart = true;
-            _hasTaskCompletionEnd = false;
-            _taskCompletionStartTime = Time.realtimeSinceStartup;
-            _taskCompletionEndTime = 0f;
-            taskCompletionSeconds = 0f;
-            _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            _taskCompletionEndedAt = "";
-            operationLogStatus = "Engagement started: waiting for CSV write toggle";
+            engagementOnCount += 1;
+            if (!_hasTaskCompletionStart)
+            {
+                _hasTaskCompletionStart = true;
+                _hasTaskCompletionEnd = false;
+                _taskCompletionStartTime = Time.realtimeSinceStartup;
+                _taskCompletionEndTime = 0f;
+                taskCompletionSeconds = 0f;
+                _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                _taskCompletionEndedAt = "";
+                operationLogStatus = "Engagement started: waiting for CSV write toggle";
+            }
         }
 
         if (!engagementActive && _previousEngagementActive && _hasTaskCompletionStart)
@@ -1545,6 +1550,7 @@ public class ClawModuleController : MonoBehaviour
         loggedOperationCount = 0;
         successOperationCount = 0;
         failedOperationCount = 0;
+        engagementOnCount = 0;
         totalOperationSeconds = 0f;
         successOperationSeconds = 0f;
         failedOperationSeconds = 0f;
@@ -1565,6 +1571,7 @@ public class ClawModuleController : MonoBehaviour
         _previousEngagementActive = IsEngagementActive();
         if (_previousEngagementActive)
         {
+            engagementOnCount = 1;
             _hasTaskCompletionStart = true;
             _taskCompletionStartTime = Time.realtimeSinceStartup;
             _taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
@@ -1668,7 +1675,7 @@ public class ClawModuleController : MonoBehaviour
         int computedFailedCount = 0;
 
         StringBuilder builder = new StringBuilder();
-        builder.AppendLine("RecordType,OperationIndex,Success,Source,Reason,StartRealtimeSeconds,EndRealtimeSeconds,DurationSeconds,EnteredManipulate,ChangedAngle,ChangedFreeze,StartedAt,EndedAt,TotalOperations,SuccessOperations,FailedOperations,TotalOperationSeconds,SuccessOperationSeconds,FailedOperationSeconds,TaskStartRealtimeSeconds,TaskEndRealtimeSeconds,TaskCompletionSeconds,TaskStartedAt,TaskEndedAt");
+        builder.AppendLine("RecordType,OperationIndex,Success,Source,Reason,StartRealtimeSeconds,EndRealtimeSeconds,DurationSeconds,EnteredManipulate,ChangedAngle,ChangedFreeze,StartedAt,EndedAt,TotalOperations,SuccessOperations,FailedOperations,TotalOperationSeconds,SuccessOperationSeconds,FailedOperationSeconds,TaskStartRealtimeSeconds,TaskEndRealtimeSeconds,TaskCompletionSeconds,TaskStartedAt,TaskEndedAt,EngagementOnCount");
 
         for (int i = 0; i < _operationLogEntries.Count; i++)
         {
@@ -1709,7 +1716,7 @@ public class ClawModuleController : MonoBehaviour
             builder.Append(EscapeCsv(entry.startedAt));
             builder.Append(',');
             builder.Append(EscapeCsv(entry.endedAt));
-            builder.AppendLine(",,,,,,,,,,,");
+            builder.AppendLine(",,,,,,,,,,,,");
         }
 
         loggedOperationCount = _operationLogEntries.Count;
@@ -1740,7 +1747,9 @@ public class ClawModuleController : MonoBehaviour
         builder.Append(',');
         builder.Append(EscapeCsv(_taskCompletionStartedAt));
         builder.Append(',');
-        builder.AppendLine(EscapeCsv(_taskCompletionEndedAt));
+        builder.Append(EscapeCsv(_taskCompletionEndedAt));
+        builder.Append(',');
+        builder.AppendLine(engagementOnCount.ToString(CultureInfo.InvariantCulture));
         return builder.ToString();
     }
 

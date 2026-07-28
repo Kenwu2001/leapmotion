@@ -54,6 +54,7 @@ public class BaselineTwo : MonoBehaviour
     [Tooltip("Turn this on in the Inspector during Play Mode to write the current operation log values to CSV.")]
     public bool writeOperationLogNow;
     public int loggedOperationCount;
+    public int engagementOnCount;
     public float totalOperationSeconds;
     public float taskCompletionSeconds;
     public string currentOperationLogPath = "";
@@ -271,16 +272,21 @@ public class BaselineTwo : MonoBehaviour
         }
 
         bool engagementActive = IsEngagementActive();
-        if (engagementActive && !previousEngagementActive && !hasTaskCompletionStart)
+        if (engagementActive && !previousEngagementActive)
         {
-            hasTaskCompletionStart = true;
-            hasTaskCompletionEnd = false;
-            taskCompletionStartTime = Time.realtimeSinceStartup;
-            taskCompletionEndTime = 0f;
-            taskCompletionSeconds = 0f;
-            taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            taskCompletionEndedAt = "";
-            operationLogStatus = "Engagement started: operation logging is now active";
+            engagementOnCount += 1;
+            if (!hasTaskCompletionStart)
+            {
+                hasTaskCompletionStart = true;
+                hasTaskCompletionEnd = false;
+                taskCompletionStartTime = Time.realtimeSinceStartup;
+                taskCompletionEndTime = 0f;
+                taskCompletionSeconds = 0f;
+                taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                taskCompletionEndedAt = "";
+                operationLogStatus = "Engagement started: operation logging is now active";
+            }
+
             WriteOperationLogCsv();
         }
 
@@ -358,6 +364,7 @@ public class BaselineTwo : MonoBehaviour
     {
         operationLogEntries.Clear();
         loggedOperationCount = 0;
+        engagementOnCount = 0;
         totalOperationSeconds = 0f;
         taskCompletionSeconds = 0f;
         operationLogActive = false;
@@ -372,6 +379,7 @@ public class BaselineTwo : MonoBehaviour
         previousEngagementActive = IsEngagementActive();
         if (previousEngagementActive)
         {
+            engagementOnCount = 1;
             hasTaskCompletionStart = true;
             taskCompletionStartTime = Time.realtimeSinceStartup;
             taskCompletionStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
@@ -460,7 +468,7 @@ public class BaselineTwo : MonoBehaviour
     private string BuildOperationLogCsv()
     {
         StringBuilder builder = new StringBuilder();
-        builder.AppendLine("RecordType,OperationIndex,StartRealtimeSeconds,EndRealtimeSeconds,DurationSeconds,StartedAt,EndedAt,TotalOperations,TotalOperationSeconds,TaskStartRealtimeSeconds,TaskEndRealtimeSeconds,TaskCompletionSeconds,TaskStartedAt,TaskEndedAt");
+        builder.AppendLine("RecordType,OperationIndex,StartRealtimeSeconds,EndRealtimeSeconds,DurationSeconds,StartedAt,EndedAt,TotalOperations,TotalOperationSeconds,TaskStartRealtimeSeconds,TaskEndRealtimeSeconds,TaskCompletionSeconds,TaskStartedAt,TaskEndedAt,EngagementOnCount");
 
         float calculatedTotalOperationSeconds = 0f;
         for (int i = 0; i < operationLogEntries.Count; i++)
@@ -480,7 +488,7 @@ public class BaselineTwo : MonoBehaviour
             builder.Append(EscapeCsv(entry.startedAt));
             builder.Append(',');
             builder.Append(EscapeCsv(entry.endedAt));
-            builder.AppendLine(",,,,,,,");
+            builder.AppendLine(",,,,,,,,");
         }
 
         totalOperationSeconds = calculatedTotalOperationSeconds;
@@ -497,7 +505,9 @@ public class BaselineTwo : MonoBehaviour
         builder.Append(',');
         builder.Append(EscapeCsv(taskCompletionStartedAt));
         builder.Append(',');
-        builder.AppendLine(EscapeCsv(taskCompletionEndedAt));
+        builder.Append(EscapeCsv(taskCompletionEndedAt));
+        builder.Append(',');
+        builder.AppendLine(engagementOnCount.ToString(CultureInfo.InvariantCulture));
         return builder.ToString();
     }
 
