@@ -74,8 +74,12 @@ public class BaselineTwo : MonoBehaviour
     private bool operationSawAdjustmentInput;
     private float currentOperationStartTime;
     private string currentOperationStartedAt;
+    private float completedOperationSeconds;
     private bool previousAnyAdjustmentPressed;
     private bool previousEngagementActive;
+    private bool hasPendingOperationEnd;
+    private float pendingOperationEndTime;
+    private string pendingOperationEndedAt;
     private bool hasTaskCompletionStart;
     private bool hasTaskCompletionEnd;
     private float taskCompletionStartTime;
@@ -208,13 +212,14 @@ public class BaselineTwo : MonoBehaviour
         if (writeOperationLogNow)
         {
             writeOperationLogNow = false;
+            CompletePendingOperationIfReady();
             WriteOperationLogCsv(true);
         }
     }
 
     private void TrackOperationStartBeforeInputHandlers()
     {
-        if (!enableOperationLogging || operationLogActive)
+        if (!enableOperationLogging)
         {
             return;
         }
@@ -226,12 +231,30 @@ public class BaselineTwo : MonoBehaviour
 
         if (IsAnyNavigationPressedThisFrame())
         {
-            operationLogActive = true;
-            operationSawAdjustmentInput = false;
-            currentOperationStartTime = Time.realtimeSinceStartup;
-            currentOperationStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            operationLogStatus = "Operation " + (operationLogEntries.Count + 1) + " running";
+            if (operationLogActive)
+            {
+                if (hasPendingOperationEnd)
+                {
+                    CompleteCurrentOperation(pendingOperationEndTime, pendingOperationEndedAt);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            StartNewOperation();
         }
+    }
+
+    private void StartNewOperation()
+    {
+        operationLogActive = true;
+        operationSawAdjustmentInput = false;
+        hasPendingOperationEnd = false;
+        currentOperationStartTime = Time.realtimeSinceStartup;
+        currentOperationStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+        operationLogStatus = "Operation " + (operationLogEntries.Count + 1) + " running";
     }
 
     private void TrackOperationEndAfterInputHandlers()
@@ -257,7 +280,10 @@ public class BaselineTwo : MonoBehaviour
         bool adjustmentReleasedThisFrame = previousAnyAdjustmentPressed && !anyAdjustmentPressed;
         if (operationLogActive && operationSawAdjustmentInput && adjustmentReleasedThisFrame)
         {
-            CompleteCurrentOperation();
+            hasPendingOperationEnd = true;
+            pendingOperationEndTime = Time.realtimeSinceStartup;
+            pendingOperationEndedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            UpdateTotalOperationSeconds();
         }
 
         previousAnyAdjustmentPressed = anyAdjustmentPressed;
@@ -292,6 +318,7 @@ public class BaselineTwo : MonoBehaviour
 
         if (!engagementActive && previousEngagementActive && hasTaskCompletionStart)
         {
+            CompletePendingOperationIfReady();
             hasTaskCompletionEnd = true;
             taskCompletionEndTime = Time.realtimeSinceStartup;
             taskCompletionSeconds = Mathf.Max(0f, taskCompletionEndTime - taskCompletionStartTime);
@@ -339,9 +366,16 @@ public class BaselineTwo : MonoBehaviour
         return Input.GetKey(keyCode) || IsPlaneButtonTouched(keyCode);
     }
 
-    private void CompleteCurrentOperation()
+    private void CompletePendingOperationIfReady()
     {
-        float endTime = Time.realtimeSinceStartup;
+        if (operationLogActive && hasPendingOperationEnd)
+        {
+            CompleteCurrentOperation(pendingOperationEndTime, pendingOperationEndedAt);
+        }
+    }
+
+    private void CompleteCurrentOperation(float endTime, string endedAt)
+    {
         float duration = Mathf.Max(0f, endTime - currentOperationStartTime);
         operationLogEntries.Add(new OperationLogEntry
         {
@@ -349,14 +383,25 @@ public class BaselineTwo : MonoBehaviour
             startTime = currentOperationStartTime,
             endTime = endTime,
             startedAt = currentOperationStartedAt,
-            endedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)
+            endedAt = endedAt
         });
 
         loggedOperationCount = operationLogEntries.Count;
-        totalOperationSeconds += duration;
+        completedOperationSeconds += duration;
         operationLogActive = false;
         operationSawAdjustmentInput = false;
+        hasPendingOperationEnd = false;
+        UpdateTotalOperationSeconds();
         WriteOperationLogCsv();
+    }
+
+    private void UpdateTotalOperationSeconds()
+    {
+        totalOperationSeconds = completedOperationSeconds;
+        if (operationLogActive && hasPendingOperationEnd)
+        {
+            totalOperationSeconds += Mathf.Max(0f, pendingOperationEndTime - currentOperationStartTime);
+        }
     }
 
     [ContextMenu("Restart Operation Log")]
@@ -365,10 +410,12 @@ public class BaselineTwo : MonoBehaviour
         operationLogEntries.Clear();
         loggedOperationCount = 0;
         engagementOnCount = 0;
+        completedOperationSeconds = 0f;
         totalOperationSeconds = 0f;
         taskCompletionSeconds = 0f;
         operationLogActive = false;
         operationSawAdjustmentInput = false;
+        hasPendingOperationEnd = false;
         previousAnyAdjustmentPressed = IsAnyAdjustmentPressed();
         hasTaskCompletionStart = false;
         hasTaskCompletionEnd = false;
@@ -491,7 +538,8 @@ public class BaselineTwo : MonoBehaviour
             builder.AppendLine(",,,,,,,,");
         }
 
-        totalOperationSeconds = calculatedTotalOperationSeconds;
+        completedOperationSeconds = calculatedTotalOperationSeconds;
+        UpdateTotalOperationSeconds();
         builder.Append("Summary,,,,,,,");
         builder.Append(operationLogEntries.Count.ToString(CultureInfo.InvariantCulture));
         builder.Append(',');
