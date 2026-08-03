@@ -181,6 +181,7 @@ public class DeltaUserStudy : MonoBehaviour
     private readonly List<OperationLogEntry> operationLogEntries = new List<OperationLogEntry>();
     private bool operationLogActive;
     private bool operationSawAdjustmentInput;
+    private bool currentOperationCounted;
     private float currentOperationStartTime;
     private string currentOperationStartedAt;
     private float completedOperationSeconds;
@@ -496,7 +497,9 @@ public class DeltaUserStudy : MonoBehaviour
             return;
         }
 
-        if (IsAnyNavigationPressedThisFrame())
+        bool navigationPressedThisFrame = IsAnyNavigationPressedThisFrame();
+        bool adjustmentPressedThisFrame = IsAnyAdjustmentPressed() && !previousAnyAdjustmentPressed;
+        if (navigationPressedThisFrame)
         {
             if (operationLogActive)
             {
@@ -512,12 +515,17 @@ public class DeltaUserStudy : MonoBehaviour
 
             StartNewOperation();
         }
+        else if (!operationLogActive && adjustmentPressedThisFrame)
+        {
+            StartNewOperation();
+        }
     }
 
     private void StartNewOperation()
     {
         operationLogActive = true;
         operationSawAdjustmentInput = false;
+        currentOperationCounted = false;
         hasPendingOperationEnd = false;
         currentOperationStartTime = Time.realtimeSinceStartup;
         currentOperationStartedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
@@ -542,6 +550,7 @@ public class DeltaUserStudy : MonoBehaviour
         if (operationLogActive && anyAdjustmentPressed)
         {
             operationSawAdjustmentInput = true;
+            CountCurrentOperationIfNeeded();
         }
 
         bool adjustmentReleasedThisFrame = previousAnyAdjustmentPressed && !anyAdjustmentPressed;
@@ -653,13 +662,28 @@ public class DeltaUserStudy : MonoBehaviour
             endedAt = endedAt
         });
 
-        loggedOperationCount = operationLogEntries.Count;
         completedOperationSeconds += duration;
         operationLogActive = false;
         operationSawAdjustmentInput = false;
+        currentOperationCounted = false;
         hasPendingOperationEnd = false;
+        UpdateLoggedOperationCount();
         UpdateTotalOperationSeconds();
         WriteOperationLogCsv();
+    }
+
+    private void CountCurrentOperationIfNeeded()
+    {
+        if (!currentOperationCounted)
+        {
+            currentOperationCounted = true;
+            UpdateLoggedOperationCount();
+        }
+    }
+
+    private void UpdateLoggedOperationCount()
+    {
+        loggedOperationCount = operationLogEntries.Count + (currentOperationCounted ? 1 : 0);
     }
 
     private void UpdateTotalOperationSeconds()
@@ -682,6 +706,7 @@ public class DeltaUserStudy : MonoBehaviour
         taskCompletionSeconds = 0f;
         operationLogActive = false;
         operationSawAdjustmentInput = false;
+        currentOperationCounted = false;
         hasPendingOperationEnd = false;
         previousAnyAdjustmentPressed = IsAnyAdjustmentPressed();
         hasTaskCompletionStart = false;
@@ -807,10 +832,11 @@ public class DeltaUserStudy : MonoBehaviour
         }
 
         completedOperationSeconds = calculatedTotalOperationSeconds;
+        UpdateLoggedOperationCount();
         UpdateTotalOperationSeconds();
 
         builder.Append("Summary,,,,,,,");
-        builder.Append(operationLogEntries.Count.ToString(CultureInfo.InvariantCulture));
+        builder.Append(loggedOperationCount.ToString(CultureInfo.InvariantCulture));
         builder.Append(',');
         builder.Append(totalOperationSeconds.ToString("F4", CultureInfo.InvariantCulture));
         builder.Append(',');
